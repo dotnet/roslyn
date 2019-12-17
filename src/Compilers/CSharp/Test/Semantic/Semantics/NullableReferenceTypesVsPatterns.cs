@@ -133,7 +133,7 @@ class C
         string nonConstant = ""hello"";
         if (x is nonConstant)
         {
-            x.ToString(); // warn
+            x.ToString();
         }
     }
 }
@@ -141,10 +141,7 @@ class C
             c.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
                 //         if (x is nonConstant)
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
-                // (9,13): warning CS8602: Dereference of a possibly null reference.
-                //             x.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18)
                 );
         }
 

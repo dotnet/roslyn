@@ -99,26 +99,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            switch (node.Kind())
+            return node switch
             {
-                case SyntaxKind.DiscardPattern:
-                    return BindDiscardPattern((DiscardPatternSyntax)node, inputType);
-
-                case SyntaxKind.DeclarationPattern:
-                    return BindDeclarationPattern((DeclarationPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
-
-                case SyntaxKind.ConstantPattern:
-                    return BindConstantPattern((ConstantPatternSyntax)node, inputType, hasErrors, diagnostics);
-
-                case SyntaxKind.RecursivePattern:
-                    return BindRecursivePattern((RecursivePatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
-
-                case SyntaxKind.VarPattern:
-                    return BindVarPattern((VarPatternSyntax)node, inputType, inputValEscape, hasErrors, diagnostics);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
-            }
+                DiscardPatternSyntax p => BindDiscardPattern(p, inputType),
+                DeclarationPatternSyntax p => BindDeclarationPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                ConstantPatternSyntax p => BindConstantPatternWithFallbackToTypePattern(p, inputType, hasErrors, diagnostics),
+                RecursivePatternSyntax p => BindRecursivePattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                VarPatternSyntax p => BindVarPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                ParenthesizedPatternSyntax p => BindPattern(p.Pattern, inputType, inputValEscape, hasErrors, diagnostics),
+                BinaryPatternSyntax p => BindBinaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                RelationalPatternSyntax p => BindRelationalPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                TypePatternSyntax p => BindTypePatternWithFallbackToConstantPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+            };
         }
 
         private BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
@@ -126,20 +120,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDiscardPattern(node, inputType);
         }
 
-        private BoundConstantPattern BindConstantPattern(
+        private BoundPattern BindConstantPatternWithFallbackToTypePattern(
             ConstantPatternSyntax node,
             TypeSymbol inputType,
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            SyntaxNode innerExpression = node.Expression.SkipParens();
+            return BindConstantPatternWithFallbackToTypePattern(node, node.Expression, inputType, hasErrors, diagnostics);
+        }
+
+        internal BoundPattern BindConstantPatternWithFallbackToTypePattern(
+            SyntaxNode node,
+            ExpressionSyntax expression,
+            TypeSymbol inputType,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            ExpressionSyntax innerExpression = expression.SkipParens();
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
             {
                 diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
                 hasErrors = true;
             }
 
-            return BindConstantPattern(node, inputType, node.Expression, hasErrors, diagnostics, out _);
+            var constantDiagnostics = DiagnosticBag.GetInstance();
+            BoundPattern result = BindConstantPattern(node, inputType, expression, hasErrors, constantDiagnostics, out bool wasExpression);
+
+            // fall back to a type pattern if it fails as a constant pattern.
+            if (!wasExpression && !IsUnderscore(innerExpression))
+            {
+                if (TryBindAsType(innerExpression, out DiagnosticBag bindAsTypeDiagnostics, out BoundTypeExpression boundType))
+                {
+                    diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
+                    hasErrors |= CheckValidPatternType(innerExpression, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
+                    CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
+                    result = new BoundTypePattern(node, boundType, inputType, hasErrors);
+                }
+                else
+                {
+                    bindAsTypeDiagnostics.Free();
+                    diagnostics.AddRange(constantDiagnostics);
+                }
+            }
+            else
+            {
+                diagnostics.AddRange(constantDiagnostics);
+            }
+
+            constantDiagnostics.Free();
+            return result;
         }
 
         internal BoundConstantPattern BindConstantPattern(
@@ -150,8 +179,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
+            var convertedExpression = BindExpressionForPattern(node, inputType, patternExpression, hasErrors, diagnostics, out var constantValueOpt, out wasExpression);
+            return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+        }
+
+        private BoundExpression BindExpressionForPattern(SyntaxNode node,
+            TypeSymbol inputType,
+            ExpressionSyntax patternExpression,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out ConstantValue constantValueOpt,
+            out bool wasExpression)
+        {
             BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
-            ConstantValue constantValueOpt = null;
+            constantValueOpt = null;
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
@@ -179,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
             }
 
-            return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+            return convertedExpression;
         }
 
         internal BoundExpression ConvertPatternExpression(
@@ -446,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We should have the right binder in the chain for a script or interactive, so we use the field for the pattern.
                         Debug.Assert(designation.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
                         GlobalExpressionVariable expressionVariableField = LookupDeclaredField(singleVariableDesignation);
-                        DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
+                        var tempDiagnostics = DiagnosticBag.GetInstance();
                         expressionVariableField.SetTypeWithAnnotations(declType, tempDiagnostics);
                         tempDiagnostics.Free();
                         BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
@@ -1078,6 +1119,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return boundMember.ExpressionSymbol;
+        }
+
+        private BoundPattern BindTypePatternWithFallbackToConstantPattern(
+            TypePatternSyntax node,
+            TypeSymbol inputType,
+            uint inputValEscape,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            var constantDiagnostics = DiagnosticBag.GetInstance();
+            if (!TryBindAsType(node.Type, out DiagnosticBag bindAsTypeDiagnostics, out BoundTypeExpression boundType) &&
+                BindConstantPattern(node, inputType, node.Type, hasErrors, constantDiagnostics, out bool wasExpression) is var constantPattern &&
+                wasExpression)
+            {
+                diagnostics.AddRangeAndFree(constantDiagnostics);
+                return constantPattern;
+            }
+            else
+            {
+                diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
+                constantDiagnostics.Free();
+                hasErrors |= CheckValidPatternType(node.Type, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
+                return new BoundTypePattern(node, boundType, inputType, hasErrors);
+            }
+        }
+
+        private bool TryBindAsType(
+            ExpressionSyntax possibleType,
+            out DiagnosticBag bindAsTypeDiagnostics,
+            out BoundTypeExpression boundType)
+        {
+            bindAsTypeDiagnostics = DiagnosticBag.GetInstance();
+            TypeWithAnnotations targetTypeWithAnnotations = BindType(possibleType, bindAsTypeDiagnostics, out AliasSymbol alias);
+            TypeSymbol targetType = targetTypeWithAnnotations.Type;
+            boundType = new BoundTypeExpression(possibleType, alias, targetTypeWithAnnotations);
+            return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
+        }
+
+        private BoundPattern BindRelationalPattern(
+            RelationalPatternSyntax node,
+            TypeSymbol inputType,
+            uint inputValEscape,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            BoundExpression value = BindExpressionForPattern(node, inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out _);
+            // PROTOTYPE(ngafter): TODO: check that the operator exists for that type (e.g. error for string < "")
+            BinaryOperatorKind kind = TokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
+            return new BoundRelationalPattern(node, kind, value, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+        }
+
+        private BinaryOperatorKind TokenKindToBinaryOperatorKind(SyntaxKind kind) => kind switch
+        {
+            SyntaxKind.LessThanEqualsToken => BinaryOperatorKind.LessThanOrEqual,
+            SyntaxKind.LessThanToken => BinaryOperatorKind.LessThan,
+            SyntaxKind.GreaterThanToken => BinaryOperatorKind.GreaterThan,
+            SyntaxKind.GreaterThanEqualsToken => BinaryOperatorKind.GreaterThanOrEqual,
+            // The following occur in error recovery scenarios
+            SyntaxKind.ExclamationEqualsToken => BinaryOperatorKind.NotEqual,
+            _ => BinaryOperatorKind.Equal,
+        };
+
+        private BoundPattern BindUnaryPattern(
+            UnaryPatternSyntax node,
+            TypeSymbol inputType,
+            uint inputValEscape,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            // PROTOTYPE(ngafter): prevent designators under 'or' and 'not'
+            var subPattern = BindPattern(node.Pattern, inputType, inputValEscape, hasErrors, diagnostics);
+            return new BoundNegatedPattern(node, subPattern, inputType, hasErrors);
+        }
+
+        private BoundPattern BindBinaryPattern(
+            BinaryPatternSyntax node,
+            TypeSymbol inputType,
+            uint inputValEscape,
+            bool hasErrors,
+            DiagnosticBag diagnostics)
+        {
+            // PROTOTYPE(ngafter): prevent designators under 'or' and 'not'
+            var left = BindPattern(node.LeftPattern, inputType, inputValEscape, hasErrors, diagnostics);
+            var right = BindPattern(node.RightPattern, inputType, inputValEscape, hasErrors, diagnostics);
+            return new BoundBinaryPattern(node, disjunction: node.PatternOperator.Kind() == SyntaxKind.OrKeyword, left, right, inputType, hasErrors);
         }
     }
 }

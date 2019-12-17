@@ -31552,10 +31552,14 @@ class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             // The point of this test is that it should not crash.
+            // PROTOTYPE(ngafter): should suppress the unreachable code warning.
             compilation.VerifyDiagnostics(
                 // (8,18): error CS0150: A constant value is expected
                 //             case !TakeOutParam(3, out var x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "!TakeOutParam(3, out var x1)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "!TakeOutParam(3, out var x1)").WithLocation(8, 18),
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -33861,6 +33865,9 @@ class C
                 // (11,18): error CS0150: A constant value is expected
                 //             case !M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "!M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case !M(nameof(M(out var z2)), z2):
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "!M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
                 // (8,44): error CS0165: Use of unassigned local variable 'z1'
                 //             case !M(nameof(M(out int z1)), z1):
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 44),

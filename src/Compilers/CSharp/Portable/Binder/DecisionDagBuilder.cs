@@ -288,6 +288,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundITuplePattern iTuple:
                     MakeTestsAndBindings(input, iTuple, tests, bindings);
                     break;
+                case BoundTypePattern type:
+                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
+                    break;
+                case BoundRelationalPattern rel:
+                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
+                    break;
+                case BoundNegatedPattern neg:
+                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
+                    break;
+                case BoundBinaryPattern bin:
+                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
+                    break;
                 default:
                     throw new NotImplementedException(pattern.Kind.ToString());
             }

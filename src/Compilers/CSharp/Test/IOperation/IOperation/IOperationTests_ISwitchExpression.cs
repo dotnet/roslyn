@@ -96,23 +96,17 @@ class X
 }
 ";
             string expectedOperationTree = @"
-ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
-  Value: 
-    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
-  Arms(1):
-      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '=> 5')
-        Pattern: 
-          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '') (InputType: System.Int32?)
+    ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
+      Value: 
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+      Arms(1):
+          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '=> 5')
+            Pattern: 
+              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
             Value: 
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                Children(0)
-        Value: 
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                //         y = /*<bind>*/x switch { => 5 }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,34): error CS8504: Pattern missing
                 //         y = /*<bind>*/x switch { => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(7, 34)

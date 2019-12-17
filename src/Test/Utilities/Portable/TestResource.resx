@@ -209,6 +209,9 @@ namespace My
             }
         }
 
+        public static bool IsAsciiLetter(char c) => c is (>= 'a' and &lt;= 'z') or (>= 'A' and &lt;= 'Z');
+        public static bool NotInteger(object o) => o is not int;
+
         [method: Obsolete]
         public A([param: Obsolete] int goo) :
             base(1)

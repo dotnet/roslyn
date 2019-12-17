@@ -1989,6 +1989,26 @@
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
   </Node>
 
+  <Node Name="BoundTypePattern" Base="BoundPattern">
+    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+  </Node>
+
+  <Node Name="BoundBinaryPattern" Base="BoundPattern">
+    <Field Name="Disjunction" Type="bool"/>
+    <Field Name="Left" Type="BoundPattern"/>
+    <Field Name="Right" Type="BoundPattern"/>
+  </Node>
+
+  <Node Name="BoundNegatedPattern" Base="BoundPattern">
+    <Field Name="Negated" Type="BoundPattern"/>
+  </Node>
+
+  <Node Name="BoundRelationalPattern" Base="BoundPattern">
+    <Field Name="Relation" Type="BinaryOperatorKind"/>
+    <Field Name="Value" Type="BoundExpression"/>
+    <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
+  </Node>
+
   <Node Name="BoundDiscardExpression" Base="BoundExpression">
     <!-- A discarded value, when a designator uses `_`. When the type is given as `var, its Type
          is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null

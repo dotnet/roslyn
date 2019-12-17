@@ -28,6 +28,24 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
 
+    internal sealed class CSharpLazyNonePatternOperation : LazyNoneOperation, IPatternOperation
+    {
+        private readonly CSharpOperationFactory _operationFactory;
+        private readonly BoundPattern _boundNode;
+
+        public CSharpLazyNonePatternOperation(CSharpOperationFactory operationFactory, BoundPattern boundNode, SemanticModel semanticModel, SyntaxNode node, bool isImplicit) :
+            base(semanticModel, node, constantValue: default, isImplicit: isImplicit)
+        {
+            _operationFactory = operationFactory;
+            _boundNode = boundNode;
+        }
+
+        public ITypeSymbol InputType => _boundNode.InputType.GetITypeSymbol(NullableAnnotation.None);
+
+        protected override ImmutableArray<IOperation> GetChildren() => _operationFactory.GetIOperationChildren(_boundNode);
+    }
+
+
     internal sealed class CSharpLazyAddressOfOperation : LazyAddressOfOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
@@ -1536,12 +1554,12 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
         {
             return _boundRecursivePattern.Deconstruction.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
-                _boundRecursivePattern.Deconstruction.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
+                _boundRecursivePattern.Deconstruction.SelectAsArray<BoundSubpattern, CSharpOperationFactory, IPatternOperation>((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
         protected override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {
             return _boundRecursivePattern.Properties.IsDefault ? ImmutableArray<IPropertySubpatternOperation>.Empty :
-                _boundRecursivePattern.Properties.SelectAsArray((p, recursivePattern) => recursivePattern._operationFactory.CreatePropertySubpattern(p, recursivePattern.MatchedType), this);
+                _boundRecursivePattern.Properties.SelectAsArray<BoundSubpattern, CSharpLazyRecursivePatternOperation, IPropertySubpatternOperation>((p, recursivePattern) => recursivePattern._operationFactory.CreatePropertySubpattern(p, recursivePattern.MatchedType), this);
         }
     }
 
@@ -1600,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.Operations
         protected override ImmutableArray<IPatternOperation> CreateDeconstructionSubpatterns()
         {
             return _boundITuplePattern.Subpatterns.IsDefault ? ImmutableArray<IPatternOperation>.Empty :
-                _boundITuplePattern.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
+                _boundITuplePattern.Subpatterns.SelectAsArray<BoundSubpattern, CSharpOperationFactory, IPatternOperation>((p, fac) => (IPatternOperation)fac.Create(p.Pattern), _operationFactory);
         }
         protected override ImmutableArray<IPropertySubpatternOperation> CreatePropertySubpatterns()
         {

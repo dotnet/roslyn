@@ -10189,6 +10189,517 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    internal sealed partial class ParenthesizedPatternSyntax : PatternSyntax
+    {
+        internal readonly SyntaxToken openParenToken;
+        internal readonly PatternSyntax pattern;
+        internal readonly SyntaxToken closeParenToken;
+
+        internal ParenthesizedPatternSyntax(SyntaxKind kind, SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        internal ParenthesizedPatternSyntax(SyntaxKind kind, SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        internal ParenthesizedPatternSyntax(SyntaxKind kind, SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+          : base(kind)
+        {
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        public SyntaxToken OpenParenToken => this.openParenToken;
+        public PatternSyntax Pattern => this.pattern;
+        public SyntaxToken CloseParenToken => this.closeParenToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.openParenToken,
+                1 => this.pattern,
+                2 => this.closeParenToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ParenthesizedPatternSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedPattern(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedPattern(this);
+
+        public ParenthesizedPatternSyntax Update(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || pattern != this.Pattern || closeParenToken != this.CloseParenToken)
+            {
+                var newNode = SyntaxFactory.ParenthesizedPattern(openParenToken, pattern, closeParenToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+            => new ParenthesizedPatternSyntax(this.Kind, this.openParenToken, this.pattern, this.closeParenToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            => new ParenthesizedPatternSyntax(this.Kind, this.openParenToken, this.pattern, this.closeParenToken, GetDiagnostics(), annotations);
+
+        internal ParenthesizedPatternSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 3;
+            var openParenToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            var pattern = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+            var closeParenToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.openParenToken);
+            writer.WriteValue(this.pattern);
+            writer.WriteValue(this.closeParenToken);
+        }
+
+        static ParenthesizedPatternSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(ParenthesizedPatternSyntax), r => new ParenthesizedPatternSyntax(r));
+        }
+    }
+
+    internal sealed partial class RelationalPatternSyntax : PatternSyntax
+    {
+        internal readonly SyntaxToken operatorToken;
+        internal readonly ExpressionSyntax expression;
+
+        internal RelationalPatternSyntax(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax expression, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+        }
+
+        internal RelationalPatternSyntax(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax expression, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+        }
+
+        internal RelationalPatternSyntax(SyntaxKind kind, SyntaxToken operatorToken, ExpressionSyntax expression)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+        }
+
+        /// <summary>SyntaxToken representing the operator of the relational pattern.</summary>
+        public SyntaxToken OperatorToken => this.operatorToken;
+        public ExpressionSyntax Expression => this.expression;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.operatorToken,
+                1 => this.expression,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.RelationalPatternSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRelationalPattern(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRelationalPattern(this);
+
+        public RelationalPatternSyntax Update(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            if (operatorToken != this.OperatorToken || expression != this.Expression)
+            {
+                var newNode = SyntaxFactory.RelationalPattern(operatorToken, expression);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+            => new RelationalPatternSyntax(this.Kind, this.operatorToken, this.expression, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            => new RelationalPatternSyntax(this.Kind, this.operatorToken, this.expression, GetDiagnostics(), annotations);
+
+        internal RelationalPatternSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var operatorToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            var expression = (ExpressionSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(expression);
+            this.expression = expression;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.operatorToken);
+            writer.WriteValue(this.expression);
+        }
+
+        static RelationalPatternSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(RelationalPatternSyntax), r => new RelationalPatternSyntax(r));
+        }
+    }
+
+    internal sealed partial class TypePatternSyntax : PatternSyntax
+    {
+        internal readonly TypeSyntax type;
+
+        internal TypePatternSyntax(SyntaxKind kind, TypeSyntax type, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal TypePatternSyntax(SyntaxKind kind, TypeSyntax type, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal TypePatternSyntax(SyntaxKind kind, TypeSyntax type)
+          : base(kind)
+        {
+            this.SlotCount = 1;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        /// <summary>The type for the type pattern.</summary>
+        public TypeSyntax Type => this.type;
+
+        internal override GreenNode? GetSlot(int index)
+            => index == 0 ? this.type : null;
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TypePatternSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypePattern(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTypePattern(this);
+
+        public TypePatternSyntax Update(TypeSyntax type)
+        {
+            if (type != this.Type)
+            {
+                var newNode = SyntaxFactory.TypePattern(type);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+            => new TypePatternSyntax(this.Kind, this.type, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            => new TypePatternSyntax(this.Kind, this.type, GetDiagnostics(), annotations);
+
+        internal TypePatternSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 1;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.type);
+        }
+
+        static TypePatternSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(TypePatternSyntax), r => new TypePatternSyntax(r));
+        }
+    }
+
+    internal sealed partial class BinaryPatternSyntax : PatternSyntax
+    {
+        internal readonly PatternSyntax leftPattern;
+        internal readonly SyntaxToken patternOperator;
+        internal readonly PatternSyntax rightPattern;
+
+        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(leftPattern);
+            this.leftPattern = leftPattern;
+            this.AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(rightPattern);
+            this.rightPattern = rightPattern;
+        }
+
+        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(leftPattern);
+            this.leftPattern = leftPattern;
+            this.AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(rightPattern);
+            this.rightPattern = rightPattern;
+        }
+
+        internal BinaryPatternSyntax(SyntaxKind kind, PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+          : base(kind)
+        {
+            this.SlotCount = 3;
+            this.AdjustFlagsAndWidth(leftPattern);
+            this.leftPattern = leftPattern;
+            this.AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(rightPattern);
+            this.rightPattern = rightPattern;
+        }
+
+        public PatternSyntax LeftPattern => this.leftPattern;
+        public SyntaxToken PatternOperator => this.patternOperator;
+        public PatternSyntax RightPattern => this.rightPattern;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.leftPattern,
+                1 => this.patternOperator,
+                2 => this.rightPattern,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.BinaryPatternSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryPattern(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBinaryPattern(this);
+
+        public BinaryPatternSyntax Update(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        {
+            if (leftPattern != this.LeftPattern || patternOperator != this.PatternOperator || rightPattern != this.RightPattern)
+            {
+                var newNode = SyntaxFactory.BinaryPattern(leftPattern, patternOperator, rightPattern);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+            => new BinaryPatternSyntax(this.Kind, this.leftPattern, this.patternOperator, this.rightPattern, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            => new BinaryPatternSyntax(this.Kind, this.leftPattern, this.patternOperator, this.rightPattern, GetDiagnostics(), annotations);
+
+        internal BinaryPatternSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 3;
+            var leftPattern = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(leftPattern);
+            this.leftPattern = leftPattern;
+            var patternOperator = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            var rightPattern = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(rightPattern);
+            this.rightPattern = rightPattern;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.leftPattern);
+            writer.WriteValue(this.patternOperator);
+            writer.WriteValue(this.rightPattern);
+        }
+
+        static BinaryPatternSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(BinaryPatternSyntax), r => new BinaryPatternSyntax(r));
+        }
+    }
+
+    internal sealed partial class UnaryPatternSyntax : PatternSyntax
+    {
+        internal readonly SyntaxToken patternOperator;
+        internal readonly PatternSyntax pattern;
+
+        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken patternOperator, PatternSyntax pattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+        }
+
+        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken patternOperator, PatternSyntax pattern, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+        }
+
+        internal UnaryPatternSyntax(SyntaxKind kind, SyntaxToken patternOperator, PatternSyntax pattern)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+        }
+
+        public SyntaxToken PatternOperator => this.patternOperator;
+        public PatternSyntax Pattern => this.pattern;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.patternOperator,
+                1 => this.pattern,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.UnaryPatternSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnaryPattern(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitUnaryPattern(this);
+
+        public UnaryPatternSyntax Update(SyntaxToken patternOperator, PatternSyntax pattern)
+        {
+            if (patternOperator != this.PatternOperator || pattern != this.Pattern)
+            {
+                var newNode = SyntaxFactory.UnaryPattern(patternOperator, pattern);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+            => new UnaryPatternSyntax(this.Kind, this.patternOperator, this.pattern, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            => new UnaryPatternSyntax(this.Kind, this.patternOperator, this.pattern, GetDiagnostics(), annotations);
+
+        internal UnaryPatternSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var patternOperator = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(patternOperator);
+            this.patternOperator = patternOperator;
+            var pattern = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.patternOperator);
+            writer.WriteValue(this.pattern);
+        }
+
+        static UnaryPatternSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(UnaryPatternSyntax), r => new UnaryPatternSyntax(r));
+        }
+    }
+
     internal abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode
     {
         internal InterpolatedStringContentSyntax(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
@@ -30308,6 +30819,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
@@ -30527,6 +31043,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node) => this.DefaultVisit(node);
         public virtual void VisitSubpattern(SubpatternSyntax node) => this.DefaultVisit(node);
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitRelationalPattern(RelationalPatternSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitTypePattern(TypePatternSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitBinaryPattern(BinaryPatternSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitUnaryPattern(UnaryPatternSyntax node) => this.DefaultVisit(node);
         public virtual void VisitInterpolatedStringText(InterpolatedStringTextSyntax node) => this.DefaultVisit(node);
         public virtual void VisitInterpolation(InterpolationSyntax node) => this.DefaultVisit(node);
         public virtual void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node) => this.DefaultVisit(node);
@@ -30911,6 +31432,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
             => node.Update((ExpressionSyntax)Visit(node.Expression));
+
+        public override CSharpSyntaxNode VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
+            => node.Update((SyntaxToken)Visit(node.OpenParenToken), (PatternSyntax)Visit(node.Pattern), (SyntaxToken)Visit(node.CloseParenToken));
+
+        public override CSharpSyntaxNode VisitRelationalPattern(RelationalPatternSyntax node)
+            => node.Update((SyntaxToken)Visit(node.OperatorToken), (ExpressionSyntax)Visit(node.Expression));
+
+        public override CSharpSyntaxNode VisitTypePattern(TypePatternSyntax node)
+            => node.Update((TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitBinaryPattern(BinaryPatternSyntax node)
+            => node.Update((PatternSyntax)Visit(node.LeftPattern), (SyntaxToken)Visit(node.PatternOperator), (PatternSyntax)Visit(node.RightPattern));
+
+        public override CSharpSyntaxNode VisitUnaryPattern(UnaryPatternSyntax node)
+            => node.Update((SyntaxToken)Visit(node.PatternOperator), (PatternSyntax)Visit(node.Pattern));
 
         public override CSharpSyntaxNode VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
             => node.Update((SyntaxToken)Visit(node.TextToken));
@@ -33167,6 +33703,126 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (ConstantPatternSyntax)cached;
 
             var result = new ConstantPatternSyntax(SyntaxKind.ConstantPattern, expression, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public ParenthesizedPatternSyntax ParenthesizedPattern(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+        {
+            #if DEBUG
+            if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+            if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+            if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            #endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ParenthesizedPattern, openParenToken, pattern, closeParenToken, this.context, out hash);
+            if (cached != null) return (ParenthesizedPatternSyntax)cached;
+
+            var result = new ParenthesizedPatternSyntax(SyntaxKind.ParenthesizedPattern, openParenToken, pattern, closeParenToken, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public RelationalPatternSyntax RelationalPattern(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            #if DEBUG
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            switch (operatorToken.Kind)
+            {
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken: break;
+                default: throw new ArgumentException(nameof(operatorToken));
+            }
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            #endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.RelationalPattern, operatorToken, expression, this.context, out hash);
+            if (cached != null) return (RelationalPatternSyntax)cached;
+
+            var result = new RelationalPatternSyntax(SyntaxKind.RelationalPattern, operatorToken, expression, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public TypePatternSyntax TypePattern(TypeSyntax type)
+        {
+            #if DEBUG
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            #endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.TypePattern, type, this.context, out hash);
+            if (cached != null) return (TypePatternSyntax)cached;
+
+            var result = new TypePatternSyntax(SyntaxKind.TypePattern, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public BinaryPatternSyntax BinaryPattern(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        {
+            #if DEBUG
+            if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
+            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
+            switch (patternOperator.Kind)
+            {
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword: break;
+                default: throw new ArgumentException(nameof(patternOperator));
+            }
+            if (rightPattern == null) throw new ArgumentNullException(nameof(rightPattern));
+            #endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern, this.context, out hash);
+            if (cached != null) return (BinaryPatternSyntax)cached;
+
+            var result = new BinaryPatternSyntax(SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public UnaryPatternSyntax UnaryPattern(SyntaxToken patternOperator, PatternSyntax pattern)
+        {
+            #if DEBUG
+            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
+            if (patternOperator.Kind != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(patternOperator));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            #endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.UnaryPattern, patternOperator, pattern, this.context, out hash);
+            if (cached != null) return (UnaryPatternSyntax)cached;
+
+            var result = new UnaryPatternSyntax(SyntaxKind.UnaryPattern, patternOperator, pattern, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -37739,6 +38395,126 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static ParenthesizedPatternSyntax ParenthesizedPattern(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
+        {
+            #if DEBUG
+            if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+            if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+            if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            #endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ParenthesizedPattern, openParenToken, pattern, closeParenToken, out hash);
+            if (cached != null) return (ParenthesizedPatternSyntax)cached;
+
+            var result = new ParenthesizedPatternSyntax(SyntaxKind.ParenthesizedPattern, openParenToken, pattern, closeParenToken);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static RelationalPatternSyntax RelationalPattern(SyntaxToken operatorToken, ExpressionSyntax expression)
+        {
+            #if DEBUG
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            switch (operatorToken.Kind)
+            {
+                case SyntaxKind.EqualsEqualsToken:
+                case SyntaxKind.ExclamationEqualsToken:
+                case SyntaxKind.LessThanToken:
+                case SyntaxKind.LessThanEqualsToken:
+                case SyntaxKind.GreaterThanToken:
+                case SyntaxKind.GreaterThanEqualsToken: break;
+                default: throw new ArgumentException(nameof(operatorToken));
+            }
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            #endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RelationalPattern, operatorToken, expression, out hash);
+            if (cached != null) return (RelationalPatternSyntax)cached;
+
+            var result = new RelationalPatternSyntax(SyntaxKind.RelationalPattern, operatorToken, expression);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static TypePatternSyntax TypePattern(TypeSyntax type)
+        {
+            #if DEBUG
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            #endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TypePattern, type, out hash);
+            if (cached != null) return (TypePatternSyntax)cached;
+
+            var result = new TypePatternSyntax(SyntaxKind.TypePattern, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static BinaryPatternSyntax BinaryPattern(PatternSyntax leftPattern, SyntaxToken patternOperator, PatternSyntax rightPattern)
+        {
+            #if DEBUG
+            if (leftPattern == null) throw new ArgumentNullException(nameof(leftPattern));
+            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
+            switch (patternOperator.Kind)
+            {
+                case SyntaxKind.OrKeyword:
+                case SyntaxKind.AndKeyword: break;
+                default: throw new ArgumentException(nameof(patternOperator));
+            }
+            if (rightPattern == null) throw new ArgumentNullException(nameof(rightPattern));
+            #endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern, out hash);
+            if (cached != null) return (BinaryPatternSyntax)cached;
+
+            var result = new BinaryPatternSyntax(SyntaxKind.BinaryPattern, leftPattern, patternOperator, rightPattern);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static UnaryPatternSyntax UnaryPattern(SyntaxToken patternOperator, PatternSyntax pattern)
+        {
+            #if DEBUG
+            if (patternOperator == null) throw new ArgumentNullException(nameof(patternOperator));
+            if (patternOperator.Kind != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(patternOperator));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            #endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.UnaryPattern, patternOperator, pattern, out hash);
+            if (cached != null) return (UnaryPatternSyntax)cached;
+
+            var result = new UnaryPatternSyntax(SyntaxKind.UnaryPattern, patternOperator, pattern);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
         {
             #if DEBUG
@@ -40527,6 +41303,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(PropertyPatternClauseSyntax),
                 typeof(SubpatternSyntax),
                 typeof(ConstantPatternSyntax),
+                typeof(ParenthesizedPatternSyntax),
+                typeof(RelationalPatternSyntax),
+                typeof(TypePatternSyntax),
+                typeof(BinaryPatternSyntax),
+                typeof(UnaryPatternSyntax),
                 typeof(InterpolatedStringTextSyntax),
                 typeof(InterpolationSyntax),
                 typeof(InterpolationAlignmentClauseSyntax),

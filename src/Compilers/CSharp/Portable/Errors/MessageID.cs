@@ -185,6 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
         IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
+        IDS_FeatureTypePattern = MessageBase + 127656,
+        IDS_FeatureParenthesizedPattern = MessageBase + 12767,
+        IDS_FeatureOrPattern = MessageBase + 12768,
+        IDS_FeatureAndPattern = MessageBase + 12769,
+        IDS_FeatureNotPattern = MessageBase + 12770,
+        IDS_FeatureRelationalPattern = MessageBase + 12771,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -293,6 +299,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
+                case MessageID.IDS_FeatureAndPattern:
+                case MessageID.IDS_FeatureNotPattern:
+                case MessageID.IDS_FeatureOrPattern:
+                case MessageID.IDS_FeatureParenthesizedPattern:
+                case MessageID.IDS_FeatureTypePattern:
+                case MessageID.IDS_FeatureRelationalPattern:
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
