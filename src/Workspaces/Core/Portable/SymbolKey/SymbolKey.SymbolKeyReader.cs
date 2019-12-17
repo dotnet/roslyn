@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis
 
         private class SymbolKeyReader : Reader<string>
         {
-            private static readonly ObjectPool<SymbolKeyReader> s_readerPool =
-                new ObjectPool<SymbolKeyReader>(() => new SymbolKeyReader());
+            private static readonly ObjectPool<SymbolKeyReader> s_readerPool
+                = SharedPools.Default<SymbolKeyReader>();
 
             private readonly Dictionary<int, SymbolKeyResolution> _idToResult = new Dictionary<int, SymbolKeyResolution>();
             private readonly Func<SymbolKeyResolution> _readSymbolKey;
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
             private readonly List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
             private bool _resolveLocations;
 
-            private SymbolKeyReader()
+            public SymbolKeyReader()
             {
                 _readSymbolKey = ReadSymbolKey;
                 _readLocation = ReadLocation;

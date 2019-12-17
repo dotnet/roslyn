@@ -22,16 +22,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
-        private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool =
-            new ObjectPool<List<Dictionary<string, string>>>(() => new List<Dictionary<string, string>>());
+        private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool
+            = SharedPools.Default<List<Dictionary<string, string>>>();
 
         // Note: these names are stored case insensitively.  That way the alias mapping works 
         // properly for VB.  It will mean that our inheritance maps may store more links in them
         // for C#.  However, that's ok.  It will be rare in practice, and all it means is that
         // we'll end up examining slightly more types (likely 0) when doing operations like 
         // Find all references.
-        private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool =
-            new ObjectPool<Dictionary<string, string>>(() => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
+        private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool
+            = SharedPools.StringIgnoreCaseDictionary<string>();
 
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
     internal abstract class AbstractSyntaxFactsService
     {
-        private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool =
-            new ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>(() => new Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>());
+        private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
+            = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
 
         public abstract ISyntaxKindsService SyntaxKinds { get; }
 
