@@ -738,6 +738,40 @@ class C
         }
 
         [Fact]
+        public void StatementAttributeSemanticModel()
+        {
+            const string text = @"
+using System;
+
+class A : Attribute { }
+
+class C
+{
+    void M()
+    {
+#pragma warning disable 219 // The variable '{0}' is assigned but its value is never used
+        [A] int i = 0;
+    }
+}
+";
+            var comp = CreateCompilation(text);
+
+            comp.VerifyDiagnostics(
+                // (11,9): error CS7014: Attributes are not valid in this context.
+                //         [A] int i = 0;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(11, 9));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var attrSyntax = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var attrConstructor = (IMethodSymbol)model.GetSymbolInfo(attrSyntax).Symbol;
+
+            Assert.Equal(MethodKind.Constructor, attrConstructor.MethodKind);
+            Assert.Equal("A", attrConstructor.ContainingType.Name);
+        }
+
+        [Fact]
         public void LocalFunctionNoBody()
         {
             const string text = @"

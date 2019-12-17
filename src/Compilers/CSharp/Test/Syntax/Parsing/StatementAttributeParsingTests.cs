@@ -14,15 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void AttributeOnBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]{}
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -81,15 +80,14 @@ class C
         [Fact]
         public void AttributeOnEmptyStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A];
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -147,7 +145,7 @@ class C
         [Fact]
         public void AttributeOnLabeledStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -156,8 +154,7 @@ class C
         bar:
             Goo();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -235,7 +232,7 @@ class C
         [Fact]
         public void AttributeOnGotoStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -245,8 +242,7 @@ class C
         bar:
             Goo();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -331,7 +327,7 @@ class C
         [Fact]
         public void AttributeOnBreakStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -342,8 +338,7 @@ class C
             break;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -417,7 +412,7 @@ class C
         [Fact]
         public void AttributeOnContinueStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -428,8 +423,7 @@ class C
             continue;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -503,15 +497,14 @@ class C
         [Fact]
         public void AttributeOnReturn()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]return;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -570,15 +563,14 @@ class C
         [Fact]
         public void AttributeOnThrow()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]throw;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -640,15 +632,14 @@ class C
         [Fact]
         public void AttributeOnYieldReturn()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]yield return 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -715,15 +706,14 @@ class C
         [Fact]
         public void AttributeOnYieldBreak()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]yield return 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -790,15 +780,14 @@ class C
         [Fact]
         public void AttributeOnNakedYield()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]yield
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -866,15 +855,14 @@ class C
         [Fact]
         public void AttributeOnWhileStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]while (true);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -942,15 +930,14 @@ class C
         [Fact]
         public void AttributeOnDoStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]do { } while (true);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1021,15 +1008,14 @@ class C
         [Fact]
         public void AttributeOnForStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]for (;;) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1096,15 +1082,14 @@ class C
         [Fact]
         public void AttributeOnNormalForEachStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string[] vals)
     {
         [A]foreach (var v in vals) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1199,15 +1184,14 @@ class C
         [Fact]
         public void AttributeOnForEachVariableStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo((int, string)[] vals)
     {
         [A]foreach (var (i, s) in vals) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1334,15 +1318,14 @@ class C
         [Fact]
         public void AttributeOnUsingStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]using (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1411,15 +1394,14 @@ class C
         [Fact]
         public void AttributeOnAwaitUsingStatement1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]await using (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1498,15 +1480,14 @@ class C
         [Fact]
         public void AttributeOnAwaitUsingStatement2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     async void Goo()
     {
         [A]await using (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1583,15 +1564,14 @@ class C
         [Fact]
         public void AttributeOnFixedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     unsafe void Goo(int[] vals)
     {
         [A]fixed (int* p = vals) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1703,15 +1683,14 @@ class C
         [Fact]
         public void AttributeOnCheckedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]checked { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1774,15 +1753,14 @@ class C
         [Fact]
         public void AttributeOnCheckedBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         checked [A]{ }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1845,15 +1823,14 @@ class C
         [Fact]
         public void AttributeOnUncheckedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]unchecked { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1916,15 +1893,14 @@ class C
         [Fact]
         public void AttributeOnUnsafeStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]unsafe { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1990,15 +1966,14 @@ class C
         [Fact]
         public void AttributeOnUnsafeBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         unsafe [A]{ }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2088,15 +2063,14 @@ class C
         [Fact]
         public void AttributeOnLockStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]lock (null) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2165,15 +2139,14 @@ class C
         [Fact]
         public void AttributeOnIfStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]if (true) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2242,15 +2215,14 @@ class C
         [Fact]
         public void AttributeOnSwitchStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]switch (0) { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2319,7 +2291,7 @@ class C
         [Fact]
         public void AttributeOnStatementInSwitchSection()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -2330,8 +2302,7 @@ class C
                 [A]return;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2410,7 +2381,7 @@ class C
         [Fact]
         public void AttributeOnStatementAboveCase()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -2422,8 +2393,7 @@ class C
                 return;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2534,7 +2504,7 @@ class C
         [Fact]
         public void AttributeOnStatementAboveDefaultCase()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
@@ -2546,8 +2516,7 @@ class C
                 return;
         }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2644,16 +2613,14 @@ class C
         [Fact]
         public void AttributeOnTryStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]try { } finally { }
     }
-}";
-            UsingTree(test);
-
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2725,15 +2692,14 @@ class C
         [Fact]
         public void AttributeOnTryBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try [A] { } finally { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2805,15 +2771,14 @@ class C
         [Fact]
         public void AttributeOnFinally()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } [A] finally { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2915,15 +2880,14 @@ class C
         [Fact]
         public void AttributeOnFinallyBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } finally [A] { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2995,15 +2959,14 @@ class C
         [Fact]
         public void AttributeOnCatch()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } [A] catch { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3105,15 +3068,14 @@ class C
         [Fact]
         public void AttributeOnCatchBlock()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         try { } catch [A] { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3185,15 +3147,14 @@ class C
         [Fact]
         public void AttributeOnEmbeddedStatement()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         if (true) [A]return;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3262,15 +3223,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousMethod_NoParameters()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]delegate { }
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3340,15 +3300,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousMethod_NoBody()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]delegate
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3421,15 +3380,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousMethod_Parameters()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]delegate () { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3504,15 +3462,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Lambda_NoParameters()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]() => { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3587,15 +3544,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Lambda_Parameters1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A](int i) => { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3678,15 +3634,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Lambda_Parameters2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]i => { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3760,15 +3715,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousObject()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3835,15 +3789,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ArrayCreation()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new int[] { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3929,15 +3882,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_AnonymousArrayCreation()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new [] { 0 };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4013,15 +3965,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Assignment()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a = 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4099,15 +4050,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_CompoundAssignment()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a += 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4183,51 +4133,98 @@ class C
         }
 
         [Fact]
-        public void AttributeOnExpressionStatement_AwaitExpresion_NonAsyncContext()
+        public void AttributeOnExpressionStatement_AwaitExpression_NonAsyncContext()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]await a;
     }
-}";
-            UsingTree(test);
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "await");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]await a;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]await a;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
                 // (6,12): error CS0246: The type or namespace name 'await' could not be found (are you missing a using directive or an assembly reference?)
                 //         [A]await a;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "await").WithArguments("await").WithLocation(6, 12),
-                // (6,18): warning CS0169: The field 'C.a' is never used
+                // (6,18): warning CS0168: The variable 'a' is declared but never used
                 //         [A]await a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C.a").WithLocation(6, 18),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(6, 18));
         }
 
         [Fact]
-        public void AttributeOnExpressionStatement_AwaitExpresion_AsyncContext()
+        public void AttributeOnExpressionStatement_AwaitExpression_AsyncContext()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     async void Goo()
     {
         [A]await a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4297,15 +4294,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_BinaryExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a + a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4386,15 +4382,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_CastExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A](object)a;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4476,15 +4471,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ConditionalAccess()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string a)
     {
         [A]a?.ToString();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4574,15 +4568,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_DefaultExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]default(int);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4653,15 +4646,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_DefaultLiteral()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]default;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4729,15 +4721,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ElementAccess()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string s)
     {
         [A]s[0];
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4825,15 +4816,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ElementBinding()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(string s)
     {
         [A]s?[0];
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -4925,15 +4915,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Invocation()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]Goo();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5003,15 +4992,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Literal()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5076,15 +5064,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_MemberAccess()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int i)
     {
         [A]i.ToString;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5165,15 +5152,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ObjectCreation_Builtin()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new int();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5244,15 +5230,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_ObjectCreation_TypeName()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]new System.Int32();
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5331,15 +5316,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Parenthesized()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A](1);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5409,15 +5393,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_PostfixUnary()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int i)
     {
         [A]i++;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5491,16 +5474,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_PrefixUnary()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int i)
     {
         [A]++i;
     }
-}";
-            UsingTree(test);
-
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5574,7 +5555,7 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Query()
         {
-            var test = @"
+            var test = UsingTree(@"
 using System.Linq;
 class C
 {
@@ -5582,8 +5563,7 @@ class C
     {
         [A]from c in s select c;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5693,15 +5673,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]a..b;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5800,15 +5779,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]a..;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -5900,15 +5878,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range3()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]..b;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6000,15 +5977,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Range4()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a, int b)
     {
         [A]..;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6093,15 +6069,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_Sizeof()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]sizeof(int);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6172,15 +6147,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_SwitchExpression()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(int a)
     {
         [A]a switch { };
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6265,15 +6239,14 @@ class C
         [Fact]
         public void AttributeOnExpressionStatement_TypeOf()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]typeof(int);
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6344,46 +6317,93 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember1()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int i;
     }
-}";
-            UsingTree(test);
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int i;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): warning CS0168: The variable 'i' is declared but never used
                 //         [A]int i;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,16): warning CS0169: The field 'C.i' is never used
-                //         [A]int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i").WithLocation(6, 16),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 16));
         }
 
         [Fact]
         public void AttributeOnLocalDeclOrMember2()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int i, j;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6407,40 +6427,40 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "j");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "i");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "j");
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6449,44 +6469,28 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): warning CS0168: The variable 'i' is declared but never used
                 //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 16),
+                // (6,19): warning CS0168: The variable 'j' is declared but never used
                 //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]int i, j;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,16): warning CS0169: The field 'C.i' is never used
-                //         [A]int i, j;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i").WithLocation(6, 16),
-                // (6,19): warning CS0169: The field 'C.j' is never used
-                //         [A]int i, j;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "j").WithArguments("C.j").WithLocation(6, 19),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 19));
         }
 
         [Fact]
         public void AttributeOnLocalDeclOrMember3()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int i = 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6510,43 +6514,43 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "i");
-                                N(SyntaxKind.EqualsValueClause);
-                                {
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6555,35 +6559,25 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): warning CS0219: The variable 'i' is assigned but its value is never used
                 //         [A]int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (6,16): warning CS0414: The field 'C.i' is assigned but its value is never used
-                //         [A]int i = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("C.i").WithLocation(6, 16),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 16));
         }
 
         [Fact]
         public void AttributeOnLocalDeclOrMember4()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]int this[int i] => 0;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6607,50 +6601,74 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.IndexerDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.IntKeyword);
-                        }
-                        N(SyntaxKind.ThisKeyword);
-                        N(SyntaxKind.BracketedParameterList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Parameter);
-                            {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    M(SyntaxKind.VariableDeclarator);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
                                 }
-                                N(SyntaxKind.IdentifierToken, "i");
+                                M(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.ArrowExpressionClause);
-                        {
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.NumericLiteralExpression);
+                            N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.NumericLiteralToken, "0");
+                                N(SyntaxKind.ElementAccessExpression);
+                                {
+                                    N(SyntaxKind.ThisExpression);
+                                    {
+                                        N(SyntaxKind.ThisKeyword);
+                                    }
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        M(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "i");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6659,32 +6677,134 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,16): error CS1001: Identifier expected
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "this").WithLocation(6, 16),
+                // (6,16): error CS1002: ; expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 16),
+                // (6,21): error CS1525: Invalid expression term 'int'
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
+                // (6,25): error CS1003: Syntax error, ',' expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 25),
+                // (6,25): error CS0103: The name 'i' does not exist in the current context
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25),
+                // (6,28): error CS1002: ; expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=>").WithLocation(6, 28),
+                // (6,28): error CS1513: } expected
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(6, 28),
+                // (6,31): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         [A]int this[int i] => 0;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "0").WithLocation(6, 31));
         }
 
         [Fact]
         public void AttributeOnLocalDeclOrMember5()
         {
-            var test = @"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]const int i = 0;
     }
-}";
-            UsingTree(test);
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.AttributeList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.ConstKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(tree).GetDiagnostics().Verify(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A]const int i = 0;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,22): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         [A]const int i = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 22));
+        }
+
+        [Fact]
+        public void AccessModOnLocalDeclOrMember_01()
+        {
+            var test = UsingTree(@"
+class C
+{
+    void Goo()
+    {
+        public extern int i = 1;
+    }
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6713,19 +6833,8 @@ class C
                     }
                     N(SyntaxKind.FieldDeclaration);
                     {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.ConstKeyword);
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.ExternKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
                             N(SyntaxKind.PredefinedType);
@@ -6740,7 +6849,7 @@ class C
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.NumericLiteralToken, "1");
                                     }
                                 }
                             }
@@ -6753,48 +6862,109 @@ class C
             }
             EOF();
 
-            CreateCompilation(test).GetDiagnostics().Verify(
+            CreateCompilation(test).VerifyDiagnostics(
                 // (5,6): error CS1513: } expected
                 //     {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]const int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         [A]const int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
+                // (6,27): error CS0106: The modifier 'extern' is not valid for this item
+                //         public extern int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "i").WithArguments("extern").WithLocation(6, 27),
                 // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
         }
 
         [Fact]
+        public void AccessModOnLocalDeclOrMember_02()
+        {
+            var test = UsingTree(@"
+class C
+{
+    void Goo()
+    {
+        extern public int i = 1;
+    }
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Goo");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.ExternKeyword);
+                                N(SyntaxKind.PublicKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "1");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,9): error CS0106: The modifier 'extern' is not valid for this item
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "extern").WithArguments("extern").WithLocation(6, 9),
+                // (6,16): error CS0106: The modifier 'public' is not valid for this item
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(6, 16),
+                // (6,27): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         extern public int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 27));
+        }
+
+        [Fact]
         public void AttributeOnLocalDeclOrMember6()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo()
     {
         [A]public int i = 0;
     }
-}";
-            UsingTree(test);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6818,44 +6988,44 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.PublicKeyword);
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "i");
-                                N(SyntaxKind.EqualsValueClause);
-                                {
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.PublicKeyword);
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "i");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.SemicolonToken);
                             }
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -6864,32 +7034,28 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (6,10): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]public int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(6, 10),
-                // (6,10): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,12): error CS0106: The modifier 'public' is not valid for this item
                 //         [A]public int i = 0;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(6, 10),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(6, 12),
+                // (6,23): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         [A]public int i = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 23));
         }
 
         [Fact]
         public void AttributeOnLocalDeclOrMember7()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(System.IDisposable d)
     {
         [A]using var i = d;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6983,15 +7149,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember8()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     void Goo(System.IAsyncDisposable d)
     {
         [A]await using var i = d;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -7095,15 +7260,14 @@ class C
         [Fact]
         public void AttributeOnLocalDeclOrMember9()
         {
-            var test = @"
+            var test = UsingTree(@"
 class C
 {
     async void Goo(System.IAsyncDisposable d)
     {
         [A]await using var i = d;
     }
-}";
-            UsingTree(test);
+}");
 
             N(SyntaxKind.CompilationUnit);
             {

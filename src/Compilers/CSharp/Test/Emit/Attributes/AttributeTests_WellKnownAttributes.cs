@@ -3447,40 +3447,36 @@ public class C2 { }
 ";
             // Dev10 fails in Emit or emits invalid metadata
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,6): error CS1513: } expected {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (29,1): error CS1022: Type or namespace definition, or end-of-file expected }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
                 // (13,9): error CS0501: 'C.F2(int, string)' must declare a body because it is not marked abstract, extern, or partial
-                //     int F2(int bufSize, StringBuilder buf);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F2").WithArguments("C.F2(int, string)"),
+                //     int F2(int bufSize, string buf);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F2").WithArguments("C.F2(int, string)").WithLocation(13, 9),
                 // (6,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(6, 6),
                 // (9,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(9, 6),
                 // (12,6): error CS0601: The DllImport attribute must be specified on a method marked 'static' and 'extern'
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport"),
+                Diagnostic(ErrorCode.ERR_DllImportOnInvalidMethod, "DllImport").WithLocation(12, 6),
                 // (15,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("D.DLL")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(15, 6),
                 // (18,6): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
                 //     [DllImport("d.dll")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(18, 6),
                 // (21,26): error CS0579: Duplicate 'DllImport' attribute
                 //     [DllImport("D.DLL"), DllImport("GDI.DLL")]
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, @"DllImport").WithArguments("DllImport"),
-                // (26,9): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
-                //     [DllImport("d.dll")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "DllImport").WithArguments("DllImport").WithLocation(21, 26),
+                // (26,8): error CS7014: Attributes are not valid in this context.
+                //        [DllImport("d.dll")]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, @"[DllImport(""d.dll"")]").WithLocation(26, 8),
                 // (31,2): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
-                //     [DllImport("dd.dllL")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"),
+                // [DllImport("dd.dllL")]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(31, 2),
                 // (34,2): error CS0592: Attribute 'DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
-                //     [DllImport("dd.dll")]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, @"DllImport").WithArguments("DllImport", "method"));
+                // [DllImport("dd.dll")]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DllImport").WithArguments("DllImport", "method").WithLocation(34, 2));
         }
 
         #endregion

@@ -849,35 +849,35 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "local");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "local");
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -885,13 +885,13 @@ class C
             }
             EOF();
 
-            tree.GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+            CreateCompilation(tree).VerifyDiagnostics(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A] object local;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,20): warning CS0168: The variable 'local' is declared but never used
+                //         [A] object local;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local").WithArguments("local").WithLocation(6, 20));
         }
 
         [Fact]
@@ -929,40 +929,40 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            M(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
+                            N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.AttributeList);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "A");
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Attribute);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.ObjectKeyword);
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "local1");
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "local2");
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
                             }
-                            N(SyntaxKind.CloseBracketToken);
+                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "local1");
-                            }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "local2");
-                            }
-                        }
-                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -970,13 +970,16 @@ class C
             }
             EOF();
 
-            tree.GetDiagnostics().Verify(
-                // (5,6): error CS1513: } expected
-                //     {
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 6),
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+            CreateCompilation(tree).VerifyDiagnostics(
+                // (6,9): error CS7014: Attributes are not valid in this context.
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
+                // (6,20): warning CS0168: The variable 'local1' is declared but never used
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local1").WithArguments("local1").WithLocation(6, 20),
+                // (6,28): warning CS0168: The variable 'local2' is declared but never used
+                //         [A] object local1, local2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "local2").WithArguments("local2").WithLocation(6, 28));
         }
 
         [Fact]
