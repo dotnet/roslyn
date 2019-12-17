@@ -2453,6 +2453,24 @@ namespace ConsoleApplication3
                 );
         }
 
+        [Fact, WorkItem(40092, "https://github.com/dotnet/roslyn/issues/40092")]
+        public void ExternEventInitializer()
+        {
+            var text = @"
+delegate void D();
+
+class Test
+{
+#pragma warning disable 414 // The field '{0}' is assigned but its value is never used
+    public extern event D e = null; // 1
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (7,27): error CS8760: 'Test.e': extern event cannot have initializer
+                //     public extern event D e = null; // 1
+                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(7, 27));
+        }
+
         #endregion
     }
 }
