@@ -41,7 +41,6 @@
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.11.4</BenchmarkDotNetVersion>
-    <CommandLineParserVersion>2.0.273-beta</CommandLineParserVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
     <DropAppVersion>17.144.28413-buildid7983345</DropAppVersion>
     <EnvDTEVersion>8.0.2</EnvDTEVersion>
@@ -179,8 +178,7 @@
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.0</SystemBuffersVersion>
-    <SystemCommandLineExperimentalVersion>0.1.0-alpha-63729-01</SystemCommandLineExperimentalVersion>
-    <SystemCommandLineRenderingVersion>0.1.0-alpha-63729-01</SystemCommandLineRenderingVersion>
+    <SystemCommandLineExperimentalVersion>0.3.0-alpha.19577.1</SystemCommandLineExperimentalVersion>
     <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
     <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>

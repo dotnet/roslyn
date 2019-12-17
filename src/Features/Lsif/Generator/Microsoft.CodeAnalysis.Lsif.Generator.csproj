@@ -12,4 +12,11 @@
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="README.md" />
+  </ItemGroup>
 </Project>
