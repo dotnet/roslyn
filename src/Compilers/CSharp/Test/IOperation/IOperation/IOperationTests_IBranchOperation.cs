@@ -1404,9 +1404,6 @@ Block[B2] - Exit
                 // file.cs(9,13): error CS0159: No such label 'label' within the scope of the goto statement
                 //             goto label;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(9, 13),
-                // file.cs(12,1): warning CS0164: This label has not been referenced
-                // label:  ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(12, 1)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
@@ -1474,9 +1471,6 @@ Block[B2] - Exit
                 // file.cs(11,13): error CS0159: No such label 'label' within the scope of the goto statement
                 //             goto label;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(11, 13),
-                // file.cs(14,1): warning CS0164: This label has not been referenced
-                // label:  ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(14, 1)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);

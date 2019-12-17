@@ -575,7 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
                     // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
                     // It's a bit of code duplication, but refactoring would make things worse.
-                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, blockDiagnostics);
+                    // However, we don't need to report diagnostics here. They will be reported when analyzing the parent method.
+                    var ignored = DiagnosticBag.GetInstance();
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, ignored);
+                    ignored.Free();
                     if (endIsReachable)
                     {
                         if (ImplicitReturnIsOkay(localSymbol))

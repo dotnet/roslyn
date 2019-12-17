@@ -86,3 +86,9 @@ could be different than the one that compiler used to find.
         extern event System.Action E = null; // error
     }
     ```
+
+13. https://github.com/dotnet/roslyn/issues/10492 Under some circumstances, the compiler would accept an expression that does not obey the rules of the language grammar.  Examples include
+    - `e is {} + c`
+    - `e is T t + c`
+
+    These all have in common that the left operand is of looser precedence than the `+` operator, but the left operand does not end in an expression so it cannot "consume" the addition.  Such expressions will no longer be permitted in Visual Studio 2019 version 16.5 and later.

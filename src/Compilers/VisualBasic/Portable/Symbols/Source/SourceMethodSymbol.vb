@@ -1731,8 +1731,6 @@ lReportErrorOnTwoTokens:
                         Return
                     End If
                 End If
-
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 
@@ -1759,8 +1757,6 @@ lReportErrorOnTwoTokens:
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
-            Else
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 

@@ -143,6 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get { return null; }

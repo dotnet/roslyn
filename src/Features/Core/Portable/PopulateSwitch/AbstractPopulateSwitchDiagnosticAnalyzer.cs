@@ -1,23 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal sealed class PopulateSwitchDiagnosticAnalyzer :
+    internal abstract class AbstractPopulateSwitchDiagnosticAnalyzer<TSwitchOperation, TSwitchSyntax> :
         AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        where TSwitchOperation : IOperation
+        where TSwitchSyntax : SyntaxNode
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FeaturesResources.Add_missing_cases), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Populate_switch), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
-        public PopulateSwitchDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.PopulateSwitchDiagnosticId,
+        protected AbstractPopulateSwitchDiagnosticAnalyzer(string diagnosticId)
+            : base(diagnosticId,
                    option: null,
                    s_localizableTitle, s_localizableMessage)
         {
@@ -25,13 +28,23 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         #region Interface methods
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.Switch);
+        protected abstract OperationKind OperationKind { get; }
+
+        protected abstract ICollection<ISymbol> GetMissingEnumMembers(TSwitchOperation operation);
+        protected abstract bool HasDefaultCase(TSwitchOperation operation);
+        protected abstract Location GetDiagnosticLocation(TSwitchSyntax switchBlock);
+
+        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        protected sealed override void InitializeWorker(AnalysisContext context)
+            => context.RegisterOperationAction(AnalyzeOperation, this.OperationKind);
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var switchOperation = (ISwitchOperation)context.Operation;
-            var switchBlock = switchOperation.Syntax;
+            var switchOperation = (TSwitchOperation)context.Operation;
+            if (!(switchOperation.Syntax is TSwitchSyntax switchBlock))
+                return;
+
             var tree = switchBlock.SyntaxTree;
 
             if (SwitchIsIncomplete(switchOperation, out var missingCases, out var missingDefaultCase) &&
@@ -39,12 +52,12 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             {
                 Debug.Assert(missingCases || missingDefaultCase);
                 var properties = ImmutableDictionary<string, string>.Empty
-                    .Add(PopulateSwitchHelpers.MissingCases, missingCases.ToString())
-                    .Add(PopulateSwitchHelpers.MissingDefaultCase, missingDefaultCase.ToString());
+                    .Add(PopulateSwitchStatementHelpers.MissingCases, missingCases.ToString())
+                    .Add(PopulateSwitchStatementHelpers.MissingDefaultCase, missingDefaultCase.ToString());
 
                 var diagnostic = Diagnostic.Create(
                     Descriptor,
-                    switchBlock.GetFirstToken().GetLocation(),
+                    GetDiagnosticLocation(switchBlock),
                     properties: properties,
                     additionalLocations: new[] { switchBlock.GetLocation() });
                 context.ReportDiagnostic(diagnostic);
@@ -54,18 +67,16 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         #endregion
 
         private bool SwitchIsIncomplete(
-            ISwitchOperation switchStatement,
+            TSwitchOperation operation,
             out bool missingCases, out bool missingDefaultCase)
         {
-            var missingEnumMembers = PopulateSwitchHelpers.GetMissingEnumMembers(switchStatement);
+            var missingEnumMembers = GetMissingEnumMembers(operation);
 
             missingCases = missingEnumMembers.Count > 0;
-            missingDefaultCase = !PopulateSwitchHelpers.HasDefaultCase(switchStatement);
+            missingDefaultCase = !HasDefaultCase(operation);
 
             // The switch is incomplete if we're missing any cases or we're missing a default case.
             return missingDefaultCase || missingCases;
         }
-
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }
