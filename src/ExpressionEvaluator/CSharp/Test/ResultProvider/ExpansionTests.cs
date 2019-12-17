@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     object _z;
     object m_z;
     C A;
+    string m_;
     string _a;
     object _;
     string m_a;
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult("@_", "null", "object", "(new C()).@_", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_a", "null", "string", "(new C())._a", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("_z", "null", "object", "(new C())._z", DkmEvaluationResultFlags.CanFavorite),
+                EvalResult("m_", "null", "string", "(new C()).m_", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m_a", "null", "string", "(new C()).m_a", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("m_z", "null", "object", "(new C()).m_z", DkmEvaluationResultFlags.CanFavorite),
                 EvalResult("A", "null", "C", "(new C()).A", DkmEvaluationResultFlags.CanFavorite),
