@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                 if (solution._solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation
-                    solution._solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.Compilation?.GetValue());
+                    solution._solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, state.Compilation?.GetValueOrNull());
                 }
 
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = ReadState();
 
-                var baseCompilation = state.Compilation?.GetValue(cancellationToken);
+                var baseCompilation = state.Compilation?.GetValueOrNull(cancellationToken);
                 if (baseCompilation != null)
                 {
                     // We have some pre-calculated state to incrementally update
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 return new CompilationTracker(inProgressProject,
-                    new FinalState(new ConstantOptionalValueSource<Compilation>(inProgressCompilation), inProgressCompilation, hasSuccessfullyLoaded: false));
+                    new FinalState(new ConstantValueSource<Optional<Compilation>>(inProgressCompilation), inProgressCompilation, hasSuccessfullyLoaded: false));
             }
 
             /// <summary>
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilation = state.Compilation?.GetValue(cancellationToken);
+                var compilation = state.Compilation?.GetValueOrNull(cancellationToken);
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
@@ -306,9 +306,15 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public bool TryGetCompilation([NotNullWhen(true)]out Compilation? compilation)
             {
-                compilation = null;
                 var state = ReadState();
-                return state.FinalCompilation != null && state.FinalCompilation.TryGetValue(out compilation) && compilation != null;
+                if (state.FinalCompilation != null && state.FinalCompilation.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
+                {
+                    compilation = compilationOpt.Value;
+                    return true;
+                }
+
+                compilation = null;
+                return false;
             }
 
             public Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -349,13 +355,13 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilation?.GetValue(cancellationToken);
+                        var compilation = state.FinalCompilation?.GetValueOrNull(cancellationToken);
                         if (compilation != null)
                         {
                             return compilation;
                         }
 
-                        compilation = state.Compilation?.GetValue(cancellationToken);
+                        compilation = state.Compilation?.GetValueOrNull(cancellationToken);
                         if (compilation == null)
                         {
                             // let's see whether we have declaration only compilation
@@ -403,7 +409,7 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilation?.GetValue(cancellationToken);
+                        var finalCompilation = state.FinalCompilation?.GetValueOrNull(cancellationToken);
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
@@ -445,14 +451,14 @@ namespace Microsoft.CodeAnalysis
 
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
-                var compilation = state.FinalCompilation?.GetValue(cancellationToken);
+                var compilation = state.FinalCompilation?.GetValueOrNull(cancellationToken);
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
                     return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value));
                 }
 
-                compilation = state.Compilation?.GetValue(cancellationToken);
+                compilation = state.Compilation?.GetValueOrNull(cancellationToken);
                 if (compilation == null)
                 {
                     // this can happen if compilation is already kicked out from the cache.
@@ -735,12 +741,12 @@ namespace Microsoft.CodeAnalysis
 
                 // get compilation in any state it happens to be in right now.
                 if (state.Compilation != null &&
-                    state.Compilation.TryGetValue(out var compilation) &&
-                    compilation != null &&
+                    state.Compilation.TryGetValue(out var compilationOpt) &&
+                    compilationOpt.HasValue &&
                     ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference
-                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    return compilationOpt.Value.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
 
                 return null;

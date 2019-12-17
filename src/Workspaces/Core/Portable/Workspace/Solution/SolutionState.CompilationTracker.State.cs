@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The best compilation that is available. May be an in-progress, full declaration, a final compilation, or <see langword="null"/>.
                 /// </summary>
-                public OptionalValueSource<Compilation>? Compilation { get; }
+                public ValueSource<Optional<Compilation>>? Compilation { get; }
 
                 /// <summary>
                 /// Specifies whether <see cref="FinalCompilation"/> and all compilations it depends on contain full information or not. This can return
@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis
                 /// <summary>
                 /// The final compilation if available, otherwise <see langword="null"/>.
                 /// </summary>
-                public virtual OptionalValueSource<Compilation>? FinalCompilation => null;
+                public virtual ValueSource<Optional<Compilation>>? FinalCompilation => null;
 
-                protected State(OptionalValueSource<Compilation>? compilation, Compilation? declarationOnlyCompilation)
+                protected State(ValueSource<Optional<Compilation>>? compilation, Compilation? declarationOnlyCompilation)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis
                         : (State)new InProgressState(compilation, intermediateProjects);
                 }
 
-                public static OptionalValueSource<Compilation> CreateValueSource(
+                public static ValueSource<Optional<Compilation>> CreateValueSource(
                     Compilation compilation,
                     SolutionServices services)
                 {
                     return services.SupportsCachingRecoverableObjects
                         ? new WeakValueSource<Compilation>(compilation)
-                        : (OptionalValueSource<Compilation>)new ConstantOptionalValueSource<Compilation>(compilation);
+                        : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                 public InProgressState(
                     Compilation inProgressCompilation,
                     ImmutableArray<(ProjectState state, CompilationTranslationAction action)> intermediateProjects)
-                    : base(compilation: new ConstantOptionalValueSource<Compilation>(inProgressCompilation), declarationOnlyCompilation: null)
+                    : base(compilation: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation), declarationOnlyCompilation: null)
                 {
                     Contract.ThrowIfNull(inProgressCompilation);
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis
                 private readonly bool _hasSuccessfullyLoaded;
 
                 public override bool? HasSuccessfullyLoaded => _hasSuccessfullyLoaded;
-                public override OptionalValueSource<Compilation>? FinalCompilation => Compilation;
+                public override ValueSource<Optional<Compilation>>? FinalCompilation => Compilation;
 
-                public FinalState(OptionalValueSource<Compilation> finalCompilationSource, Compilation finalCompilation, bool hasSuccessfullyLoaded)
+                public FinalState(ValueSource<Optional<Compilation>> finalCompilationSource, Compilation finalCompilation, bool hasSuccessfullyLoaded)
                     : base(finalCompilationSource, finalCompilation.Clone().RemoveAllReferences())
                 {
                     _hasSuccessfullyLoaded = hasSuccessfullyLoaded;
