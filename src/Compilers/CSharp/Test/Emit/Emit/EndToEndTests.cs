@@ -221,7 +221,7 @@ public class Test
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedIfStatements()
         {
             (int nestingLevelLower, int nestingLevelHigher) = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
@@ -303,15 +303,15 @@ $@"        if (F({i}))
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public void NestedSwitchStatements()
         {
             (int nestingLevelLower, int nestingLevelHigher) = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => (400, 600),
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => (2000, 2500),
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => (350, 350),
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => (1000, 1500),
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => (1750, 2200),
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => (270, 350),
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => (850, 1200),
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
