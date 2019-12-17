@@ -6347,7 +6347,7 @@ done:;
 
         private StatementSyntax ParseStatementCore_NewExecutionStack()
         {
-            return StackGuard.ExecuteOnNewExecutionStack(() => this.ParseStatementCore());
+            return StackGuard.ExecuteOnNewExecutionStack(() => ParseStatementCore());
         }
 
         private StatementSyntax ParsePossibleDeclarationOrBadAwaitStatement()
@@ -8904,15 +8904,20 @@ tryAgain:
         private ExpressionSyntax ParseSubExpression(Precedence precedence)
         {
             _recursionDepth++;
-#if DEBUG
-            // Ensure every expression kind is handled in GetPrecedence
-            _ = GetPrecedence(result.Kind);
-#endif
             var result = StackGuard.TryEnsureSufficientExecutionStack(_recursionDepth, _throwOnInsufficientExecutionStack) ?
                 ParseSubExpressionCore(precedence) :
                 ParseSubExpressionCore_NewExecutionStack(precedence);
             _recursionDepth--;
+#if DEBUG
+            // Ensure every expression kind is handled in GetPrecedence
+            _ = GetPrecedence(result.Kind);
+#endif
             return result;
+        }
+
+        private ExpressionSyntax ParseSubExpressionCore_NewExecutionStack(Precedence precedence)
+        {
+            return StackGuard.ExecuteOnNewExecutionStack(() => ParseSubExpressionCore(precedence));
         }
 
         private ExpressionSyntax ParseSubExpressionCore(Precedence precedence)

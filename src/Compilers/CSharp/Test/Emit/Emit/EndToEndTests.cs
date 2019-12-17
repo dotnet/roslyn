@@ -264,7 +264,7 @@ public class Test
                     });
                 });
 
-            // Higher nesting level, single stack. No errors.
+            // Higher nesting level, multiple stacks if necessary. No errors.
             RunTest(
                 nestingLevelHigher,
                 nestingLevel =>
@@ -306,18 +306,60 @@ $@"        if (F({i}))
         [ConditionalFact(typeof(WindowsOnly))]
         public void NestedSwitchStatements()
         {
-            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            (int nestingLevelLower, int nestingLevelHigher) = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 500,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 2000,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 750,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 3000,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => (400, 600),
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => (2000, 2500),
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => (350, 350),
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => (1000, 1500),
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
-            runTest(nestingLevel);
+            var parseOptionsThrow = TestOptions.Regular.WithThrowOnInsufficientExecutionStack(true);
+            var parseOptionsNoThrow = TestOptions.Regular;
 
-            static void runTest(int nestingLevel)
+            // Lower nesting level, single stack. No errors.
+            RunTest(
+                nestingLevelLower,
+                nestingLevel =>
+                {
+                    var source = generateSource(nestingLevel);
+                    RunInThread(() =>
+                    {
+                        var comp = CreateCompilation(source, parseOptions: parseOptionsThrow);
+                        comp.VerifyDiagnostics();
+                    });
+                });
+
+            // Higher nesting level, single stack. Expression too complex error.
+            RunTest(
+                nestingLevelHigher,
+                nestingLevel =>
+                {
+                    var source = generateSource(nestingLevel);
+                    RunInThread(() =>
+                    {
+                        var comp = CreateCompilation(source, parseOptions: parseOptionsThrow);
+                        comp.VerifyDiagnostics(
+                            // error CS8078: An expression is too long or complex to compile
+                            Diagnostic(ErrorCode.ERR_InsufficientStack, ""));
+                    });
+                });
+
+            // Higher nesting level, multiple stacks if necessary. No errors.
+            RunTest(
+                nestingLevelHigher,
+                nestingLevel =>
+                {
+                    var source = generateSource(nestingLevel);
+                    RunInThread(() =>
+                    {
+                        var comp = CreateCompilation(source, parseOptions: parseOptionsNoThrow);
+                        comp.VerifyDiagnostics();
+                    });
+                });
+
+            static string generateSource(int nestingLevel)
             {
                 const int nCases = 5;
                 var builder = new StringBuilder();
@@ -329,20 +371,22 @@ $@"        if (F({i}))
     {");
                 for (int x = 0; x < nestingLevel; x++)
                 {
+                    int index = x % nCases;
                     builder.AppendLine(
 $@"        switch (F({x}))
         {{");
-                    for (int y = 0; y < x; y++)
+                    for (int y = 0; y < index; y++)
                     {
                         writeCaseStart(builder, y);
                         writeCaseEnd(builder);
                     }
-                    writeCaseStart(builder, x);
+                    writeCaseStart(builder, index);
                 }
                 for (int x = nestingLevel - 1; x >= 0; x--)
                 {
+                    int index = x % nCases;
                     writeCaseEnd(builder);
-                    for (int y = x + 1; y < nCases; y++)
+                    for (int y = index + 1; y < nCases; y++)
                     {
                         writeCaseStart(builder, y);
                         writeCaseEnd(builder);
@@ -352,12 +396,7 @@ $@"        switch (F({x}))
                 builder.AppendLine(
 @"    }
 }");
-                var source = builder.ToString();
-                RunInThread(() =>
-                {
-                    var comp = CreateCompilation(source);
-                    comp.VerifyDiagnostics();
-                });
+                return builder.ToString();
 
                 static void writeCaseStart(StringBuilder builder, int i)
                 {
