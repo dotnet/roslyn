@@ -186,6 +186,32 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNonStringType_Assignment()
+        {
+            await TestAsync(
+@"
+namespace System { public struct Range { } }
+struct S { public ref S Slice(int start, int length); public int Length { get; } public S this[System.Range] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice([||]1, s.Length - 2) = default;
+    }
+}",
+@"
+namespace System { public struct Range { } }
+struct S { public ref S Slice(int start, int length); public int Length { get; } public S this[System.Range] { get; } }
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestMethodToMethod()
         {
             await TestAsync(
