@@ -521,6 +521,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementType);
                 case TypeKind.Pointer:
                     return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtType);
+                case TypeKind.FunctionPointer:
+                    MethodSymbol signature = ((FunctionPointerTypeSymbol)type).Signature;
+                    if (ContainsNestedTypeOfUnconstructedGenericType(signature.ReturnType))
+                    {
+                        return true;
+                    }
+
+                    foreach (var param in signature.Parameters)
+                    {
+                        if (ContainsNestedTypeOfUnconstructedGenericType(param.Type))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 case TypeKind.Delegate:
                 case TypeKind.Class:
                 case TypeKind.Interface:

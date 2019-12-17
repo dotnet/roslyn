@@ -5918,8 +5918,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureFunctionPointers" xml:space="preserve">
     <value>function pointers</value>
   </data>
-  <data name="ERR_InvalidFunctionPointerCallingConvention">
-    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'unmanaged', 'thiscall', and 'stdcall'.</value>
+  <data name="ERR_InvalidFunctionPointerCallingConvention" xml:space="preserve">
+    <value>'{0}' is not a valid calling convention for a function pointer. Valid conventions are 'cdecl', 'managed', 'thiscall', and 'stdcall'.</value>
   </data>
   <data name="ERR_InternalError" xml:space="preserve">
     <value>Internal error in the C# compiler.</value>
@@ -5938,5 +5938,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
     <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_InvalidFuncPointerReturnTypeModifier" xml:space="preserve">
+    <value>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</value>
+  </data>
+  <data name="ERR_DupReturnTypeMod" xml:space="preserve">
+    <value>A return type can only have one '{0}' modifier.</value>
+  </data>
+  <data name="ERR_BadFuncPointerParamModifier" xml:space="preserve">
+    <value>'{0}' cannot be used as a modifier on a function pointer parameter.</value>
   </data>
 </root>

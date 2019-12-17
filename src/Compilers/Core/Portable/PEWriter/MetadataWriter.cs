@@ -1149,6 +1149,7 @@ namespace Microsoft.Cci
                 return existing.Key;
             }
 
+            Debug.Assert(methodReference.CallingConvention != CallingConvention.Invalid);
             Debug.Assert((methodReference.CallingConvention & CallingConvention.Generic) != 0 == (methodReference.GenericParameterCount > 0));
 
             var builder = PooledBlobBuilder.GetInstance();
@@ -1284,6 +1285,7 @@ namespace Microsoft.Cci
 
             var builder = PooledBlobBuilder.GetInstance();
 
+            Debug.Assert(propertyDef.CallingConvention != CallingConvention.Invalid);
             var encoder = new BlobEncoder(builder).PropertySignature(
                 isInstanceProperty: (propertyDef.CallingConvention & CallingConvention.HasThis) != 0);
 

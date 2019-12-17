@@ -21,6 +21,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool allowThis,
             bool addRefReadOnlyModifier)
         {
+            return MakeParameters(binder, owner, syntax.Parameters, out arglistToken, diagnostics, allowRefOrOut, allowThis, addRefReadOnlyModifier, lastIndex: -1);
+        }
+
+        public static ImmutableArray<ParameterSymbol> MakeParameters(
+            Binder binder,
+            Symbol owner,
+            SeparatedSyntaxList<ParameterSyntax> parametersList,
+            out SyntaxToken arglistToken,
+            DiagnosticBag diagnostics,
+            bool allowRefOrOut,
+            bool allowThis,
+            bool addRefReadOnlyModifier,
+            int lastIndex = -1,
+            bool parsingFunctionPointer = false)
+        {
             arglistToken = default(SyntaxToken);
 
             int parameterIndex = 0;
@@ -29,8 +44,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var mustBeLastParameter = (ParameterSyntax)null;
 
-            foreach (var parameterSyntax in syntax.Parameters)
+            if (lastIndex == -1)
             {
+                lastIndex = parametersList.Count - 1;
+            }
+
+            foreach (var parameterSyntax in parametersList)
+            {
+                if (parameterIndex > lastIndex) break;
+
                 if (mustBeLastParameter == null)
                 {
                     if (parameterSyntax.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
@@ -40,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                CheckParameterModifiers(parameterSyntax, diagnostics);
+                CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
@@ -60,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // CS1669: __arglist is not valid in this context
                         diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
                     }
+                    // PROTOTYPE(func-ptr): test with arglist
                     continue;
                 }
 
@@ -98,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ++parameterIndex;
             }
 
-            if (mustBeLastParameter != null && mustBeLastParameter != syntax.Parameters.Last())
+            if (mustBeLastParameter != null && mustBeLastParameter != parametersList[lastIndex])
             {
                 diagnostics.Add(
                     mustBeLastParameter.Identifier.Kind() == SyntaxKind.ArgListKeyword
@@ -162,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void CheckParameterModifiers(
-            ParameterSyntax parameter, DiagnosticBag diagnostics)
+            ParameterSyntax parameter, DiagnosticBag diagnostics, bool parsingFunctionPointerParams)
         {
             var seenThis = false;
             var seenRef = false;
@@ -243,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
 
-                    case SyntaxKind.ParamsKeyword:
+                    case SyntaxKind.ParamsKeyword when !parsingFunctionPointerParams:
                         if (seenParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ParamsKeyword));
@@ -291,6 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             seenIn = true;
                         }
+                        break;
+
+                    case SyntaxKind.ParamsKeyword when parsingFunctionPointerParams:
+                    case SyntaxKind.ReadOnlyKeyword when parsingFunctionPointerParams:
+                        diagnostics.Add(ErrorCode.ERR_BadFuncPointerParamModifier, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
                         break;
 
                     default:

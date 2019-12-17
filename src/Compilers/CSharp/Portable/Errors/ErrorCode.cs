@@ -1742,6 +1742,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced in preview
 
         ERR_InvalidFunctionPointerCallingConvention = 8752,
+        ERR_InvalidFuncPointerReturnTypeModifier = 8753,
+        ERR_DupReturnTypeMod = 8754,
+        ERR_BadFuncPointerParamModifier = 8755,
 
         ERR_ExternEventInitializer = 8760,
 

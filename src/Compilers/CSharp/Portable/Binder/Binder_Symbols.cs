@@ -378,6 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
 
+#nullable enable
         /// <summary>
         /// Bind the syntax into a namespace, type or alias symbol. 
         /// </summary>
@@ -430,6 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.PointerType:
                     return bindPointer();
+
+                case SyntaxKind.FunctionPointerType:
+                    return TypeWithAnnotations.Create(FunctionPointerTypeSymbol.CreateFunctionPointerTypeSymbolFromSource((FunctionPointerTypeSyntax)syntax, this, diagnostics, basesBeingResolved));
 
                 case SyntaxKind.OmittedTypeArgument:
                     {
@@ -515,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var node = (AliasQualifiedNameSyntax)syntax;
                 var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
                 var alias = bindingResult as AliasSymbol;
-                NamespaceOrTypeSymbol left = ((object)alias != null) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
+                NamespaceOrTypeSymbol left = (alias is object) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
 
                 if (left.Kind == SymbolKind.NamedType)
                 {
@@ -539,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
             }
         }
+#nullable restore
 
         private TypeWithAnnotations BindArrayType(
             ArrayTypeSyntax node,

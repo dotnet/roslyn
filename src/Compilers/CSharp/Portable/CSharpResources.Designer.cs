@@ -1654,6 +1654,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be used as a modifier on a function pointer parameter..
+        /// </summary>
+        internal static string ERR_BadFuncPointerParamModifier {
+            get {
+                return ResourceManager.GetString("ERR_BadFuncPointerParamModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Asynchronous foreach requires that the return type &apos;{0}&apos; of &apos;{1}&apos; must have a suitable public &apos;MoveNextAsync&apos; method and public &apos;Current&apos; property.
         /// </summary>
         internal static string ERR_BadGetAsyncEnumerator {
@@ -4021,6 +4030,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A return type can only have one &apos;{0}&apos; modifier..
+        /// </summary>
+        internal static string ERR_DupReturnTypeMod {
+            get {
+                return ResourceManager.GetString("ERR_DupReturnTypeMod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot define a class or member that utilizes &apos;dynamic&apos; because the compiler required type &apos;{0}&apos; cannot be found. Are you missing a reference?.
         /// </summary>
         internal static string ERR_DynamicAttributeMissing {
@@ -6208,7 +6226,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid calling convention for a function pointer. Valid conventions are &apos;cdecl&apos;, &apos;managed&apos;, &apos;unmanaged&apos;, &apos;thiscall&apos;, and &apos;stdcall&apos;..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid function pointer return type modifier. Valid modifiers are &apos;ref&apos; and &apos;ref readonly&apos;..
+        /// </summary>
+        internal static string ERR_InvalidFuncPointerReturnTypeModifier {
+            get {
+                return ResourceManager.GetString("ERR_InvalidFuncPointerReturnTypeModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid calling convention for a function pointer. Valid conventions are &apos;cdecl&apos;, &apos;managed&apos;, &apos;thiscall&apos;, and &apos;stdcall&apos;..
         /// </summary>
         internal static string ERR_InvalidFunctionPointerCallingConvention {
             get {

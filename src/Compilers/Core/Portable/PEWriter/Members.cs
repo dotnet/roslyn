@@ -19,6 +19,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Specifies how the caller passes parameters to the callee and who cleans up the stack.
     /// </summary>
+    // PROTOTYPE(func-ptr): represent `unmanaged`
     [Flags]
     internal enum CallingConvention
     {
@@ -66,7 +67,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
+
+        /// <summary>
+        /// Represents an invalid calling convention.
+        /// </summary>
+        Invalid = int.MaxValue
     }
 
     /// <summary>

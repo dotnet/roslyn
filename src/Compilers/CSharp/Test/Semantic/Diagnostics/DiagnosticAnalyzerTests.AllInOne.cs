@@ -28,8 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var missingSyntaxKinds = new HashSet<SyntaxKind>()
             {
                 // PROTOYPE(func-ptr): Remove
-                SyntaxKind.FunctionPointerType,
-                SyntaxKind.ModifiedType
+                SyntaxKind.FunctionPointerType
             };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

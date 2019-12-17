@@ -5,6 +5,7 @@ Microsoft.CodeAnalysis.ErrorLogOptions.ErrorLogOptions(string path, Microsoft.Co
 Microsoft.CodeAnalysis.ErrorLogOptions.Path.get -> string
 Microsoft.CodeAnalysis.ErrorLogOptions.SarifVersion.get -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.IParameterSymbol.IsDiscard.get -> bool
+Microsoft.CodeAnalysis.MethodKind.FunctionPointerSignature = 18 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.OperationKind.UsingDeclaration = 108 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation
 Microsoft.CodeAnalysis.Operations.IUsingDeclarationOperation.DeclarationGroup.get -> Microsoft.CodeAnalysis.Operations.IVariableDeclarationGroupOperation
@@ -19,6 +20,8 @@ Microsoft.CodeAnalysis.SarifVersion.Latest = 2147483647 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.SarifVersion.Sarif1 = 1 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersion.Sarif2 = 2 -> Microsoft.CodeAnalysis.SarifVersion
 Microsoft.CodeAnalysis.SarifVersionFacts
+Microsoft.CodeAnalysis.SymbolKind.FunctionPointer = 20 -> Microsoft.CodeAnalysis.SymbolKind
+Microsoft.CodeAnalysis.TypeKind.FunctionPointer = 13 -> Microsoft.CodeAnalysis.TypeKind
 Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier = 256 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 static Microsoft.CodeAnalysis.SarifVersionFacts.TryParse(string version, out Microsoft.CodeAnalysis.SarifVersion result) -> bool
 Microsoft.CodeAnalysis.IMethodSymbol.IsConditional.get -> bool
