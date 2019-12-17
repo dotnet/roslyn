@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Options
         /// Applies a set of options, invoking serializers if needed.
         /// </summary>
         /// <param name="optionSet">New options to set.</param>
+        /// <param name="sourceWorkspace">The source workspace from which the API was invoked, if any.</param>
         /// <param name="beforeOptionsChangedEvents">
         /// Optional delegate to invoke before option changed event handlers are invoked.
         /// This delegate will be invoked only if any option changed in the new <paramref name="optionSet"/>.
         /// </param>
-        /// <param name="settingWorkspaceOptions">Boolean flag indicating if this API is invoked from the workspace options setter.</param>
         /// <returns>True if there was any option change.</returns>
-        bool SetOptions(OptionSet optionSet, Action? beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false);
+        bool SetOptions(OptionSet optionSet, Workspace? sourceWorkspace = null, Action? beforeOptionsChangedEvents = null);
 
         /// <summary>
         /// Gets force computed serializable options with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.

@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        public bool SetOptions(OptionSet optionSet, Action? beforeOptionsChangedEvents = null, bool settingWorkspaceOptions = false)
+        public bool SetOptions(OptionSet optionSet, Workspace? sourceWorkspace = null, Action? beforeOptionsChangedEvents = null)
         {
             var changedOptionKeys = optionSet switch
             {
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Options
             beforeOptionsChangedEvents?.Invoke();
 
             // Outside of the lock, raise the events on our task queue.
-            RaiseEvents(changedOptions, settingWorkspaceOptions);
+            RaiseEvents(changedOptions, sourceWorkspace);
             return true;
         }
 
@@ -292,10 +292,10 @@ namespace Microsoft.CodeAnalysis.Options
                 _currentValues = _currentValues.SetItem(optionKey, newValue);
             }
 
-            RaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) }, settingWorkspaceOptions: false);
+            RaiseEvents(new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) }, sourceWorkspace: null);
         }
 
-        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions, bool settingWorkspaceOptions)
+        private void RaiseEvents(List<OptionChangedEventArgs> changedOptions, Workspace? sourceWorkspace)
         {
             if (changedOptions.Count == 0)
             {
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Options
                 }
             }
 
-            BatchOptionsChanged?.Invoke(this, new BatchOptionsChangedEventArgs(changedOptions, settingWorkspaceOptions));
+            BatchOptionsChanged?.Invoke(this, new BatchOptionsChangedEventArgs(changedOptions, sourceWorkspace));
         }
 
         public event EventHandler<OptionChangedEventArgs>? OptionChanged;

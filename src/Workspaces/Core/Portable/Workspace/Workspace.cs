@@ -211,13 +211,13 @@ namespace Microsoft.CodeAnalysis
         /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
         /// </summary>
         internal void SetOptions(OptionSet options)
-            => _optionService?.SetOptions(options, beforeOptionsChangedEvents: UpdateCurrentSolutionOnOptionsChanged, settingWorkspaceOptions: true);
+            => _optionService?.SetOptions(options, sourceWorkspace: this, beforeOptionsChangedEvents: UpdateCurrentSolutionOnOptionsChanged);
 
         private void OptionService_BatchOptionsChanged(object sender, BatchOptionsChangedEventArgs e)
         {
-            if (e.WorkspaceOptionsChanged)
+            if (e.SourceWorkspace == this)
             {
-                // This is an event from Workspace.Options setter.
+                // This is an event from Workspace.Options setter for this workspace.
                 // We explicitly handle updating current solution with new options in that setter,
                 // so we avoid a duplicate update from this event.
                 return;

@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal sealed class BatchOptionsChangedEventArgs : EventArgs
     {
-        internal BatchOptionsChangedEventArgs(IEnumerable<OptionChangedEventArgs> optionChangedEventArgs, bool workspaceOptionsChanged)
+        public BatchOptionsChangedEventArgs(IEnumerable<OptionChangedEventArgs> optionChangedEventArgs, Workspace? sourceWorkspace)
         {
             OptionChangedEventArgs = optionChangedEventArgs;
-            WorkspaceOptionsChanged = workspaceOptionsChanged;
+            SourceWorkspace = sourceWorkspace;
         }
 
         public IEnumerable<OptionChangedEventArgs> OptionChangedEventArgs { get; }
-        public bool WorkspaceOptionsChanged { get; }
+        public Workspace? SourceWorkspace { get; }
     }
 }
