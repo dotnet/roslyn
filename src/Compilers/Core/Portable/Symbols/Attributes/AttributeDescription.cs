@@ -420,6 +420,7 @@ namespace Microsoft.CodeAnalysis
 
         private static readonly byte[][] s_signaturesOfExperimentalAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfExcludeFromCodeCoverageAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfSkipLocalsInitAttribute = { s_signature_HasThis_Void };
 
         private static readonly byte[][] s_signaturesOfEnumeratorCancellationAttribute = { s_signature_HasThis_Void };
 
@@ -550,5 +551,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signaturesOfExperimentalAttribute);
         internal static readonly AttributeDescription ExcludeFromCodeCoverageAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExcludeFromCodeCoverageAttribute", s_signaturesOfExcludeFromCodeCoverageAttribute);
         internal static readonly AttributeDescription EnumeratorCancellationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnumeratorCancellationAttribute", s_signaturesOfEnumeratorCancellationAttribute);
+        internal static readonly AttributeDescription SkipLocalsInitAttribute = new AttributeDescription("System.Runtime.CompilerServices", "SkipLocalsInitAttribute", s_signaturesOfSkipLocalsInitAttribute);
     }
 }
