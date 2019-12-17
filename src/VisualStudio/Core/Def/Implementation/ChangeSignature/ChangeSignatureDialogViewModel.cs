@@ -67,12 +67,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             var selectedIndex = parameters.SelectedIndex;
-            this.SelectedIndex = (parameters.ThisParameter != null && selectedIndex == 0) ? 1 : selectedIndex;
+            if (parameters.ThisParameter != null && selectedIndex == 0)
+            {
+                if (parameters.ParametersWithoutDefaultValues.Count + parameters.RemainingEditableParameters.Count > 0)
+                {
+                    this.SelectedIndex = 1;
+                }
+                else
+                {
+                    this.SelectedIndex = null;
+                }
+            }
+            else
+            {
+                this.SelectedIndex = selectedIndex;
+            }
         }
 
         public int GetStartingSelectionIndex()
         {
-            return _thisParameter == null ? 0 : 1;
+            if (_thisParameter == null)
+            {
+                return 0;
+            }
+
+            if (_parametersWithDefaultValues.Count + _parametersWithoutDefaultValues.Count > 0)
+            {
+                return 1;
+            }
+
+            return -1;
         }
 
         public bool PreviewChanges
@@ -109,8 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return false;
                 }
 
-                // index = thisParameter == null ? index : index - 1;
-
                 return !AllParameters[index].IsRemoved;
             }
         }
@@ -135,8 +157,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 {
                     return false;
                 }
-
-                // index = thisParameter == null ? index : index - 1;
 
                 return AllParameters[index].IsRemoved;
             }
@@ -296,7 +316,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
 
                 first = false;
-                //TODO: displayParts.AddRange(parameter.ParameterSymbol.ToDisplayParts(s_parameterDisplayFormat));
+                if (parameter is ExistingParameterViewModel existingParameter)
+                {
+                    displayParts.AddRange(existingParameter.ParameterSymbol.ToDisplayParts(s_parameterDisplayFormat));
+                }
+
+                if (parameter is AddedParameterViewModel addedParameterViewModel)
+                {
+                    // TODO there should be another formatting for VB
+                    displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type));
+                    displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
+                    displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.Parameter)); ;
+                }
             }
 
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
@@ -407,22 +438,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return _disabledParameters.Contains(parameterViewModel);
         }
 
-        private IList<ParameterViewModel> GetSelectedGroup()
-        {
-            var index = SelectedIndex;
-            index = _thisParameter == null ? index : index - 1;
-            return index < _parametersWithoutDefaultValues.Count ? _parametersWithoutDefaultValues : index < _parametersWithoutDefaultValues.Count + _parametersWithDefaultValues.Count ? _parametersWithDefaultValues : SpecializedCollections.EmptyList<ParameterViewModel>();
-        }
-
         public bool IsOkButtonEnabled
         {
             get
             {
                 return true;
-
-                //return AllParameters.Any(p => p.IsRemoved) ||
-                //    !_parameterGroup1.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues) ||
-                //    !_parameterGroup2.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters);
             }
         }
 
