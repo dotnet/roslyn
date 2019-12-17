@@ -95,23 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         CodeActionProvider = true,
                         ExecuteCommandProvider = new ExecuteCommandOptions(),
                         ReferencesProvider = true,
-
-                        // Uses LSP SDK client.
-                        CompletionProvider = null,
-                        DefinitionProvider = false,
-                        DocumentFormattingProvider = false,
-                        DocumentHighlightProvider = false,
-                        DocumentLinkProvider = null,
-                        DocumentOnTypeFormattingProvider = null,
-                        DocumentRangeFormattingProvider = false,
-                        DocumentSymbolProvider = false,
-                        ImplementationProvider = false,
-                        RenameProvider = false,
-                        SignatureHelpProvider = null,
-                        CodeLensProvider = null,
-                        WorkspaceSymbolProvider = false,
-                        HoverProvider = false,
-                        TextDocumentSync = null,
                     })));
 
             var lifeTimeService = LspClientLifeTimeService;
