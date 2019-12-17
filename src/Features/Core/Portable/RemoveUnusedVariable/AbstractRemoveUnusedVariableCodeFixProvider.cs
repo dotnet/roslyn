@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 //NOTE: we can't cast directly here since in for loops the daclarator.Parent.Parent
                 //is the ForStatementSyntax instead of the TLocalDeclarationStatement
                 var candidate = GetCandidateLocalDeclarationForRemoval(variableDeclarator);
-                if(candidate != null)
+                if (candidate != null)
                 {
                     candidateLocalDeclarationsToRemove.Add(candidate);
                 }

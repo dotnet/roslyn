@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
 
         protected override LocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(VariableDeclaratorSyntax declarator)
             => declarator.Parent?.Parent as LocalDeclarationStatementSyntax;
-        
+
         protected override void RemoveOrReplaceNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
             switch (node.Kind())
