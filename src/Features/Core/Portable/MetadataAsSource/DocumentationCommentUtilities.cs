@@ -9,8 +9,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal static class DocumentationCommentUtilities
     {
-        private static readonly ObjectPool<List<string>> s_pool
-            = SharedPools.Default<List<string>>();
+        private static readonly ObjectPool<List<string>> s_pool = SharedPools.Default<List<string>>();
 
         public static string ExtractXMLFragment(string input, string docCommentPrefix)
         {
