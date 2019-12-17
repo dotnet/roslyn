@@ -38,7 +38,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(options.IsValid())
 
             options = BinderSpecificLookupOptions(options)
-            MemberLookup.Lookup(lookupResult, container, name, arity, options, Me, useSiteDiagnostics)
+            Dim tempResult = LookupResult.GetInstance()
+            MemberLookup.Lookup(lookupResult, container, name, arity, options, Me, tempResult, useSiteDiagnostics)
+            tempResult.Free()
         End Sub
 
         Friend Sub LookupMember(lookupResult As LookupResult,
@@ -341,7 +343,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If container.IsNamespace Then
                     Lookup(lookupResult, DirectCast(container, NamespaceSymbol), name, arity, options, binder, useSiteDiagnostics)
                 Else
-                    Lookup(lookupResult, DirectCast(container, TypeSymbol), name, arity, options, binder, useSiteDiagnostics)
+                    Dim tempResult = LookupResult.GetInstance()
+                    Lookup(lookupResult, DirectCast(container, TypeSymbol), name, arity, options, binder, tempResult, useSiteDiagnostics)
+                    tempResult.Free()
                 End If
             End Sub
 
@@ -488,11 +492,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: while looking up the symbol in modules we should ignore base class
                 options = options Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
                 Dim currentResult As LookupResult = Nothing
+                Dim tempResult = LookupResult.GetInstance()
 
                 ' Next, do a lookup in each contained module and merge the results.
                 For Each containedModule As NamedTypeSymbol In container.GetModuleMembers()
                     If firstModule Then
-                        Lookup(lookupResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
+                        Lookup(lookupResult, containedModule, name, arity, options, binder, tempResult, useSiteDiagnostics)
                         firstModule = False
                     Else
                         If currentResult Is Nothing Then
@@ -501,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             currentResult.Clear()
                         End If
 
-                        Lookup(currentResult, containedModule, name, arity, options, binder, useSiteDiagnostics)
+                        Lookup(currentResult, containedModule, name, arity, options, binder, tempResult, useSiteDiagnostics)
 
                         ' Symbols in source take priority over symbols in a referenced assembly.
                         If currentResult.StopFurtherLookup AndAlso currentResult.Symbols.Count > 0 AndAlso
@@ -527,6 +532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
+                tempResult.Free()
                 currentResult?.Free()
             End Sub
 
@@ -569,27 +575,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       arity As Integer,
                                       options As LookupOptions,
                                       binder As Binder,
+                                      tempResult As LookupResult,
                                       <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
                 Debug.Assert(lookupResult.IsClear)
 
                 Select Case type.TypeKind
                     Case TypeKind.Class, TypeKind.Module, TypeKind.Structure, TypeKind.Delegate, TypeKind.Array, TypeKind.Enum
-                        Dim tempResult = LookupResult.GetInstance()
                         LookupInClass(lookupResult, type, name, arity, options, type, binder, tempResult, useSiteDiagnostics)
-                        tempResult.Free()
 
                     Case TypeKind.Submission
                         LookupInSubmissions(lookupResult, type, name, arity, options, binder, useSiteDiagnostics)
 
                     Case TypeKind.Interface
-                        Dim tempResult = LookupResult.GetInstance()
                         LookupInInterface(lookupResult, DirectCast(type, NamedTypeSymbol), name, arity, options, binder, tempResult, useSiteDiagnostics)
-                        tempResult.Free()
 
                     Case TypeKind.TypeParameter
-                        Dim tempResult = LookupResult.GetInstance()
                         LookupInTypeParameter(lookupResult, DirectCast(type, TypeParameterSymbol), name, arity, options, binder, tempResult, useSiteDiagnostics)
-                        tempResult.Free()
 
                     Case TypeKind.Error
                         ' Error types have no members.
