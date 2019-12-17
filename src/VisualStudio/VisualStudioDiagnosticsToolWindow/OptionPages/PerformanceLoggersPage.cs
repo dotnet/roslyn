@@ -71,6 +71,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
                 new object[] { loggerTypes, functionIds },
+                solution: null,
                 callbackTarget: null,
                 CancellationToken.None));
         }

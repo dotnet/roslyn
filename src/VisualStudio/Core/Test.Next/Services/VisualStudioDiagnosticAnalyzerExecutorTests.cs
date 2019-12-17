@@ -177,8 +177,8 @@ End Class";
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    workspace.CurrentSolution,
                     new[] { new Checksum[] { asset.Checksum } },
+                    workspace.CurrentSolution,
                     callbackTarget: null,
                     CancellationToken.None));
 
@@ -233,10 +233,10 @@ End Class";
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    workspace.CurrentSolution,
                     new[] { new Checksum[] { asset.Checksum } },
+                    workspace.CurrentSolution,
                     callbackTarget: null,
-                    CancellationToken.None));
+                    cancellationToken: CancellationToken.None));
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);

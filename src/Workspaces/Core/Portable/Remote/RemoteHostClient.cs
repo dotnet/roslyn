@@ -127,28 +127,31 @@ namespace Microsoft.CodeAnalysis.Remote
             return new KeepAliveSession(this, connection, serviceName, callbackTarget);
         }
 
-        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, Solution solution,
-            IReadOnlyList<object> arguments, object? callbackTarget, CancellationToken cancellationToken)
+        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, IReadOnlyList<object> arguments, Solution? solution, object? callbackTarget, CancellationToken cancellationToken)
         {
-            using var session = await TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (session == null)
+            // TODO: revisit solution handling - see https://github.com/dotnet/roslyn/issues/24836
+
+            if (solution == null)
             {
-                return false;
+                using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+                if (connection == null)
+                {
+                    return false;
+                }
+
+                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                using var session = await TryCreateSessionAsync(serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+                if (session == null)
+                {
+                    return false;
+                }
+
+                await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
 
-            await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
-            return true;
-        }
-
-        public async Task<bool> TryRunRemoteAsync(string serviceName, string targetName, IReadOnlyList<object> arguments, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            using var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return false;
-            }
-
-            await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             return true;
         }
 

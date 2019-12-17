@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -141,10 +142,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 foreach (var reference in project.MetadataReferences)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    // The project must support compilations since we only create compilation for the project that invoked AddImport feature.
-                    RoslynDebug.Assert(compilation != null);
+                    var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                     var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                     if (assemblySymbol?.Name == result.AssemblyName)

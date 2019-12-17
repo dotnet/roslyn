@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             // +1 for project itself
                             project.DocumentIds.Count + 1
                         },
+                        solution: null,
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
                 }

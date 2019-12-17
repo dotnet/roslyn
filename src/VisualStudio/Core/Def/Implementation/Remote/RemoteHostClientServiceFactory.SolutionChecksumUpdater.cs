@@ -187,6 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         WellKnownRemoteHostServices.RemoteHostService,
                         nameof(IRemoteHostService.SynchronizeTextAsync),
                         new object[] { oldDocument.Id, state.Text, textChanges },
+                        solution: null,
                         callbackTarget: null,
                         CancellationToken).ConfigureAwait(false);
 

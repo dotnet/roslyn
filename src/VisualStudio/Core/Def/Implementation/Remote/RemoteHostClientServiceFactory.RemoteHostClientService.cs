@@ -213,8 +213,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var success = await client.TryRunRemoteAsync(
                         WellKnownRemoteHostServices.RemoteHostService,
                         nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                        _workspace.CurrentSolution,
                         new[] { (object)checksums },
+                        _workspace.CurrentSolution,
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 

@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 _ = await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
-                    solution,
                     new object[] { checksum, solution.WorkspaceVersion },
+                    solution,
                     callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }

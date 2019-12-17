@@ -106,6 +106,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeTextAsync),
                     new object[] { oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText) },
+                    solution: null,
                     callbackTarget: null,
                     CancellationToken.None);
 
@@ -178,8 +179,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.True(await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    workspace.CurrentSolution,
                     new object[] { new Checksum[0] { } },
+                    workspace.CurrentSolution,
                     callbackTarget: null,
                     CancellationToken.None));
 
@@ -379,8 +380,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.True(await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
-                solution,
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
+                solution,
                 callbackTarget: null,
                 CancellationToken.None));
         }

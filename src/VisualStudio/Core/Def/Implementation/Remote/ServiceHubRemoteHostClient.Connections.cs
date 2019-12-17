@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 TimeSpan timeout,
                 CancellationToken cancellationToken)
             {
-                const int RetryDelayInMS = 50;
+                var retryDelay = TimeSpan.FromMilliseconds(50);
 
                 using (var pooledStopwatch = SharedPools.Default<Stopwatch>().GetPooledObject())
                 {
@@ -42,16 +42,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         {
                             return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
                         }
-                        catch (OperationCanceledException e) when (e.CancellationToken != cancellationToken)
+                        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                         {
                             // Retry on cancellation that is not sourced by our cancellation token.
                             // Since HubClient will throw when it can't connect to service hub service (e.g. timeout, disposal).
                         }
 
                         // wait before next try
-                        await Task.Delay(RetryDelayInMS, cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(retryDelay, cancellationToken).ConfigureAwait(false);
 
-                        // if we tried for more than 10 mins and still couldn't connect, report non-fatal Watson
+                        // if we tried for too long and still couldn't connect, report non-fatal Watson
                         if (!s_timeoutReported && watch.Elapsed > s_reportTimeout)
                         {
                             s_timeoutReported = true;
@@ -80,9 +80,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 CancellationToken cancellationToken)
             {
                 const int MaxRetryAttempts = 10;
-                const int RetryDelayInMS = 50;
+                var retryDelay = TimeSpan.FromMilliseconds(50);
 
-                RemoteInvocationException lastException = null;
+                Exception lastException = null;
 
                 var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
 
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                             timeout,
                             cancellationToken).ConfigureAwait(false);
                     }
-                    catch (RemoteInvocationException ex)
+                    catch (Exception ex) when (!(ex is OperationCanceledException))
                     {
                         // save info only if it failed with different issue than before.
                         if (lastException?.Message != ex.Message)
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // wait before next try
-                    await Task.Delay(RetryDelayInMS, cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(retryDelay, cancellationToken).ConfigureAwait(false);
                 }
 
                 RemoteHostCrashInfoBar.ShowInfoBar(workspace, lastException);

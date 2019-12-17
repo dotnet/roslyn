@@ -143,8 +143,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             _ = await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                workspace.CurrentSolution,
                 new[] { (object)checksums },
+                workspace.CurrentSolution,
                 callbackTarget: null,
                 CancellationToken.None).ConfigureAwait(false);
         }
