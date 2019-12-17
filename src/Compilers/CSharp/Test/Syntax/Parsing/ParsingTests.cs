@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-//#define PARSING_TESTS_DUMP
+#nullable enable
 
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,12 +15,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class ParsingTests : CSharpTestBase
     {
-        private IEnumerator<SyntaxNodeOrToken> _treeEnumerator;
+        private IEnumerator<SyntaxNodeOrToken>? _treeEnumerator;
         private readonly ITestOutputHelper _output;
+        private bool _dump = false;
 
         public ParsingTests(ITestOutputHelper output)
         {
             this._output = output;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            VerifyEnumeratorConsumed();
+        }
+
+        private void VerifyEnumeratorConsumed()
+        {
+            if (_treeEnumerator != null)
+            {
+                _dump = true;
+                var hasAny = _treeEnumerator.MoveNext();
+                while (_treeEnumerator.MoveNext()) { } // consume all nodes for test failure diagnostics
+
+                _dump = false;
+                _treeEnumerator = null; // Prevent redundant error in UsingNode() and Dispose();
+                Assert.False(hasAny, "Test contains unconsumed syntax left over from UsingNode()");
+            }
         }
 
         public static void ParseAndValidate(string text, params DiagnosticDescription[] expectedErrors)
@@ -44,15 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             actualErrors.Take(1).Verify(expectedFirstError);
         }
 
-        protected virtual SyntaxTree ParseTree(string text, CSharpParseOptions options) => SyntaxFactory.ParseSyntaxTree(text, options);
+        protected virtual SyntaxTree ParseTree(string text, CSharpParseOptions? options) => SyntaxFactory.ParseSyntaxTree(text, options);
 
-        public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
+        public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions? parseOptions = null) =>
             SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
 
         internal CompilationUnitSyntax ParseFileExperimental(string text, MessageID feature) =>
             ParseFile(text, parseOptions: TestOptions.Regular.WithExperimental(feature));
 
-        protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
+        protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions? options) =>
             ParseTree(text, options).GetCompilationUnitRoot();
 
         internal void UsingStatement(string text, params DiagnosticDescription[] expectedErrors)
@@ -60,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingStatement(text, options: null, expectedErrors);
         }
 
-        internal void UsingStatement(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        internal void UsingStatement(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseStatement(text, options: options);
             // we validate the text roundtrips
@@ -75,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingDeclaration(text, offset: 0, options, consumeFullText: true, expectedErrors: expectedErrors);
         }
 
-        internal void UsingDeclaration(string text, int offset = 0, ParseOptions options = null, bool consumeFullText = true, params DiagnosticDescription[] expectedErrors)
+        internal void UsingDeclaration(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true, params DiagnosticDescription[] expectedErrors)
         {
             var node = SyntaxFactory.ParseMemberDeclaration(text, offset, options, consumeFullText);
             if (consumeFullText)
@@ -89,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
-        internal void UsingExpression(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        internal void UsingExpression(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             UsingNode(text, SyntaxFactory.ParseExpression(text, options: options), expectedErrors);
         }
@@ -111,13 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.
         /// </summary>
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions options = null)
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions? options = null)
         {
+            VerifyEnumeratorConsumed();
             var tree = ParseTree(text, options);
             var nodes = EnumerateNodes(tree.GetCompilationUnitRoot());
-#if PARSING_TESTS_DUMP
-            nodes = nodes.ToArray(); //force eval to dump contents
-#endif
             _treeEnumerator = nodes.GetEnumerator();
 
             return tree;
@@ -145,20 +164,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         protected void UsingNode(CSharpSyntaxNode root)
         {
+            VerifyEnumeratorConsumed();
             var nodes = EnumerateNodes(root);
-#if PARSING_TESTS_DUMP
-            nodes = nodes.ToArray(); //force eval to dump contents
-#endif
             _treeEnumerator = nodes.GetEnumerator();
+        }
+
+        protected void Flush()
+        {
+            _treeEnumerator = null;
         }
 
         /// <summary>
         /// Moves the enumerator and asserts that the current node is of the given kind.
         /// </summary>
         [DebuggerHidden]
-        protected SyntaxNodeOrToken N(SyntaxKind kind, string value = null)
+        protected SyntaxNodeOrToken N(SyntaxKind kind, string? value = null)
         {
-            Assert.True(_treeEnumerator.MoveNext());
+            Assert.True(_treeEnumerator!.MoveNext());
             Assert.Equal(kind, _treeEnumerator.Current.Kind());
 
             if (value != null)
@@ -176,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected SyntaxNodeOrToken M(SyntaxKind kind)
         {
-            Assert.True(_treeEnumerator.MoveNext());
+            Assert.True(_treeEnumerator!.MoveNext());
             SyntaxNodeOrToken current = _treeEnumerator.Current;
             Assert.Equal(kind, current.Kind());
             Assert.True(current.IsMissing);
@@ -190,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [DebuggerHidden]
         protected void EOF()
         {
-            if (_treeEnumerator.MoveNext())
+            if (_treeEnumerator!.MoveNext())
             {
                 Assert.False(true, "Found unexpected node or token of kind: " + _treeEnumerator.Current.Kind());
             }
@@ -233,41 +255,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Done();
         }
 
-        [Conditional("PARSING_TESTS_DUMP")]
         private void Print(SyntaxNodeOrToken node)
         {
-            switch (node.Kind())
+            if (_dump)
             {
-                case SyntaxKind.IdentifierToken:
-                case SyntaxKind.NumericLiteralToken:
-                    if (node.IsMissing)
-                    {
-                        goto default;
-                    }
-                    _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
-                    break;
-                default:
-                    _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
-                    break;
+                switch (node.Kind())
+                {
+                    case SyntaxKind.IdentifierToken:
+                    case SyntaxKind.NumericLiteralToken:
+                        if (node.IsMissing)
+                        {
+                            goto default;
+                        }
+                        _output.WriteLine(@"N(SyntaxKind.{0}, ""{1}"");", node.Kind(), node.ToString());
+                        break;
+                    default:
+                        _output.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
+                        break;
+                }
             }
         }
 
-        [Conditional("PARSING_TESTS_DUMP")]
         private void Open()
         {
-            _output.WriteLine("{");
+            if (_dump)
+            {
+                _output.WriteLine("{");
+            }
         }
 
-        [Conditional("PARSING_TESTS_DUMP")]
         private void Close()
         {
-            _output.WriteLine("}");
+            if (_dump)
+            {
+                _output.WriteLine("}");
+            }
         }
 
-        [Conditional("PARSING_TESTS_DUMP")]
         private void Done()
         {
-            _output.WriteLine("EOF();");
+            if (_dump)
+            {
+                _output.WriteLine("EOF();");
+            }
         }
     }
 }
