@@ -145,6 +145,21 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestNotWithoutSubtraction()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+namespace System { public struct Range { } }
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([||]1, 2);
+    }
+}", new TestParameters(parseOptions: s_parseOptions));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestNonStringType()
         {
             await TestAsync(
