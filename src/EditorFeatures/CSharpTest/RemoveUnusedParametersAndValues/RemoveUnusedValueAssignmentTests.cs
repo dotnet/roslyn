@@ -6529,6 +6529,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
         {
+            //NOTE: Currently the diagnostic is only reported on the outer unused variable a. 
             await TestDiagnosticMissingAsync(
 @"using System;
 
