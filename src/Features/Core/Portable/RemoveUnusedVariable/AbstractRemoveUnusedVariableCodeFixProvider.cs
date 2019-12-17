@@ -156,9 +156,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             {
                 //NOTE: we can't cast directly here since in for loops the daclarator.Parent.Parent
                 //is the ForStatementSyntax instead of the TLocalDeclarationStatement
-                if (variableDeclarator.Parent.Parent is TLocalDeclarationStatement localDeclaration)
+                var candidate = GetCandidateLocalDeclarationForRemoval(variableDeclarator);
+                if(candidate != null)
                 {
-                    candidateLocalDeclarationsToRemove.Add(localDeclaration);
+                    candidateLocalDeclarationsToRemove.Add(candidate);
                 }
             }
 
@@ -184,6 +185,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 }
             }
         }
+
+        protected abstract TLocalDeclarationStatement GetCandidateLocalDeclarationForRemoval(TVariableDeclarator declarator);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
