@@ -269,8 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
         }
 
-        private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool
-            = SharedPools.Default<Stack<SyntaxNode>>();
+        private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = SharedPools.Default<Stack<SyntaxNode>>();
 
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {
