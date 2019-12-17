@@ -1019,6 +1019,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+
+        /// <summary>
+        /// Returns true if locals are to be initialized
+        /// </summary>
+        public abstract bool AreLocalsZeroed { get; }
+
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;

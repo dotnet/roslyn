@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeWithAnnotations>.Empty; }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed; }
+        }
+
         internal override bool IsComImport
         {
             get { return false; }

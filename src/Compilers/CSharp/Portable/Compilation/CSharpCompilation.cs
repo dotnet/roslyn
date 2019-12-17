@@ -2310,9 +2310,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Parallel.For(0, syntaxTrees.Length, parallelOptions,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
-                            var syntaxTree = syntaxTrees[i];
-                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
-                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            try
+                            {
+                                var syntaxTree = syntaxTrees[i];
+                                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                                builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            }
+                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                            {
+                                throw ExceptionUtilities.Unreachable;
+                            }
                         }));
                 }
                 else
@@ -2731,7 +2738,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (moduleBeingBuilt.SourceModule.HasBadAttributes)
                 {
                     // If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuilt).Name);
+                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuilt).Name,
+                        new LocalizableResourceString(nameof(CodeAnalysisResources.ModuleHasInvalidAttributes), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
+
                     return false;
                 }
 
@@ -3131,8 +3140,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                var elementType = elementTypes[i].EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
-                var annotation = elementNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : elementNullableAnnotations[i].ToInternalAnnotation();
+                ITypeSymbol typeSymbol = elementTypes[i];
+                var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
+                var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
                 typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
             }
 

@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
         /// </summary>
@@ -2567,6 +2567,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_local_function_static {
             get {
                 return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make static.
+        /// </summary>
+        internal static string Make_member_static {
+            get {
+                return ResourceManager.GetString("Make_member_static", resourceCulture);
             }
         }
         

@@ -30,16 +30,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private readonly MSBuildProjectLoader _loader;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
-        private readonly DiagnosticReporter _reporter;
+
+        private ImmutableList<WorkspaceDiagnostic> _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
 
         private MSBuildWorkspace(
             HostServices hostServices,
             ImmutableDictionary<string, string> properties)
             : base(hostServices, WorkspaceKind.MSBuild)
         {
-            _reporter = new DiagnosticReporter(this);
-            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Services, _reporter);
-            _loader = new MSBuildProjectLoader(Services, _reporter, _projectFileLoaderRegistry, properties);
+            var diagnosticReporter = new DiagnosticReporter(this);
+            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(this, diagnosticReporter);
+            _loader = new MSBuildProjectLoader(this, diagnosticReporter, _projectFileLoaderRegistry, properties);
         }
 
         /// <summary>
@@ -99,11 +100,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Diagnostics logged while opening solutions, projects and documents.
         /// </summary>
-        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter.Diagnostics;
+        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _diagnostics;
 
         protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
-            _reporter.AddDiagnostic(diagnostic);
+            ImmutableInterlocked.Update(ref _diagnostics, d => d.Add(diagnostic));
             base.OnWorkspaceFailed(diagnostic);
         }
 
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         }
                         catch (IOException exception)
                         {
-                            _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                            this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                         }
                     }
                 }
@@ -307,7 +308,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                     catch (IOException exception)
                     {
-                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                        this.OnWorkspaceFailed(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }
                 }
             }
@@ -402,7 +403,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (IOException exception)
             {
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
             }
         }
 
@@ -430,15 +431,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             catch (IOException exception)
             {
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
             catch (NotSupportedException exception)
             {
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
             catch (UnauthorizedAccessException exception)
             {
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+                this.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
             }
         }
 

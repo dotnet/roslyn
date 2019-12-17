@@ -523,6 +523,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         protected sealed override ISymbol CreateISymbol()
         {
             return new PublicModel.ErrorTypeSymbol(this, DefaultNullableAnnotation);

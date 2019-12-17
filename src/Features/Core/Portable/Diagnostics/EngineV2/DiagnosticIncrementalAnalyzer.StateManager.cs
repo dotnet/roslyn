@@ -261,26 +261,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                DiagnosticAnalyzerInfoCache analyzerInfoCache,
-                string language,
-                IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection,
-                bool includeFileContentLoadAnalyzer)
+                DiagnosticAnalyzerInfoCache analyzerInfoCache, string language, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> analyzerCollection)
             {
                 var compilerAnalyzer = analyzerInfoCache.GetCompilerDiagnosticAnalyzer(language);
 
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
-
-                if (includeFileContentLoadAnalyzer)
-                {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, PredefinedBuildTools.Live));
-                }
-
                 foreach (var analyzers in analyzerCollection)
                 {
                     foreach (var analyzer in analyzers)
                     {
-                        Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance);
-
                         // TODO: 
                         // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
                         // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen

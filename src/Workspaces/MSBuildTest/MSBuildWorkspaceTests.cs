@@ -946,6 +946,12 @@ class C1
 
             using (var ws = CreateMSBuildWorkspace())
             {
+                var failed = false;
+                ws.WorkspaceFailed += (s, args) =>
+                {
+                    failed |= args.Diagnostic is DocumentDiagnostic;
+                };
+
                 // open source file so it cannot be read by workspace;
                 var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
                 var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
@@ -958,7 +964,7 @@ class C1
                     var getTextTask = doc.GetTextAsync();
 
                     // wait 1 unit of retry delay then close file
-                    var delay = TextLoader.RetryDelay;
+                    var delay = TextDocumentState.RetryDelay;
                     await Task.Delay(delay).ContinueWith(t => file.Close(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
                     // finish reading text
@@ -970,7 +976,7 @@ class C1
                     file.Close();
                 }
 
-                Assert.Empty(ws.Diagnostics);
+                Assert.False(failed);
             }
         }
 
@@ -984,6 +990,12 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var failed = false;
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    failed |= args.Diagnostic is DocumentDiagnostic;
+                };
+
                 // open source file so it cannot be read by workspace;
                 var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
                 var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
@@ -999,9 +1011,10 @@ class C1
                     file.Close();
                 }
 
-                Assert.Equal(WorkspaceDiagnosticKind.Failure, workspace.Diagnostics.Single().Kind);
+                Assert.True(failed);
             }
         }
+
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
@@ -1015,8 +1028,15 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-                Assert.Single(workspace.Diagnostics);
+
+                Assert.Single(diagnostics);
             }
         }
 
@@ -1030,8 +1050,15 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-                Assert.Empty(workspace.Diagnostics);
+
+                Assert.Empty(diagnostics);
             }
         }
 
@@ -1066,9 +1093,15 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
-                Assert.Single(workspace.Diagnostics);
+                Assert.Single(diagnostics);
             }
         }
 
@@ -1135,9 +1168,15 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
-                Assert.Single(workspace.Diagnostics);
+                Assert.Single(diagnostics);
                 Assert.Empty(solution.ProjectIds);
             }
         }
@@ -1207,11 +1246,19 @@ class C1
             {
                 workspace.SkipUnrecognizedProjects = true;
 
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += delegate (object sender, WorkspaceDiagnosticEventArgs e)
+                {
+                    diagnostics.Add(e.Diagnostic);
+                };
+
                 var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+                Assert.Single(diagnostics);
 
                 var projFileName = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
                 var expected = string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projFileName, ".csproj");
-                Assert.Equal(expected, workspace.Diagnostics.Single().Message);
+                Assert.Equal(expected, diagnostics[0].Message);
             }
         }
 
@@ -1276,13 +1323,17 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
                 Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to invalid file path.
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
-
-                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -1312,13 +1363,17 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
                 Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to invalid file path.
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
-
-                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
@@ -1349,13 +1404,17 @@ class C1
 
             using (var workspace = CreateMSBuildWorkspace())
             {
+                var diagnostics = new List<WorkspaceDiagnostic>();
+                workspace.WorkspaceFailed += (s, args) =>
+                {
+                    diagnostics.Add(args.Diagnostic);
+                };
+
                 var project = await workspace.OpenProjectAsync(projectFilePath);
 
                 Assert.Single(project.Solution.ProjectIds); // didn't really open referenced project due to unrecognized extension.
                 Assert.Empty(project.ProjectReferences); // no resolved project references
                 Assert.Single(project.AllProjectReferences); // dangling project reference
-
-                Assert.NotEmpty(workspace.Diagnostics);
             }
         }
 
