@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Remote;
@@ -19,8 +20,8 @@ using Nerdbank.Streams;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
-    [ContentType("C#_LSP")]
-    [ContentType("VB_LSP")]
+    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.VBLspContentTypeName)]
     [Export(typeof(ILanguageClient))]
     internal class LiveShareLanguageServerClient : ILanguageClient
     {
