@@ -262,11 +262,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
         {
-            // If a local function is involved, we have to make sure the declaration is:
-            //     1. Before the local function(s) themselves.
-            //     2. Before all calls to local functions that use the variable.
+            // If a local function is involved, we have to make sure the new declaration is placed:
+            //     1. Before all calls to local functions that use the variable.
+            //     2. Before the local function(s) themselves.
             //     3. Before all matches.
-            // (1) and (3) are already covered by the 'firstStatementAffectedIndex' parameter. Thus, all we have to do is make sure we consider (2) when
+            // Cases (2) and (3) are already covered by the 'firstStatementAffectedIndex' parameter. Thus, all we have to do is ensure we consider (1) when
             // determining where to place our new declaration.
 
             // Find all the local functions within the scope that will use the new declaration.
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var statementsInBlock = GetStatements(innermostCommonBlock);
 
-            // See if our earliest call is before all local function declarations and matches.
+            // Check if our earliest call is before all local function declarations and all matches, and if so, place our new declaration there.
             var statement = statementsInBlock.Where(s => s.Span.Contains(earliestLocalFunctionCall)).Single();
             if (firstStatementAffectedIndex > statementsInBlock.IndexOf(statement))
             {

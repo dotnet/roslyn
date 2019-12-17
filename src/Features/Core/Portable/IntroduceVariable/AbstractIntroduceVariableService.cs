@@ -338,9 +338,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         return IsInstanceMemberReference(currentOperation);
                     }
 
-                    // - If the original expression is within a static local function, further checks are unneeded since our scope is already narrowed down to within the local function.
-                    // - If the original expression is NOT within a static local function, we need to perform a further check of whether the expression we're comparing against
-                    // is within a static local function. If it is, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
+                    // If the original expression is within a static local function, further checks are unnecessary since our scope has already been narrowed down to within the local function.
+                    // If the original expression is not within a static local function, we need to further check whether the expression we're comparing against is within a static local
+                    // function. If so, the expression is not a valid match since we cannot refer to instance variables from within static local functions.
                     if (!IsExpressionInStaticLocalFunction(expressionInOriginal))
                     {
                         return !IsExpressionInStaticLocalFunction(nodeInCurrent);
