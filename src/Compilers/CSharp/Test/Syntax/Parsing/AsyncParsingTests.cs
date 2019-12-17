@@ -1348,6 +1348,7 @@ class C
                 N(SyntaxKind.OpenBraceToken);
                 N(memberKind);
                 N(SyntaxKind.AsyncKeyword);
+                Flush();
             };
 
             // ... 'async' <typedecl> ...
