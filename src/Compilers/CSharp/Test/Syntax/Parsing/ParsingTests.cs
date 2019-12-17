@@ -169,11 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             _treeEnumerator = nodes.GetEnumerator();
         }
 
-        protected void Flush()
-        {
-            _treeEnumerator = null;
-        }
-
         /// <summary>
         /// Moves the enumerator and asserts that the current node is of the given kind.
         /// </summary>
