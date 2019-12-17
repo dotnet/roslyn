@@ -131,10 +131,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
                 }
 
-                // shut it down outside of lock so that
-                // we don't call into different component while
-                // holding onto a lock
-                client?.Shutdown();
+                if (client != null)
+                {
+                    client.StatusChanged -= OnStatusChanged;
+
+                    // shut it down outside of lock so that
+                    // we don't call into different component while
+                    // holding onto a lock
+                    client.Shutdown();
+                }
             }
 
             bool IRemoteHostClientService.IsEnabled()

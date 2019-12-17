@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }, closeAfterAction: true));
             }
 
-            var errorReportingService = workspace.Services.GetService<IErrorReportingService>();
+            var errorReportingService = workspace.Services.GetRequiredService<IErrorReportingService>();
 
             if (exception != null)
             {
