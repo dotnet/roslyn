@@ -4,8 +4,11 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.CodeAnalysis.Lsif.Generator
 {
@@ -15,16 +18,17 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
         {
             var generateCommand = new RootCommand("generates an LSIF file")
             {
+                new Option("--solution", "input solution file") { Argument = new Argument<FileInfo>().ExistingOnly(), Required = true },
                 new Option("--output", "file to write the LSIF output to, instead of the console") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() },
                 new Option("--log", "file to write a log to") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() }
             };
 
-            generateCommand.Handler = CommandHandler.Create((Func<string?, string?, Task>)GenerateAsync);
+            generateCommand.Handler = CommandHandler.Create((Func<FileInfo, string?, string?, Task>)GenerateAsync);
 
             return generateCommand.InvokeAsync(args);
         }
 
-        private static async Task GenerateAsync(string? output, string? log)
+        private static async Task GenerateAsync(FileInfo solution, string? output, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
             using StreamWriter? outputFile = output != null ? new StreamWriter(output) : null;
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             try
             {
-                await GenerateAsync(outputWriter, logFile);
+                await GenerateAsync(solution, outputWriter, logFile);
             }
             catch (Exception e)
             {
@@ -48,9 +52,25 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static Task GenerateAsync(TextWriter outputWriter, TextWriter logFile)
+        private static async Task GenerateAsync(FileInfo solutionFile, TextWriter outputWriter, TextWriter logFile)
         {
-            return Task.CompletedTask;
+            await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
+
+            var solutionLoadStopwatch = Stopwatch.StartNew();
+
+            MSBuildLocator.RegisterDefaults();
+            var msbuildWorkspace = MSBuildWorkspace.Create();
+            var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
+
+            await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.ToDisplayString()}.");
+
+            foreach (var project in solution.Projects)
+            {
+                var compilationCreationStopwatch = Stopwatch.StartNew();
+                var compilation = await project.GetCompilationAsync();
+
+                await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.ToDisplayString()}.");
+            }
         }
     }
 }
