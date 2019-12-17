@@ -3612,5 +3612,38 @@ class X
                 TypeParameter("T"),
                 Keyword("notnull"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out var _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("var"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ShortDiscardInAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int.TryParse("""", out _);
+    }
+}",
+            Method("TryParse"),
+            Static("TryParse"),
+            Keyword("_"));
+        }
     }
 }
