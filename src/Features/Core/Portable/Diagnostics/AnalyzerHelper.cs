@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
             var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            if (configOptions.TryGetOption<T>(option, out var value))
+            if (configOptions.TryGetEditorConfigOption<T>(option, out var value))
             {
                 return value;
             }

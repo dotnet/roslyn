@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// This class proxies requests for Option values first to the AnalyzerConfigOptions then to a backup OptionSet if provided.
+    /// This class proxies requests for option values first to the <see cref="AnalyzerConfigOptions" /> then to a backup <see cref="OptionSet" /> if provided.
     /// </summary>
     internal sealed class AnalyzerConfigOptionSet : OptionSet
     {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override object GetOption(OptionKey optionKey)
         {
             // First try to find the option from the .editorconfig options parsed by the compiler.
-            if (_analyzerConfigOptions.TryGetOption<object>(optionKey.Option, out var value))
+            if (_analyzerConfigOptions.TryGetEditorConfigOption<object>(optionKey.Option, out var value))
             {
                 return value;
             }
