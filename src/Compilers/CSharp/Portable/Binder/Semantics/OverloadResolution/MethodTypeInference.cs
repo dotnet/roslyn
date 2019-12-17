@@ -605,13 +605,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
                 return false;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var destTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             // NOTE: we are losing tuple element names when recursing into argument expressions.
@@ -778,12 +778,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(sourceArguments.Length))
             {
                 return;
             }
 
-            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var destTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)
@@ -1561,8 +1561,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> sourceTypes;
             ImmutableArray<TypeWithAnnotations> targetTypes;
 
-            if (!source.Type.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out sourceTypes) ||
-                !target.Type.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetTypes) ||
+            if (!source.Type.TryGetElementTypesWithAnnotationsIfTupleType(out sourceTypes) ||
+                !target.Type.TryGetElementTypesWithAnnotationsIfTupleType(out targetTypes) ||
                 sourceTypes.Length != targetTypes.Length)
             {
                 return false;
@@ -1585,13 +1585,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type C<U1...Uk> then an exact inference 
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var namedSource = source.Type.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var namedSource = source.Type as NamedTypeSymbol;
             if ((object)namedSource == null)
             {
                 return false;
             }
 
-            var namedTarget = target.Type.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
+            var namedTarget = target.Type as NamedTypeSymbol;
             if ((object)namedTarget == null)
             {
                 return false;
@@ -1823,9 +1823,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
-
-            source = source.TupleUnderlyingTypeOrSelf();
-            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedTarget = target as NamedTypeSymbol;
             if ((object)constructedTarget == null)
@@ -2174,8 +2171,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(sourceWithAnnotations.HasType);
             Debug.Assert(targetWithAnnotations.HasType);
-            var source = sourceWithAnnotations.Type.TupleUnderlyingTypeOrSelf();
-            var target = targetWithAnnotations.Type.TupleUnderlyingTypeOrSelf();
+            var source = sourceWithAnnotations.Type;
+            var target = targetWithAnnotations.Type;
 
             var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource == null)

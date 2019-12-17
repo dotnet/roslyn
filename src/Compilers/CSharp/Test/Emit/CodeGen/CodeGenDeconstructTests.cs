@@ -1465,16 +1465,12 @@ class C
             var xy = nodes.OfType<TupleExpressionSyntax>().Single();
             Assert.Equal("(x, y)", xy.ToString());
             var tuple1 = model.GetTypeInfo(xy).Type;
-            Assert.Equal("(System.Int32 x, System.Int32 y)", tuple1.ToTestDisplayString());
-            var underlying1 = ((INamedTypeSymbol)tuple1).TupleUnderlyingType;
-            Assert.Equal("System.ValueTuple<System.Int32, System.Int32>[missing]", underlying1.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x, System.Int32 y)[missing]", tuple1.ToTestDisplayString());
 
             var ab = nodes.OfType<DeclarationExpressionSyntax>().Single();
             var tuple2 = model.GetTypeInfo(ab).Type;
-            Assert.Equal("(System.Int32 a, System.Int32 b)", tuple2.ToTestDisplayString());
-            var underlying2 = ((INamedTypeSymbol)tuple2).TupleUnderlyingType;
-            Assert.Equal("System.ValueTuple<System.Int32, System.Int32>[missing]", underlying2.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.Int32 b)", model.GetTypeInfo(ab).ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)[missing]", tuple2.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)[missing]", model.GetTypeInfo(ab).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -1510,16 +1506,12 @@ class C
             var tuple1 = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(x, y) = new C(1)", tuple1.Parent.ToString());
             var tupleType1 = model.GetTypeInfo(tuple1).Type;
-            Assert.Equal("(System.Int32 x, System.Int32 y)", tupleType1.ToTestDisplayString());
-            var underlying1 = ((INamedTypeSymbol)tupleType1).TupleUnderlyingType;
-            Assert.Equal("System.ValueTuple<System.Int32, System.Int32>[missing]", underlying1.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x, System.Int32 y)[missing]", tupleType1.ToTestDisplayString());
 
             var tuple2 = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(x, y) = new C(2)", tuple2.Parent.ToString());
             var tupleType2 = model.GetTypeInfo(tuple1).Type;
-            Assert.Equal("(System.Int32 x, System.Int32 y)", tupleType2.ToTestDisplayString());
-            var underlying2 = ((INamedTypeSymbol)tupleType1).TupleUnderlyingType;
-            Assert.Equal("System.ValueTuple<System.Int32, System.Int32>[missing]", underlying2.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x, System.Int32 y)[missing]", tupleType2.ToTestDisplayString());
         }
 
         [Fact]
@@ -1569,7 +1561,7 @@ namespace System
             var tupleType = model.GetTypeInfo(tuple).Type;
             Assert.Equal("(System.Int32 x, System.Int32 y)", tupleType.ToTestDisplayString());
             var underlying = ((INamedTypeSymbol)tupleType).TupleUnderlyingType;
-            Assert.Equal("System.ValueTuple<System.Int32, System.Int32>", underlying.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", underlying.ToTestDisplayString());
         }
 
         [Fact]
@@ -4005,17 +3997,17 @@ class C
 @"{
   // Code size       70 (0x46)
   .maxstack  2
-  .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
+  .locals init (System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> V_0,
                 int V_1, //x1
                 int V_2) //x2
-  IL_0000:  call       ""System.Collections.Generic.IEnumerable<(int, int)> C.M()""
-  IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<(int, int)> System.Collections.Generic.IEnumerable<(int, int)>.GetEnumerator()""
+  IL_0000:  call       ""System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> C.M()""
+  IL_0005:  callvirt   ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>>.GetEnumerator()""
   IL_000a:  stloc.0
   .try
   {
     IL_000b:  br.s       IL_0031
     IL_000d:  ldloc.0
-    IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
+    IL_000e:  callvirt   ""System.ValueTuple<int, int> System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>>.Current.get""
     IL_0013:  dup
     IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
     IL_0019:  stloc.1
@@ -4089,11 +4081,11 @@ class C
 @"{
   // Code size       75 (0x4b)
   .maxstack  4
-  .locals init ((int, int)[] V_0,
+  .locals init (System.ValueTuple<int, int>[] V_0,
                 int V_1,
                 int V_2, //x1
                 int V_3) //x2
-  IL_0000:  call       ""(int, int)[] C.M()""
+  IL_0000:  call       ""System.ValueTuple<int, int>[] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
@@ -4172,14 +4164,14 @@ class C
 @"{
   // Code size      106 (0x6a)
   .maxstack  3
-  .locals init ((int, int)[,] V_0,
+  .locals init (System.ValueTuple<int, int>[,] V_0,
                 int V_1,
                 int V_2,
                 int V_3,
                 int V_4,
                 int V_5, //x1
                 int V_6) //x2
-  IL_0000:  call       ""(int, int)[,] C.M()""
+  IL_0000:  call       ""System.ValueTuple<int, int>[,] C.M()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.0
@@ -5176,7 +5168,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
     IL_000d:  ldarg.0
     IL_000e:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
     IL_0013:  ldflda     ""int x1""
-    IL_0018:  call       ""(int, int) M(out int)""
+    IL_0018:  call       ""System.ValueTuple<int, int> M(out int)""
     IL_001d:  stloc.2
     IL_001e:  ldarg.0
     IL_001f:  ldfld      ""Script <<Initialize>>d__0.<>4__this""
@@ -8630,6 +8622,50 @@ namespace System
     {
         public T1 Item1;
         private T2 Item2;
+        public ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}";
+            var expected = new[] {
+                // (12,19): warning CS0649: Field '(T1, T2).Item1' is never assigned to, and will always have its default value 
+                //         public T1 Item1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Item1").WithArguments("(T1, T2).Item1", "").WithLocation(12, 19),
+                // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
+                //         private T2 Item2;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20)
+            };
+
+            // C# 7.0
+            var comp = CreateCompilation(
+                source,
+                assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            comp.VerifyEmitDiagnostics(expected);
+
+            // C# 7.1
+            comp = CreateCompilation(
+                source,
+                assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyEmitDiagnostics(expected);
+        }
+
+        [Fact]
+        public void InferredName_ConditionalOperator_UseSite_AccessingWithinConstructor()
+        {
+            var source =
+@"class C
+{
+    static void M(int a, int b, bool c)
+    {
+        var (x, y) = c ? ((object)1, a) : (b, 2);
+    }
+}
+namespace System
+{
+    struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        private T2 Item2;
         public ValueTuple(T1 item1, T2 item2)
         {
             Item1 = item1;
@@ -8637,18 +8673,34 @@ namespace System
         }
     }
 }";
+            var expected = new[]
+            {
+                    // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
+                    //         private T2 Item2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    //         public ValueTuple(T1 item1, T2 item2)
+                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    //         public ValueTuple(T1 item1, T2 item2)
+                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
+                    //             Item2 = item2;
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)
+            };
+
             // C# 7.0
             var comp = CreateCompilation(
                 source,
                 assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(expected);
             // C# 7.1
             comp = CreateCompilation(
                 source,
                 assemblyName: "39f5d0e8-2935-4207-a74d-517a8e55af08",
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(expected);
         }
 
         [Fact]

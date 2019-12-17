@@ -137,6 +137,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// returns an empty ImmutableArray. Never returns Null.</returns>
         public override ImmutableArray<Symbol> GetMembers()
         {
+            if (IsTupleType)
+            {
+                var result = AddOrWrapTupleMembers(ImmutableArray<Symbol>.Empty);
+                Debug.Assert(result is object);
+                return result.ToImmutableAndFree();
+            }
+
             return ImmutableArray<Symbol>.Empty;
         }
 
@@ -351,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Only the compiler should create error symbols.
-        internal ErrorTypeSymbol()
+        internal ErrorTypeSymbol(TupleExtraData tupleData = null)
+            : base(tupleData)
         {
         }
 
@@ -537,7 +545,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ErrorTypeSymbol _originalDefinition;
         private int _hashCode;
 
-        protected SubstitutedErrorTypeSymbol(ErrorTypeSymbol originalDefinition)
+        protected SubstitutedErrorTypeSymbol(ErrorTypeSymbol originalDefinition, TupleExtraData tupleData = null)
+            : base(tupleData)
         {
             _originalDefinition = originalDefinition;
         }
@@ -603,12 +612,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
         private readonly TypeMap _map;
 
-        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations) :
-            base((ErrorTypeSymbol)constructedFrom.OriginalDefinition)
+        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations, TupleExtraData tupleData = null) :
+            base((ErrorTypeSymbol)constructedFrom.OriginalDefinition, tupleData)
         {
             _constructedFrom = constructedFrom;
             _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
             _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArgumentsWithAnnotations);
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new ConstructedErrorTypeSymbol(_constructedFrom, _typeArgumentsWithAnnotations, tupleData: newData);
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -674,5 +688,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _map; }
         }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
     }
 }

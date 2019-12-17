@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsErrorType())
                 {
-                    result = GetRuntimeMember(type, ref descriptor, WellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
+                    result = GetRuntimeMember(type, descriptor, WellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
                 }
 
                 Interlocked.CompareExchange(ref _lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -237,13 +237,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(wellknownType);
         }
 
-        internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, ref MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
         {
-            Symbol result = null;
+            var members = declaringType.GetMembers(descriptor.Name);
+            return GetRuntimeMember(members, descriptor, comparer, accessWithinOpt);
+        }
+
+        internal static Symbol GetRuntimeMember(ImmutableArray<Symbol> members, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        {
             SymbolKind targetSymbolKind;
             MethodKind targetMethodKind = MethodKind.Ordinary;
             bool isStatic = (descriptor.Flags & MemberFlags.Static) != 0;
 
+            Symbol result = null;
             switch (descriptor.Flags & MemberFlags.KindMask)
             {
                 case MemberFlags.Constructor:
@@ -274,9 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(descriptor.Flags);
             }
 
-            foreach (var member in declaringType.GetMembers(descriptor.Name))
+            foreach (var member in members)
             {
-                Debug.Assert(member.Name.Equals(descriptor.Name));
+                if (!member.Name.Equals(descriptor.Name))
+                {
+                    continue;
+                }
 
                 if (member.Kind != targetSymbolKind || member.IsStatic != isStatic ||
                     !(member.DeclaredAccessibility == Accessibility.Public || ((object)accessWithinOpt != null && Symbol.IsSymbolAccessible(member, accessWithinOpt))))
@@ -348,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result = member;
             }
+
             return result;
         }
 
