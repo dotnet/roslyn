@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         protected override bool IsExpressionInStaticLocalFunction(ExpressionSyntax expression)
         {
             var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
-            return localFunction != null && localFunction.Modifiers.Any(modifier => modifier.IsKind(SyntaxKind.StaticKeyword));
+            return localFunction != null && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
 
         protected override TNode RewriteCore<TNode>(

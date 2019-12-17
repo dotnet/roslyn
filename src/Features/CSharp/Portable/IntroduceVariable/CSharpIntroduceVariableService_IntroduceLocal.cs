@@ -280,6 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             // Find all calls to the applicable local functions within the scope.
             var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(node => node is InvocationExpressionSyntax invocationExpression &&
+                                                                                  invocationExpression.Expression.GetRightmostName() != null &&
+                                                                                  !invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) &&
                                                                                   localFunctionIdentifiers.Contains(invocationExpression.Expression.GetRightmostName().Identifier.ValueText));
 
             if (localFunctionCalls.IsEmpty())

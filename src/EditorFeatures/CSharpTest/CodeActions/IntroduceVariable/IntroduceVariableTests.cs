@@ -7104,6 +7104,82 @@ class Bug
 }", index: 1, options: ImplicitTypingEverywhere());
         }
 
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_SameMethodNames()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var c = new C();
+        c.Local();
+
+        this.Local();
+
+        Local();
+        void Local()
+        {
+            var y = [|Foo();|]
+        }
+
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Local()
+    {
+
+    }
+}
+
+class C
+{
+    public void Local() { }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var c = new C();
+        c.Local();
+
+        this.Local();
+
+        var {|Rename:v|} = Foo();
+        Local();
+        void Local()
+        {
+            var y = v;
+        }
+
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void Local()
+    {
+
+    }
+}
+
+class C
+{
+    public void Local() { }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
         [WorkItem(40381, "https://github.com/dotnet/roslyn/issues/40381")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFromMethod_AllOccurences_DontIncludeStaticLocalFunctionReferences()
