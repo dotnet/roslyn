@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
+            _optionService?.UnregisterWorkspace(this);
         }
 
         #region Host API
