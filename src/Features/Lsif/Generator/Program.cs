@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.CodeAnalysis.Lsif.Generator
@@ -64,12 +65,22 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.ToDisplayString()}.");
 
+            using var lsifWriter = new TextLsifJsonWriter(outputWriter);
+            var lsifGenerator = new Generator(lsifWriter);
+
             foreach (var project in solution.Projects)
             {
-                var compilationCreationStopwatch = Stopwatch.StartNew();
-                var compilation = await project.GetCompilationAsync();
+                if (project.SupportsCompilation && project.FilePath != null)
+                {
+                    var compilationCreationStopwatch = Stopwatch.StartNew();
+                    var compilation = (await project.GetCompilationAsync())!;
 
-                await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.ToDisplayString()}.");
+                    await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.ToDisplayString()}.");
+
+                    var generationForProjectStopwatch = Stopwatch.StartNew();
+                    await lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices);
+                    await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationForProjectStopwatch.ToDisplayString()}.");
+                }
             }
         }
     }
