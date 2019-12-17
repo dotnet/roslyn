@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
         public virtual Task<ResponseType> HandleAsync(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<VSClientCapabilities>(), cancellationToken: cancellationToken);
+            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<VSClientCapabilities>(), cancellationToken);
         }
 
         protected Lazy<IRequestHandler, IRequestHandlerMetadata> GetRequestHandler(IEnumerable<Lazy<IRequestHandler, IRequestHandlerMetadata>> requestHandlers, string methodName)
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         /// </summary>
         private Task<ResponseType> HandleAsyncPreserveThreadContext(RequestType param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken: cancellationToken);
+            return ((IRequestHandler<RequestType, ResponseType>)LazyRequestHandler.Value).HandleRequestAsync(requestContext.Context, param, requestContext.ClientCapabilities?.ToObject<ClientCapabilities>(), cancellationToken);
         }
     }
 }

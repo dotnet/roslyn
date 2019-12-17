@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var handler = (IRequestHandler<RequestType, ResponseType>)_requestHandlers[methodName]?.Value;
             Contract.ThrowIfNull(handler, string.Format("Request handler not found for method {0}", methodName));
 
-            return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken: cancellationToken);
+            return handler.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
         }
 
         /// <summary>

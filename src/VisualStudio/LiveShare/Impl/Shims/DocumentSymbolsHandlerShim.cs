@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             }
 
             var handler = (IRequestHandler<DocumentSymbolParams, object[]>)LazyRequestHandler.Value;
-            var response = await handler.HandleRequestAsync(requestContext.Context, param, clientCapabilities, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var response = await handler.HandleRequestAsync(requestContext.Context, param, clientCapabilities, cancellationToken).ConfigureAwait(false);
 
             // Since hierarchicalSupport will never be true, it is safe to cast the response to SymbolInformation[]
             return response?.Select(obj => (SymbolInformation)obj).ToArray();
