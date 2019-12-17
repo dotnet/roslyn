@@ -197,8 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
 
-            var newOptions = WithChangedOptions(workspace.Options);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptions));
+            workspace.SetOptions(WithChangedOptions(workspace.Options));
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
