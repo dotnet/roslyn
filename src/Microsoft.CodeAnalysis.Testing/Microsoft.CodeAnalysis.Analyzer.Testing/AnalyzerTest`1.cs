@@ -689,18 +689,19 @@ namespace Microsoft.CodeAnalysis.Testing
                 .WithXmlReferenceResolver(xmlReferenceResolver)
                 .WithAssemblyIdentityComparer(ReferenceAssemblies.AssemblyIdentityComparer);
 
-            var solution = CreateWorkspace()
+            var workspace = CreateWorkspace();
+            foreach (var transform in OptionsTransforms)
+            {
+                workspace.Options = transform(workspace.Options);
+            }
+
+            var solution = workspace
                 .CurrentSolution
                 .AddProject(projectId, DefaultTestProjectName, DefaultTestProjectName, language)
                 .WithProjectCompilationOptions(projectId, compilationOptions);
 
             var metadataReferences = await ReferenceAssemblies.ResolveAsync(language, cancellationToken);
             solution = solution.AddMetadataReferences(projectId, metadataReferences);
-
-            foreach (var transform in OptionsTransforms)
-            {
-                solution.Workspace.Options = transform(solution.Workspace.Options);
-            }
 
             var parseOptions = solution.GetProject(projectId).ParseOptions;
             solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
