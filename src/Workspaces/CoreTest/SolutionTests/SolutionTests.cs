@@ -1858,8 +1858,8 @@ class C
 
             // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
             diagnostics = newCompilation.GetDiagnostics();
-            Assert.Equal(1, diagnostics.Length);
-            Assert.Contains("CS8669", diagnostics[0].Id);
+            diagnostic = Assert.Single(diagnostics);
+            Assert.Contains("CS8669", diagnostic.Id);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
