@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis
 
             var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
-            var treeDiagnosticOptions = filePath != null ? analyzerConfigSet.GetOptionsForSourcePath(filePath).TreeOptions : null;
+            var analyzerConfigOptionsResult = filePath != null ? analyzerConfigSet.GetOptionsForSourcePath(filePath) : (AnalyzerConfigOptionsResult?)null;
 
-            var tree = treeFactory.ParseSyntaxTree(filePath, options, text, treeDiagnosticOptions, cancellationToken);
+            var tree = treeFactory.ParseSyntaxTree(filePath, options, text, analyzerConfigOptionsResult, cancellationToken);
 
             var root = tree.GetRoot(cancellationToken);
             if (mode == PreservationMode.PreserveValue && treeFactory.CanCreateRecoverableTree(root))
@@ -551,13 +551,11 @@ namespace Microsoft.CodeAnalysis
 
             // determine encoding
             Encoding? encoding;
-            ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions = null;
 
             if (TryGetSyntaxTree(out var priorTree))
             {
                 // this is most likely available since UpdateTree is normally called after modifying the existing tree.
                 encoding = priorTree.Encoding;
-                treeDiagnosticReportingOptions = priorTree.DiagnosticOptions;
             }
             else if (TryGetText(out var priorText))
             {
@@ -573,17 +571,14 @@ namespace Microsoft.CodeAnalysis
 
             var filePath = GetSyntaxTreeFilePath(Attributes);
 
-            if (treeDiagnosticReportingOptions == null)
-            {
-                // Ideally we'd pass a cancellation token here but we don't have one to pass as the operation previously didn't take a cancellation token.
-                // In practice, I don't suspect it will matter: GetValue will only do work if we haven't already computed the AnalyzerConfigSet for this project,
-                // which would only happen if no tree was observed for any file in this project. Arbitrarily replacing trees without ever looking at the
-                // original one is possible but unlikely.
-                treeDiagnosticReportingOptions = _analyzerConfigSetSource.GetValue(CancellationToken.None).GetOptionsForSourcePath(filePath).TreeOptions;
-            }
+            // Ideally we'd pass a cancellation token here but we don't have one to pass as the operation previously didn't take a cancellation token.
+            // In practice, I don't suspect it will matter: GetValue will only do work if we haven't already computed the AnalyzerConfigSet for this project,
+            // which would only happen if no tree was observed for any file in this project. Arbitrarily replacing trees without ever looking at the
+            // original one is possible but unlikely.
+            var analyzerConfigOptionsResult = _analyzerConfigSetSource.GetValue(CancellationToken.None).GetOptionsForSourcePath(filePath);
 
             Contract.ThrowIfNull(_options);
-            var (text, tree) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, Attributes, _options, treeDiagnosticReportingOptions, syntaxTreeFactory, mode);
+            var (text, tree) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, Attributes, _options, analyzerConfigOptionsResult, syntaxTreeFactory, mode);
 
             return new DocumentState(
                 LanguageServices,
@@ -621,7 +616,7 @@ namespace Microsoft.CodeAnalysis
             Encoding? encoding,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
-            ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions,
+            AnalyzerConfigOptionsResult analyzerConfigOptionsResult,
             ISyntaxTreeFactoryService factory,
             PreservationMode mode)
         {
@@ -630,7 +625,7 @@ namespace Microsoft.CodeAnalysis
 
             if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
             {
-                tree = factory.CreateSyntaxTree(filePath, options, encoding, newRoot, treeDiagnosticReportingOptions);
+                tree = factory.CreateSyntaxTree(filePath, options, encoding, newRoot, analyzerConfigOptionsResult);
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
@@ -660,7 +655,7 @@ namespace Microsoft.CodeAnalysis
                     textVersion,
                     filePath);
 
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, encoding, newRoot, treeDiagnosticReportingOptions);
+                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, encoding, newRoot, analyzerConfigOptionsResult.TreeOptions);
             }
 
             return (lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));

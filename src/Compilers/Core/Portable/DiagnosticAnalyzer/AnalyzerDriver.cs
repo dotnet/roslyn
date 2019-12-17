@@ -1946,18 +1946,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             bool computeIsGeneratedCode()
             {
-                // First check for explicit user configuration for generated code.
+                // Check for explicit user configuration for generated code from options.
                 //     generated_code = true | false
+                // If there is no explicit user configuration, fallback to our generated code heuristic.
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                if (options.TryGetValue("generated_code", out string optionValue) &&
-                    bool.TryParse(optionValue, out var boolValue))
-                {
-                    return boolValue;
-                }
-
-                // Either no explicit user configuration or we don't recognize the option value.
-                // Compute isGeneratedCode using our generated code heuristic.
-                return _isGeneratedCode(tree, AnalyzerExecutor.CancellationToken);
+                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                    _isGeneratedCode(tree, AnalyzerExecutor.CancellationToken);
             }
         }
 

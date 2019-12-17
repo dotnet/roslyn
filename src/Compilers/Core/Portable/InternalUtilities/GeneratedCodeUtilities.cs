@@ -3,9 +3,11 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Utilities
 {
@@ -141,6 +143,34 @@ namespace Roslyn.Utilities
             }
 
             return false;
+        }
+
+        internal static bool? GetIsGeneratedCodeFromOptions(ImmutableDictionary<string, string> options)
+        {
+            // Check for explicit user configuration for generated code.
+            //     generated_code = true | false
+            if (options.TryGetValue("generated_code", out string optionValue) &&
+                bool.TryParse(optionValue, out var boolValue))
+            {
+                return boolValue;
+            }
+
+            // Either no explicit user configuration or we don't recognize the option value.
+            return null;
+        }
+
+        internal static bool? GetIsGeneratedCodeFromOptions(AnalyzerConfigOptions options)
+        {
+            // Check for explicit user configuration for generated code.
+            //     generated_code = true | false
+            if (options.TryGetValue("generated_code", out string optionValue) &&
+                bool.TryParse(optionValue, out var boolValue))
+            {
+                return boolValue;
+            }
+
+            // Either no explicit user configuration or we don't recognize the option value.
+            return null;
         }
     }
 }
