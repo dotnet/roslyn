@@ -1490,6 +1490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ClearLookupResultIfNotMethods(methodsOnly, lookupResult)
                 LookupForExtensionMethodsIfNeedTo(lookupResult, container, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                Return
             End Sub
 
             Private Shared Sub LookupInInterfaces(lookupResult As LookupResult,
