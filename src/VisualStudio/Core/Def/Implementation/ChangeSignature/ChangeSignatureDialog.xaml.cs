@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.PlatformUI;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     /// <summary>
-    /// Interaction logic for ExtractInterfaceDialog.xaml
+    /// Interaction logic for ChangeSignatureDialog.xaml
     /// </summary>
     internal partial class ChangeSignatureDialog : DialogWindow
     {

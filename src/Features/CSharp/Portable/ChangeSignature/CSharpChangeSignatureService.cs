@@ -158,9 +158,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (parameters.Parameters.Count > 0 &&
                 parameters.Parameters.Last().Modifiers.Any(SyntaxKind.ParamsKeyword))
             {
-                // (a, b, c, d put here ->, params e)
-                // (a, b, c, d,<- new comma <new parameter> ->, params e)
-                return parameters.Parameters.GetSeparators().Last().SpanStart;
+                if (parameters.Parameters.Count == 1)
+                {
+                    // (params a)
+                    // (<new parameter> new comma ->, params a)
+                    return parameters.OpenParenToken.SpanStart + 1;
+                }
+                else
+                {
+                    // (a, b, c, d put here ->, params e)
+                    // (a, b, c, d,<- new comma <new parameter>, params e)
+                    return parameters.Parameters.GetSeparators().Last().SpanStart;
+                }
             }
 
             // ( put here->)
@@ -514,7 +523,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 newParameters.Add(param);
             }
 
-            var numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
+            int numSeparatorsToSkip;
+            if (originalParameters.Count == 0)
+            {
+                // () 
+                // Adding X parameters, need to add X-1 separators.
+                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1;
+            }
+            else
+            {
+                // (a,b,c)
+                // Adding X parameters, need to add X separators.
+                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
+            }
+
             return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip));
         }
 
@@ -606,12 +628,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private List<XmlElementSyntax> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
-
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
             var declaredParameters = declarationSymbol.GetParameters();
             if (paramNodes.Count() != declaredParameters.Length)
+            {
+                return null;
+            }
+
+            if (declaredParameters.Length == 0)
             {
                 return null;
             }
@@ -637,7 +663,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Everything lines up, so permute them.
-
             var permutedParams = new List<XmlElementSyntax>();
             foreach (var parameter in reorderedParameters)
             {
