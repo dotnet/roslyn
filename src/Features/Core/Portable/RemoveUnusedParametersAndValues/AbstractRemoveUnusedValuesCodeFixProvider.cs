@@ -422,9 +422,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             nodesToRemove.Add(variableDeclarator);
 
                             // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
-                            if (variableDeclarator.Parent?.Parent is TLocalDeclarationStatementSyntax declaration)
+                            // NOTE: in VB local declaration is the direct parent, in C# there is a VariableDeclarationSyntax inbetween.
+                            if (variableDeclarator.Parent is TLocalDeclarationStatementSyntax vbDeclaration)
                             {
-                                candidateDeclarationStatementsForRemoval.Add(declaration);
+                                candidateDeclarationStatementsForRemoval.Add(vbDeclaration);
+                            }
+                            else if (variableDeclarator.Parent?.Parent is TLocalDeclarationStatementSyntax csDeclaration)
+                            {
+                                candidateDeclarationStatementsForRemoval.Add(csDeclaration);
                             }
                         }
                         else
