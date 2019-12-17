@@ -572,5 +572,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var fullySpecified = SyntaxFactory.ParenthesizedLambdaExpression(parameterList: SyntaxFactory.ParameterList(), body: SyntaxFactory.Block());
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
         }
+
+        [Fact, WorkItem(40342, "https://github.com/dotnet/roslyn/issues/40342")]
+        public void TestParenthesizedLambdaNoParameterList_ExpressionBody()
+        {
+            var lambda = SyntaxFactory.ParenthesizedLambdaExpression(body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+            Assert.NotNull(lambda);
+            Assert.Equal("()=>1", lambda.ToFullString());
+
+            var fullySpecified = SyntaxFactory.ParenthesizedLambdaExpression(
+                parameterList: SyntaxFactory.ParameterList(),
+                body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+            Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
     }
 }
