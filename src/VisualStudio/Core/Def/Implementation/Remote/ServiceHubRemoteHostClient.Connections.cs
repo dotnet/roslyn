@@ -20,10 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private static readonly TimeSpan s_reportTimeout = TimeSpan.FromMinutes(10);
             private static bool s_timeoutReported = false;
 
-            /// <summary>
-            /// Wrap <see cref="HubClient.RequestServiceAsync"/> since we can't control its internal timeout value ourselves.
-            /// See https://devdiv.visualstudio.com/DefaultCollection/DevDiv/Editor/_workitems?id=378757&fullScreen=false&_a=edit
-            /// </summary>
             private static async Task<Stream> RequestServiceWithCancellationRetryAsync(
                 Workspace workspace,
                 HubClient client,
