@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
-                if ((object)tpEnclosing != null)
+                if ((object?)tpEnclosing != null)
                 {
                     ErrorCode typeError;
                     if (tpEnclosing.ContainingSymbol.Kind == SymbolKind.Method)
