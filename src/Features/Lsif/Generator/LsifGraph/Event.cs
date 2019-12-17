@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
         {
         }
 
+        public Event(EventKind kind, Id<Document> data)
+            : this(kind, "document", data.As<Document, Element>())
+        {
+        }
+
         public enum EventKind
         {
             Begin,

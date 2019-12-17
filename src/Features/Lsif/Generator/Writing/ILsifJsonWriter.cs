@@ -7,5 +7,6 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
     internal interface ILsifJsonWriter
     {
         void Write(Vertex vertex);
+        void Write(Edge edge);
     }
 }
