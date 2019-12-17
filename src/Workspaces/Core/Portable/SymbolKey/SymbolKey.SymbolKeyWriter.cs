@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         private class SymbolKeyWriter : SymbolVisitor<object>, IDisposable
         {
-            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool =
-                new ObjectPool<SymbolKeyWriter>(() => new SymbolKeyWriter());
+            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool = SharedPools.Default<SymbolKeyWriter>();
 
             private readonly Action<ISymbol> _writeSymbolKey;
             private readonly Action<string> _writeString;
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             internal int _nestingCount;
             private int _nextId;
 
-            private SymbolKeyWriter()
+            public SymbolKeyWriter()
             {
                 _writeSymbolKey = WriteSymbolKey;
                 _writeString = WriteString;
