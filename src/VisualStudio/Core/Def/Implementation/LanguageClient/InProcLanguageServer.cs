@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // sends additional VS specific capabilities, so directly deserialize them into the VSClientCapabilities
             // to avoid losing them.
             _clientCapabilities = input["capabilities"].ToObject<VSClientCapabilities>();
-            return _protocol.InitializeAsync(_workspace.CurrentSolution, null, _clientCapabilities, cancellationToken);
+            return _protocol.InitializeAsync(_workspace.CurrentSolution, input.ToObject<InitializeParams>(), _clientCapabilities, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
