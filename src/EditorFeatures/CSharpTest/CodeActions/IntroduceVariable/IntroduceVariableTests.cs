@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -6359,6 +6358,90 @@ class Program
 
         [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NestedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        var x = i.ToString();
+        Local();
+
+        void Local()
+        {
+            void Local()
+            {
+                var y = [|i.ToString();|]
+            }
+            var z = i.ToString();
+        }
+    }
+}",
+@"class Program
+{
+    void M(int i)
+    {
+        var {|Rename:v|} = i.ToString();
+        var x = v;
+        Local();
+
+        void Local()
+        {
+            void Local()
+            {
+                var y = v;
+            }
+            var z = v;
+        }
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromStaticLocalFunction_AllOccurences_NestedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void M(int i)
+    {
+        var x = i.ToString();
+        Local();
+
+        void Local()
+        {
+            static void Local()
+            {
+                var y = [|i.ToString();|]
+            }
+            var z = i.ToString();
+        }
+    }
+}",
+@"class Program
+{
+    void M(int i)
+    {
+        var x = i.ToString();
+        Local();
+
+        void Local()
+        {
+            static void Local()
+            {
+                var {|Rename:v|} = i.ToString();
+                var y = v;
+            }
+            var z = i.ToString();
+        }
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40209, "https://github.com/dotnet/roslyn/issues/40209")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestIntroduceFromStaticLocalFunction_AllOccurences_Method()
         {
             await TestInRegularAndScriptAsync(
@@ -6507,7 +6590,7 @@ class Program
 
         [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestIntroduceFromStaticLocalFunction_AllOccurences_IntroduceInCorrectPlace()
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -6534,14 +6617,484 @@ class Bug
 {
     void M(int i)
     {
-        object {|Rename:v|} = Foo();
+        var {|Rename:v|} = Foo();
         Local();
-        var x = Foo();
+        var x = v;
 
         void Local()
         {
             var y = v;
         }
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        void Local()
+        {
+            var y = [|Foo();|]
+        }
+
+        Local();
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var {|Rename:v|} = Foo();
+        void Local()
+        {
+            var y = v;
+        }
+
+        Local();
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_LocalFunctionCall3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+        void Local()
+        {
+            var z = 10;
+            var y = [|Foo();|]
+        }
+
+        Local();
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+        var {|Rename:v|} = Foo();
+        void Local()
+        {
+            var z = 10;
+            var y = v;
+        }
+
+        Local();
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctionCalls()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        Local();
+        var s = 5;
+        void Local()
+        {
+            var z = 10;
+            var y = [|Foo();|]
+        }
+
+        Local();
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var {|Rename:v|} = Foo();
+        Local();
+        var s = 5;
+        void Local()
+        {
+            var z = 10;
+            var y = v;
+        }
+
+        Local();
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NestedLocalFunctionCalls()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M0()
+    {
+        void M(int i)
+        {
+            Local();
+            var s = 5;
+            void Local()
+            {
+                var z = 10;
+                var y = [|Foo();|]
+            }
+
+            Local();
+            var x = Foo();
+        }
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M0()
+    {
+        void M(int i)
+        {
+            var {|Rename:v|} = Foo();
+            Local();
+            var s = 5;
+            void Local()
+            {
+                var z = 10;
+                var y = v;
+            }
+
+            Local();
+            var x = v;
+        }
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctions()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        Local();
+        Local2();
+        var s = 5;
+
+        void Local2()
+        {
+            var w = Foo();
+        }
+
+        void Local()
+        {
+            var z = 10;
+            var y = [|Foo();|]
+        }
+
+        Local();
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var {|Rename:v|} = Foo();
+        Local();
+        Local2();
+        var s = 5;
+
+        void Local2()
+        {
+            var w = v;
+        }
+
+        void Local()
+        {
+            var z = 10;
+            var y = v;
+        }
+
+        Local();
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_MultipleLocalFunctions2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+
+        void Local2()
+        {
+            var w = Foo();
+        }
+
+        void Local()
+        {
+            var z = 10;
+            var y = [|Foo();|]
+        }
+
+        Local();
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+
+        var {|Rename:v|} = Foo();
+        void Local2()
+        {
+            var w = v;
+        }
+
+        void Local()
+        {
+            var z = 10;
+            var y = v;
+        }
+
+        Local();
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_NoLocalFunctionCall()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+        void Local()
+        {
+            var z = 10;
+            var y = [|Foo();|]
+        }
+
+        var x = Foo();
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+        var {|Rename:v|} = Foo();
+        void Local()
+        {
+            var z = 10;
+            var y = v;
+        }
+
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        Local();
+        var s = 5;
+        object y;
+        void Local() => y = Foo();
+
+        var x = [|Foo();|]
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var {|Rename:v|} = Foo();
+        Local();
+        var s = 5;
+        object y;
+        void Local() => y = v;
+
+        var x = v;
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}", index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [WorkItem(40374, "https://github.com/dotnet/roslyn/issues/40374")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceFromNonStaticLocalFunction_AllOccurences_ExpressionBodiedLocalFunction2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+        object y;
+        void Local() => y = Foo();
+
+        Local();
+        var x = [|Foo();|]
+    }
+
+    private static object Foo()
+    {
+        throw new NotImplementedException();
+    }
+}",
+@"using System;
+class Bug
+{
+    void M(int i)
+    {
+        var s = 5;
+        object y;
+        var {|Rename:v|} = Foo();
+        void Local() => y = v;
+
+        Local();
+        var x = v;
     }
 
     private static object Foo()
@@ -6672,7 +7225,6 @@ class Bug
     {
         var {|Rename:v|} = Foo();
         Local();
-
         void Local()
         {
             var y = v;

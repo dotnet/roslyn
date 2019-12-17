@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 innermostCommonBlock = innermostStatements.FindInnermostCommonNode(IsBlockLike);
             }
 
-            var firstStatementAffectedIndex = GetStatements(innermostCommonBlock).IndexOf(allAffectedStatements.Contains);
+            var firstStatementAffectedIndex = GetFirstStatementAffectedIndex(innermostCommonBlock, matches, GetStatements(innermostCommonBlock).IndexOf(allAffectedStatements.Contains));
 
             var newInnerMostBlock = Rewrite(
                 document, expression, newLocalName, document, innermostCommonBlock, allOccurrences, cancellationToken);
@@ -257,6 +258,49 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             var newRoot = root.ReplaceNode(innermostCommonBlock, finalInnerMostBlock);
             return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
+        {
+            // If a local function is involved, we have to make sure the declaration is:
+            //     1. Before the local function(s) themselves.
+            //     2. Before all calls to local functions that use the variable.
+            //     3. Before all matches.
+            // (1) and (3) are already covered by the 'firstStatementAffectedIndex' parameter. Thus, all we have to do is make sure we consider (2) when
+            // determining where to place our new declaration.
+
+            // Find all the local functions within the scope that will use the new declaration.
+            var localFunctions = innermostCommonBlock.DescendantNodes().Where(node => node.IsKind(SyntaxKind.LocalFunctionStatement) && matches.Any(match => match.Span.OverlapsWith(node.Span)));
+
+            if (localFunctions.IsEmpty())
+            {
+                return firstStatementAffectedIndex;
+            }
+
+            var localFunctionIdentifiers = localFunctions.Select(node => ((LocalFunctionStatementSyntax)node).Identifier.ValueText);
+
+            // Find all calls to the applicable local functions within the scope.
+            var localFunctionCalls = innermostCommonBlock.DescendantNodes().Where(node => node is InvocationExpressionSyntax invocationExpression &&
+                                                                                  localFunctionIdentifiers.Contains(invocationExpression.Expression.GetRightmostName().Identifier.ValueText));
+
+            if (localFunctionCalls.IsEmpty())
+            {
+                return firstStatementAffectedIndex;
+            }
+
+            // Find which call is the earliest.
+            var earliestLocalFunctionCall = localFunctionCalls.Min(node => node.SpanStart);
+
+            var statementsInBlock = GetStatements(innermostCommonBlock);
+
+            // See if our earliest call is before all local function declarations and matches.
+            var statement = statementsInBlock.Where(s => s.Span.Contains(earliestLocalFunctionCall)).Single();
+            if (firstStatementAffectedIndex > statementsInBlock.IndexOf(statement))
+            {
+                return statementsInBlock.IndexOf(statement);
+            }
+
+            return firstStatementAffectedIndex;
         }
 
         private static SyntaxList<StatementSyntax> InsertWithinTriviaOfNext(
