@@ -704,10 +704,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     currentResult.Clear()
                 Loop
 
-                currentResult.Free()
-
                 ClearLookupResultIfNotMethods(methodsOnly, result)
-                LookupForExtensionMethodsIfNeedTo(result, container, name, arity, options, binder, useSiteDiagnostics)
+                LookupForExtensionMethodsIfNeedTo(result, container, name, arity, options, binder, useSiteDiagnostics,
+                    extensionMethodResult:=currentResult)
+
+                currentResult.Free()
             End Sub
 
             Public Delegate Sub WinRTLookupDelegate(iface As NamedTypeSymbol,
@@ -1129,7 +1130,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 arity As Integer,
                 options As LookupOptions,
                 binder As Binder,
-                <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                <[In], Out> ByRef extensionMethodResult As LookupResult
             )
                 If result.IsGood AndAlso
                     ((options And LookupOptions.EagerlyLookupExtensionMethods) = 0 OrElse
@@ -1137,11 +1139,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                Dim currentResult = LookupResult.GetInstance()
-                LookupForExtensionMethods(currentResult, container, name, arity, options, binder, useSiteDiagnostics)
-                MergeInternalXmlHelperValueIfNecessary(currentResult, container, name, arity, options, binder, useSiteDiagnostics)
-                result.MergeOverloadedOrPrioritized(currentResult, checkIfCurrentHasOverloads:=False)
-                currentResult.Free()
+                If extensionMethodResult Is Nothing Then
+                    extensionMethodResult = LookupResult.GetInstance()
+                Else
+                    extensionMethodResult.Clear()
+                End If
+
+                LookupForExtensionMethods(extensionMethodResult, container, name, arity, options, binder, useSiteDiagnostics)
+                MergeInternalXmlHelperValueIfNecessary(extensionMethodResult, container, name, arity, options, binder, useSiteDiagnostics)
+                result.MergeOverloadedOrPrioritized(extensionMethodResult, checkIfCurrentHasOverloads:=False)
             End Sub
 
             Private Shared Function ShouldLookupExtensionMethods(options As LookupOptions, container As TypeSymbol) As Boolean
@@ -1446,9 +1452,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 LookupInInterfaces(lookupResult, container, lookIn, processed, name, arity, options, binder, methodsOnly, useSiteDiagnostics)
 
+                Dim currentResult As LookupResult = Nothing
+
                 ' If no viable or ambiguous results, look in Object.
                 If Not lookupResult.IsGoodOrAmbiguous AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
-                    Dim currentResult = LookupResult.GetInstance()
+                    currentResult = LookupResult.GetInstance()
                     Dim obj As NamedTypeSymbol = binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
 
                     LookupInClass(currentResult,
@@ -1459,13 +1467,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If currentResult.IsGood Then
                         lookupResult.SetFrom(currentResult)
                     End If
-
-                    currentResult.Free()
                 End If
 
                 ClearLookupResultIfNotMethods(methodsOnly, lookupResult)
-                LookupForExtensionMethodsIfNeedTo(lookupResult, container, name, arity, options, binder, useSiteDiagnostics)
-                Return
+                LookupForExtensionMethodsIfNeedTo(lookupResult, container, name, arity, options, binder, useSiteDiagnostics,
+                    extensionMethodResult:=currentResult)
+                currentResult?.Free()
             End Sub
 
             Private Shared Sub LookupInInterfaces(lookupResult As LookupResult,
@@ -1597,7 +1604,10 @@ ExitForFor:
                 LookupInTypeParameterNoExtensionMethods(lookupResult, typeParameter, name, arity, options, binder, useSiteDiagnostics)
 
                 ClearLookupResultIfNotMethods(methodsOnly, lookupResult)
-                LookupForExtensionMethodsIfNeedTo(lookupResult, typeParameter, name, arity, options, binder, useSiteDiagnostics)
+                Dim extensionMethodResult As LookupResult = Nothing
+                LookupForExtensionMethodsIfNeedTo(lookupResult, typeParameter, name, arity, options, binder, useSiteDiagnostics,
+                    extensionMethodResult:=extensionMethodResult)
+                extensionMethodResult?.Free()
             End Sub
 
             Private Shared Sub LookupInTypeParameterNoExtensionMethods(result As LookupResult,
