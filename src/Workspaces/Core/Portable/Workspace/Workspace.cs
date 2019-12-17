@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Sets global options and and <see cref="Options"/> to have the new options.
+        /// Sets global options and <see cref="Options"/> to have the new options.
         /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
         /// </summary>
         internal void SetOptions(OptionSet options)
