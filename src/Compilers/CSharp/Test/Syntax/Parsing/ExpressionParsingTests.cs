@@ -4052,7 +4052,7 @@ select t";
 
             N(SyntaxKind.RangeExpression);
             {
-                N(SyntaxKind.NumericLiteralExpression);
+                //N(SyntaxKind.NumericLiteralExpression);
                 {
                     N(SyntaxKind.NumericLiteralToken, "1");
                 }
