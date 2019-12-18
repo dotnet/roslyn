@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Remote
             AllowNonPublicInvocation = false
         };
 
+        // these are for debugging purpose. once we find out root cause of the issue
+        // we will remove these.
+        private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
+        private static string? s_debuggingLastDisconnectCallstack;
+
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
 
@@ -121,60 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task InvokeAsync(
-            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(_startedListening);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                using var stream = new ServerDirectStream();
-
-                Task? task = null;
-                try
-                {
-                    // send request by adding direct stream name to end of arguments
-                    task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
-
-                    // if invoke throws an exception, make sure we raise cancellation.
-                    RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
-
-                    // wait for asset source to respond
-                    await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
-
-                    // run user task with direct stream
-                    await funcWithDirectStreamAsync(stream, mergedCancellation.Token).ConfigureAwait(false);
-
-                    // wait task to finish
-                    await task.ConfigureAwait(false);
-                }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
-                {
-                    // important to use cancelationToken here rather than mergedCancellationToken.
-                    // there is a slight delay when merged cancellation token will be notified once cancellation token
-                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
-                    // actually care is the cancellation token given in, not the merged cancellation token.
-                    // but we need merged one to cancel operation if InvokeAsync has failed. if it failed without
-                    // cancellation token is raised, then we do want to have watson report
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // record reason why task got aborted. use NFW here since we don't want to
-                    // crash VS on explicitly killing OOP.
-                    (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
-
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw CreateSoftCrashException(ex, cancellationToken);
-            }
-        }
-
-        public async Task<T> InvokeAsync<T>(
-            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
             cancellationToken.ThrowIfCancellationRequested();
@@ -197,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
 
                     // run user task with direct stream
-                    var result = await funcWithDirectStreamAsync(stream, mergedCancellation.Token).ConfigureAwait(false);
+                    var result = await directStreamReader(stream, mergedCancellation.Token).ConfigureAwait(false);
 
                     // wait task to finish
                     await task.ConfigureAwait(false);
@@ -225,57 +177,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<TResult> InvokeAsync<TResult>(
-            string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, TResult> funcWithDirectStream, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(_startedListening);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                using var stream = new ServerDirectStream();
-
-                Task? task = null;
-                try
-                {
-                    // send request to asset source
-                    task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
-
-                    // if invoke throws an exception, make sure we raise cancellation.
-                    RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
-
-                    // wait for asset source to respond
-                    await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
-
-                    // run user task with direct stream
-                    var result = funcWithDirectStream(stream, mergedCancellation.Token);
-
-                    // wait task to finish
-                    await task.ConfigureAwait(false);
-
-                    return result;
-                }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
-                {
-                    // important to use cancelationToken here rather than mergedCancellationToken.
-                    // there is a slight delay when merged cancellation token will be notified once cancellation token
-                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
-                    // actually care is the cancellation token given in, not the merged cancellation token.
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // record reason why task got aborted. use NFW here since we don't want to
-                    // crash VS on explicitly killing OOP.
-                    (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
-
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw CreateSoftCrashException(ex, cancellationToken);
-            }
-        }
 
 #pragma warning disable CA1068 // this method accepts 2 cancellation tokens
         private static bool ReportUnlessCanceled(Exception ex, CancellationToken remoteToken, CancellationToken hostToken)
@@ -327,11 +228,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
-
-        // these are for debugging purpose. once we find out root cause of the issue
-        // we will remove these.
-        private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
-        private static string? s_debuggingLastDisconnectCallstack;
 
         private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
         {

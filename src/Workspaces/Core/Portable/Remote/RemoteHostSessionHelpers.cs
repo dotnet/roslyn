@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class SessionWithSolution : IDisposable
     {
-        private readonly RemoteHostClient.Connection _connection;
+        public readonly RemoteHostClient.Connection Connection;
         private readonly PinnedRemotableDataScope _scope;
 
         public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, Solution solution, CancellationToken cancellationToken)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope)
         {
-            _connection = connection;
+            Connection = connection;
             _scope = scope;
         }
 
@@ -74,17 +74,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public void Dispose()
         {
             _scope.Dispose();
-            _connection.Dispose();
+            Connection.Dispose();
         }
-
-        public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => _connection.InvokeAsync(targetName, arguments, cancellationToken);
-        public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
-        public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            => _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-        public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-            => _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
     }
 
     /// <summary>

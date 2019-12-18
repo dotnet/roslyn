@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             return _owner.EndPoint.InvokeAsync(
                                 WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                                 new object[] { scopeId, checksums.ToArray() },
-                                (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c),
+                                (s, c) => Task.FromResult(ReadAssets(s, scopeId, checksums, serializerService, c)),
                                 cancellationToken);
 
                         }, cancellationToken).ConfigureAwait(false);

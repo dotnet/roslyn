@@ -358,10 +358,6 @@ End Class";
                 string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
 
-            public override Task InvokeAsync(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
-
             public override Task<T> InvokeAsync<T>(
                 string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
                 => throw new NotImplementedException();

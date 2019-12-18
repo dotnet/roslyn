@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                await session.Connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
 
             return true;
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return default;
             }
 
-            return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return await session.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -204,7 +204,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
-            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
             protected virtual void Dispose(bool disposing)

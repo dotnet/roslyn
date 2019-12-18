@@ -26,21 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     _connection = connection;
                 }
 
-                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync(targetName, arguments, cancellationToken);
+                public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync(targetName, arguments, cancellationToken);
 
-                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
-                public override Task InvokeAsync(
-                    string targetName, IReadOnlyList<object> arguments,
-                    Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
-
-                public override Task<T> InvokeAsync<T>(
-                    string targetName, IReadOnlyList<object> arguments,
-                    Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
+                    => _connection.InvokeAsync(targetName, arguments, directStreamReader, cancellationToken);
 
                 protected override void Dispose(bool disposing)
                 {
