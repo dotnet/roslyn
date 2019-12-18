@@ -1554,16 +1554,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             // Since the nullable flow state affects type information, and types can be queried by
-            // the semantic, there needs to be a single flow state input to a local function that
-            // cannot be path-dependent. To decide the local starting state we Meet the state of
-            // captured variables from all the uses of the local function, computing the
+            // the semantic model, there needs to be a single flow state input to a local function
+            // that cannot be path-dependent. To decide the local starting state we Meet the state
+            // of captured variables from all the uses of the local function, computing the
             // conservative combination of all potential starting states.
             //
             // For performance we split the analysis into two phases: the first phase where we
-            // analyze everything except the local functions, hoping to visit all of the uses
-            // of the local function, and then a pass where we visit the local functions. If
-            // there's no recursion or calls between the local functions, the starting state
-            // of the local function should be stable and we don't need a second pass.
+            // analyze everything except the local functions, hoping to visit all of the uses of the
+            // local function, and then a pass where we visit the local functions. If there's no
+            // recursion or calls between the local functions, the starting state of the local
+            // function should be stable and we don't need a second pass.
             if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
             {
                 // First visit everything else
