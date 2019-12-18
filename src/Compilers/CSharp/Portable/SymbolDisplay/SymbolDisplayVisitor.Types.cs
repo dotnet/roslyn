@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (currentUnderlying.Arity == 1)
+            if (currentUnderlying.Arity <= 1)
             {
                 return false;
             }
