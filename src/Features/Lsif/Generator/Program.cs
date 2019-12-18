@@ -63,10 +63,12 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             var msbuildWorkspace = MSBuildWorkspace.Create();
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
 
-            await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.ToDisplayString()}.");
+            await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
 
             using var lsifWriter = new TextLsifJsonWriter(outputWriter);
             var lsifGenerator = new Generator(lsifWriter);
+
+            TimeSpan totalTimeInGenerationPhase = TimeSpan.Zero;
 
             foreach (var project in solution.Projects)
             {
@@ -75,13 +77,19 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                     var compilationCreationStopwatch = Stopwatch.StartNew();
                     var compilation = (await project.GetCompilationAsync())!;
 
-                    await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.ToDisplayString()}.");
+                    await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
                     await lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices);
-                    await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationForProjectStopwatch.ToDisplayString()}.");
+                    generationForProjectStopwatch.Stop();
+
+                    totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
+
+                    await logFile.WriteLineAsync($"Generation for {project.FilePath} completed in {generationForProjectStopwatch.Elapsed.ToDisplayString()}.");
                 }
             }
+
+            await logFile.WriteLineAsync($"Total time spent in the generation phase for all projects, excluding compilation fetch time: {totalTimeInGenerationPhase.ToDisplayString()}");
         }
     }
 }
