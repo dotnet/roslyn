@@ -1567,6 +1567,66 @@ class C
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_DiscardAssignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        _ = true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                //         object obj = M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_DiscardAssignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        _ = M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M2();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
         public void VoidCall_ImplicitVoidConversion_Return()
         {
             string text = @"
