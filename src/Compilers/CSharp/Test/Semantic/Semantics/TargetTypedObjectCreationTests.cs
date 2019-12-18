@@ -2311,7 +2311,7 @@ class C
         }
 
         [Fact]
-        public void InSwitch()
+        public void InSwitch1()
         {
             string source = @"
 class C
@@ -2367,6 +2367,30 @@ class C
         }
 
         [Fact]
+        public void InSwitch3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int i = 0;
+        bool b = true;
+        switch (i)
+        {
+            case new() when b:
+                System.Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
         public void InGoToCase()
         {
             string source = @"
@@ -2394,17 +2418,8 @@ class C
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (5,16): error CS0161: 'C.Get(int)': not all code paths return a value
-                //     static int Get(int i)
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "Get").WithArguments("C.Get(int)").WithLocation(5, 16),
-                // (11,13): error CS0163: Control cannot fall through from one case label ('case 1:') to another
-                //             case 1:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case 1:").WithArguments("case 1:").WithLocation(11, 13),
-                // (12,17): error CS0159: No such label 'case 0:' within the scope of the goto statement
-                //                 goto case new();
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case new();").WithArguments("case 0:").WithLocation(12, 17)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "112");
         }
 
         [Fact]
