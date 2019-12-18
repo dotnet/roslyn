@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
 
 namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
@@ -10,5 +11,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
     internal interface IResultSetTracker
     {
         Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol);
+        Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex;
+        bool ResultSetNeedsInformationalEdgeAdded(ISymbol symbol, string edgeKind);
     }
 }

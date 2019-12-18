@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
     /// <summary>
     /// Represents an edge from one vertex to another.
     /// </summary>
-    internal sealed class Edge : Element
+    internal class Edge : Element
     {
         [JsonProperty("outV")]
         public Id<Vertex> OutVertex { get; }

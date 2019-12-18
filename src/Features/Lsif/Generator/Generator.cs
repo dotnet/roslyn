@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
 using Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
+using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.Lsif.Generator
 {
@@ -88,7 +89,12 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
                             // For now, we will link the range to the original definition. We'll have to fix this once we start supporting
                             // hover, since we show different contents for different constructed types there.
-                            lsifJsonWriter.Write(Edge.Create("next", rangeVertex.GetId(), symbolResultsTracker.GetResultSetIdForSymbol(symbolInfo.Symbol.OriginalDefinition)));
+                            var findReferencesSymbol = symbolInfo.Symbol.OriginalDefinition;
+                            lsifJsonWriter.Write(Edge.Create("next", rangeVertex.GetId(), symbolResultsTracker.GetResultSetIdForSymbol(findReferencesSymbol)));
+
+                            // Create the link from the references back to this range
+                            var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(findReferencesSymbol, Methods.TextDocumentReferencesName, () => new ReferenceResult());
+                            lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), rangeVertex.GetId(), documentVertex.GetId(), property: "references"));
                         }
                     }
                 }
