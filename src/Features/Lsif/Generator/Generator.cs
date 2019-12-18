@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -89,12 +91,27 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
                             // For now, we will link the range to the original definition. We'll have to fix this once we start supporting
                             // hover, since we show different contents for different constructed types there.
-                            var findReferencesSymbol = symbolInfo.Symbol.OriginalDefinition;
-                            lsifJsonWriter.Write(Edge.Create("next", rangeVertex.GetId(), symbolResultsTracker.GetResultSetIdForSymbol(findReferencesSymbol)));
+                            var originalDefinition = symbolInfo.Symbol.OriginalDefinition;
+                            var originalDefinitionResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(originalDefinition);
+                            lsifJsonWriter.Write(Edge.Create("next", rangeVertex.GetId(), originalDefinitionResultSetId));
 
-                            // Create the link from the references back to this range
-                            var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(findReferencesSymbol, Methods.TextDocumentReferencesName, () => new ReferenceResult());
-                            lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), rangeVertex.GetId(), documentVertex.GetId(), property: "references"));
+                            if (IncludeSymbolInReferences(originalDefinition))
+                            {
+                                // Create the link from the references back to this range
+                                var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(originalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult());
+                                lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), rangeVertex.GetId(), documentVertex.GetId(), property: "references"));
+
+                                // Attach the moniker if needed
+                                if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(originalDefinition, "moniker"))
+                                {
+                                    var monikerVertex = CreateMonikerVertexForSymbol(originalDefinition, semanticModel.Compilation);
+                                    if (monikerVertex != null)
+                                    {
+                                        lsifJsonWriter.Write(monikerVertex);
+                                        lsifJsonWriter.Write(Edge.Create("moniker", originalDefinitionResultSetId, monikerVertex.GetId()));
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -104,6 +121,78 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId()));
 
             return Task.FromResult(documentVertex.GetId());
+        }
+
+        private static bool IncludeSymbolInReferences(ISymbol symbol)
+        {
+            // Skip built in-operators. We could pick some sort of moniker for these, but I doubt anybody really needs to search for all uses of
+            // + in the world's projects at once.
+            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
+            {
+                return false;
+            }
+
+            // Skip some type of symbols that don't really make sense
+            if (symbol.Kind == SymbolKind.ArrayType ||
+                symbol.Kind == SymbolKind.Discard ||
+                symbol.Kind == SymbolKind.ErrorType)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static Moniker? CreateMonikerVertexForSymbol(ISymbol symbol, Compilation compilation)
+        {
+            // This uses the existing format that earlier prototypes of the Roslyn LSIF tool implemented; a different format may make more sense long term, but changing the
+            // moniker makes it difficult for other systems that have older LSIF indexes to the connect the two indexes together.
+
+            // Namespaces are special: they're just a name that exists in the ether between compilations
+            if (symbol.Kind == SymbolKind.Namespace)
+            {
+                return new Moniker("dotnet-namespace", symbol.ToDisplayString());
+            }
+
+            string symbolMoniker = symbol.ContainingAssembly.Name + "#";
+
+            if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol.Kind == SymbolKind.RangeVariable)
+            {
+                symbolMoniker += GetRequiredDocumentationCommentId(symbol.ContainingSymbol) + "#" + symbol.Name;
+            }
+            else
+            {
+                symbolMoniker += GetRequiredDocumentationCommentId(symbol);
+            }
+
+            string kind;
+
+            if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.RangeVariable)
+            {
+                kind = "local";
+            }
+            else if (symbol.ContainingAssembly.Equals(compilation.Assembly))
+            {
+                kind = "export";
+            }
+            else
+            {
+                kind = "import";
+            }
+
+            return new Moniker("dotnet-xml-doc", symbolMoniker, kind);
+
+            static string GetRequiredDocumentationCommentId(ISymbol symbol)
+            {
+                var documentationCommentId = symbol.GetDocumentationCommentId();
+
+                if (documentationCommentId == null)
+                {
+                    throw new Exception($"Unable to get documentation comment ID for {symbol.ToDisplayString()}");
+                }
+
+                return documentationCommentId;
+            }
         }
 
         private static string GetLanguageKind(string languageName)
