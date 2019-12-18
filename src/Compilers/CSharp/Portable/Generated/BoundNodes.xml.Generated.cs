@@ -6237,6 +6237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
+        public new TypeSymbol? Type => base.Type!;
+
         public TypeSymbol ElementType { get; }
 
         public BoundExpression Count { get; }
