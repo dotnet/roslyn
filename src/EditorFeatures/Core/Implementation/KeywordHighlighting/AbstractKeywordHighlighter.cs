@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public void AddHighlights(
             SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            using var _1 = s_textSpanListPool.GetPooledObject();
-            using var _2 = s_tokenListPool.GetPooledObject();
+            using var highlightsListPooledObject = s_textSpanListPool.GetPooledObject();
+            using var tokensListPooledObject = s_tokenListPool.GetPooledObject();
 
-            var tempHighlights = _1.Object;
-            var touchingTokens = _2.Object;
+            var tempHighlights = highlightsListPooledObject.Object;
+            var touchingTokens = tokensListPooledObject.Object;
             AddTouchingTokens(root, position, touchingTokens);
 
             foreach (var token in touchingTokens)
