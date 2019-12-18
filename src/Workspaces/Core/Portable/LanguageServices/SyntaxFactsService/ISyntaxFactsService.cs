@@ -446,9 +446,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // with a missing close brace.  If found, the close brace will be added and the
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
-        void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode,
-            out SyntaxNode newRoot, out SyntaxNode newContextNode);
+        void AddFirstMissingCloseBrace<TContextNode>(
+            SyntaxNode root, TContextNode contextNode,
+            out SyntaxNode newRoot, out TContextNode newContextNode) where TContextNode : SyntaxNode;
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
 

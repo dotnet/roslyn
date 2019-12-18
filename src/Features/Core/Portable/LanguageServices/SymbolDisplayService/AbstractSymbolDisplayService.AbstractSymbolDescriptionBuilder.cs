@@ -290,7 +290,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else if (symbol is INamedTypeSymbol namedType)
                 {
-                    await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    if (namedType.IsTupleType)
+                    {
+                        AddToGroup(SymbolDescriptionGroups.MainDescription,
+                            ToDisplayParts(symbol, s_descriptionStyle));
+                    }
+                    else
+                    {
+                        await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    }
                 }
                 else if (symbol is INamespaceSymbol namespaceSymbol)
                 {
@@ -569,14 +577,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     ToMinimalDisplayParts(method, s_memberSignatureDisplayFormat));
-
-                if (awaitable)
-                {
-                    AddAwaitableUsageText(method, _semanticModel, _position);
-                }
             }
-
-            protected abstract void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position);
 
             private async Task AddDescriptionForParameterAsync(IParameterSymbol symbol)
             {

@@ -137,6 +137,11 @@
         <target state="translated">Remover variáveis não utilizadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reverse_for_statement">
+        <source>Reverse 'for' statement</source>
+        <target state="new">Reverse 'for' statement</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Simplificar expressão lambda</target>

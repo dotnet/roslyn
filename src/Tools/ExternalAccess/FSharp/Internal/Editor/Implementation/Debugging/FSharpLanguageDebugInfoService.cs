@@ -4,7 +4,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
 

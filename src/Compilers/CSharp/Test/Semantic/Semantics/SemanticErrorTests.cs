@@ -276,10 +276,17 @@ class C
     }
 }
 ";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group"),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group"),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group"));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,16): error CS0019: Operator '+' cannot be applied to operands of type 'method group' and 'method group'
+                //         goo += p.bar + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group").WithLocation(11, 16),
+                // (12,16): error CS0019: Operator '+' cannot be applied to operands of type 'lambda expression' and 'method group'
+                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group").WithLocation(12, 16),
+                // (13,16): error CS0019: Operator '+' cannot be applied to operands of type 'anonymous method' and 'method group'
+                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16)
+                );
         }
 
         // Removal or concatenation for the delegate on Variance
@@ -12362,11 +12369,20 @@ namespace TestNamespace
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 10, Column = 23 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 11, Column = 23 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 12, Column = 22 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 13, Column = 22 }});
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b1 = (() => { }) is Del;   // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => { }) is Del").WithLocation(10, 23),
+                // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                );
         }
 
         [Fact]
@@ -24040,6 +24056,75 @@ public class C
                 //         Expression<Func<int, int>> e = a => a switch { 0 => 1, _ => 2 }; // CS8411
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsSwitchExpression, "a switch { 0 => 1, _ => 2 }").WithLocation(9, 45)
                 );
+        }
+
+        [Fact]
+        public void PointerGenericConstraintTypes()
+        {
+            var source = @"
+namespace A
+{
+    class D {}
+}
+
+class B {}
+
+unsafe class C<T, U, V, X, Y, Z> where T : byte*
+                                 where U : unmanaged
+                                 where V : U*
+                                 where X : object*
+                                 where Y : B*
+                                 where Z : A.D*
+{
+    void M1<A>() where A : byte* {}
+    void M2<A, B>() where A : unmanaged 
+                    where B : A* {}
+    void M3<A>() where A : object* {}
+    void M4<A>() where A : B* {}
+    void M5<A>() where A : T {}
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                    // (9,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // unsafe class C<T, U, V, X, Y, Z> where T : byte*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "byte*").WithLocation(9, 44),
+                    // (11,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where V : U*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "U*").WithLocation(11, 44),
+                    // (12,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where X : object*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object*").WithLocation(12, 44),
+                    // (13,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where Y : B*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(13, 44),
+                    // (14,44): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                                  where Z : A.D*
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "A.D*").WithLocation(14, 44),
+                    // (16,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M1<A>() where A : byte* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "byte*").WithLocation(16, 28),
+                    // (18,31): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //                     where B : A* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "A*").WithLocation(18, 31),
+                    // (19,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M3<A>() where A : object* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object*").WithLocation(19, 28),
+                    // (20,28): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    //     void M4<A>() where A : B* {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "B*").WithLocation(20, 28)
+            );
+        }
+
+        [Fact]
+        public void ArrayGenericConstraintTypes()
+        {
+            var source = @"class A<T> where T : object[] {}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                    // (1,22): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    // class A<T> where T : object[] {}
+                    Diagnostic(ErrorCode.ERR_BadConstraintType, "object[]").WithLocation(1, 22));
         }
     }
 }

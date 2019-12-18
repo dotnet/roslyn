@@ -2208,13 +2208,7 @@ class C
 }";
 
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (10,25): warning CS8606: Possible null reference assignment to iteration variable
-                //         foreach (object o in GetList(o2)) {}
-                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "o").WithLocation(10, 25),
-                // (12,25): warning CS8606: Possible null reference assignment to iteration variable
-                //         foreach (object o in GetList(o1)) {}
-                Diagnostic(ErrorCode.WRN_NullReferenceIterationVariable, "o").WithLocation(12, 25));
+            comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();

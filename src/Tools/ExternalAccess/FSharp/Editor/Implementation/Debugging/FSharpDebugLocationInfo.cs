@@ -2,8 +2,7 @@
 
 #nullable enable
 
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.Debugging;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
 {

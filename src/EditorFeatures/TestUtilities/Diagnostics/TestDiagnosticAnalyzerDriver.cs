@@ -106,6 +106,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             return diagnostics;
         }
 
+        public async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution)
+        {
+            var diagnostics = new List<Diagnostic>();
+            foreach (var project in solution.Projects)
+            {
+                var projectDiagnostics = await GetAllDiagnosticsAsync(project);
+                diagnostics.AddRange(projectDiagnostics);
+            }
+
+            return diagnostics;
+        }
+
         public Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, TextSpan span)
         {
             return GetDiagnosticsAsync(document.Project, document, span, getDocumentDiagnostics: true, getProjectDiagnostics: false);
@@ -118,7 +130,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private async Task SynchronizeGlobalAssetToRemoteHostIfNeededAsync(Workspace workspace)
         {
-            var client = await workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(workspace, CancellationToken.None).ConfigureAwait(false);
             if (client == null)
             {
                 return;
@@ -128,10 +140,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var checksums = AddGlobalAssets(workspace);
 
             // send over global asset
-            await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+            _ = await client.TryRunRemoteAsync(
+                WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                (object)checksums, CancellationToken.None).ConfigureAwait(false);
+                new[] { (object)checksums },
+                workspace.CurrentSolution,
+                callbackTarget: null,
+                CancellationToken.None).ConfigureAwait(false);
         }
 
         private Checksum[] AddGlobalAssets(Workspace workspace)
