@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Rename
         public const string RenameSymbolKind = nameof(RenameSymbolAnnotation);
 
         public static SyntaxAnnotation Create(ISymbol oldSymbol)
-        => new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol));
+            => new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol));
 
         internal static ISymbol ResolveSymbol(SyntaxAnnotation annotation, Compilation oldCompilation)
         {
@@ -35,6 +35,6 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         private static string SerializeData(ISymbol oldSymbol)
-        => oldSymbol.GetSymbolKey().ToString();
+            => oldSymbol.GetSymbolKey().ToString();
     }
 }

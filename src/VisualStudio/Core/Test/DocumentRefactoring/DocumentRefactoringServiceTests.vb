@@ -30,25 +30,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
         Private Async Function TestDocumentRefactoring(workspace As TestWorkspace, Optional expectMatchingName As Boolean = True) As Task
             Dim project = workspace.CurrentSolution.Projects.Single()
             Dim document = project.Documents.First()
+            Dim newDocument = document.WithName("NewName.cs")
+
             Dim refactorService = workspace.GetService(Of DocumentRefactoringService)
 
-            Await refactorService.UpdateAfterInfoChangeAsync(document, document)
+            Dim solution = Await refactorService.UpdateAfterInfoChangeAsync(current:=newDocument, previous:=document)
 
-            document = workspace.CurrentSolution.GetDocument(document.Id)
+            Dim afterUpdateDocument = solution.GetDocument(document.Id)
 
-            Dim syntaxRoot = Await document.GetSyntaxRootAsync().ConfigureAwait(False)
+            Dim syntaxRoot = Await afterUpdateDocument.GetSyntaxRootAsync().ConfigureAwait(False)
 
-            Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)
+            Dim syntaxFactsService = afterUpdateDocument.GetLanguageService(Of ISyntaxFactsService)
             Dim typeDeclarationPairs = syntaxRoot _
                                 .DescendantNodes() _
                                 .Where(Function(n) syntaxFactsService.IsTypeDeclaration(n)) _
                                 .Select(Function(n) Tuple.Create(n, syntaxFactsService.GetDisplayName(n, DisplayNameOptions.None)))
 
-            Dim namespaces = syntaxRoot _
-                        .DescendantNodes()
-
-            Assert.True(typeDeclarationPairs.Any())
-            Dim matchingTypeDeclarationPair = typeDeclarationPairs.Where(Function(p) String.Equals(p.Item2, Path.GetFileNameWithoutExtension(document.FilePath), StringComparison.OrdinalIgnoreCase))
+            Assert.NotEmpty(typeDeclarationPairs)
+            Dim matchingTypeDeclarationPair = typeDeclarationPairs.Where(Function(p) String.Equals(p.Item2, "NewName"))
 
             If (expectMatchingName) Then
                 Assert.NotEmpty(matchingTypeDeclarationPair)

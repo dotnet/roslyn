@@ -201,11 +201,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             await conflictResolution.RemoveAllRenameAnnotationsAsync(documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                         }
                     }
+
                     //
                     // If there are unresolved Conflicts after the iterations, 
                     // we complexify and resolve locations that were resolvable and for the other locations we perform the normal token replacement like the first the phase.
                     //
-
 
                     // This rename could break implicit references of this symbol (e.g. rename MoveNext on a collection like type in a 
                     // foreach/for each statement
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             // The rename process and annotation for the bookkeeping is performed in one-step
             private async Task<Solution> AnnotateAndRename_WorkerAsync(
-                Solution originalSolution,
+                Solution solution,
                 Solution partiallyRenamedSolution,
                 HashSet<DocumentId> documentIdsToRename,
                 ISet<RenameLocation> renameLocations,
@@ -752,13 +752,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 bool replacementTextValid)
             {
                 try
-                {
-                    var annotatedSolution = originalSolution;
-
+                { 
                     // Add the RenameSymbolAnnotation to the declarations
                     foreach (var syntaxReference in _renameLocationSet.Symbol.DeclaringSyntaxReferences)
                     {
-                        var document = annotatedSolution.GetDocument(syntaxReference.SyntaxTree);
+                        var document = solution.GetDocument(syntaxReference.SyntaxTree);
                         if (document is null)
                         {
                             continue;
@@ -773,14 +771,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 .WithAdditionalAnnotations(RenameSymbolAnnotation.Create(_renameLocationSet.Symbol)));
 
                         var annotatedDocument = document.WithSyntaxRoot(newRoot);
-                        annotatedSolution = annotatedDocument.Project.Solution;
+                        solution = annotatedDocument.Project.Solution;
                     }
 
                     foreach (var documentId in documentIdsToRename.ToList())
                     {
                         _cancellationToken.ThrowIfCancellationRequested();
 
-                        var document = annotatedSolution.GetDocument(documentId);
+                        var document = solution.GetDocument(documentId);
                         var semanticModel = await document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                         var originalSyntaxRoot = await semanticModel.SyntaxTree.GetRootAsync(_cancellationToken).ConfigureAwait(false);
 
@@ -813,7 +811,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             allTextSpansInSingleSourceTree,
                             stringAndCommentTextSpansInSingleSourceTree,
                             conflictLocationSpans,
-                            annotatedSolution,
+                            solution,
                             _renameLocationSet.Symbol,
                             replacementTextValid,
                             renameSpansTracker,

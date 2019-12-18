@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void NotifyRefactorChanges(IEnumerable<DocumentId> changedDocs, CodeAnalysis.Solution oldSolution)
+        private void NotifyRefactorChanges(IEnumerable<DocumentId> changedDocumentIds, CodeAnalysis.Solution oldSolution, CancellationToken cancellationToken = default)
         {
             // Without any services to notify there's no need to dig through the documents
             if (!_refactorNotifyServices.Any())
@@ -417,17 +417,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            foreach (var changedDocId in changedDocs)
+            foreach (var changedDocId in changedDocumentIds)
             {
                 var newDocument = CurrentSolution.GetDocument(changedDocId);
 
                 // Documents without syntax tree won't have the annotations attached
-                if (!newDocument.SupportsSyntaxTree)
+                if (newDocument is null || !(newDocument.SupportsSyntaxTree && newDocument.SupportsSemanticModel))
                 {
                     continue;
                 }
 
-                var syntaxRoot = newDocument.GetSyntaxRootSynchronously(CancellationToken.None);
+                var syntaxRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
                 var symbolRenameNodes = syntaxRoot.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind);
 
                 foreach (var node in symbolRenameNodes)
@@ -435,25 +435,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     foreach (var annotation in node.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind))
                     {
                         var oldDocument = oldSolution.GetDocument(changedDocId);
-
-                        if (!(newDocument.TryGetSemanticModel(out var newSemanticModel) && newSemanticModel is object))
+                        if (oldDocument is null)
                         {
                             continue;
                         }
 
-                        if (!(oldDocument.TryGetSemanticModel(out var currentSemanticModel) && currentSemanticModel is object))
-                        {
-                            continue;
-                        }
+                        var newSemanticModel = newDocument.GetSemanticModelAsync().WaitAndGetResult(cancellationToken);
+                        var currentSemanticModel = oldDocument.GetSemanticModelAsync().WaitAndGetResult(cancellationToken);
 
                         var oldSymbol = RenameSymbolAnnotation.ResolveSymbol(annotation, currentSemanticModel.Compilation);
-                        var newSymbol = newSemanticModel.GetSymbolInfo(node).Symbol;
+                        var newSymbol = newSemanticModel.GetDeclaredSymbol(node);
 
                         foreach (var refactorService in _refactorNotifyServices)
                         {
-                            if (refactorService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocs, oldSymbol, newSymbol.Name, throwOnFailure: false))
+                            if (refactorService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false))
                             {
-                                refactorService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocs, oldSymbol, newSymbol.Name, throwOnFailure: false);
+                                refactorService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false);
                             }
                         }
                     }

@@ -25,13 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefacto
     {
         public async Task<Solution> UpdateAfterInfoChangeAsync(Document current, Document previous, CancellationToken cancellationToken = default)
         {
-            var typeModifiedDocument = await UpdateTypeToMatchCurrentNameAsync(current, previous, cancellationToken).ConfigureAwait(false);
+            var typeModifiedDocument = await UpdateTypeToMatchCurrentDocumentNameAsync(current, previous, cancellationToken).ConfigureAwait(false);
             var namespaceModifiedDocument = await UpdateNamespaceToMatchPath(typeModifiedDocument, previous, cancellationToken).ConfigureAwait(false);
 
             return namespaceModifiedDocument.Project.Solution;
         }
 
-        private static async Task<Document> UpdateTypeToMatchCurrentNameAsync(Document current, Document previous, CancellationToken cancellationToken)
+        private static async Task<Document> UpdateTypeToMatchCurrentDocumentNameAsync(Document current, Document previous, CancellationToken cancellationToken)
         {
             var syntaxRoot = await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxRoot is null)
@@ -39,7 +39,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefacto
                 return current;
             }
 
-            var syntaxFactsService = current.GetLanguageService<ISyntaxFactsService>()!;
+            var moveTypeService = current.GetLanguageService<IMoveTypeService>();
+            if (moveTypeService is null)
+            {
+                return current;
+            }
+
+            var syntaxFactsService = current.GetRequiredLanguageService<ISyntaxFactsService>()!;
             IEnumerable<(SyntaxNode Node, string Name)> typeDeclarationPairs = syntaxRoot
                 .DescendantNodes()
                 .Where(syntaxFactsService.IsTypeDeclaration)
@@ -61,12 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefacto
             }
 
             var declarationNode = matchingTypeDeclarationPair.Node;
-
-            var moveTypeService = current.GetLanguageService<IMoveTypeService>();
-            if (moveTypeService is null)
-            {
-                return current;
-            }
 
             var originalSolution = current.Project.Solution;
             var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(current, declarationNode.Span, MoveTypeOperationKind.RenameType, cancellationToken).ConfigureAwait(false);
