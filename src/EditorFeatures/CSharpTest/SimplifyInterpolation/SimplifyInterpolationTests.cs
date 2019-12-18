@@ -530,5 +530,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyInterpolation
     }
 }");
         }
+
+        [Fact]
+        public async Task PadLeftThenPadRight_WithoutAlignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue.PadLeft(3){|Unnecessary:[||].PadRight(|}3{|Unnecessary:)|}} suffix"";
+    }
+}", @"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue.PadLeft(3),3} suffix"";
+    }
+}");
+        }
+
+        [Fact]
+        public async Task PadLeftThenPadRight_WithAlignment()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string someValue)
+    {
+        _ = $""prefix {someValue.PadLeft(3)[||].PadRight(3),3} suffix"";
+    }
+}");
+        }
     }
 }
