@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public void AddHighlights(
             SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            var _1 = s_textSpanListPool.GetPooledObject();
-            var _2 = s_tokenListPool.GetPooledObject();
+            using var _1 = s_textSpanListPool.GetPooledObject();
+            using var _2 = s_tokenListPool.GetPooledObject();
 
             var tempHighlights = _1.Object;
             var touchingTokens = _2.Object;
