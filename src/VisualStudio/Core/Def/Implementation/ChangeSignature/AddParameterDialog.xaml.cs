@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
+using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -30,10 +31,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public AddParameterDialog(
             IntellisenseTextBoxViewModel typeIntellisenseTextBoxViewModel,
-            IntellisenseTextBoxViewModel nameIntellisenseTextBoxViewModel)
+            IntellisenseTextBoxViewModel nameIntellisenseTextBoxViewModel,
+            INotificationService notificationService)
         {
             // TODO this should be initlialized when called for Edit.
-            ViewModel = new AddParameterDialogViewModel();
+            ViewModel = new AddParameterDialogViewModel(notificationService);
             _typeIntellisenseTextBoxView = typeIntellisenseTextBoxViewModel;
             _nameIntellisenseTextBoxView = nameIntellisenseTextBoxViewModel;
             this.Loaded += AddParameterDialog_Loaded;

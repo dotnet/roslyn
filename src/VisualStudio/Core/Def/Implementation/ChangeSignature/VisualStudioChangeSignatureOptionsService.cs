@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -37,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IClassificationFormatMapService classificationFormatMapService,
             ClassificationTypeMap classificationTypeMap,
             IContentTypeRegistryService contentTypeRegistryService,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory)
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
+            INotificationService notificationService)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
@@ -111,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 document, _contentType, documentText.Insert(insertPosition, ", "),
                 CreateTrackingSpans, rolesCollections, cancellationToken).ConfigureAwait(false);
 
-            return new AddParameterDialog(viewModels[0], viewModels[1]);
+            return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>());
 
             ITrackingSpan[] CreateTrackingSpans(IProjectionSnapshot snapshot)
             {
