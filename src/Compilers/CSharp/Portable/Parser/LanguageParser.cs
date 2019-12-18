@@ -5688,6 +5688,7 @@ tryAgain:
 
         private ScanTypeFlags ScanType(ParseTypeMode mode, out SyntaxToken lastTokenOfType)
         {
+            Debug.Assert(mode != ParseTypeMode.NewExpression);
             ScanTypeFlags result;
 
             if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
