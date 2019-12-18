@@ -27,23 +27,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public void AddHighlights(
              SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            using var _ = s_listPool.GetPooledObject();
-            var tempHighlights = _.Object;
-
-            foreach (var highlighter in _highlighters.Where(h => h.Metadata.Language == root.Language))
+            using (s_listPool.GetPooledObject(out var tempHighlights))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                highlighter.Value.AddHighlights(root, position, tempHighlights, cancellationToken);
-            }
-
-            tempHighlights.Sort();
-            var lastSpan = default(TextSpan);
-            foreach (var span in tempHighlights)
-            {
-                if (span != lastSpan && !span.IsEmpty)
+                foreach (var highlighter in _highlighters.Where(h => h.Metadata.Language == root.Language))
                 {
-                    highlights.Add(span);
-                    lastSpan = span;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    highlighter.Value.AddHighlights(root, position, tempHighlights, cancellationToken);
+                }
+
+                tempHighlights.Sort();
+                var lastSpan = default(TextSpan);
+                foreach (var span in tempHighlights)
+                {
+                    if (span != lastSpan && !span.IsEmpty)
+                    {
+                        highlights.Add(span);
+                        lastSpan = span;
+                    }
                 }
             }
         }
