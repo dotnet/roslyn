@@ -365,6 +365,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute != true && ContainingType.AreLocalsZeroed;
+            }
+        }
+
         #region Flags
 
         public override bool ReturnsVoid

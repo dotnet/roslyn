@@ -123,7 +123,7 @@ unsafe class Test
 }
 namespace System {
     public struct ValueTuple<T1, T2> {
-        public ValueTuple(T1 a, T2 b) { }
+        public ValueTuple(T1 a, T2 b) => throw null;
     }
 }
 ", TestOptions.UnsafeReleaseDll);
@@ -187,7 +187,7 @@ unsafe class Test
 }
 namespace System {
     public struct ValueTuple<T1, T2> {
-        public ValueTuple(T1 a, T2 b) { }
+        public ValueTuple(T1 a, T2 b) => throw null;
     }
 }
 ", TestOptions.UnsafeReleaseDll);

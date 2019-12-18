@@ -39,9 +39,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected Overloads Sub TestChildren(code As XElement, ParamArray names() As String)
             TestRootCodeModelWithCodeFile(code,
                 Sub(rootCodeModel)
-                    Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
-
                     Dim actualNames = rootCodeModel.CodeElements.OfType(Of EnvDTE.CodeElement).Select(Function(e) e.Name).ToArray()
+                    Assert.Equal(names.Length, rootCodeModel.CodeElements.Count)
 
                     For i = 0 To names.Length - 1
                         Assert.Contains(names(i), actualNames)

@@ -114,7 +114,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions =>
                     ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
-                bool Cci.IMethodBody.LocalsAreZeroed => false;
+                bool Cci.IMethodBody.HasStackalloc => false;
+
+                bool Cci.IMethodBody.AreLocalsZeroed => false;
 
                 ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables =>
                     ImmutableArray<Cci.ILocalDefinition>.Empty;
