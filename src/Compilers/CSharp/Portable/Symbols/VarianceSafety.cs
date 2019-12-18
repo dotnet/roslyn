@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
-                    var namedType = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();
+                    var namedType = (NamedTypeSymbol)type;
                     // 3) (see IsVarianceUnsafe(NamedTypeSymbol))
                     return IsVarianceUnsafe(namedType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 default:

@@ -4650,7 +4650,7 @@ class C
         var [|x|] = (X)(0, 0);
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, int>;
 
 class C
@@ -4659,7 +4659,7 @@ class C
     {
         var x2 = (X)(0, 0);
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
@@ -4676,7 +4676,7 @@ class C
         var [|x|] = (X)(0, (0, 0));
         var x2 = x;
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+}",
 @"using X = System.ValueTuple<int, (int, int)>;
 
 class C
@@ -4685,7 +4685,7 @@ class C
     {
         var x2 = (X)(0, (0, 0));
     }
-}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]

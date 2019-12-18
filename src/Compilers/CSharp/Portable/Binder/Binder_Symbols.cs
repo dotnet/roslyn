@@ -655,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-            return TupleTypeSymbol.Create(syntax.Location,
+            return NamedTypeSymbol.CreateTuple(syntax.Location,
                                           typesArray,
                                           locationsArray,
                                           elementNames == null ?
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool CheckTupleMemberName(string name, int index, SyntaxNodeOrToken syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
         {
-            int reserved = TupleTypeSymbol.IsElementNameReserved(name);
+            int reserved = NamedTypeSymbol.IsTupleElementNameReserved(name);
             if (reserved == 0)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleReservedElementNameAnyPosition, syntax, name);
@@ -1263,10 +1263,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNamedType(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
-
-            type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
 
             return type;
         }
