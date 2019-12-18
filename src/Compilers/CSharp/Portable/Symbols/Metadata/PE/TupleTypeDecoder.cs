@@ -156,12 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             switch (type.Kind)
             {
-                case SymbolKind.ErrorType:
-                case SymbolKind.DynamicType:
-                case SymbolKind.TypeParameter:
-                case SymbolKind.PointerType:
-                    return type;
-
+                case SymbolKind.ErrorType when type.IsTupleType:
                 case SymbolKind.NamedType:
                     // We may have a tuple type from a substituted type symbol,
                     // but it will be missing names from metadata, so we'll
@@ -187,6 +182,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 case SymbolKind.ArrayType:
                     return DecodeArrayType((ArrayTypeSymbol)type);
+
+                case SymbolKind.ErrorType:
+                case SymbolKind.DynamicType:
+                case SymbolKind.TypeParameter:
+                case SymbolKind.PointerType:
+                    return type;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);

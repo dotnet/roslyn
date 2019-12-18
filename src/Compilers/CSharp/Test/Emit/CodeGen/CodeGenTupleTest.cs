@@ -25799,6 +25799,70 @@ public class Class1
         }
 
         [Fact]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase_ValueTuple()
+        {
+            var lib_cs = @"
+public class ClassWithTwoTypeParameters<T1, T2>
+{
+}
+
+public class SelfReferencingClassWithTuple
+    : ClassWithTwoTypeParameters<SelfReferencingClassWithTuple, (string A, int B)>
+{
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+
+            var source_cs = @"
+public class TriggerStackOverflowException
+{
+    void Method()
+    {
+        _ = new SelfReferencingClassWithTuple();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { lib.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase()
+        {
+            var missing_cs = @"public class Missing { }";
+            var missing = CreateCompilation(missing_cs);
+            missing.VerifyDiagnostics();
+
+            var lib_cs = @"
+public class ClassWithTwoTypeParameters<T1, T2>
+{
+}
+
+public class SelfReferencingClassWithMissing
+    : ClassWithTwoTypeParameters<SelfReferencingClassWithMissing, Missing>
+{
+}
+";
+            var lib = CreateCompilation(lib_cs, references: new[] { missing.EmitToImageReference() });
+            lib.VerifyDiagnostics();
+
+            var source_cs = @"
+public class C
+{
+    void Method()
+    {
+        _ = new SelfReferencingClassWithMissing();
+    }
+}
+";
+            var comp = CreateCompilation(source_cs, references: new[] { lib.EmitToImageReference() });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(21727, "https://github.com/dotnet/roslyn/issues/21727")]
         public void FailedDecodingOfTupleNamesWhenMissingValueTupleType()
         {
