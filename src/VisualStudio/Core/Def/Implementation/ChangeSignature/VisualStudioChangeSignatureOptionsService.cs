@@ -38,8 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IClassificationFormatMapService classificationFormatMapService,
             ClassificationTypeMap classificationTypeMap,
             IContentTypeRegistryService contentTypeRegistryService,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
-            INotificationService notificationService)
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
