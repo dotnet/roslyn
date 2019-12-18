@@ -330,6 +330,67 @@ CodeStyleOptions.QualifyFieldAccess);
 CodeStyleOptions.QualifyFieldAccess);
         }
 
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_Subputtern1()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        if (c is { [|i|]: 1 })
+        {
+        }
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_Subputtern2()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        switch (t)
+        {
+            case Class { [|i|]: 1 }:
+                return;
+        }
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyFieldAccess_Subputtern3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i;
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { [|i|]: 0 } => 1,
+            _ => 0
+        };
+    }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
         [WorkItem(7065, "https://github.com/dotnet/roslyn/issues/7065")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_LHS()
@@ -377,6 +438,67 @@ CodeStyleOptions.QualifyPropertyAccess);
     void M()
     {
         var x = this.i;
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_Subputtern1()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        if (c is { [|i|]: 1 })
+        {
+        }
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_Subputtern2()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        switch (t)
+        {
+            case Class { [|i|]: 1 }:
+                return;
+        }
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task QualifyPropertyAccess_Subputtern3()
+        {
+            await TestMissingAsyncWithOption(
+@"class Class
+{
+    int i { get; set; }
+
+    void M(Class c)
+    {
+        var a = c switch
+        {
+            { [|i|]: 0 } => 1,
+            _ => 0
+        };
     }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
