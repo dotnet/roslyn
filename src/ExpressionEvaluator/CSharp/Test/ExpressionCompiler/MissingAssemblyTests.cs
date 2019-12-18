@@ -800,8 +800,8 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }");
@@ -828,8 +828,8 @@ class UseLinq
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }",
@@ -858,8 +858,8 @@ LanguageVersion.CSharp7_1);
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }");
@@ -886,8 +886,8 @@ LanguageVersion.CSharp7_1);
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (int V_0, //x
-                (int x, int) V_1, //y
-                (int, int, (int, int)) V_2) //z
+                System.ValueTuple<int, int> V_1, //y
+                System.ValueTuple<int, int, System.ValueTuple<int, int>> V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }",

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
     internal class AsyncAwaitHighlighter : AbstractKeywordHighlighter
     {
         private static readonly ObjectPool<Stack<SyntaxNode>> s_stackPool
-            = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
+            = SharedPools.Default<Stack<SyntaxNode>>();
 
         [ImportingConstructor]
         public AsyncAwaitHighlighter()

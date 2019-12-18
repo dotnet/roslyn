@@ -344,6 +344,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 
+        // PROTOTYPE(local-function-attributes): test local function with SkipLocalsInit
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute != true && ContainingType.AreLocalsZeroed;
+            }
+        }
+
         /// <summary>
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
         /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
@@ -471,6 +481,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                attribute.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
             {

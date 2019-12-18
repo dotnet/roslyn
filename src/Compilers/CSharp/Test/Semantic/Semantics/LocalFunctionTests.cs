@@ -2817,13 +2817,10 @@ class Program
     }
 }";
             VerifyDiagnostics(source,
-    // (8,13): error CS0159: No such label 'A' within the scope of the goto statement
-    //             goto A;
-    Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("A").WithLocation(8, 13),
-    // (10,5): warning CS0164: This label has not been referenced
-    //     A:  Local();
-    Diagnostic(ErrorCode.WRN_UnreferencedLabel, "A").WithLocation(10, 5)
-    );
+                // (8,13): error CS0159: No such label 'A' within the scope of the goto statement
+                //             goto A;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("A").WithLocation(8, 13)
+                );
         }
 
         [Fact]
@@ -3481,9 +3478,6 @@ class Program
                 // (6,27): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         Program operator +(Program left, Program right)
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(Program left, Program right)").WithArguments("System.ValueTuple`2").WithLocation(6, 27),
-                // (6,26): error CS0023: Operator '+' cannot be applied to operand of type '(Program, Program)'
-                //         Program operator +(Program left, Program right)
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+(Program left, Program right)").WithArguments("+", "(Program, Program)").WithLocation(6, 26),
                 // (8,13): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
                 //             return left;
                 Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(8, 13),

@@ -2565,7 +2565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : SimpleLambdaExpression(asyncKeyword, parameter, arrowToken, null, (ExpressionSyntax)body);
 
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(CSharpSyntaxNode body)
-            => ParenthesizedLambdaExpression(parameterList: null, body);
+            => ParenthesizedLambdaExpression(ParameterList(), body);
 
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(ParameterListSyntax parameterList, CSharpSyntaxNode body)
             => body is BlockSyntax block

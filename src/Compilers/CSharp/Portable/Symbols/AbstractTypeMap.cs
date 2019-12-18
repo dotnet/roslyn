@@ -48,15 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (oldFieldTypes == newFieldTypes) ? previous : AnonymousTypeManager.ConstructAnonymousTypeSymbol(previous, newFieldTypes);
             }
 
-            if (previous.IsTupleType)
-            {
-                var previousTuple = (TupleTypeSymbol)previous;
-                NamedTypeSymbol oldUnderlyingType = previousTuple.TupleUnderlyingType;
-                NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(oldUnderlyingType).Type;
-
-                return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : previousTuple.WithUnderlyingType(newUnderlyingType);
-            }
-
             // TODO: we could construct the result's ConstructedFrom lazily by using a "deep"
             // construct operation here (as VB does), thereby avoiding alpha renaming in most cases.
             // Aleksey has shown that would reduce GC pressure if substitutions of deeply nested generics are common.
@@ -70,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
                 var oldArgument = oldTypeArguments[i];
-                var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
+                var newArgument = oldArgument.SubstituteType(this);
 
                 if (!changed && !oldArgument.IsSameAs(newArgument))
                 {
@@ -86,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return previous;
             }
 
-            return newConstructedFrom.ConstructIfGeneric(newTypeArguments.ToImmutableAndFree());
+            return newConstructedFrom.ConstructIfGeneric(newTypeArguments.ToImmutableAndFree()).WithTupleDataFrom(previous);
         }
 
         /// <summary>
@@ -131,22 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations SubstituteType(TypeWithAnnotations previous)
         {
             return previous.SubstituteType(this);
-        }
-
-        /// <summary>
-        /// Same as <see cref="SubstituteType(TypeSymbol)"/>, but with special behavior around tuples.
-        /// In particular, if substitution makes type tuple compatible, transform it into a tuple type.
-        /// </summary>
-        internal TypeWithAnnotations SubstituteType(TypeSymbol previous, bool withTupleUnification)
-        {
-            var result = SubstituteType(previous);
-            // Make it a tuple if it became compatible with one.
-            return withTupleUnification ? result.TransformToTupleIfCompatible() : result;
-        }
-
-        internal TypeWithAnnotations SubstituteTypeWithTupleUnification(TypeWithAnnotations previous)
-        {
-            return previous.SubstituteTypeWithTupleUnification(this);
         }
 
         internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
@@ -203,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)
         {
             var oldElement = t.ElementTypeWithAnnotations;
-            TypeWithAnnotations element = oldElement.SubstituteTypeWithTupleUnification(this);
+            TypeWithAnnotations element = oldElement.SubstituteType(this);
             if (element.IsSameAs(oldElement))
             {
                 return t;
@@ -246,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private PointerTypeSymbol SubstitutePointerType(PointerTypeSymbol t)
         {
             var oldPointedAtType = t.PointedAtTypeWithAnnotations;
-            var pointedAtType = oldPointedAtType.SubstituteTypeWithTupleUnification(this);
+            var pointedAtType = oldPointedAtType.SubstituteType(this);
             if (pointedAtType.IsSameAs(oldPointedAtType))
             {
                 return t;

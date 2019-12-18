@@ -130,6 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             this.MetadataLocation = ImmutableArray.Create<MetadataLocation>(new MetadataLocation(this));
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
         internal override int Ordinal
         {
             get

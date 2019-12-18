@@ -1553,6 +1553,45 @@ public partial bool this[int index] {}
             var tree = UsingTree(@"
 new public bool this[int index] { get; }
 ");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IndexerDeclaration);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.BoolKeyword);
+                    }
+                    N(SyntaxKind.ThisKeyword);
+                    N(SyntaxKind.BracketedParameterList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "index");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -1561,6 +1600,45 @@ new public bool this[int index] { get; }
             var tree = UsingTree(@"
 new public bool this[int index] { get; }
 ");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IndexerDeclaration);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.BoolKeyword);
+                    }
+                    N(SyntaxKind.ThisKeyword);
+                    N(SyntaxKind.BracketedParameterList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "index");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
