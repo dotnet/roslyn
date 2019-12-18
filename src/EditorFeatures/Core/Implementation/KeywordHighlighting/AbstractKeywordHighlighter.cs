@@ -29,26 +29,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public void AddHighlights(
             SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            using var highlightsListPooledObject = s_textSpanListPool.GetPooledObject();
-            using var tokensListPooledObject = s_tokenListPool.GetPooledObject();
-
-            var tempHighlights = highlightsListPooledObject.Object;
-            var touchingTokens = tokensListPooledObject.Object;
-            AddTouchingTokens(root, position, touchingTokens);
-
-            foreach (var token in touchingTokens)
+            using (s_textSpanListPool.GetPooledObject(out var tempHighlights))
+            using (s_tokenListPool.GetPooledObject(out var touchingTokens))
             {
-                for (var parent = token.Parent; parent != null; parent = parent.Parent)
-                {
-                    if (IsHighlightableNode(parent))
-                    {
-                        tempHighlights.Clear();
-                        AddHighlightsForNode(parent, tempHighlights, cancellationToken);
+                AddTouchingTokens(root, position, touchingTokens);
 
-                        if (AnyIntersects(position, tempHighlights))
+                foreach (var token in touchingTokens)
+                {
+                    for (var parent = token.Parent; parent != null; parent = parent.Parent)
+                    {
+                        if (IsHighlightableNode(parent))
                         {
-                            highlights.AddRange(tempHighlights);
-                            return;
+                            tempHighlights.Clear();
+                            AddHighlightsForNode(parent, tempHighlights, cancellationToken);
+
+                            if (AnyIntersects(position, tempHighlights))
+                            {
+                                highlights.AddRange(tempHighlights);
+                                return;
+                            }
                         }
                     }
                 }
