@@ -1585,7 +1585,6 @@ class C
             [|void Local() { }
             Local();|]
         }
-
     }
 }", @"
 class C
