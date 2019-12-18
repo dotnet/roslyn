@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break; // Proceed with additional checks.
             }
 
-            bool hasGenerics = type.TupleUnderlyingTypeOrSelf() is NamedTypeSymbol { IsGenericType: true };
+            bool hasGenerics = type.IsGenericType;
             switch (type.TypeKind)
             {
                 case TypeKind.Enum:
