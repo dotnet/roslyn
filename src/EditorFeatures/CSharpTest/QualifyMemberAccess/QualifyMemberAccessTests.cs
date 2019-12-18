@@ -332,7 +332,7 @@ CodeStyleOptions.QualifyFieldAccess);
 
         [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyFieldAccess_Subputtern1()
+        public async Task QualifyFieldAccess_Subpattern1()
         {
             await TestMissingAsyncWithOption(
 @"class Class
@@ -351,7 +351,7 @@ CodeStyleOptions.QualifyFieldAccess);
 
         [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyFieldAccess_Subputtern2()
+        public async Task QualifyFieldAccess_Subpattern2()
         {
             await TestMissingAsyncWithOption(
 @"class Class
@@ -372,7 +372,7 @@ CodeStyleOptions.QualifyFieldAccess);
 
         [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyFieldAccess_Subputtern3()
+        public async Task QualifyFieldAccess_Subpattern3()
         {
             await TestMissingAsyncWithOption(
 @"class Class
@@ -445,7 +445,7 @@ CodeStyleOptions.QualifyPropertyAccess);
 
         [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyPropertyAccess_Subputtern1()
+        public async Task QualifyPropertyAccess_Subpattern1()
         {
             await TestMissingAsyncWithOption(
 @"class Class
@@ -464,7 +464,7 @@ CodeStyleOptions.QualifyPropertyAccess);
 
         [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyPropertyAccess_Subputtern2()
+        public async Task QualifyPropertyAccess_Subpattern2()
         {
             await TestMissingAsyncWithOption(
 @"class Class
@@ -485,7 +485,7 @@ CodeStyleOptions.QualifyPropertyAccess);
 
         [WorkItem(40242, "https://github.com/dotnet/roslyn/issues/40242")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyPropertyAccess_Subputtern3()
+        public async Task QualifyPropertyAccess_Subpattern3()
         {
             await TestMissingAsyncWithOption(
 @"class Class
