@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
                 if (invocation.Arguments.Length == 0)
                 {
+                    // A call to `.ToString()` at the end of the interpolation.  This is unnecessary.
+                    // Just remove entirely.
                     unwrapped = invocation.Instance;
                     formatString = "";
 

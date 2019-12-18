@@ -89,11 +89,11 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                     (TInterpolationAlignmentClause)generator.InterpolationAlignmentClause(alignment));
             }
 
-            if (formatString != null)
+            if (!string.IsNullOrEmpty(formatString))
             {
-                result = WithFormatClause(result, formatString == ""
-                    ? null
-                    : (TInterpolationFormatClause?)generator.InterpolationFormatClause(Escape(interpolatedString, formatString)));
+                result = WithFormatClause(
+                    result,
+                    (TInterpolationFormatClause?)generator.InterpolationFormatClause(Escape(interpolatedString, formatString)));
             }
 
             return result;

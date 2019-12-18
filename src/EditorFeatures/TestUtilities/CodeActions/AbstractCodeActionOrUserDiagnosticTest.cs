@@ -445,9 +445,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string diagnosticTag,
             string markupKey,
             string initialMarkupWithoutSpans,
-            List<Diagnostic> diagnosticsWithTag)
+            ImmutableArray<Diagnostic> diagnosticsWithTag)
         {
-            var message = $"Expected {expectedSpans.Length} diagnostic spans with custom tag '{diagnosticTag}', but there were {diagnosticsWithTag.Count}.";
+            var message = $"Expected {expectedSpans.Length} diagnostic spans with custom tag '{diagnosticTag}', but there were {diagnosticsWithTag.Length}.";
 
             if (expectedSpans.Length == 0)
             {
