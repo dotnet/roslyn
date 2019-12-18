@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return;
             }
 
-            var (nodeToGenerate, variableSymbolOpt, declaratorToRemoveOpt) =
+            var (nodeToGenerate, declaratorToRemoveOpt) =
                 Analyzer.Analyze(
                     (SwitchStatementSyntax)switchStatement,
                     context.SemanticModel,
@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             var additionalLocations = ArrayBuilder<Location>.GetInstance();
             additionalLocations.Add(switchStatement.GetLocation());
-            additionalLocations.AddOptional(variableSymbolOpt?.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax().GetLocation());
             additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,

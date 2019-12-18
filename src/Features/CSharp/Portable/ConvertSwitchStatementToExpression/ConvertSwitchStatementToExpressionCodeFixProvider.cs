@@ -58,21 +58,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
                 var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
-                var variableSymbolLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
-                var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(2);
+                var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                SyntaxNode variableSymbolLocationNodeOpt = null;
-                ITypeSymbol variableSymbolTypeOpt = null;
+                SyntaxNode declaratorToRemoveNodeOpt = null;
+                ITypeSymbol declaratorToRemoveTypeOpt = null;
 
-                if (variableSymbolLocationOpt != default)
+                if (declaratorToRemoveLocationOpt != default)
                 {
-                    variableSymbolLocationNodeOpt = variableSymbolLocationOpt.FindNode(cancellationToken);
-                    variableSymbolTypeOpt = semanticModel.GetDeclaredSymbol(variableSymbolLocationNodeOpt).GetSymbolType();
+                    declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
+                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
                 }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
-                var switchExpression = Rewriter.Rewrite(switchStatement, variableSymbolTypeOpt, nodeToGenerate,
+                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
                     shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                     generateDeclaration: declaratorToRemoveLocationOpt is object);
 

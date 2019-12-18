@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
-                ITypeSymbol variableSymbolTypeOpt,
+                ITypeSymbol declaratorToRemoveTypeOpt,
                 SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression, bool generateDeclaration)
             {
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
                 return rewriter.GetFinalStatement(switchExpression,
-                    switchStatement.SwitchKeyword.LeadingTrivia, variableSymbolTypeOpt, nodeToGenerate, generateDeclaration);
+                    switchStatement.SwitchKeyword.LeadingTrivia, declaratorToRemoveTypeOpt, nodeToGenerate, generateDeclaration);
             }
 
             private StatementSyntax GetFinalStatement(
                 ExpressionSyntax switchExpression,
                 SyntaxTriviaList leadingTrivia,
-                ITypeSymbol variableSymbolTypeOpt,
+                ITypeSymbol declaratorToRemoveTypeOpt,
                 SyntaxKind nodeToGenerate,
                 bool generateDeclaration)
             {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 Debug.Assert(_assignmentTargetOpt != null);
 
                 return generateDeclaration
-                    ? GenerateVariableDeclaration(switchExpression, leadingTrivia, variableSymbolTypeOpt)
+                    ? GenerateVariableDeclaration(switchExpression, leadingTrivia, declaratorToRemoveTypeOpt)
                     : GenerateAssignment(switchExpression, nodeToGenerate, leadingTrivia);
             }
 
@@ -80,14 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .WithLeadingTrivia(leadingTrivia);
             }
 
-            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia, ITypeSymbol variableSymbolTypeOpt)
+            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia, ITypeSymbol declaratorToRemoveTypeOpt)
             {
                 Debug.Assert(_assignmentTargetOpt is IdentifierNameSyntax);
 
                 // There is a probability that we cannot use var if the declaration type is a reference type or nullable type.
                 // In these cases, we generate the explicit type for now and decide later whether or not to use var.
-                var cannotUseVar = variableSymbolTypeOpt != null && (variableSymbolTypeOpt.IsReferenceType || variableSymbolTypeOpt.IsNullable());
-                var type = cannotUseVar ? variableSymbolTypeOpt.GenerateTypeSyntax() : IdentifierName("var");
+                var cannotUseVar = declaratorToRemoveTypeOpt != null && (declaratorToRemoveTypeOpt.IsReferenceType || declaratorToRemoveTypeOpt.IsNullable());
+                var type = cannotUseVar ? declaratorToRemoveTypeOpt.GenerateTypeSyntax() : IdentifierName("var");
 
                 return LocalDeclarationStatement(
                     VariableDeclaration(

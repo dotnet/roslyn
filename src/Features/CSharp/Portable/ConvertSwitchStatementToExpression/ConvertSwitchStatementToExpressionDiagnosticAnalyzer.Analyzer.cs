@@ -18,19 +18,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             {
             }
 
-            public static (SyntaxKind nodeToGenerate, ISymbol variableSymbolOpt, VariableDeclaratorSyntax declaratorToRemoveOpt) Analyze(
+            public static (SyntaxKind nodeToGenerate, VariableDeclaratorSyntax declaratorToRemoveOpt) Analyze(
                 SwitchStatementSyntax node,
                 SemanticModel semanticModel,
                 out bool shouldRemoveNextStatement)
             {
                 var analyzer = new Analyzer();
                 var nodeToGenerate = analyzer.AnalyzeSwitchStatement(node, out shouldRemoveNextStatement);
-                ISymbol variableSymbolOpt = null;
 
                 if (nodeToGenerate == SyntaxKind.SimpleAssignmentExpression &&
                     analyzer.TryGetVariableDeclaratorAndSymbol(semanticModel) is var (declarator, symbol))
                 {
-                    variableSymbolOpt = symbol;
                     if (shouldRemoveNextStatement &&
                         semanticModel.AnalyzeDataFlow(node.GetNextStatement()).DataFlowsIn.Contains(symbol))
                     {
@@ -57,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                         if (!beforeSwitch.WrittenInside.Contains(symbol))
                         {
                             // Move declarator only if it has no initializer and it's not used before switch
-                            return (nodeToGenerate, symbol, declaratorToRemoveOpt: declarator);
+                            return (nodeToGenerate, declaratorToRemoveOpt: declarator);
                         }
                     }
                 }
 
-                return (nodeToGenerate, null, declaratorToRemoveOpt: null);
+                return (nodeToGenerate, declaratorToRemoveOpt: null);
             }
 
             private (VariableDeclaratorSyntax, ISymbol)? TryGetVariableDeclaratorAndSymbol(SemanticModel semanticModel)
