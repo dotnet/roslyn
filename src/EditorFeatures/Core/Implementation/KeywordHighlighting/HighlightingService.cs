@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
@@ -16,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     internal class HighlightingService : IHighlightingService
     {
         private readonly List<Lazy<IHighlighter, LanguageMetadata>> _highlighters;
+        private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new PooledObjects.ObjectPool<List<TextSpan>>(() => new List<TextSpan>());
 
         [ImportingConstructor]
         public HighlightingService(
@@ -24,14 +24,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             _highlighters = highlighters.ToList();
         }
 
-        public IEnumerable<TextSpan> GetHighlights(
-             SyntaxNode root, int position, CancellationToken cancellationToken)
+        public void AddHighlights(
+             SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            return _highlighters.Where(h => h.Metadata.Language == root.Language)
-                                .Select(h => h.Value.GetHighlights(root, position, cancellationToken))
-                                .WhereNotNull()
-                                .Flatten()
-                                .Distinct();
+            using (s_listPool.GetPooledObject(out var tempHighlights))
+            {
+                foreach (var highlighter in _highlighters.Where(h => h.Metadata.Language == root.Language))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    highlighter.Value.AddHighlights(root, position, tempHighlights, cancellationToken);
+                }
+
+                tempHighlights.Sort();
+                var lastSpan = default(TextSpan);
+                foreach (var span in tempHighlights)
+                {
+                    if (span != lastSpan && !span.IsEmpty)
+                    {
+                        highlights.Add(span);
+                        lastSpan = span;
+                    }
+                }
+            }
         }
     }
 }

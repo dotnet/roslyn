@@ -15,21 +15,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             If node.IsIncorrectContinueStatement(SyntaxKind.ContinueDoStatement) Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
 
             If node.IsIncorrectExitStatement(SyntaxKind.ExitDoStatement) Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
 
             Dim doLoop = node.GetAncestor(Of DoLoopBlockSyntax)()
             If doLoop Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)
 
             With doLoop.DoStatement
                 If .WhileOrUntilClause IsNot Nothing Then
@@ -50,8 +48,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.LoopKeyword.Span)
                 End If
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace
