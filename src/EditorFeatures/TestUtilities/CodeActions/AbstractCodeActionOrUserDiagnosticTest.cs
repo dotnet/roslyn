@@ -9,13 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -427,14 +425,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var diagnosticsWithTag = diagnostics
                 .Where(d => d.Descriptor.CustomTags.Contains(diagnosticTag))
                 .OrderBy(s => s.Location.SourceSpan.Start)
-                .ToList();
+                .ToImmutableArray();
 
-            if (expectedSpans.Length != diagnosticsWithTag.Count)
+            if (expectedSpans.Length != diagnosticsWithTag.Length)
             {
                 AssertEx.Fail(BuildFailureMessage(expectedSpans, diagnosticTag, markupKey, initialMarkupWithoutSpans, diagnosticsWithTag));
             }
 
-            for (var i = 0; i < Math.Min(expectedSpans.Length, diagnosticsWithTag.Count); i++)
+            for (var i = 0; i < expectedSpans.Length; i++)
             {
                 var actual = diagnosticsWithTag[i].Location.SourceSpan;
                 var expected = expectedSpans[i];
