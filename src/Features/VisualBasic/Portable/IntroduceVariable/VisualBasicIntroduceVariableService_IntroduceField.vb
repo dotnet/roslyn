@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim oldTypeDeclaration = expression.GetAncestorOrThis(Of TypeBlockSyntax)()
             Dim oldType = If(oldTypeDeclaration IsNot Nothing,
@@ -42,12 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                     document, oldTypeDeclaration, newNameToken, expression, allOccurrences, isConstant, cancellationToken)
 
                 Dim insertionIndex = If(isConstant, DetermineConstantInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members), DetermineFieldInsertPosition(oldCompilationUnit.Members, newCompilationUnit.Members))
-                Dim destination As SyntaxNode = oldCompilationUnit
 
                 Dim newRoot = newCompilationUnit.WithMembers(
                     newCompilationUnit.Members.Insert(insertionIndex, newFieldDeclaration))
 
-                Return Tuple.Create(document.Document.WithSyntaxRoot(newRoot), destination, insertionIndex)
+                Return document.Document.WithSyntaxRoot(newRoot)
             End If
         End Function
 
@@ -60,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 newNameToken As SyntaxToken,
                 allOccurrences As Boolean,
                 isConstant As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Tuple(Of Document, SyntaxNode, Integer))
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim oldToNewTypeBlockMap = New Dictionary(Of TypeBlockSyntax, TypeBlockSyntax)
 
@@ -73,9 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim newTypeDeclaration = oldToNewTypeBlockMap(oldTypeBlock)
 
-            Dim insertionIndex = If(isConstant,
-                                DetermineConstantInsertPosition(oldTypeBlock.Members, newTypeDeclaration.Members),
-                                DetermineFieldInsertPosition(oldTypeBlock.Members, newTypeDeclaration.Members))
+            Dim insertionIndex = GetFieldInsertionIndex(isConstant, oldTypeBlock, newTypeDeclaration, cancellationToken)
             Dim destination As SyntaxNode = oldTypeBlock
 
             Dim newFieldDeclaration = CreateFieldDeclaration(
@@ -101,11 +98,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 updatedDocument = updatedDocument.Project.Solution.GetDocument(currentDocument.Id).WithSyntaxRoot(newRoot)
             Next
 
-            Return Tuple.Create(updatedDocument, destination, insertionIndex)
+            Return updatedDocument
         End Function
 
-        Protected Shared Function DetermineConstantInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
-                                                                  newMembers As SyntaxList(Of StatementSyntax)) As Integer
+        Protected Overrides Function DetermineConstantInsertPosition(oldDeclaration As TypeBlockSyntax, newDeclaration As TypeBlockSyntax) As Integer
+            Return DetermineConstantInsertPosition(oldDeclaration.Members, newDeclaration.Members)
+        End Function
+
+        Protected Overloads Shared Function DetermineConstantInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
+                                                                            newMembers As SyntaxList(Of StatementSyntax)) As Integer
             ' 1) Place the constant after the last constant.
             '
             ' 2) If there is no constant, place it before the first field
@@ -134,8 +135,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return index
         End Function
 
-        Protected Shared Function DetermineFieldInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
-                                                               newMembers As SyntaxList(Of StatementSyntax)) As Integer
+        Protected Overrides Function DetermineFieldInsertPosition(oldDeclaration As TypeBlockSyntax, newDeclaration As TypeBlockSyntax) As Integer
+            Return DetermineFieldInsertPosition(oldDeclaration.Members, newDeclaration.Members)
+        End Function
+
+        Protected Overloads Shared Function DetermineFieldInsertPosition(oldMembers As SyntaxList(Of StatementSyntax),
+                                                                         newMembers As SyntaxList(Of StatementSyntax)) As Integer
             ' 1) Place the constant after the last field.
             '
             ' 2) If there is no field, place it after the last constant
