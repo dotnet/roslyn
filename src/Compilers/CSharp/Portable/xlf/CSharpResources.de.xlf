@@ -5423,8 +5423,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNewExpr">
-        <source>A new expression requires (), [], or {} after type</source>
-        <target state="translated">Für einen new-Ausdruck ist nach type (), [] oder {} erforderlich.</target>
+        <source>A new expression requires an argument list or (), [], or {} after type</source>
+        <target state="needs-review-translation">Für einen new-Ausdruck ist nach type (), [] oder {} erforderlich.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNamespacePrivate">

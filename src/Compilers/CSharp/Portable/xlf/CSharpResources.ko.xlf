@@ -5423,8 +5423,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNewExpr">
-        <source>A new expression requires (), [], or {} after type</source>
-        <target state="translated">new 식은 형식 뒤에 (), [], 또는 {}가 필요합니다.</target>
+        <source>A new expression requires an argument list or (), [], or {} after type</source>
+        <target state="needs-review-translation">new 식은 형식 뒤에 (), [], 또는 {}가 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNamespacePrivate">

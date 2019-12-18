@@ -5423,8 +5423,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNewExpr">
-        <source>A new expression requires (), [], or {} after type</source>
-        <target state="translated">Bir new ifadesinde türden sonra (), [] veya {} gerekir</target>
+        <source>A new expression requires an argument list or (), [], or {} after type</source>
+        <target state="needs-review-translation">Bir new ifadesinde türden sonra (), [] veya {} gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNamespacePrivate">

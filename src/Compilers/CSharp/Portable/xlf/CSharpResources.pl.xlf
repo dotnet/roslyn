@@ -5423,8 +5423,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNewExpr">
-        <source>A new expression requires (), [], or {} after type</source>
-        <target state="translated">Wyrażenie new wymaga znaków (), [] lub {} po typie.</target>
+        <source>A new expression requires an argument list or (), [], or {} after type</source>
+        <target state="needs-review-translation">Wyrażenie new wymaga znaków (), [] lub {} po typie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNamespacePrivate">

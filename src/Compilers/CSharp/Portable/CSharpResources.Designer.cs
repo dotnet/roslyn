@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A new expression requires (), [], or {} after type.
+        ///   Looks up a localized string similar to A new expression requires an argument list or (), [], or {} after type.
         /// </summary>
         internal static string ERR_BadNewExpr {
             get {
