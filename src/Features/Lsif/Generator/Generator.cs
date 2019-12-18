@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph;
+using Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
 
 namespace Microsoft.CodeAnalysis.Lsif.Generator
@@ -28,11 +28,22 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             var documentIds = new List<Id<LsifGraph.Document>>();
 
+            var symbolResultsTracker = new DeferredFlushResultSetTracker();
+
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                documentIds.Add(await GenerateForDocument(semanticModel, languageServices));
+                // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
+                // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
+                // LSIF file. Becasue of the rule that vertices must be written before they're used by an edge, we'll flush any top-
+                // level symbol result sets made first, since the document contents will point to that.
+                var documentWriter = new InMemoryLsifJsonWriter();
+                var documentId = await GenerateForDocument(semanticModel, languageServices, symbolResultsTracker, documentWriter);
+                symbolResultsTracker.Flush(_lsifJsonWriter);
+                documentWriter.CopyTo(_lsifJsonWriter);
+
+                documentIds.Add(documentId);
             }
 
             _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds));
@@ -40,7 +51,11 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             _lsifJsonWriter.Write(new Event(Event.EventKind.End, projectVertex.GetId()));
         }
 
-        private Task<Id<LsifGraph.Document>> GenerateForDocument(SemanticModel semanticModel, HostLanguageServices languageServices)
+        private static Task<Id<LsifGraph.Document>> GenerateForDocument(
+            SemanticModel semanticModel,
+            HostLanguageServices languageServices,
+            IResultSetTracker symbolResultsTracker,
+            ILsifJsonWriter lsifJsonWriter)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
@@ -48,8 +63,8 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             var documentVertex = new LsifGraph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language));
 
-            _lsifJsonWriter.Write(documentVertex);
-            _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId()));
+            lsifJsonWriter.Write(documentVertex);
+            lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId()));
 
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
             var rangeVertices = new List<Id<LsifGraph.Range>>();
@@ -68,15 +83,19 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                         {
                             var rangeVertex = LsifGraph.Range.FromTextSpan(syntaxToken.Span, sourceText);
 
-                            _lsifJsonWriter.Write(rangeVertex);
+                            lsifJsonWriter.Write(rangeVertex);
                             rangeVertices.Add(rangeVertex.GetId());
+
+                            // For now, we will link the range to the original definition. We'll have to fix this once we start supporting
+                            // hover, since we show different contents for different constructed types there.
+                            lsifJsonWriter.Write(Edge.Create("next", rangeVertex.GetId(), symbolResultsTracker.GetResultSetIdForSymbol(symbolInfo.Symbol.OriginalDefinition)));
                         }
                     }
                 }
             }
 
-            _lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices));
-            _lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId()));
+            lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices));
+            lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId()));
 
             return Task.FromResult(documentVertex.GetId());
         }
