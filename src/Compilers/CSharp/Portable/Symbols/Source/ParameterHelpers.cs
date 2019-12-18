@@ -348,7 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool ReportDefaultParameterErrors(Binder binder,
+        internal static bool ReportDefaultParameterErrors(
+            Binder binder,
             Symbol owner,
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
