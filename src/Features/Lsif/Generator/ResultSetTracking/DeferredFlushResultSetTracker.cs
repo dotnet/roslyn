@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
     internal sealed class DeferredFlushResultSetTracker : IResultSetTracker
     {
         private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = new Dictionary<ISymbol, TrackedResultSet>();
-        private readonly List<ResultSet> _resultSetsNeedingFlush = new List<ResultSet>();
+        private readonly List<Element> _elementsNeedingFlush = new List<Element>();
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)
         {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
             }
 
             var resultSet = new ResultSet();
-            _resultSetsNeedingFlush.Add(resultSet);
+            _elementsNeedingFlush.Add(resultSet);
             _symbolToResultSetId.Add(symbol, new TrackedResultSet(resultSet.GetId()));
 
             return resultSet.GetId();
@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
 
         public void Flush(ILsifJsonWriter lsifJsonWriter)
         {
-            foreach (var resultSetNeedingFlush in _resultSetsNeedingFlush)
+            foreach (var elementNeedingFlush in _elementsNeedingFlush)
             {
-                lsifJsonWriter.Write(resultSetNeedingFlush);
+                lsifJsonWriter.Write(elementNeedingFlush);
             }
 
-            _resultSetsNeedingFlush.Clear();
+            _elementsNeedingFlush.Clear();
         }
 
         private class TrackedResultSet

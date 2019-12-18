@@ -30,14 +30,9 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
             _jsonSerializer = JsonSerializer.Create(settings);
         }
 
-        public void Write(Vertex vertex)
+        public void Write(Element element)
         {
-            _jsonSerializer.Serialize(_jsonTextWriter, vertex);
-        }
-
-        public void Write(Edge edge)
-        {
-            _jsonSerializer.Serialize(_jsonTextWriter, edge);
+            _jsonSerializer.Serialize(_jsonTextWriter, element);
         }
 
         public void Dispose()

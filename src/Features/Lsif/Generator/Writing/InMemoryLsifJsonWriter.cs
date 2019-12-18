@@ -7,31 +7,18 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
 {
     internal sealed class InMemoryLsifJsonWriter : ILsifJsonWriter
     {
-        private readonly List<Vertex> _vertices = new List<Vertex>();
-        private readonly List<Edge> _edges = new List<Edge>();
+        private readonly List<Element> _elements = new List<Element>();
 
-        public void Write(Vertex vertex)
+        public void Write(Element element)
         {
-            _vertices.Add(vertex);
-        }
-
-        public void Write(Edge edge)
-        {
-            _edges.Add(edge);
+            _elements.Add(element);
         }
 
         public void CopyTo(ILsifJsonWriter writer)
         {
-            // We always write vertices before edges, as the underlying LSIF format requires that vertices used by an edge must
-            // be written before the edge. The easiest way to ensure this is just write all vertices first.
-            foreach (var vertex in _vertices)
+            foreach (var element in _elements)
             {
-                writer.Write(vertex);
-            }
-
-            foreach (var edge in _edges)
-            {
-                writer.Write(edge);
+                writer.Write(element);
             }
         }
     }
