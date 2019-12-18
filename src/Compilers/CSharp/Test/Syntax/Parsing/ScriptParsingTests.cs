@@ -82,15 +82,17 @@ Console.Goo
             var test = @"
 new in
 ";
-            // (2,5): error CS1526: A new expression requires (), [], or {} after type
-            // (2,5): error CS1031: Type expected
-            // (2,5): error CS1002: ; expected
-            // (2,5): error CS7017: Member definition, statement, or end-of-file expected
-            ParseAndValidate(test,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadNewExpr, Line = 2, Column = 5 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_TypeExpected, Line = 2, Column = 5 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 5 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_GlobalDefinitionOrStatementExpected, Line = 2, Column = 5 });
+
+            UsingTree(test).GetDiagnostics().Verify(
+                // (2,5): error CS1526: A new expression requires an argument list or (), [], or {} after type
+                // new in
+                Diagnostic(ErrorCode.ERR_BadNewExpr, "in").WithLocation(2, 5),
+                // (2,5): error CS1002: ; expected
+                // new in
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 5),
+                // (2,5): error CS7017: Member definition, statement, or end-of-file expected
+                // new in
+                Diagnostic(ErrorCode.ERR_GlobalDefinitionOrStatementExpected, "in").WithLocation(2, 5));
         }
 
         #region Method Declarations

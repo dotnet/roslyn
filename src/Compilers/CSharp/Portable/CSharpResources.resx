@@ -2507,7 +2507,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Invalid expression term '{0}'</value>
   </data>
   <data name="ERR_BadNewExpr" xml:space="preserve">
-    <value>A new expression requires (), [], or {} after type</value>
+    <value>A new expression requires an argument list or (), [], or {} after type</value>
   </data>
   <data name="ERR_NoNamespacePrivate" xml:space="preserve">
     <value>Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected</value>

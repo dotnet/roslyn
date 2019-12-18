@@ -2693,19 +2693,13 @@ namespace x
 ";
 
             ParseAndValidate(text, TestOptions.Regular,
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                // (7,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
                 // (7,21): error CS1002: ; expected
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                // (8,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
@@ -2751,19 +2745,13 @@ namespace x
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
             ParseAndValidate(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
-                // (7,21): error CS1031: Type expected
-                //             e = new base;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
-                // (7,21): error CS1526: A new expression requires (), [], or {} after type
+                // (7,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "base").WithLocation(7, 21),
                 // (7,21): error CS1002: ; expected
                 //             e = new base;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "base").WithLocation(7, 21),
-                // (8,21): error CS1031: Type expected
-                //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TypeExpected, "this").WithLocation(8, 21),
-                // (8,21): error CS1526: A new expression requires (), [], or {} after type
+                // (8,21): error CS1526: A new expression requires an argument list or (), [], or {} after type
                 //             e = new this;   // CS1031, not a type
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected

@@ -5958,7 +5958,7 @@ done:
                     throw ExceptionUtilities.UnexpectedValue(mode);
             }
 
-            var type = this.ParseUnderlyingType(parentIsParameter: mode == ParseTypeMode.Parameter, options: nameOptions);
+            var type = this.ParseUnderlyingType(mode, options: nameOptions);
             Debug.Assert(type != null);
 
             int lastTokenPosition = -1;
@@ -6244,7 +6244,7 @@ done:;
                 expected);
         }
 
-        private TypeSyntax ParseUnderlyingType(bool parentIsParameter, NameOptions options = NameOptions.None)
+        private TypeSyntax ParseUnderlyingType(ParseTypeMode mode, NameOptions options = NameOptions.None)
         {
             if (IsPredefinedType(this.CurrentToken.Kind))
             {
@@ -6252,24 +6252,29 @@ done:;
                 var token = this.EatToken();
                 if (token.Kind == SyntaxKind.VoidKeyword && this.CurrentToken.Kind != SyntaxKind.AsteriskToken)
                 {
-                    token = this.AddError(token, parentIsParameter ? ErrorCode.ERR_NoVoidParameter : ErrorCode.ERR_NoVoidHere);
+                    token = this.AddError(token, mode == ParseTypeMode.Parameter ? ErrorCode.ERR_NoVoidParameter : ErrorCode.ERR_NoVoidHere);
                 }
 
                 return _syntaxFactory.PredefinedType(token);
             }
-            else if (IsTrueIdentifier())
+
+            if (IsTrueIdentifier())
             {
                 return this.ParseQualifiedName(options);
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 return this.ParseTupleType();
             }
-            else
+
+            var name = this.CreateMissingIdentifierName();
+            if (mode != ParseTypeMode.NewExpression)
             {
-                var name = this.CreateMissingIdentifierName();
                 return this.AddError(name, ErrorCode.ERR_TypeExpected);
             }
+
+            return name;
         }
 
         private TypeSyntax ParsePointerTypeMods(TypeSyntax type)

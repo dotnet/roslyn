@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNoRegressionOnNew()
         {
             UsingExpression("new", DefaultParseOptions,
-                // (1,4): error CS1031: Type expected
-                // new
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 4),
                 // (1,4): error CS1526: A new expression requires (), [], or {} after type
                 // new
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "").WithLocation(1, 4)
