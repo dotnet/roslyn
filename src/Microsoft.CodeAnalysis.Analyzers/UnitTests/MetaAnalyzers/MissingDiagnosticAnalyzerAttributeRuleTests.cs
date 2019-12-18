@@ -72,7 +72,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAttribute } },
                 CodeFixIndex = 0,
-                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for 'C#'.",
+                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.CSharp),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -106,7 +106,7 @@ class MyAnalyzer : DiagnosticAnalyzer
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
                 CodeFixIndex = 2,
-                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for both 'C#' and 'Visual Basic'.",
+                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 
@@ -163,7 +163,7 @@ End Class
                 },
                 FixedState = { Sources = { fixedCode_WithVBAttribute } },
                 CodeFixIndex = 1,
-                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for 'Visual Basic'.",
+                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, LanguageNames.VisualBasic),
             }.RunAsync();
 
             var fixedCode_WithCSharpAndVBAttributes = @"
@@ -195,7 +195,7 @@ End Class
                 },
                 FixedState = { Sources = { fixedCode_WithCSharpAndVBAttributes } },
                 CodeFixIndex = 2,
-                CodeFixEquivalenceKey = "Apply DiagnosticAnalyzer attribute for both 'C#' and 'Visual Basic'.",
+                CodeFixEquivalenceKey = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp, LanguageNames.VisualBasic),
             }.RunAsync();
         }
 
