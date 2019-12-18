@@ -6901,5 +6901,35 @@ class C
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "d").WithLocation(11, 27)
                 );
         }
+
+        [Fact]
+        public void MissingExceptionType_In7()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            Test();
+        }
+        catch
+        {
+            System.Console.WriteLine(""in catch"");
+        }
+    }
+
+    static void Test()
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: "in catch");
+        }
     }
 }
