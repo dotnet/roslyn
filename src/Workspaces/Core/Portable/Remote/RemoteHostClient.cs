@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                return SpecializedTasks.Default<RemoteHostClient?>();
+                return SpecializedTasks.Null<RemoteHostClient>();
             }
 
             return TryGetClientAsync(project.Solution.Workspace, cancellationToken);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var service = workspace.Services.GetService<IRemoteHostClientService>();
             if (service == null)
             {
-                return SpecializedTasks.Default<RemoteHostClient?>();
+                return SpecializedTasks.Null<RemoteHostClient>();
             }
 
             return service.TryGetRemoteHostClientAsync(cancellationToken);
