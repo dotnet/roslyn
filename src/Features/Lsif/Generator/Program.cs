@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             using var lsifWriter = new TextLsifJsonWriter(outputWriter);
             var lsifGenerator = new Generator(lsifWriter);
 
+            Stopwatch totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();
             TimeSpan totalTimeInGenerationPhase = TimeSpan.Zero;
 
             foreach (var project in solution.Projects)
@@ -90,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             }
 
             await logFile.WriteLineAsync($"Total time spent in the generation phase for all projects, excluding compilation fetch time: {totalTimeInGenerationPhase.ToDisplayString()}");
+            await logFile.WriteLineAsync($"Total time spent in the generation phase for all projects, including compilation fetch time: {totalTimeInGenerationAndCompilationFetchStopwatch.Elapsed.ToDisplayString()}");
         }
     }
 }
