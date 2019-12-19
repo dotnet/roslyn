@@ -27,11 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         public static bool TryGetCaputuredSymbols(LocalFunctionStatementSyntax localFunction, SemanticModel semanticModel, out ImmutableArray<ISymbol> captures)
         {
             var dataFlow = semanticModel.AnalyzeDataFlow(localFunction);
+<<<<<<< HEAD
             if (dataFlow is null)
             {
                 captures = default;
                 return false;
             }
+=======
+            captures = dataFlow!.CapturedInside;
+>>>>>>> Annotate SyntaxNode
 
             captures = dataFlow.CapturedInside;
             return dataFlow.Succeeded;

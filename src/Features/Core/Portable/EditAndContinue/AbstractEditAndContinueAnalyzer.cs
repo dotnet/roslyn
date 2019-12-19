@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or null if the node isn't contained in a lambda. If a node is returned it must uniquely represent the lambda,
         /// i.e. be no two distinct nodes may represent the same lambda.
         /// </summary>
-        protected abstract SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node);
+        protected abstract SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode? node);
 
         /// <summary>
         /// Given a node that represents a lambda body returns all nodes of the body in a syntax list.
@@ -238,21 +238,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected virtual TextSpan GetBodyDiagnosticSpan(SyntaxNode node, EditKind editKind)
         {
-            var initialNode = node;
-
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    return initialNode.Span;
+                    return node.Span;
                 }
 
-                var span = TryGetDiagnosticSpan(node, editKind);
+                var span = TryGetDiagnosticSpan(current, editKind);
                 if (span != null)
                 {
                     return span.Value;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -267,20 +267,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected virtual string GetBodyDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
         {
-            var initialNode = node;
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(initialNode.GetType().Name);
+                    throw ExceptionUtilities.UnexpectedValue(node.GetType().Name);
                 }
 
-                var displayName = TryGetDisplayName(node, editKind);
+                var displayName = TryGetDisplayName(current, editKind);
                 if (displayName != null)
                 {
                     return displayName;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
         internal abstract IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken);
-        internal abstract SyntaxNode GetContainingQueryExpression(SyntaxNode node);
+        internal abstract SyntaxNode? GetContainingQueryExpression(SyntaxNode node);
         internal abstract bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
 
         /// <summary>
@@ -1680,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
         {
             while (oldNode != null)
             {
@@ -1753,9 +1754,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return HasEdit(editMap, node.Parent, edit.Kind);
         }
 
-        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode node, EditKind editKind)
+        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode? node, EditKind editKind)
         {
-            return editMap.TryGetValue(node, out var parentEdit) && parentEdit == editKind;
+            return 
+                node is object &&
+                editMap.TryGetValue(node, out var parentEdit) &&
+                parentEdit == editKind;
         }
 
         #endregion
@@ -1951,11 +1955,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return -1;
         }
 
-        private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector)
+        private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode? node, Func<SyntaxNode, bool> nodeSelector)
         {
             List<SyntaxNode?>? list = null;
 
-            while (node != root)
+            while (node is object && node != root)
             {
                 if (nodeSelector(node))
                 {
@@ -3812,9 +3816,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return memberBody;
             }
 
-            var node = GetSymbolSyntax(localOrParameter, cancellationToken);
+            SyntaxNode? node = GetSymbolSyntax(localOrParameter, cancellationToken);
             while (true)
             {
+                RoslynDebug.Assert(node is object);
                 if (IsClosureScope(node))
                 {
                     return node;

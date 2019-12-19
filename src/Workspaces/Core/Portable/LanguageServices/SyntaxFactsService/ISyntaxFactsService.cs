@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -133,7 +134,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCastExpression(SyntaxNode node);
         void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
-        bool IsInvocationExpression(SyntaxNode node);
+#nullable enable
+        bool IsInvocationExpression(SyntaxNode? node);
+#nullable restore
+
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
@@ -303,7 +307,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// functions.
         /// </summary>
         bool IsMethodBody(SyntaxNode node);
-        bool IsExpressionStatement(SyntaxNode node);
+
+        #nullable enable
+        bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node);
+        #nullable restore
+
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 

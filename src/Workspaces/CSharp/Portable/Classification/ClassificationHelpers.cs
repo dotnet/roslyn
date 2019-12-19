@@ -249,7 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 // Handle nested Tuple deconstruction
                 while (parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
                 {
-                    parent = parent.Parent;
+                    // https://github.com/dotnet/roslyn/issues/40509
+                    parent = parent!.Parent;
                 }
 
                 // Checking for DeclarationExpression covers the following cases:
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         public static bool IsStaticallyDeclared(SyntaxToken token)
         {
-            var parentNode = token.Parent;
+            SyntaxNode? parentNode = token.Parent;
 
             if (parentNode.IsKind(SyntaxKind.EnumMemberDeclaration))
             {
@@ -328,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 // The parent of a VariableDeclarator is a VariableDeclarationSyntax node.
                 // It's parent will be the declaration syntax node.
-                parentNode = parentNode.Parent.Parent;
+                parentNode = parentNode!.Parent!.Parent;
 
                 // Check if this is a field constant declaration 
                 if (parentNode.GetModifiers().Any(SyntaxKind.ConstKeyword))

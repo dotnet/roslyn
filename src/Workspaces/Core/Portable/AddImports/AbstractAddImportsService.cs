@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             var usingDirective = contextNode.GetAncestor<TUsingOrAliasSyntax>();
             if (usingDirective != null)
             {
-                contextNode = usingDirective.Parent;
+                contextNode = usingDirective.Parent!;
             }
 
             return contextNode.GetAncestor<TNamespaceDeclarationSyntax>() ??

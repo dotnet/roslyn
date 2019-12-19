@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
@@ -90,9 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 ? identifierName.Parent
                 : identifierName;
 
+            RoslynDebug.Assert(node is object);
             if (syntaxFacts.IsInvocationExpression(node.Parent))
                 node = node.Parent;
 
+            RoslynDebug.Assert(node is object);
             var operation = semanticModel.GetOperation(node);
             var instance = operation switch
             {

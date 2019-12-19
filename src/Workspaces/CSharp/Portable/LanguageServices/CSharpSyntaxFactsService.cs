@@ -156,10 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsAttributeName(node);
         }
 
-        public bool IsInvocationExpression(SyntaxNode node)
+#nullable enable
+        public bool IsInvocationExpression(SyntaxNode? node)
         {
             return node is InvocationExpressionSyntax;
         }
+#nullable restore
 
         public bool IsAnonymousFunction(SyntaxNode node)
         {

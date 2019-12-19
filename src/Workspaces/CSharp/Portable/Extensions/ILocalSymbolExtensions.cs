@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return true;
 
-            bool HasTypeParameterWithName(SyntaxNode node, string name)
+            bool HasTypeParameterWithName(SyntaxNode? node, string name)
             {
                 SeparatedSyntaxList<TypeParameterSyntax>? typeParameters;
                 switch (node)
