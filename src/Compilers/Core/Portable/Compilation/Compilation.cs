@@ -806,20 +806,9 @@ namespace Microsoft.CodeAnalysis
         /// Get the symbol for the predefined type from the Cor Library referenced by this
         /// compilation.
         /// </summary>
-        public INamedTypeSymbol? GetSpecialType(SpecialType specialType)
+        public INamedTypeSymbol GetSpecialType(SpecialType specialType)
         {
-            return (INamedTypeSymbol?)CommonGetSpecialType(specialType)?.GetITypeSymbol();
-        }
-
-        public INamedTypeSymbol GetSpecialTypeOrThrow(SpecialType specialType)
-        {
-            var symbol = GetSpecialType(specialType);
-            if (symbol is null)
-            {
-                throw new InvalidOperationException($"Special type {specialType} is not available.");
-            }
-
-            return symbol;
+            return (INamedTypeSymbol)CommonGetSpecialType(specialType).GetITypeSymbol();
         }
 
         /// <summary>

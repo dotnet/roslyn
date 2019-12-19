@@ -278,10 +278,10 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
-                var result = compilation.GetSemanticModel(syntaxTree!);
+                var result = compilation.GetSemanticModel(syntaxTree);
                 Contract.ThrowIfNull(result);
 
                 // first try set the cache if it has not been set
