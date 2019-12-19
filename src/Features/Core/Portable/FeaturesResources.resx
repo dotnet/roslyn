@@ -1747,6 +1747,12 @@ This version used in: {2}</value>
   <data name="Implement_0_explicitly" xml:space="preserve">
     <value>Implement '{0}' explicitly</value>
   </data>
+  <data name="Interpolation_can_be_simplified" xml:space="preserve">
+    <value>Interpolation can be simplified</value>
+  </data>
+  <data name="Simplify_interpolation" xml:space="preserve">
+    <value>Simplify interpolation</value>
+  </data>
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
   </data>

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,23 +19,23 @@ namespace Microsoft.CodeAnalysis
     {
         public static SourceFileResolver Default { get; } = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
-        private readonly string _baseDirectory;
+        private readonly string? _baseDirectory;
         private readonly ImmutableArray<string> _searchPaths;
         private readonly ImmutableArray<KeyValuePair<string, string>> _pathMap;
 
-        public SourceFileResolver(IEnumerable<string> searchPaths, string baseDirectory)
+        public SourceFileResolver(IEnumerable<string> searchPaths, string? baseDirectory)
             : this(searchPaths.AsImmutableOrNull(), baseDirectory)
         {
         }
 
-        public SourceFileResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+        public SourceFileResolver(ImmutableArray<string> searchPaths, string? baseDirectory)
             : this(searchPaths, baseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty)
         {
         }
 
         public SourceFileResolver(
             ImmutableArray<string> searchPaths,
-            string baseDirectory,
+            string? baseDirectory,
             ImmutableArray<KeyValuePair<string, string>> pathMap)
         {
             if (searchPaths.IsDefault)
@@ -86,19 +88,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public string BaseDirectory => _baseDirectory;
+        public string? BaseDirectory => _baseDirectory;
 
         public ImmutableArray<string> SearchPaths => _searchPaths;
 
         public ImmutableArray<KeyValuePair<string, string>> PathMap => _pathMap;
 
-        public override string NormalizePath(string path, string baseFilePath)
+        public override string? NormalizePath(string path, string baseFilePath)
         {
             string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
             return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : PathUtilities.NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
-        public override string ResolveReference(string path, string baseFilePath)
+        public override string? ResolveReference(string path, string baseFilePath)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
             if (resolvedPath == null)

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         private readonly int _errorCode;
         private readonly DiagnosticSeverity _defaultSeverity;
         private readonly DiagnosticSeverity _effectiveSeverity;
-        private readonly object[] _arguments;
+        private readonly object[]? _arguments;
 
         private static ImmutableDictionary<int, DiagnosticDescriptor> s_errorCodeToDescriptorMap = ImmutableDictionary<int, DiagnosticDescriptor>.Empty;
 
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var arg in args)
             {
-                Debug.Assert(arg != null);
+                RoslynDebug.Assert(arg != null);
 
                 if (arg is IFormattable)
                 {
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis
 
             if (count > 0)
             {
-                foreach (var arg in _arguments)
+                foreach (var arg in _arguments!)
                 {
                     writer.WriteString(arg.ToString());
                 }
@@ -320,7 +322,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the text of the message in the given language.
         /// </summary>
-        public virtual string GetMessage(IFormatProvider formatProvider = null)
+        public virtual string GetMessage(IFormatProvider? formatProvider = null)
         {
             // Get the message and fill in arguments.
             string message = _messageProvider.LoadMessage(_errorCode, formatProvider as CultureInfo);
@@ -337,9 +339,10 @@ namespace Microsoft.CodeAnalysis
             return String.Format(formatProvider, message, GetArgumentsToUse(formatProvider));
         }
 
-        protected object[] GetArgumentsToUse(IFormatProvider formatProvider)
+        protected object[] GetArgumentsToUse(IFormatProvider? formatProvider)
         {
-            object[] argumentsToUse = null;
+            RoslynDebug.Assert(_arguments is object);
+            object[]? argumentsToUse = null;
             for (int i = 0; i < _arguments.Length; i++)
             {
                 var embedded = _arguments[i] as DiagnosticInfo;
@@ -361,20 +364,21 @@ namespace Microsoft.CodeAnalysis
             return argumentsToUse ?? _arguments;
         }
 
-        private object[] InitializeArgumentListIfNeeded(object[] argumentsToUse)
+        private object[] InitializeArgumentListIfNeeded(object[]? argumentsToUse)
         {
             if (argumentsToUse != null)
             {
                 return argumentsToUse;
             }
 
+            RoslynDebug.Assert(_arguments != null);
             var newArguments = new object[_arguments.Length];
             Array.Copy(_arguments, newArguments, newArguments.Length);
 
             return newArguments;
         }
 
-        internal object[] Arguments
+        internal object[]? Arguments
         {
             get { return _arguments; }
         }
@@ -385,17 +389,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         // TODO (tomat): remove
-        public override string ToString()
+        public override string? ToString()
         {
             return ToString(null);
         }
 
-        public string ToString(IFormatProvider formatProvider)
+        public string ToString(IFormatProvider? formatProvider)
         {
             return ((IFormattable)this).ToString(null, formatProvider);
         }
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        string IFormattable.ToString(string format, IFormatProvider? formatProvider)
         {
             return String.Format(formatProvider, "{0}: {1}",
                 _messageProvider.GetMessagePrefix(this.MessageIdentifier, this.Severity, this.IsWarningAsError, formatProvider as CultureInfo),
@@ -416,15 +420,15 @@ namespace Microsoft.CodeAnalysis
             return hashCode;
         }
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(object? obj)
         {
-            DiagnosticInfo other = obj as DiagnosticInfo;
+            DiagnosticInfo? other = obj as DiagnosticInfo;
 
             bool result = false;
 
             if (other != null &&
                 other._errorCode == _errorCode &&
-                this.GetType() == obj.GetType())
+                other.GetType() == this.GetType())
             {
                 if (_arguments == null && other._arguments == null)
                 {
@@ -447,7 +451,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private string GetDebuggerDisplay()
+        private string? GetDebuggerDisplay()
         {
             // There aren't message resources for our internal error codes, so make
             // sure we don't call ToString for those.

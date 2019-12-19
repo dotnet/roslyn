@@ -10,9 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     public class UnsafeStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override IHighlighter CreateHighlighter()
-        {
-            return new UnsafeStatementHighlighter();
-        }
+            => new UnsafeStatementHighlighter();
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_1()

@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (TypeSymbol.Equals(underlyingMemberDefinition.ContainingType, TupleUnderlyingType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                 {
-                    if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out Symbol result))
+                    if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out Symbol? result))
                     {
                         return (TMember)result;
                     }
