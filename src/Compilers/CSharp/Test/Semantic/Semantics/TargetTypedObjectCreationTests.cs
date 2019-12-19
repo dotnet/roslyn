@@ -11,9 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class TargetTypedObjectCreationTests : CSharpTestBase
     {
+        private static readonly CSharpParseOptions TargetTypedObjectCreationTestOptions = TestOptions.RegularPreview;
+
         private static CSharpCompilation CreateCompilation(string source, CSharpCompilationOptions options = null, IEnumerable<MetadataReference> references = null)
         {
-            return CSharpTestBase.CreateCompilation(source, options: options, parseOptions: TestOptions.RegularPreview, references: references);
+            return CSharpTestBase.CreateCompilation(source, options: options, parseOptions: TargetTypedObjectCreationTestOptions, references: references);
         }
 
         [Fact]
@@ -274,6 +276,28 @@ class C
         }
 
         [Fact]
+        public void TestInDynamicInvocation()
+        {
+            var source = @"
+class C
+{
+    public void M(int i) {}
+
+    public static void Main()
+    {
+        dynamic d = new C();
+        d.M(new());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+            comp.VerifyDiagnostics(
+                    // (9,13): error CS8754: There is no target type for new()
+                    //         d.M(new());
+                    Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(9, 13));
+        }
+
+        [Fact]
         public void TestInAsOperator()
         {
             var source = @"
@@ -285,21 +309,32 @@ struct S
 
 class C 
 {
-    public static void Main()
+    public void M<TClass, TNew>()
+        where TClass : class
+        where TNew : new()
     {
         Console.Write(new() as C);
         Console.Write(new() as S?);
+        Console.Write(new() as TClass);
+        Console.Write(new() as TNew);
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (12,23): error CS8754: There is no target type for new() expression
-                //         Console.Write(new() as C);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(12, 23),
-                // (13,23): error CS8754: There is no target type for new() expression
-                //         Console.Write(new() as S?);
-                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(13, 23));
+                    // (14,23): error CS8754: There is no target type for new()
+                    //         Console.Write(new() as C);
+                    Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(14, 23),
+                    // (15,23): error CS8754: There is no target type for new()
+                    //         Console.Write(new() as S?);
+                    Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(15, 23),
+                    // (16,23): error CS8754: There is no target type for new()
+                    //         Console.Write(new() as TClass);
+                    Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(16, 23),
+                    // (17,23): error CS8754: There is no target type for new()
+                    //         Console.Write(new() as TNew);
+                    Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(17, 23)
+                    );
         }
 
         [Fact]
@@ -346,6 +381,26 @@ class C
         }
 
         [Fact]
+        public void TestTargetType_Discard()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = new();
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS8754: There is no target type for new()
+                //         _ = new();
+                Diagnostic(ErrorCode.ERR_TypelessNewNoTargetType, "new()").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void TestTargetType_Delegate()
         {
             var source = @"
@@ -376,7 +431,6 @@ class C
         public void TestTargetType_Static()
         {
             var source = @"
-using System;
 public static class C {
     static void M(object c) {
         _ = (C)(new());
@@ -385,16 +439,13 @@ public static class C {
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,13): error CS0716: Cannot convert to static type 'C'
-                //         _ = (C)(new());
-                Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(new())").WithArguments("C").WithLocation(5, 13),
-                // (5,17): error CS1729: 'C' does not contain a constructor that takes 0 arguments
-                //         _ = (C)(new());
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("C", "0").WithLocation(5, 17),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
-                );
+                    // (4,13): error CS0716: Cannot convert to static type 'C'
+                    //         _ = (C)(new());
+                    Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C)(new())").WithArguments("C").WithLocation(4, 13),
+                    // (4,17): error CS1729: 'C' does not contain a constructor that takes 0 arguments
+                    //         _ = (C)(new());
+                    Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("C", "0").WithLocation(4, 17)
+                    );
         }
 
         [Fact]
@@ -506,6 +557,8 @@ class C
     {
         (int, int) x0 = new();
         var x1 = ((int, int))new();
+        (int, C) x2 = new();
+        var x3 = ((int, C))new();
     }
 }
 ";
@@ -1235,13 +1288,13 @@ public class Dog
 }
 public class Animal
 {
-    private Animal() {}
+    MODIFIER Animal() {}
     public static implicit operator Animal(Dog dog) => throw null;
 }
 
 public class Program
 {
-    public static void M(Animal a) => throw null;
+    public static void M(Animal a) => System.Console.Write(a);
     public static void Main()
     {
         M(new());
@@ -1249,11 +1302,14 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+            var comp1 = CreateCompilation(source.Replace("MODIFIER", "private"), options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (17,11): error CS0122: 'Animal.Animal()' is inaccessible due to its protection level
                 //         M(new());
                 Diagnostic(ErrorCode.ERR_BadAccess, "new()").WithArguments("Animal.Animal()").WithLocation(17, 11)
                 );
+            var comp2 = CreateCompilation(source.Replace("MODIFIER", "public"), options: TestOptions.DebugExe).VerifyDiagnostics(
+                );
+            CompileAndVerify(comp2, expectedOutput: "Animal");
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
@@ -1879,6 +1935,23 @@ class C
                 //         using (System.IDisposable x = new())
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new()").WithArguments("System.IDisposable").WithLocation(14, 39)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
+
+            assert(0, type: "?", convertedType: "?", ConversionKind.Identity);
+            assert(1, type: "?", convertedType: "?", ConversionKind.Identity);
+            assert(2, type: "System.IDisposable", convertedType: "System.IDisposable", ConversionKind.Identity);
+
+            void assert(int index, string type, string convertedType, ConversionKind conversionKind)
+            {
+                var @new = nodes[index];
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(@new).Symbol);
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
+            }
         }
 
         [Fact]
@@ -2510,6 +2583,27 @@ class C
         }
 
         [Fact]
+        public void InOutArgument()
+        {
+            string source = @"
+class C
+{
+    static void M(out int i)
+    {
+        i = 0;
+        M(out new());
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                    // (7,15): error CS1510: A ref or out value must be an assignable variable
+                    //         M(out new());
+                    Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new()").WithLocation(7, 15)
+                    );
+        }
+
+        [Fact]
         public void InSizeOf()
         {
             string source = @"
@@ -2605,6 +2699,52 @@ class C
                 //         int j = checked(new());
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "j").WithArguments("j").WithLocation(7, 13)
                 );
+        }
+
+        [Fact]
+        public void InRange()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Range x0 = new()..new();
+        Range x1 = 1..new();
+        Range x2 = new()..1;
+        Console.WriteLine($""{x0.Start.Value}..{x0.End.Value}"");
+        Console.WriteLine($""{x1.Start.Value}..{x1.End.Value}"");
+        Console.WriteLine($""{x2.Start.Value}..{x2.End.Value}"");
+    }
+}
+";
+            var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.DebugExe, parseOptions: TargetTypedObjectCreationTestOptions);
+            comp.VerifyDiagnostics();
+
+            var expectedOutput =
+@"0..0
+1..0
+0..1";
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().ToArray();
+
+            assert(0, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
+            assert(1, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
+            assert(2, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
+            assert(3, type: "System.Index", convertedType: "System.Index", symbol: "System.Index..ctor()", ConversionKind.Identity);
+
+            void assert(int index, string type, string convertedType, string symbol, ConversionKind conversionKind)
+            {
+                var @new = nodes[index];
+                Assert.Equal(type, model.GetTypeInfo(@new).Type.ToTestDisplayString());
+                Assert.Equal(convertedType, model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+                Assert.Equal(symbol, model.GetSymbolInfo(@new).Symbol.ToTestDisplayString());
+                Assert.Equal(conversionKind, model.GetConversion(@new).Kind);
+            }
         }
 
         [Fact]
