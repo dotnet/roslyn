@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _rpc.Dispose();
         }
 
-        public async Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public async Task InvokeAsync(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
+        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
 

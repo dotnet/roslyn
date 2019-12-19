@@ -37,13 +37,13 @@ namespace Roslyn.Test.Utilities.Remote
             var instance = new InProcRemoteHostClient(current, workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
-            var telemetrySession = "";
+            string? telemetrySession = null;
             var uiCultureLCIDE = 0;
             var cultureLCID = 0;
 
             var host = await instance._endPoint.InvokeAsync<string>(
                 nameof(IRemoteHostService.Connect),
-                new object[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
+                new object?[] { current, uiCultureLCIDE, cultureLCID, telemetrySession },
                 CancellationToken.None).ConfigureAwait(false);
 
             // TODO: change this to non fatal watson and make VS to use inproc implementation
