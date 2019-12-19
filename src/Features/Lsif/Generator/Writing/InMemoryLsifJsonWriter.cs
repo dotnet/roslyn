@@ -14,12 +14,14 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
             _elements.Add(element);
         }
 
-        public void CopyTo(ILsifJsonWriter writer)
+        public void CopyToAndEmpty(ILsifJsonWriter writer)
         {
             foreach (var element in _elements)
             {
                 writer.Write(element);
             }
+
+            _elements.Clear();
         }
     }
 }

@@ -31,7 +31,10 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             var documentIds = new List<Id<LsifGraph.Document>>();
 
-            var symbolResultsTracker = new DeferredFlushResultSetTracker();
+            // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
+            // the JSON file once we support parallel processing, so we'll accumulate them and then apply at once.
+            var topLevelSymbolsWriter = new InMemoryLsifJsonWriter();
+            var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter);
 
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
@@ -42,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                 // LSIF file. Becasue of the rule that vertices must be written before they're used by an edge, we'll flush any top-
                 // level symbol result sets made first, since the document contents will point to that.
                 var documentWriter = new InMemoryLsifJsonWriter();
-                var documentId = await GenerateForDocument(semanticModel, languageServices, symbolResultsTracker, documentWriter);
-                symbolResultsTracker.Flush(_lsifJsonWriter);
-                documentWriter.CopyTo(_lsifJsonWriter);
+                var documentId = await GenerateForDocument(semanticModel, languageServices, topLevelSymbolsResultSetTracker, documentWriter);
+                topLevelSymbolsWriter.CopyToAndEmpty(_lsifJsonWriter);
+                documentWriter.CopyToAndEmpty(_lsifJsonWriter);
 
                 documentIds.Add(documentId);
             }

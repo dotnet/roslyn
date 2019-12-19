@@ -7,17 +7,22 @@ using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
 
 namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
 {
-    internal sealed class DeferredFlushResultSetTracker : IResultSetTracker
+    internal sealed class SymbolHoldingResultSetTracker : IResultSetTracker
     {
         private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = new Dictionary<ISymbol, TrackedResultSet>();
-        private readonly List<Element> _elementsNeedingFlush = new List<Element>();
+        private readonly ILsifJsonWriter _lsifJsonWriter;
+
+        public SymbolHoldingResultSetTracker(ILsifJsonWriter lsifJsonWriter)
+        {
+            _lsifJsonWriter = lsifJsonWriter;
+        }
 
         private TrackedResultSet GetTrackedResultSet(ISymbol symbol)
         {
             if (!_symbolToResultSetId.TryGetValue(symbol, out var trackedResultSet))
             {
                 var resultSet = new ResultSet();
-                _elementsNeedingFlush.Add(resultSet);
+                _lsifJsonWriter.Write(resultSet);
                 trackedResultSet = new TrackedResultSet(resultSet.GetId());
                 _symbolToResultSetId.Add(symbol, trackedResultSet);
             }
@@ -32,29 +37,12 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
 
         public Id<T> GetResultIdForSymbol<T>(ISymbol symbol, string edgeKind, Func<T> vertexCreator) where T : Vertex
         {
-            var id = GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, out Element[]? elementsNeedingFlush);
-
-            if (elementsNeedingFlush != null)
-            {
-                _elementsNeedingFlush.AddRange(elementsNeedingFlush);
-            }
-
-            return id;
+            return GetTrackedResultSet(symbol).GetResultId(edgeKind, vertexCreator, _lsifJsonWriter);
         }
 
         public bool ResultSetNeedsInformationalEdgeAdded(ISymbol symbol, string edgeKind)
         {
             return GetTrackedResultSet(symbol).ResultSetNeedsInformationalEdgeAdded(edgeKind);
-        }
-
-        public void Flush(ILsifJsonWriter lsifJsonWriter)
-        {
-            foreach (var elementNeedingFlush in _elementsNeedingFlush)
-            {
-                lsifJsonWriter.Write(elementNeedingFlush);
-            }
-
-            _elementsNeedingFlush.Clear();
         }
 
         private class TrackedResultSet
@@ -83,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
                 Id = id;
             }
 
-            public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, out Element[]? elementsNeedingFlush) where T : Vertex
+            public Id<T> GetResultId<T>(string edgeKind, Func<T> vertexCreator, ILsifJsonWriter lsifJsonWriter) where T : Vertex
             {
                 if (_edgeKindToVertexId.TryGetValue(edgeKind, out var existingId))
                 {
@@ -94,16 +82,14 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
 
                     // TODO: this is a violation of the type system here, really: we're assuming that all calls to this function with the same edge kind
                     // will have the same type parameter. If that's violated, the Id returned here isn't really the right type.
-                    elementsNeedingFlush = null;
                     return new Id<T>(existingId.Value.NumericId);
                 }
 
                 T vertex = vertexCreator();
                 _edgeKindToVertexId.Add(edgeKind, vertex.GetId().As<T, Vertex>());
 
-                elementsNeedingFlush = new Element[2];
-                elementsNeedingFlush[0] = vertex;
-                elementsNeedingFlush[1] = Edge.Create(edgeKind, Id, vertex.GetId());
+                lsifJsonWriter.Write(vertex);
+                lsifJsonWriter.Write(Edge.Create(edgeKind, Id, vertex.GetId()));
 
                 return vertex.GetId();
             }
