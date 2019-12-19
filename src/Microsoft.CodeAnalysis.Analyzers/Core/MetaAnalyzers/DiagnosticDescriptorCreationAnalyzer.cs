@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string HelpLinkUriParameterName = "helpLinkUri";
         private const string CategoryParameterName = "category";
         private const string DiagnosticIdParameterName = "id";
+        private const string CustomTagsParameterName = "customTags";
 
         private const string DiagnosticCategoryAndIdRangeFile = "DiagnosticCategoryAndIdRanges.txt";
         private static readonly (string? prefix, int start, int end) s_defaultAllowedIdsInfo = (null, -1, -1);
@@ -53,6 +54,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
+        private static readonly LocalizableString s_localizableProvideCustomTagsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableProvideCustomTagsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableProvideCustomTagsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
@@ -124,6 +129,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableAnalyzerCategoryAndIdRangeFileInvalidDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new DiagnosticDescriptor(
+            DiagnosticIds.ProvideCustomTagsInDescriptorRuleId,
+            s_localizableProvideCustomTagsTitle,
+            s_localizableProvideCustomTagsMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisDocumentation,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            isEnabledByDefault: false,
+            description: s_localizableProvideCustomTagsDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,
             ProvideHelpUriInDescriptorRule,
@@ -131,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             DiagnosticIdMustBeInSpecifiedFormatRule,
             UseUniqueDiagnosticIdRule,
             UseCategoriesFromSpecifiedRangeRule,
-            AnalyzerCategoryAndIdRangeFileInvalidRule);
+            AnalyzerCategoryAndIdRangeFileInvalidRule,
+            ProvideCustomTagsInDescriptorRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -172,6 +188,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                     AnalyzeTitle(operationAnalysisContext, objectCreation);
                     AnalyzeHelpLinkUri(operationAnalysisContext, objectCreation);
+                    AnalyzeCustomTags(operationAnalysisContext, objectCreation);
 
                     string? categoryOpt = null;
                     if (!checkCategoryAndAllowedIds ||
@@ -247,6 +264,28 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (argument.Value.ConstantValue.HasValue && argument.Value.ConstantValue.Value == null)
                     {
                         Diagnostic diagnostic = Diagnostic.Create(ProvideHelpUriInDescriptorRule, argument.Syntax.GetLocation());
+                        operationAnalysisContext.ReportDiagnostic(diagnostic);
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        private static void AnalyzeCustomTags(OperationAnalysisContext operationAnalysisContext, IObjectCreationOperation objectCreation)
+        {
+            // Find the matching argument for customTags
+            foreach (var argument in objectCreation.Arguments)
+            {
+                if (argument.Parameter.Name.Equals(CustomTagsParameterName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (argument.Value is IArrayCreationOperation arrayCreation &&
+                        arrayCreation.DimensionSizes.Length == 1 &&
+                        arrayCreation.DimensionSizes[0].ConstantValue.HasValue &&
+                        arrayCreation.DimensionSizes[0].ConstantValue.Value is int size &&
+                        size == 0)
+                    {
+                        Diagnostic diagnostic = Diagnostic.Create(ProvideCustomTagsInDescriptorRule, argument.Syntax.GetLocation());
                         operationAnalysisContext.ReportDiagnostic(diagnostic);
                     }
 
