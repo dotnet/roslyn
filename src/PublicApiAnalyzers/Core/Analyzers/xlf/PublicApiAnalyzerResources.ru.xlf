@@ -93,18 +93,18 @@
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
-        <source>implicit constructor for {0}</source>
-        <target state="translated">неявный конструктор для {0}</target>
+        <source>implicit constructor for '{0}'</source>
+        <target state="needs-review-translation">неявный конструктор для {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
-        <source>implicit get-accessor for {0}</source>
-        <target state="translated">неявный метод доступа get для {0}</target>
+        <source>implicit get-accessor for '{0}'</source>
+        <target state="needs-review-translation">неявный метод доступа get для {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
-        <source>implicit set-accessor for {0}</source>
-        <target state="translated">неявный метод доступа set для {0}</target>
+        <source>implicit set-accessor for '{0}'</source>
+        <target state="needs-review-translation">неявный метод доступа set для {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
