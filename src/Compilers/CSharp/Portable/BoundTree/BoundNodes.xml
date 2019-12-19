@@ -1542,7 +1542,7 @@
   </Node>
 
   <!--
-  This node is used to represent an target-typed object creation expression
+  This node is used to represent a target-typed object creation expression
   It does not survive past initial binding.
   -->
   <Node Name="UnboundObjectCreationExpression" Base="BoundExpression">
