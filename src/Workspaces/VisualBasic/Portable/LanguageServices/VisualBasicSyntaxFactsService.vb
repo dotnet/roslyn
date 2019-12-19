@@ -1513,6 +1513,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
+        Public Function IsNamespaceDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamespaceDeclaration
+            Return node.IsKind(SyntaxKind.NamespaceStatement)
+        End Function
+
         Public Sub AddFirstMissingCloseBrace(root As SyntaxNode, contextNode As SyntaxNode, ByRef newRoot As SyntaxNode, ByRef newContextNode As SyntaxNode) Implements ISyntaxFactsService.AddFirstMissingCloseBrace
             ' Nothing to be done.  VB doesn't have close braces
             newRoot = root

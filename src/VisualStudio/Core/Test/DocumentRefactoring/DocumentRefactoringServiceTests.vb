@@ -22,9 +22,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
             Return TestDocumentRefactoring(workspace, expectMatchingName:=expectMatchingName)
         End Function
 
-        Private Function TestDocumentRefactoring(files() As String, Optional ExpectMatchingName As Boolean = True) As Task
+        Private Function TestDocumentRefactoring(files() As String, Optional expectMatchingName As Boolean = True) As Task
             Dim workspace = TestWorkspace.CreateCSharp(files, exportProvider:=_factory.CreateExportProvider())
-            Return TestDocumentRefactoring(workspace, expectMatchingName:=ExpectMatchingName)
+            Return TestDocumentRefactoring(workspace, expectMatchingName:=expectMatchingName)
         End Function
 
         Private Async Function TestDocumentRefactoring(workspace As TestWorkspace, Optional expectMatchingName As Boolean = True) As Task

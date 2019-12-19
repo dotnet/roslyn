@@ -474,5 +474,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
             return (openingBuilder.ToImmutableAndFree(), closingBuilder.ToImmutableAndFree());
         }
+
+        protected override string EscapeIdentifier(string identifier)
+            => identifier.EscapeIdentifier();
     }
 }

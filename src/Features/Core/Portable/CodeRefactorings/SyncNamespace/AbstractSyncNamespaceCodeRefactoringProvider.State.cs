@@ -99,13 +99,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 var solution = document.Project.Solution;
 
-                // We can't determine what the expected namespace would be without knowing the default namespace.
-                var defaultNamespace = GetDefaultNamespace(document, syntaxFacts);
-                if (defaultNamespace == null)
-                {
-                    return null;
-                }
-
                 string declaredNamespace;
                 if (applicableNode is TCompilationUnitSyntax)
                 {
@@ -121,12 +114,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
-                // In this case, we might still be able to provide refactoring to move file to new location.
-                var namespaceFromFolders = TryBuildNamespaceFromFolders(provider, document.Folders, syntaxFacts);
-                var targetNamespace = namespaceFromFolders == null
-                    ? null
-                    : ConcatNamespace(defaultNamespace, namespaceFromFolders);
+                var defaultNamespace = AbstractChangeNamespaceService.GetDefaultNamespace(document, syntaxFacts);
+                if (defaultNamespace == null)
+                {
+                    return null;
+                }
+
+
+                var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
+                var targetNamespace = changeNamespaceService.GetTargetNamespaceFromDocument(document);
 
                 // No action required if namespace already matches folders.
                 if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
@@ -158,58 +154,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 var logicalDirectoryPath = PathUtilities.CombineAbsoluteAndRelativePaths(projectRoot, folderPath);
 
                 return PathUtilities.PathsEqual(absoluteDircetoryPath, logicalDirectoryPath);
-            }
-
-            private static string GetDefaultNamespace(Document document, ISyntaxFactsService syntaxFacts)
-            {
-                var solution = document.Project.Solution;
-                var linkedIds = document.GetLinkedDocumentIds();
-                var documents = linkedIds.SelectAsArray(id => solution.GetDocument(id)).Add(document);
-
-                // For all projects containing all the linked documents, bail if 
-                // 1. Any of them doesn't have default namespace, or
-                // 2. Multiple default namespace are found. (this might be possible by tweaking project file).
-                // The refactoring depends on a single default namespace to operate.
-                var defaultNamespaceFromProjects = new HashSet<string>(
-                        documents.Select(d => d.Project.DefaultNamespace),
-                        syntaxFacts.StringComparer);
-
-                if (defaultNamespaceFromProjects.Count != 1
-                    || defaultNamespaceFromProjects.First() == null)
-                {
-                    return default;
-                }
-
-                return defaultNamespaceFromProjects.Single();
-            }
-
-            /// <summary>
-            /// Create a qualified identifier as the suffix of namespace based on a list of folder names.
-            /// </summary>
-            private static string TryBuildNamespaceFromFolders(
-                AbstractSyncNamespaceCodeRefactoringProvider<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax> service,
-                IEnumerable<string> folders,
-                ISyntaxFactsService syntaxFacts)
-            {
-                var parts = folders.SelectMany(folder => folder.Split(new[] { '.' }).SelectAsArray(service.EscapeIdentifier));
-                return parts.All(syntaxFacts.IsValidIdentifier) ? string.Join(".", parts) : null;
-            }
-
-            private static string ConcatNamespace(string rootNamespace, string namespaceSuffix)
-            {
-                Debug.Assert(rootNamespace != null && namespaceSuffix != null);
-                if (namespaceSuffix.Length == 0)
-                {
-                    return rootNamespace;
-                }
-                else if (rootNamespace.Length == 0)
-                {
-                    return namespaceSuffix;
-                }
-                else
-                {
-                    return rootNamespace + "." + namespaceSuffix;
-                }
             }
 
             /// <summary>

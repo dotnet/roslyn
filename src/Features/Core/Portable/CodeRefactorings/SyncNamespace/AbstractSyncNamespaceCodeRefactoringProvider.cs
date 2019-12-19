@@ -89,8 +89,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
         /// </returns>
         protected abstract Task<SyntaxNode> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
-        protected abstract string EscapeIdentifier(string identifier);
-
         private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
             public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)

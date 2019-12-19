@@ -99,5 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
                 Return SyntaxFactory.SimpleMemberAccessExpression(CreateNamespaceAsMemberAccess(namespaceParts, index - 1), namePiece)
             End If
         End Function
+
+        Protected Overrides Function EscapeIdentifier(identifier As String) As String
+            Return identifier.EscapeIdentifier()
+        End Function
     End Class
 End Namespace
