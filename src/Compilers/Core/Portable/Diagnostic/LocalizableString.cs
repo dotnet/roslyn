@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
@@ -8,18 +10,18 @@ namespace Microsoft.CodeAnalysis
     /// A string that may possibly be formatted differently depending on culture.
     /// NOTE: Types implementing <see cref="LocalizableString"/> must be serializable.
     /// </summary>
-    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString>
+    public abstract partial class LocalizableString : IFormattable, IEquatable<LocalizableString?>
     {
         /// <summary>
         /// Fired when an exception is raised by any of the public methods of <see cref="LocalizableString"/>.
         /// If the exception handler itself throws an exception, that exception is ignored.
         /// </summary>
-        public event EventHandler<Exception> OnException;
+        public event EventHandler<Exception>? OnException;
 
         /// <summary>
         /// Formats the value of the current instance using the optionally specified format. 
         /// </summary>
-        public string ToString(IFormatProvider formatProvider)
+        public string ToString(IFormatProvider? formatProvider)
         {
             try
             {
@@ -32,22 +34,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static explicit operator string(LocalizableString localizableResource)
+        public static explicit operator string?(LocalizableString localizableResource)
         {
             return localizableResource.ToString(null);
         }
 
-        public static implicit operator LocalizableString(string fixedResource)
+        public static implicit operator LocalizableString(string? fixedResource)
         {
             return FixedLocalizableString.Create(fixedResource);
         }
 
-        public sealed override string ToString()
+        public sealed override string? ToString()
         {
             return ToString(null);
         }
 
-        string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
+        string? IFormattable.ToString(string? ignored, IFormatProvider? formatProvider)
         {
             return ToString(formatProvider);
         }
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public sealed override bool Equals(object other)
+        public sealed override bool Equals(object? other)
         {
             try
             {
@@ -78,9 +80,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool Equals(LocalizableString other)
+        public bool Equals(LocalizableString? other)
         {
-            return Equals((object)other);
+            return Equals((object?)other);
         }
 
         /// <summary>
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// Provides the implementation of ToString. ToString will provide a default value
         /// if this method throws an exception.
         /// </summary>
-        protected abstract string GetText(IFormatProvider formatProvider);
+        protected abstract string GetText(IFormatProvider? formatProvider);
 
         /// <summary>
         /// Provides the implementation of GetHashCode. GetHashCode will provide a default value
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis
         /// if this method throws an exception.
         /// </summary>
         /// <returns></returns>
-        protected abstract bool AreEqual(object other);
+        protected abstract bool AreEqual(object? other);
 
         private void RaiseOnException(Exception ex)
         {

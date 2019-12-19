@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Delegate to compute string hash code.
         /// This piece is language-specific because VB treats "" and null as equal while C# does not.
         /// </summary>
-        public delegate uint GetStringHashCode(string key);
+        public delegate uint GetStringHashCode(string? key);
 
         /// <summary>
         /// Delegate to emit string compare call
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 ConstantValue stringConstant = kvPair.Key;
                 Debug.Assert(stringConstant.IsNull || stringConstant.IsString);
 
-                uint hash = computeStringHashcodeDelegate((string)stringConstant.Value);
+                uint hash = computeStringHashcodeDelegate((string?)stringConstant.Value);
 
                 HashBucket bucket;
                 if (!stringHashMap.TryGetValue(hash, out bucket))
