@@ -37,6 +37,13 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
         }
 
+        private static DiagnosticResult GetBasicResultAt(int startLine, int startColumn, int endLine, int endColumn, string bannedSymbolName, string restrictedNamespaces)
+        {
+            return new DiagnosticResult(BasicRestrictedInternalsVisibleToAnalyzer.Rule)
+                .WithSpan(startLine, startColumn, endLine, endColumn)
+                .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
+        }
+
         private const string ApiProviderProjectName = nameof(ApiProviderProjectName);
         private const string ApiConsumerProjectName = nameof(ApiConsumerProjectName);
 
@@ -145,15 +152,12 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.C1 c)
+    void M(N1.{|CS0122:C1|} c)
     {
     }
 }";
 
-            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                DiagnosticResult.CompilerError("CS0122")
-                    .WithLocation(4, 15)
-                    .WithMessage("'C1' is inaccessible due to its protection level"));
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
@@ -167,14 +171,11 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c As N1.C1)
+    Private Sub M(c As {|BC30389:N1.C1|})
     End Sub
 End Class";
 
-            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                DiagnosticResult.CompilerError("BC30389")
-                    .WithLocation("Test0.vb", new LinePosition(2, 23), DiagnosticLocationOptions.IgnoreAdditionalLocations)
-                    .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
@@ -233,15 +234,12 @@ namespace N1
             var apiConsumerSource = @"
 class C2
 {
-    void M(N1.C1 c)
+    void M(N1.{|CS0122:C1|} c)
     {
     }
 }";
 
-            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                DiagnosticResult.CompilerError("CS0122")
-                    .WithLocation(4, 15)
-                    .WithMessage("'C1' is inaccessible due to its protection level"));
+            await VerifyCSharpAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
@@ -257,14 +255,11 @@ End Namespace";
 
             var apiConsumerSource = @"
 Class C2
-    Private Sub M(c As N1.C1)
+    Private Sub M(c As {|BC30389:N1.C1|})
     End Sub
 End Class";
 
-            await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                new DiagnosticResult("BC30389", DiagnosticSeverity.Error)
-                    .WithLocation("Test0.vb", new LinePosition(2, 23), DiagnosticLocationOptions.IgnoreAdditionalLocations)
-                    .WithMessage("'N1.C1' is not accessible in this context because it is 'Friend'."));
+            await VerifyBasicAsync(apiProviderSource, apiConsumerSource);
         }
 
         [Fact]
@@ -1747,15 +1742,12 @@ class C2
 {
     void M(N1.C1 c)
     {
-        _ = c.Event;
+        _ = c.{|CS0070:Event|};
     }
 }";
 
             await VerifyCSharpAsync(apiProviderSource, apiConsumerSource,
-                GetCSharpResultAt(6, 13, "N1.C1.Event", "N2"),
-                DiagnosticResult.CompilerError("CS0070")
-                    .WithLocation(6, 15)
-                    .WithMessage("The event 'C1.Event' can only appear on the left hand side of += or -= (except when used from within the type 'C1')"));
+                GetCSharpResultAt(6, 13, "N1.C1.Event", "N2"));
         }
 
         [Fact]
@@ -1775,15 +1767,12 @@ End Namespace";
             var apiConsumerSource = @"
 Class C2
     Private Sub M(c As N1.C1)
-        Dim unused = c.[Event]
+        Dim unused = {|BC32022:c.[Event]|}
     End Sub
 End Class";
 
             await VerifyBasicAsync(apiProviderSource, apiConsumerSource,
-                GetBasicResultAt(4, 22, "N1.C1.Event", "N2"),
-                DiagnosticResult.CompilerError("BC32022")
-                    .WithLocation(4, 22)
-                    .WithMessage("'Friend Event [Event] As EventHandler' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event."));
+                GetBasicResultAt(4, 22, 4, 31, "N1.C1.Event", "N2"));
         }
 
         [Fact]
