@@ -3484,32 +3484,26 @@ class C
         public void TestTupleEquality01()
         {
             string source = @"
+using System;
 class C
 {
-    void M1()
+    public static void Main()
     {
-        var v1 = new() == (1, 2L);
-        var v2 = new() != (1, 2L);
-        var v3 = (1, 2L) == new();
-        var v4 = (1, 2L) != new();
+        Console.Write(new() == (1, 2L) ? 1 : 0);
+        Console.Write(new() != (1, 2L) ? 1 : 0);
+        Console.Write((1, 2L) == new() ? 1 : 0);
+        Console.Write((1, 2L) != new() ? 1 : 0);
+        Console.Write('-');
+        Console.Write(new(1, 2L) == (1, 2L) ? 1 : 0);
+        Console.Write(new(1, 2L) != (1, 2L) ? 1 : 0);
+        Console.Write((1, 2L) == new(1, 2L) ? 1 : 0);
+        Console.Write((1, 2L) != new(1, 2L) ? 1 : 0);
     }
 }
 ";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
-                // (6,18): error CS0034: Operator '==' is ambiguous on operands of type 'new()' and '(int, long)'
-                //         var v1 = new() == (1, 2L);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() == (1, 2L)").WithArguments("==", "new()", "(int, long)").WithLocation(6, 18),
-                // (7,18): error CS0034: Operator '!=' is ambiguous on operands of type 'new()' and '(int, long)'
-                //         var v2 = new() != (1, 2L);
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new() != (1, 2L)").WithArguments("!=", "new()", "(int, long)").WithLocation(7, 18),
-                // (8,18): error CS0034: Operator '==' is ambiguous on operands of type '(int, long)' and 'new()'
-                //         var v3 = (1, 2L) == new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(1, 2L) == new()").WithArguments("==", "(int, long)", "new()").WithLocation(8, 18),
-                // (9,18): error CS0034: Operator '!=' is ambiguous on operands of type '(int, long)' and 'new()'
-                //         var v4 = (1, 2L) != new();
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(1, 2L) != new()").WithArguments("!=", "(int, long)", "new()").WithLocation(9, 18));
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0101-1010");
         }
 
         [Fact]

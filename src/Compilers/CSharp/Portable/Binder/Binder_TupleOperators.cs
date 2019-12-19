@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
-            right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
+            left = GiveTupleTypeToTypelessExpressionIfNeeded(left, right.Type, diagnostics);
+            right = GiveTupleTypeToTypelessExpressionIfNeeded(right, left.Type, diagnostics);
 
             if ((left.Type is null && left.IsLiteralDefaultOrTypelessNew()) ||
                 (right.Type is null && right.IsLiteralDefaultOrTypelessNew()))
@@ -311,15 +311,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundExpression GiveTupleTypeToDefaultLiteralIfNeeded(BoundExpression expr, TypeSymbol targetType)
+        internal BoundExpression GiveTupleTypeToTypelessExpressionIfNeeded(BoundExpression expr, TypeSymbol targetType, DiagnosticBag diagnostics)
         {
-            if (!expr.IsLiteralDefault() || targetType is null)
+            if (targetType is object)
             {
-                return expr;
+                if (expr.IsLiteralDefault())
+                {
+                    Debug.Assert(targetType.StrippedType().IsTupleType);
+                    return new BoundDefaultExpression(expr.Syntax, targetType);
+                }
+
+                if (expr is UnboundObjectCreationExpression objectCreation)
+                {
+                    return ConvertObjectCreationExpression(objectCreation, false, targetType, diagnostics);
+                }
             }
 
-            Debug.Assert(targetType.StrippedType().IsTupleType);
-            return new BoundDefaultExpression(expr.Syntax, targetType);
+            return expr;
         }
 
         private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)
