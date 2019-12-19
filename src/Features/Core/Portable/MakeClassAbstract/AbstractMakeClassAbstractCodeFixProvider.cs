@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -14,12 +16,14 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
     internal abstract class AbstractMakeClassAbstractCodeFixProvider<TClassDeclarationSyntax> : SyntaxEditorBasedCodeFixProvider
         where TClassDeclarationSyntax : SyntaxNode
     {
+        protected abstract bool IsValidRefactoringContext(SyntaxNode? node, out TClassDeclarationSyntax? classDeclaration);
+
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             if (context.Diagnostics.Length == 1 &&
-                IsValidMemberNode(context.Diagnostics[0].Location?.FindNode(context.CancellationToken)))
+                IsValidRefactoringContext(context.Diagnostics[0].Location?.FindNode(context.CancellationToken), out _))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
@@ -34,12 +38,11 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
-                var declaration = diagnostics[i].Location?.FindNode(cancellationToken);
+                var memberDeclaration = diagnostics[i].Location?.FindNode(cancellationToken);
 
-                if (IsValidMemberNode(declaration))
+                if (IsValidRefactoringContext(memberDeclaration, out var classDeclaration))
                 {
-                    var enclosingClass = declaration.FirstAncestorOrSelf<TClassDeclarationSyntax>();
-                    editor.ReplaceNode(enclosingClass,
+                    editor.ReplaceNode(classDeclaration,
                         (currentClassDeclaration, generator) => generator.WithModifiers(currentClassDeclaration, DeclarationModifiers.Abstract));
                 }
             }
@@ -47,12 +50,10 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
             return Task.CompletedTask;
         }
 
-        protected abstract bool IsValidMemberNode(SyntaxNode node);
-
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Make_class_abstract, createChangedDocument, nameof(AbstractMakeClassAbstractCodeFixProvider<TClassDeclarationSyntax>))
+                : base(FeaturesResources.Make_class_abstract, createChangedDocument, FeaturesResources.Make_class_abstract)
             {
             }
         }

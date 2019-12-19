@@ -32,6 +32,44 @@ public abstract class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodEnclosingClassWithoutAccessibility()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public abstract void [|M|]();
+}",
+@"
+abstract class Foo
+{
+    public abstract void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodEnclosingClassDocumentationComment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+/// <summary>
+/// Some class comment.
+/// </summary>
+public class Foo
+{
+    public abstract void [|M|]();
+}",
+@"
+/// <summary>
+/// Some class comment.
+/// </summary>
+public abstract class Foo
+{
+    public abstract void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task TestPropertyGetter()
         {
             await TestInRegularAndScript1Async(
@@ -96,6 +134,28 @@ public abstract class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestEventAdd()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+public class Foo
+{
+    public abstract event System.EventHandler E { [|add|]; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestEventRemove()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+public class Foo
+{
+    public abstract event System.EventHandler E { [|remove|]; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task TestMethodWithBody()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -132,6 +192,31 @@ public class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestStructNestedInClass()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+public class C
+{
+    public struct S
+    {
+        public abstract void [|Foo|]();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
+        public async Task TestMethodEnclosingClassStatic()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+public static class Foo
+{
+    public abstract void [|M|]();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeClassAbstract)]
         public async Task FixAll()
         {
             await TestInRegularAndScript1Async(
@@ -139,22 +224,48 @@ public class Foo
 {
     using System;
 
-    public class Foo
+    public class C1
     {
         public abstract void {|FixAllInDocument:|}M();
         public abstract object P { get; set; }
         public abstract object this[object o] { get; set; }
+    }
+
+    public class C2
+    {
+        public abstract void M();
+    }
+
+    public class C3
+    {
+        public class InnerClass
+        {
+            public abstract void M();
+        }
     }
 }",
 @"namespace NS
 {
     using System;
 
-    public abstract class Foo
+    public abstract class C1
     {
         public abstract void M();
         public abstract object P { get; set; }
         public abstract object this[object o] { get; set; }
+    }
+
+    public abstract class C2
+    {
+        public abstract void M();
+    }
+
+    public class C3
+    {
+        public abstract class InnerClass
+        {
+            public abstract void M();
+        }
     }
 }");
         }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -16,9 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
                    "CS0513" // 'C.M()' is abstract but it is contained in non-abstract class 'C'
                );
 
-        protected override bool IsValidMemberNode(SyntaxNode node)
+        protected override bool IsValidRefactoringContext(SyntaxNode? node, out ClassDeclarationSyntax? classDeclaration)
         {
-            switch (node.Kind())
+            classDeclaration = null;
+
+            switch (node?.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
@@ -41,7 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
                     return false;
             }
 
-            return node.FirstAncestorOrSelf<ClassDeclarationSyntax>() != null;
+            var enclosingType = node.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+            if (!enclosingType.IsKind(SyntaxKind.ClassDeclaration))
+            {
+                return false;
+            }
+
+            classDeclaration = (ClassDeclarationSyntax)enclosingType;
+
+            return !classDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword) && !classDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword);
         }
     }
 }
