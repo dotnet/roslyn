@@ -1548,6 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 
