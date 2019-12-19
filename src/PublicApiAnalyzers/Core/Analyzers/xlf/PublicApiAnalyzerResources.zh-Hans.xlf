@@ -78,18 +78,18 @@
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
-        <source>implicit constructor for {0}</source>
-        <target state="translated">{0} 的隐式构造函数</target>
+        <source>implicit constructor for '{0}'</source>
+        <target state="needs-review-translation">{0} 的隐式构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
-        <source>implicit get-accessor for {0}</source>
-        <target state="translated">{0} 的隐式 get 访问器</target>
+        <source>implicit get-accessor for '{0}'</source>
+        <target state="needs-review-translation">{0} 的隐式 get 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
-        <source>implicit set-accessor for {0}</source>
-        <target state="translated">{0} 的隐式 set 访问器</target>
+        <source>implicit set-accessor for '{0}'</source>
+        <target state="needs-review-translation">{0} 的隐式 set 访问器</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
