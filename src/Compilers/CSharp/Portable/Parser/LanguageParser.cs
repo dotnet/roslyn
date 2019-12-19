@@ -5902,6 +5902,7 @@ done:
             AfterIs,
             DefinitePattern,
             AfterOut,
+            AfterRef,
             AfterTupleComma,
             AsExpression,
             NewExpression,
@@ -5922,7 +5923,7 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                var type = ParseTypeCore(mode);
+                var type = ParseTypeCore(ParseTypeMode.AfterRef);
                 return _syntaxFactory.RefType(refKeyword, readonlyKeyword, type);
             }
 
@@ -5953,6 +5954,7 @@ done:
                 case ParseTypeMode.AsExpression:
                 case ParseTypeMode.Normal:
                 case ParseTypeMode.Parameter:
+                case ParseTypeMode.AfterRef:
                     nameOptions = NameOptions.None;
                     break;
                 default:
