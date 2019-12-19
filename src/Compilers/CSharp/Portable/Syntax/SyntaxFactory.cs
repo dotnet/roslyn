@@ -2607,13 +2607,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // BACK COMPAT OVERLOAD DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static SyntaxTree ParseSyntaxTree(
-            string text,
+            SourceText text,
             ParseOptions options,
             string path,
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
             CancellationToken cancellationToken)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, encoding: null, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY
