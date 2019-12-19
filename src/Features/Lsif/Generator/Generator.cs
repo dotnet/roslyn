@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -131,11 +129,8 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                                 if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(originalDefinition, "moniker"))
                                 {
                                     var monikerVertex = CreateMonikerVertexForSymbol(originalDefinition, semanticModel.Compilation);
-                                    if (monikerVertex != null)
-                                    {
-                                        lsifJsonWriter.Write(monikerVertex);
-                                        lsifJsonWriter.Write(Edge.Create("moniker", originalDefinitionResultSetId, monikerVertex.GetId()));
-                                    }
+                                    lsifJsonWriter.Write(monikerVertex);
+                                    lsifJsonWriter.Write(Edge.Create("moniker", originalDefinitionResultSetId, monikerVertex.GetId()));
                                 }
                             }
                         }
@@ -169,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             return true;
         }
 
-        private static Moniker? CreateMonikerVertexForSymbol(ISymbol symbol, Compilation compilation)
+        private static Moniker CreateMonikerVertexForSymbol(ISymbol symbol, Compilation compilation)
         {
             // This uses the existing format that earlier prototypes of the Roslyn LSIF tool implemented; a different format may make more sense long term, but changing the
             // moniker makes it difficult for other systems that have older LSIF indexes to the connect the two indexes together.
