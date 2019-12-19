@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
         private static Task<Id<LsifGraph.Document>> GenerateForDocument(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
-            IResultSetTracker symbolResultsTracker,
+            IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter)
         {
             var syntaxTree = semanticModel.SyntaxTree;
@@ -71,6 +71,29 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId()));
+
+            // As we are processing this file, we are going to encounter symbols that have a shared resultSet with other documents like types
+            // or methods. We're also going to encounter locals that never leave this document. We don't want those locals being held by
+            // the topLevelSymbolsResultSetTracker, so we'll make another tracker for document local symbols, and then have a delegating
+            // one that picks the correct one of the two.
+            var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter);
+            var symbolResultsTracker = new DelegatingResultSetTracker(symbol =>
+            {
+                if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.RangeVariable)
+                {
+                    // These symbols can go in the document local one because they can't escape methods
+                    return documentLocalSymbolsResultSetTracker;
+                }
+                else if (symbol.ContainingType != null && symbol.DeclaredAccessibility == Accessibility.Private && symbol.ContainingType.Locations.Length == 1)
+                {
+                    // This is a private member in a class that isn't partial, so it can't escape the file
+                    return documentLocalSymbolsResultSetTracker;
+                }
+                else
+                {
+                    return topLevelSymbolsResultSetTracker;
+                }
+            });
 
             // We will walk the file token-by-token, making a range for each one and then attaching information for it
             var rangeVertices = new List<Id<LsifGraph.Range>>();
