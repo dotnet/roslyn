@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal BoundConstantPattern BindConstantPattern(
+        internal BoundPattern BindConstantPattern(
             SyntaxNode node,
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
@@ -180,10 +180,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool wasExpression)
         {
             var convertedExpression = BindExpressionForPattern(node, inputType, patternExpression, hasErrors, diagnostics, out var constantValueOpt, out wasExpression);
-            return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+            if (wasExpression)
+            {
+                return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
+            }
+            else
+            {
+                return new BoundTypePattern(node, (BoundTypeExpression)convertedExpression, inputType, hasErrors);
+            }
         }
 
-        private BoundExpression BindExpressionForPattern(SyntaxNode node,
+        /// <summary>
+        /// Binds the expression for a pattern.  Sets <paramref name="wasExpression"/> if it was a type rather than an expression,
+        /// and in that case it returns a <see cref="BoundTypeExpression"/>.
+        /// </summary>
+        private BoundExpression BindExpressionForPattern(
+            SyntaxNode node, // PROTOTYPE(ngafter): Perhaps this parameter is no longer needed?
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
@@ -191,36 +203,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ConstantValue constantValueOpt,
             out bool wasExpression)
         {
-            BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             constantValueOpt = null;
-            BoundExpression convertedExpression = ConvertPatternExpression(
-                inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
-            wasExpression = expression.Type?.IsErrorType() != true;
-            if (!convertedExpression.HasErrors && !hasErrors)
+            BoundExpression expression = BindTypeOrRValue(patternExpression, diagnostics);
+            wasExpression = expression.Kind != BoundKind.TypeExpression;
+            if (wasExpression)
             {
-                if (constantValueOpt == null)
+                BoundExpression convertedExpression = ConvertPatternExpression(
+                    inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
+
+                if (!convertedExpression.HasErrors && !hasErrors)
                 {
-                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
-                    hasErrors = true;
+                    if (constantValueOpt == null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                        hasErrors = true;
+                    }
+                    else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+                    {
+                        // before C# 8 we did not permit `pointer is null`
+                        diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
+                        hasErrors = true;
+                    }
                 }
-                else if (inputType.IsPointerType() == true && Compilation.LanguageVersion < MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+
+                if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
                 {
-                    // before C# 8 we did not permit `pointer is null`
-                    diagnostics.Add(ErrorCode.ERR_PointerTypeInPatternMatching, patternExpression.Location);
-                    hasErrors = true;
+                    Debug.Assert(hasErrors);
+                    convertedExpression = new BoundConversion(
+                        convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
+                        explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
+                    { WasCompilerGenerated = true };
                 }
+
+                return convertedExpression;
             }
 
-            if (convertedExpression.Type is null && constantValueOpt != ConstantValue.Null)
-            {
-                Debug.Assert(hasErrors);
-                convertedExpression = new BoundConversion(
-                    convertedExpression.Syntax, convertedExpression, Conversion.NoConversion, isBaseConversion: false, @checked: false,
-                    explicitCastInCode: false, constantValueOpt: constantValueOpt, conversionGroupOpt: default, type: CreateErrorType(), hasErrors: true)
-                { WasCompilerGenerated = true };
-            }
-
-            return convertedExpression;
+            Debug.Assert(expression.Kind == BoundKind.TypeExpression);
+            return expression;
         }
 
         internal BoundExpression ConvertPatternExpression(
@@ -1164,7 +1183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            BoundExpression value = BindExpressionForPattern(node, inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out _);
+            BoundExpression value = BindExpressionForPattern(node, inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
+            if (!wasExpression)
+                _ = CheckValue(value, BindValueKind.RValue, diagnostics);
+
             // PROTOTYPE(ngafter): TODO: check that the operator exists for that type (e.g. error for string < "")
             BinaryOperatorKind kind = TokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             return new BoundRelationalPattern(node, kind, value, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);

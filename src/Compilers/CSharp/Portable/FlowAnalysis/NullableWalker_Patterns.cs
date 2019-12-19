@@ -127,6 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDeclarationPattern _:
                 case BoundDiscardPattern _:
                 case BoundITuplePattern _:
+                case BoundTypePattern _:
+                case BoundRelationalPattern _:
                     break; // nothing to learn
                 case BoundRecursivePattern rp:
                     {
@@ -156,12 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
-                    break;
-                case BoundTypePattern p:
-                    // PROTOTYPE(ngafter): what is the right behavior here?
-                    break;
-                case BoundRelationalPattern p:
-                    // PROTOTYPE(ngafter): what is the right behavior here?
                     break;
                 case BoundNegatedPattern p:
                     // PROTOTYPE(ngafter): what is the right behavior here?

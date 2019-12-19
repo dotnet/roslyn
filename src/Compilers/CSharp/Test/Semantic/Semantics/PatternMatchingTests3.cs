@@ -1638,5 +1638,122 @@ class Source2
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void ArrayTypePattern_01()
+        {
+            var source = @"
+class C
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case int[]:
+            case System.Int64[]:
+            case A[]:
+            case G<B>[]:
+            case N.G<B>[]:
+                break;
+        }
+        if (o is int[]) { }
+        if (o is System.Int32[]) { }
+        if (o is A[]) { }
+        if (o is G<B>[]) { }
+        if (o is N.G<B>[]) { }
+        if ((o, o) is (A[], A[])) { }
+    }
+}
+class A { }
+class G<T> { }
+class B { }
+namespace N
+{
+    class G<T> { }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void ArrayTypePattern_02()
+        {
+            var source = @"
+class C
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case (int[]):
+            case (System.Int64[]):
+            case (A[]):
+            case (G<B>[]):
+            case (N.G<B>[]):
+                break;
+        }
+        if (o is (int[])) { }
+        if (o is (System.Int32[])) { }
+        if (o is (A[])) { }
+        if (o is (G<B>[])) { }
+        if (o is (N.G<B>[])) { }
+        if ((o, o) is ((A[]), (A[]))) { }
+    }
+}
+class A { }
+class G<T> { }
+class B { }
+namespace N
+{
+    class G<T> { }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void ParsedAsExpressionBoundAsType()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M1(new A());
+        M1(new G<B>());
+        M1(new N.G<B>());
+        M1(0);
+    }
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case A: System.Console.WriteLine(""A""); break;
+            case G<B>: System.Console.WriteLine(""G<B>""); break;
+            case N.G<B>: System.Console.WriteLine(""N.G<B>""); break;
+            case System.Int32: System.Console.WriteLine(""System.Int32""); break;
+        }
+    }
+}
+class A { }
+class G<T> { }
+class B { }
+namespace N
+{
+    class G<T> { }
+}
+";
+            var expectedOutput =
+@"A
+G<B>
+N.G<B>
+System.Int32";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

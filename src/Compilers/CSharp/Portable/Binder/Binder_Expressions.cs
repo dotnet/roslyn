@@ -234,6 +234,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics, reportDefaultMissingType);
         }
 
+        /// <summary>
+        /// When binding a switch case's expression, it is possible that it resolves to a type (technically, a type pattern).
+        /// This implementation permits either an rvalue or a BoundTypeExpression.
+        /// </summary>
+        internal BoundExpression BindTypeOrRValue(ExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var valueOrType = BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
+            if (valueOrType.Kind == BoundKind.TypeExpression)
+            {
+                // In the Color Color case (Kind == BoundKind.TypeOrValueExpression), we treat it as a value
+                // by not entering this if statement
+                return valueOrType;
+            }
+
+            return CheckValue(valueOrType, BindValueKind.RValue, diagnostics);
+        }
+
         internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, TypeSymbol type = null)
         {
             if (expression is null)
