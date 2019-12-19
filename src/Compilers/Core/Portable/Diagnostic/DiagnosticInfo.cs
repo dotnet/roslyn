@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         private readonly int _errorCode;
         private readonly DiagnosticSeverity _defaultSeverity;
         private readonly DiagnosticSeverity _effectiveSeverity;
-        private readonly object[]? _arguments;
+        private readonly object[] _arguments;
 
         private static ImmutableDictionary<int, DiagnosticDescriptor> s_errorCodeToDescriptorMap = ImmutableDictionary<int, DiagnosticDescriptor>.Empty;
 
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis
             _errorCode = errorCode;
             _defaultSeverity = messageProvider.GetSeverity(errorCode);
             _effectiveSeverity = _defaultSeverity;
+            _arguments = Array.Empty<object>();
         }
 
         // Only the compiler creates instances.
@@ -155,12 +156,12 @@ namespace Microsoft.CodeAnalysis
             writer.WriteInt32((int)_effectiveSeverity);
             writer.WriteInt32((int)_defaultSeverity);
 
-            int count = _arguments?.Length ?? 0;
+            int count = _arguments.Length;
             writer.WriteUInt32((uint)count);
 
             if (count > 0)
             {
-                foreach (var arg in _arguments!)
+                foreach (var arg in _arguments)
                 {
                     writer.WriteString(arg.ToString());
                 }
@@ -175,17 +176,17 @@ namespace Microsoft.CodeAnalysis
             _defaultSeverity = (DiagnosticSeverity)reader.ReadInt32();
 
             var count = (int)reader.ReadUInt32();
-            if (count == 0)
-            {
-                _arguments = Array.Empty<object>();
-            }
-            else if (count > 0)
+            if (count > 0)
             {
                 _arguments = new string[count];
                 for (int i = 0; i < count; i++)
                 {
                     _arguments[i] = reader.ReadString();
                 }
+            }
+            else
+            {
+                _arguments = Array.Empty<object>();
             }
         }
 
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis
                 return string.Empty;
             }
 
-            if (_arguments == null || _arguments.Length == 0)
+            if (_arguments.Length == 0)
             {
                 return message;
             }
@@ -341,7 +342,6 @@ namespace Microsoft.CodeAnalysis
 
         protected object[] GetArgumentsToUse(IFormatProvider? formatProvider)
         {
-            RoslynDebug.Assert(_arguments is object);
             object[]? argumentsToUse = null;
             for (int i = 0; i < _arguments.Length; i++)
             {
@@ -371,14 +371,13 @@ namespace Microsoft.CodeAnalysis
                 return argumentsToUse;
             }
 
-            RoslynDebug.Assert(_arguments != null);
             var newArguments = new object[_arguments.Length];
             Array.Copy(_arguments, newArguments, newArguments.Length);
 
             return newArguments;
         }
 
-        internal object[]? Arguments
+        internal object[] Arguments
         {
             get { return _arguments; }
         }
@@ -409,12 +408,9 @@ namespace Microsoft.CodeAnalysis
         public sealed override int GetHashCode()
         {
             int hashCode = _errorCode;
-            if (_arguments != null)
+            for (int i = 0; i < _arguments.Length; i++)
             {
-                for (int i = 0; i < _arguments.Length; i++)
-                {
-                    hashCode = Hash.Combine(_arguments[i], hashCode);
-                }
+                hashCode = Hash.Combine(_arguments[i], hashCode);
             }
 
             return hashCode;
@@ -430,11 +426,7 @@ namespace Microsoft.CodeAnalysis
                 other._errorCode == _errorCode &&
                 other.GetType() == this.GetType())
             {
-                if (_arguments == null && other._arguments == null)
-                {
-                    result = true;
-                }
-                else if (_arguments != null && other._arguments != null && _arguments.Length == other._arguments.Length)
+                if (_arguments.Length == other._arguments.Length)
                 {
                     result = true;
                     for (int i = 0; i < _arguments.Length; i++)
