@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,16 +11,9 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
-    [Export(typeof(IDocumentOptionsProviderFactory)), Shared]
-    [ExportMetadata("Name", PredefinedDocumentOptionsProviderNames.EditorConfig)]
-    internal sealed class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
+    internal static class EditorConfigDocumentOptionsProviderFactory
     {
-        [ImportingConstructor]
-        public EditorConfigDocumentOptionsProviderFactory()
-        {
-        }
-
-        public IDocumentOptionsProvider? TryCreate(Workspace workspace)
+        public static IDocumentOptionsProvider? TryCreate(Workspace workspace)
         {
             if (!ShouldUseNativeEditorConfigSupport(workspace))
             {
