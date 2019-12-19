@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract IEnumerable<string> PreprocessorSymbolNames { get; }
 
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
-        protected bool EqualsHelper(ParseOptions other)
+        protected bool EqualsHelper(ParseOptions? other)
         {
             if (object.ReferenceEquals(other, null))
             {
@@ -168,12 +168,12 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        public static bool operator ==(ParseOptions left, ParseOptions right)
+        public static bool operator ==(ParseOptions? left, ParseOptions? right)
         {
             return object.Equals(left, right);
         }
 
-        public static bool operator !=(ParseOptions left, ParseOptions right)
+        public static bool operator !=(ParseOptions? left, ParseOptions? right)
         {
             return !object.Equals(left, right);
         }

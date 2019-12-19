@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type? globalsType)
+        internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
             {
@@ -810,6 +811,17 @@ namespace Microsoft.CodeAnalysis
             return (INamedTypeSymbol?)CommonGetSpecialType(specialType)?.GetITypeSymbol();
         }
 
+        public INamedTypeSymbol GetSpecialTypeOrThrow(SpecialType specialType)
+        {
+            var symbol = GetSpecialType(specialType);
+            if (symbol is null)
+            {
+                throw new InvalidOperationException($"Special type {specialType} is not available.");
+            }
+
+            return symbol;
+        }
+
         /// <summary>
         /// Get the symbol for the predefined type member from the COR Library referenced by this compilation.
         /// </summary>
@@ -1431,7 +1443,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
-        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag? incoming)
+        internal bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, [DisallowNull] ref DiagnosticBag? incoming)
         {
             RoslynDebug.Assert(incoming is object);
             bool result = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution(), exclude: null);
@@ -1569,7 +1581,7 @@ namespace Microsoft.CodeAnalysis
                 return Win32ResourceForm.UNKNOWN;
         }
 
-        internal Cci.ResourceSection? MakeWin32ResourcesFromCOFF(Stream win32Resources, DiagnosticBag diagnostics)
+        internal Cci.ResourceSection? MakeWin32ResourcesFromCOFF(Stream? win32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
             {
@@ -1601,7 +1613,7 @@ namespace Microsoft.CodeAnalysis
             return resources;
         }
 
-        internal List<Win32Resource>? MakeWin32ResourceList(Stream win32Resources, DiagnosticBag diagnostics)
+        internal List<Win32Resource>? MakeWin32ResourceList(Stream? win32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
             {
@@ -2761,7 +2773,7 @@ namespace Microsoft.CodeAnalysis
                 Func<Stream?>? getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream?>?)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream?>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {
@@ -2990,7 +3002,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return LazyInitializer.EnsureInitialized(ref _lazyTreeToUsedImportDirectivesMap)!;
+                return RoslynLazyInitializer.EnsureInitialized(ref _lazyTreeToUsedImportDirectivesMap);
             }
         }
 

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 return;
 
             var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken);
+            var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken)!;
 
             FixOneDiagnostic(
                 document, editor, model, addCases, addDefaultCase, onlyOneDiagnostic,

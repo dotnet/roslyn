@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var taskType = model.Compilation.TaskType();
                 if (originalDefinition.Equals(taskType))
                 {
-                    returnType = model.Compilation.GetSpecialType(SpecialType.System_Void);
+                    returnType = model.Compilation.GetSpecialTypeOrThrow(SpecialType.System_Void);
                     return;
                 }
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     // check whether current selection contains return statement
                     var parameters = GetMethodParameters(variableInfoMap.Values);
-                    var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialType(SpecialType.System_Object);
+                    var returnType = SelectionResult.GetContainingScopeType() ?? compilation.GetSpecialTypeOrThrow(SpecialType.System_Object);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return (parameters, returnType, default(VariableInfo), unsafeAddressTakenUsed);
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     var variableToUseAsReturnValue = parameters.FirstOrDefault(v => v.UseAsReturnValue);
                     var returnType = variableToUseAsReturnValue != null
                         ? variableToUseAsReturnValue.GetVariableType(_semanticDocument)
-                        : compilation.GetSpecialType(SpecialType.System_Void);
+                        : compilation.GetSpecialTypeOrThrow(SpecialType.System_Void);
 
                     var unsafeAddressTakenUsed = ContainsVariableUnsafeAddressTaken(dataFlowAnalysisData, variableInfoMap.Keys);
                     return (parameters, returnType, variableToUseAsReturnValue, unsafeAddressTakenUsed);

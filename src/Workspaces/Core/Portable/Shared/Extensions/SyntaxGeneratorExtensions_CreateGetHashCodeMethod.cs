@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             const string HashCodeName = "hashCode";
             statements.Add(!useInt64
-                ? factory.SimpleLocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int32)!, HashCodeName, CreateLiteralExpression(factory, initHash))
-                : factory.LocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int64), HashCodeName, CreateLiteralExpression(factory, initHash)));
+                ? factory.SimpleLocalDeclarationStatement(compilation.GetSpecialTypeOrThrow(SpecialType.System_Int32), HashCodeName, CreateLiteralExpression(factory, initHash))
+                : factory.LocalDeclarationStatement(compilation.GetSpecialTypeOrThrow(SpecialType.System_Int64), HashCodeName, CreateLiteralExpression(factory, initHash)));
 
             var hashCodeNameExpression = factory.IdentifierName(HashCodeName);
 

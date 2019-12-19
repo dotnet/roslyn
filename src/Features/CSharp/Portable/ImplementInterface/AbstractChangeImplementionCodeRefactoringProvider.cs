@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var (document, _, cancellationToken) = context;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var member = semanticModel.GetDeclaredSymbol(container, cancellationToken);
+            var member = semanticModel!.GetDeclaredSymbol(container, cancellationToken);
             Contract.ThrowIfNull(member);
 
             if (!CheckMemberCanBeConverted(member))
