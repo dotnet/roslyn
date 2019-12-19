@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, DiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
-            if (!IsDefaultLiteralOrNewAllowedInBinaryOperator(kind, left, right))
+            if (!IsTypelessExpressionAllowedInBinaryOperator(kind, left, right))
             {
                 resultKind = LookupResultKind.OverloadResolutionFailure;
                 originalUserDefinedOperators = default(ImmutableArray<MethodSymbol>);
@@ -1180,10 +1180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsDefaultLiteralOrNewAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        private bool IsTypelessExpressionAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
-            // The default literal is only allowed with equality operators
-            // and both operands cannot be typeless at the same time.
+            // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
+            // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
+
             if (left.IsTypelessNew())
             {
                 return !right.IsLiteralDefaultOrTypelessNew();
