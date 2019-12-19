@@ -77,7 +77,9 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter);
             var symbolResultsTracker = new DelegatingResultSetTracker(symbol =>
             {
-                if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.RangeVariable)
+                if (symbol.Kind == SymbolKind.Local ||
+                    symbol.Kind == SymbolKind.RangeVariable ||
+                    symbol.Kind == SymbolKind.Label)
                 {
                     // These symbols can go in the document local one because they can't escape methods
                     return documentLocalSymbolsResultSetTracker;
@@ -177,7 +179,10 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             string symbolMoniker = symbol.ContainingAssembly.Name + "#";
 
-            if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Parameter || symbol.Kind == SymbolKind.RangeVariable)
+            if (symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Parameter ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Label)
             {
                 symbolMoniker += GetRequiredDocumentationCommentId(symbol.ContainingSymbol) + "#" + symbol.Name;
             }
@@ -188,7 +193,9 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             string kind;
 
-            if (symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.RangeVariable)
+            if (symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Label)
             {
                 kind = "local";
             }
