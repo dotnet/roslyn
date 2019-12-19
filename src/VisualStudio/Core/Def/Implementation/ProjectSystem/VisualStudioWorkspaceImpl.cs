@@ -417,42 +417,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            foreach (var changedDocId in changedDocumentIds)
+            var changedSymbols = RenameSymbolAnnotation.GatherChangedSymbolsInDocumentsAsync(changedDocumentIds, CurrentSolution, oldSolution, cancellationToken).WaitAndGetResult(cancellationToken);
+            foreach (var changedSymbolPair in changedSymbols)
             {
-                var newDocument = CurrentSolution.GetDocument(changedDocId);
+                var oldSymbol = changedSymbolPair.Key;
+                var newSymbol = changedSymbolPair.Value;
 
-                // Documents without syntax tree won't have the annotations attached
-                if (newDocument is null || !(newDocument.SupportsSyntaxTree && newDocument.SupportsSemanticModel))
+                foreach (var refactorNotifyService in _refactorNotifyServices)
                 {
-                    continue;
-                }
-
-                var syntaxRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
-                var symbolRenameNodes = syntaxRoot.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind);
-
-                foreach (var node in symbolRenameNodes)
-                {
-                    foreach (var annotation in node.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind))
+                    if (refactorNotifyService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false))
                     {
-                        var oldDocument = oldSolution.GetDocument(changedDocId);
-                        if (oldDocument is null)
-                        {
-                            continue;
-                        }
-
-                        var newSemanticModel = newDocument.GetSemanticModelAsync().WaitAndGetResult(cancellationToken);
-                        var currentSemanticModel = oldDocument.GetSemanticModelAsync().WaitAndGetResult(cancellationToken);
-
-                        var oldSymbol = RenameSymbolAnnotation.ResolveSymbol(annotation, currentSemanticModel.Compilation);
-                        var newSymbol = newSemanticModel.GetDeclaredSymbol(node);
-
-                        foreach (var refactorService in _refactorNotifyServices)
-                        {
-                            if (refactorService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false))
-                            {
-                                refactorService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false);
-                            }
-                        }
+                        refactorNotifyService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false);
                     }
                 }
             }

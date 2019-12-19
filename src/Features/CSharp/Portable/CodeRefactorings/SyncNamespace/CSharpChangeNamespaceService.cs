@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -235,7 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         protected override CompilationUnitSyntax ChangeNamespaceDeclaration(
             CompilationUnitSyntax root,
             ImmutableArray<string> declaredNamespaceParts,
-            ImmutableArray<string> targetNamespaceParts)
+            ImmutableArray<string> targetNamespaceParts,
+            SemanticModel? semanticModel)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
             var container = root.GetAnnotatedNodes(ContainerAnnotation).Single();
@@ -244,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             {
                 // Move everything from global namespace to a namespace declaration
                 Debug.Assert(IsGlobalNamespace(declaredNamespaceParts));
-                return MoveMembersFromGlobalToNamespace(compilationUnit, targetNamespaceParts);
+                return MoveMembersFromGlobalToNamespace(compilationUnit, targetNamespaceParts, semanticModel);
             }
 
             if (container is NamespaceDeclarationSyntax namespaceDecl)
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 eofToken);
         }
 
-        private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts)
+        private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts, SemanticModel? semanticModel)
         {
             Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
 
@@ -322,9 +324,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                         .WithAdditionalAnnotations(WarningAnnotation),
                 externs: default,
                 usings: default,
-                members: compilationUnit.Members);
+                members: AnnotateMembers(compilationUnit.Members, semanticModel));
             return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
                 .WithoutAnnotations(ContainerAnnotation);   // Make sure to remove the annotation we added
+        }
+
+        private static SyntaxList<MemberDeclarationSyntax> AnnotateMembers(SyntaxList<MemberDeclarationSyntax> members, SemanticModel? semanticModel)
+        {
+            var annotatedSyntaxList = new SyntaxList<MemberDeclarationSyntax>();
+            foreach (var member in members)
+            {
+                var symbol = semanticModel?.GetDeclaredSymbol(member);
+                var annotatedMember = symbol is null
+                    ? member
+                    : member.WithAdditionalAnnotations(RenameSymbolAnnotation.Create(symbol));
+
+                annotatedSyntaxList.Add(annotatedMember);
+            }
+
+            return annotatedSyntaxList;
         }
 
         /// <summary>

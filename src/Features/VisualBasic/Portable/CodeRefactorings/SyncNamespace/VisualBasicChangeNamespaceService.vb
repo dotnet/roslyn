@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.
-        Protected Overrides Function ChangeNamespaceDeclaration(root As CompilationUnitSyntax, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String)) As CompilationUnitSyntax
+        Protected Overrides Function ChangeNamespaceDeclaration(root As CompilationUnitSyntax, declaredNamespaceParts As ImmutableArray(Of String), targetNamespaceParts As ImmutableArray(Of String), semanticModel As SemanticModel) As CompilationUnitSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 

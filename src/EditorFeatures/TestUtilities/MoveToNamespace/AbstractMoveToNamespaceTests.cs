@@ -6,9 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
+using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
@@ -61,34 +63,53 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                     else
                     {
                         Assert.NotEmpty(operations);
-                        //var renamedCodeActionsOperations = operations
-                        //    .Where(operation => operation is TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)
-                        //    .Cast<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>()
-                        //    .ToImmutableArray();
-
-                        //Assert.NotEmpty(renamedCodeActionsOperations);
-
-                        //Assert.NotNull(expectedSymbolChanges);
-
-                        //var checkedCodeActions = new HashSet<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>(renamedCodeActionsOperations.Length);
-                        //foreach (var kvp in expectedSymbolChanges)
-                        //{
-                        //    var originalName = kvp.Key;
-                        //    var newName = kvp.Value;
-
-                        //    var codeAction = renamedCodeActionsOperations.FirstOrDefault(a => a._symbol.ToDisplayString() == originalName);
-                        //    Assert.Equal(newName, codeAction?._newName);
-                        //    Assert.False(checkedCodeActions.Contains(codeAction));
-
-                        //    checkedCodeActions.Add(codeAction);
-                        //}
                     }
 
                 }
 
                 if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))
                 {
+                    var refactorNotify = workspace.GetService<IRefactorNotifyService>() as TestRefactorNotify;
+
+                    var expectedRenames = expectedSymbolChanges.Select(kvp => new RenameTracking()
+                    {
+                        Original = kvp.Key,
+                        New = kvp.Value,
+                        OnBeforeCalled = false,
+                        OnAfterCalled = false
+                    });
+
+                    TestRefactorNotify.SymbolRenamedEventHandler beforeRename = (args) =>
+                    {
+                        var expectedRenameTracking = expectedRenames.First(r => r.New == args.NewName);
+                        expectedRenameTracking.OnBeforeCalled = true;
+                    };
+
+                    TestRefactorNotify.SymbolRenamedEventHandler afterRename = (args) =>
+                    {
+                        var expectedRenameTracking = expectedRenames.First(r => r.New == args.NewName);
+                        expectedRenameTracking.OnAfterCalled = true;
+                    };
+
+                    if (refactorNotify is object)
+                    {
+                        refactorNotify.OnBeforeRename += beforeRename;
+                        refactorNotify.OnAfterRename += afterRename;
+                    }
+
                     await TestInRegularAndScriptAsync(markup, expectedMarkup);
+
+                    if (refactorNotify is object)
+                    {
+                        refactorNotify.OnBeforeRename -= beforeRename;
+                        refactorNotify.OnAfterRename -= afterRename;
+                    }
+
+                    foreach (var expectedRename in expectedRenames)
+                    {
+                        Assert.True(expectedRename.OnBeforeCalled, $"{expectedRename.Original} => {expectedRename.New} :: on before was not called");
+                        Assert.True(expectedRename.OnAfterCalled, $"{expectedRename.Original} => {expectedRename.New} :: on after was not called");
+                    }
                 }
             }
             else
@@ -113,5 +134,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         }
 
         public Task TestCancelledOption(string markup) => TestMoveToNamespaceAsync(markup, expectedMarkup: markup, optionCancelled: true);
+
+        private struct RenameTracking
+        {
+            public string Original { get; set; }
+            public string New { get; set; }
+            public bool OnBeforeCalled { get; set; }
+            public bool OnAfterCalled { get; set; }
+        }
     }
 }
