@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);
 
             // Process blocks in reverse order so we rewrite from inside-to-outside with nested
-            // usings.d
+            // usings.
             var root = editor.OriginalRoot;
             var updatedRoot = root.ReplaceNodes(
                 blocks.OrderByDescending(b => b.SpanStart),
