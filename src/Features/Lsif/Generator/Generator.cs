@@ -155,6 +155,13 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                 return false;
             }
 
+            // TODO: some symbols for things some things in crefs don't have a ContainingAssembly. We'll skip those for now but do
+            // want those to work.
+            if (symbol.Kind != SymbolKind.Namespace && symbol.ContainingAssembly == null)
+            {
+                return false;
+            }
+
             // Skip some type of symbols that don't really make sense
             if (symbol.Kind == SymbolKind.ArrayType ||
                 symbol.Kind == SymbolKind.Discard ||
