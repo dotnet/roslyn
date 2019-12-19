@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
             protected abstract SyntaxNode GetNodeToReplace();
 
-            protected abstract SyntaxTriviaList CreateSplitComment();
+            protected abstract SyntaxTriviaList CreateSplitComment(string indentString);
 
             public int? TrySplit()
             {
@@ -90,18 +90,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
             private (Document document, int caretPosition) SplitComment()
             {
-                var splitComment = CreateSplitComment();
-
+                var indentString = GetIndentString(Root);
                 var nodeToRemove = GetNodeToReplace();
+
+                var splitComment = CreateSplitComment(indentString);
                 var commentToReplace = nodeToRemove.FindTrivia(CursorPosition);
                 var newRoot = Root.ReplaceTrivia(commentToReplace, splitComment);
 
-                var indentString = GetIndentString(newRoot);
-                var newSplitComment = SyntaxFactory.Comment(SyntaxFactory.ElasticWhitespace(indentString).ToFullString() + splitComment.ToFullString());
-                var newRoot2 = newRoot.ReplaceTrivia(splitComment.First(), newSplitComment);
-                var newDocument2 = Document.WithSyntaxRoot(newRoot2);
+                var newLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber + 1;
+                var newPosition = SourceText.Lines[newLineNumber].GetLastNonWhitespacePosition();
+                var newDocument = Document.WithSyntaxRoot(newRoot);
 
-                return (newDocument2, newSplitComment.Span.Start + indentString.Length + CommentTokenLength());
+                return (newDocument, newPosition.GetValueOrDefault());
             }
 
             private string GetIndentString(SyntaxNode newRoot)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
                 var desiredIndentation = indentationService.GetIndentation(
-                    newDocument, originalLineNumber + 1, _indentStyle, CancellationToken);
+                    newDocument, originalLineNumber, _indentStyle, CancellationToken);
 
                 var newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken);
                 var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);

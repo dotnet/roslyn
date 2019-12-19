@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
             protected override SyntaxNode GetNodeToReplace() => _trivia.Token.Parent;
 
-            protected override SyntaxTriviaList CreateSplitComment()
+            protected override SyntaxTriviaList CreateSplitComment(string indentString)
             {
                 var prefix = SourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, CursorPosition)).ToString();
                 var suffix = SourceText.GetSubText(TextSpan.FromBounds(CursorPosition, _trivia.Span.End)).ToString();
 
                 var firstTrivia = SyntaxFactory.Comment(prefix);
                 var secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
-                var thirdTrivia = SyntaxFactory.Comment(CommentCharacter + suffix);
+                var thirdTrivia = SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
 
                 return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
             }

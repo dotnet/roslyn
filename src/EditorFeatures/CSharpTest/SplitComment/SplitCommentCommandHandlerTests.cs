@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     public static void Main(string[] args) 
     { 
         // Test 
-//Comment
+        //Comment
     }
 }");
         }
