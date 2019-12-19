@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.MakeClassAbstract
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
-                var memberDeclaration = diagnostics[i].Location?.FindNode(cancellationToken);
-
-                if (IsValidRefactoringContext(memberDeclaration, out var classDeclaration))
+                if (IsValidRefactoringContext(diagnostics[i].Location?.FindNode(cancellationToken), out var classDeclaration))
                 {
                     editor.ReplaceNode(classDeclaration,
                         (currentClassDeclaration, generator) => generator.WithModifiers(currentClassDeclaration, DeclarationModifiers.Abstract));
