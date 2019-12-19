@@ -71,7 +71,7 @@ namespace Roslyn.Test.Utilities.Remote
             _remotableDataRpc = remotableDataRpc;
 
             _endPoint = new RemoteEndPoint(stream, inprocServices.Logger, incomingCallTarget: this);
-            _endPoint.Disconnected += OnRpcDisconnected;
+            _endPoint.Disconnected += OnDisconnected;
             _endPoint.StartListening();
         }
 
@@ -106,14 +106,14 @@ namespace Roslyn.Test.Utilities.Remote
         protected override void Dispose(bool disposing)
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
-            _endPoint.Disconnected -= OnRpcDisconnected;
+            _endPoint.Disconnected -= OnDisconnected;
             _endPoint.Dispose();
             _remotableDataRpc.Dispose();
 
             base.Dispose(disposing);
         }
 
-        private void OnRpcDisconnected(JsonRpcDisconnectedEventArgs e)
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             Dispose();
         }

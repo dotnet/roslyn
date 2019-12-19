@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
@@ -108,25 +109,13 @@ namespace Microsoft.CodeAnalysis.Remote
             AssetStorage = (AssetStorage)serviceProvider.GetService(typeof(AssetStorage)) ?? AssetStorage.Default;
 
             Logger = (TraceSource)serviceProvider.GetService(typeof(TraceSource));
-            Logger.TraceInformation($"{DebugInstanceString}: Service instance created");
+            Log(TraceEventType.Information, "Service instance created");
 
             // invoke all calls incoming over the stream on this service instance:
             EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
         }
 
-        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
-
         protected bool IsDisposed => EndPoint.IsDisposed;
-
-        protected void StartService()
-        {
-            EndPoint.StartListening();
-        }
-
-        protected void LogError(string message)
-        {
-            Log(TraceEventType.Error, message);
-        }
 
         public void Dispose()
         {
@@ -140,15 +129,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
             EndPoint.Dispose();
 
-            Logger.TraceInformation($"{DebugInstanceString} Service instance disposed");
+            Log(TraceEventType.Information, "Service instance disposed");
         }
+
+        protected void StartService()
+        {
+            EndPoint.StartListening();
+        }
+
+        protected string DebugInstanceString => $"{GetType()} ({InstanceId})";
 
         protected void Log(TraceEventType errorType, string message)
-        {
-            Logger.TraceEvent(errorType, 0, $"{DebugInstanceString} : " + message);
-        }
+            => Logger.TraceEvent(errorType, 0, $"{DebugInstanceString}: {message}");
 
-        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
+        protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -156,13 +150,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken)
+        protected async Task RunServiceAsync(Func<Task> callAsync, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -170,13 +164,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await callAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken)
+        protected T RunService<T>(Func<T> call, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -184,13 +178,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return call();
             }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
             {
                 throw ExceptionUtilities.Unreachable;
             }
         }
 
-        protected void RunService(Action call, CancellationToken cancellationToken)
+        protected void RunService(Action call, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
             AssetStorage.UpdateLastActivityTime();
 
@@ -198,63 +192,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 call();
             }
-            catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (EndPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken, callerName))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private bool LogUnlessCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                LogException(ex);
-            }
-
-            return false;
-        }
-
-        protected void LogException(Exception ex)
-        {
-            LogError("Exception: " + ex.ToString());
-
-            LogExtraInformation(ex);
-
-            var callStack = new StackTrace().ToString();
-            LogError("From: " + callStack);
-        }
-
-        private void LogExtraInformation(Exception ex)
-        {
-            if (ex == null)
-            {
-                return;
-            }
-
-            if (ex is ReflectionTypeLoadException reflection)
-            {
-                foreach (var loaderException in reflection.LoaderExceptions)
-                {
-                    LogError("LoaderException: " + loaderException.ToString());
-                    LogExtraInformation(loaderException);
-                }
-            }
-
-            if (ex is FileNotFoundException file)
-            {
-                LogError("FusionLog: " + file.FusionLog);
-            }
-
-            if (ex is AggregateException agg)
-            {
-                foreach (var innerException in agg.InnerExceptions)
-                {
-                    LogExtraInformation(innerException);
-                }
-            }
-            else
-            {
-                LogExtraInformation(ex.InnerException);
             }
         }
     }

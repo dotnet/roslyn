@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (existing != null && existing != host)
                 {
-                    LogError($"{host} is given for {existing}");
+                    Log(TraceEventType.Error, $"{host} is given for {existing}");
                 }
 
                 // log telemetry that service hub started

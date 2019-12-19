@@ -43,21 +43,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _endPoint = new RemoteEndPoint(snapshotServiceStream, logger, incomingCallTarget: this);
             _endPoint.UnexpectedExceptionThrown += UnexpectedExceptionThrown;
-            _endPoint.Disconnected += Disconnected;
+            _endPoint.Disconnected += OnDisconnected;
             _endPoint.StartListening();
         }
 
         private void UnexpectedExceptionThrown(Exception exception)
             => RemoteHostCrashInfoBar.ShowInfoBar(_workspace, exception);
 
-        private void Disconnected(JsonRpcDisconnectedEventArgs e)
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
             _shutdownCancellationSource.Cancel();
         }
 
         public void Dispose()
         {
-            _endPoint.Disconnected -= Disconnected;
+            _endPoint.Disconnected -= OnDisconnected;
             _endPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
             _endPoint.Dispose();
         }
@@ -69,60 +69,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                using (var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken))
+                using var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken);
+
                 using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, combinedCancellationToken.Token))
-                using (var stream = await DirectStream.GetAsync(streamName, combinedCancellationToken.Token).ConfigureAwait(false))
                 {
-                    using (var writer = new ObjectWriter(stream, combinedCancellationToken.Token))
-                    {
-                        writer.WriteInt32(scopeId);
-
-                        await WriteAssetAsync(writer, scopeId, checksums, combinedCancellationToken.Token).ConfigureAwait(false);
-                    }
-
-                    await stream.FlushAsync(combinedCancellationToken.Token).ConfigureAwait(false);
+                    await ClientDirectStream.WriteDataAsync(
+                        streamName,
+                        (scopeId, checksums),
+                        (writer, data, ct) => WriteAssetAsync(writer, data.scopeId, data.checksums, ct),
+                        combinedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
-            catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (_endPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken))
             {
-                // only expected exception will be catched. otherwise, NFW and let it propagate
-                Debug.Assert(cancellationToken.IsCancellationRequested || ex is IOException);
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
         /// <summary>
         /// Called remotely: <see cref="WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync"/>.
         /// </summary>
-        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken _)
+        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
         {
-            return Task.FromResult(_workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
-        }
-
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
-        {
-            if (cancellationToken.IsCancellationRequested)
+            try
             {
-                // any exception can happen if things are cancelled.
-                return true;
+                return Task.FromResult(_workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
             }
-
-            if (ex is IOException)
+            catch (Exception ex) when (_endPoint.ReportAndPropagateUnexpectedException(ex, cancellationToken))
             {
-                // direct connection can be disconnected before cancellation token from remote host have
-                // passed to us
-                return true;
+                throw ExceptionUtilities.Unreachable;
             }
-
-            // log the exception
-            _endPoint.LogError("unexpected exception from RequestAsset: " + ex.ToString());
-
-            // report NFW
-            ex.ReportServiceHubNFW("RequestAssetFailed");
-            return false;
         }
 
         private async Task WriteAssetAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
+            writer.WriteInt32(scopeId);
+
             // special case
             if (checksums.Length == 0)
             {

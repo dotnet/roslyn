@@ -6,14 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.Telemetry;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using System.Linq;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed class RemoteEndPoint : IDisposable
     {
+        const string UnexpectedExceptionLogMessage = "Unexpected exception from JSON-RPC";
+
         private static readonly JsonRpcTargetOptions s_jsonRpcTargetOptions = new JsonRpcTargetOptions()
         {
             // Do not allow JSON-RPC to automatically subscribe to events and remote their calls.
@@ -99,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
-            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
@@ -107,6 +109,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
+                // Remote call may fail with different exception even when our cancellation token is signaled
+                // (e.g. on shutdown if the connection is dropped):
+                cancellationToken.ThrowIfCancellationRequested();
+
                 throw CreateSoftCrashException(ex, cancellationToken);
             }
         }
@@ -114,7 +120,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
-            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
@@ -122,6 +127,10 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
+                // Remote call may fail with different exception even when our cancellation token is signaled
+                // (e.g. on shutdown if the connection is dropped):
+                cancellationToken.ThrowIfCancellationRequested();
+
                 throw CreateSoftCrashException(ex, cancellationToken);
             }
         }
@@ -129,90 +138,45 @@ namespace Microsoft.CodeAnalysis.Remote
         public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(_startedListening);
-            cancellationToken.ThrowIfCancellationRequested();
+
+            using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var stream = new ServerDirectStream();
 
             try
             {
-                using var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                using var stream = new ServerDirectStream();
+                // send request to asset source
+                var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
-                Task? task = null;
-                try
-                {
-                    // send request to asset source
-                    task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
+                // if invoke throws an exception, make sure we raise cancellation.
+                RaiseCancellationIfInvokeFailed(task, linkedCancellationSource, cancellationToken);
 
-                    // if invoke throws an exception, make sure we raise cancellation.
-                    RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
+                // wait for asset source to respond
+                await stream.WaitForDirectConnectionAsync(linkedCancellationSource.Token).ConfigureAwait(false);
 
-                    // wait for asset source to respond
-                    await stream.WaitForDirectConnectionAsync(mergedCancellation.Token).ConfigureAwait(false);
+                // run user task with direct stream
+                var result = await directStreamReader(stream, linkedCancellationSource.Token).ConfigureAwait(false);
 
-                    // run user task with direct stream
-                    var result = await directStreamReader(stream, mergedCancellation.Token).ConfigureAwait(false);
+                // wait task to finish
+                await task.ConfigureAwait(false);
 
-                    // wait task to finish
-                    await task.ConfigureAwait(false);
-
-                    return result;
-                }
-                catch (Exception ex) when (ReportUnlessCanceled(ex, mergedCancellation.Token, cancellationToken))
-                {
-                    // important to use cancelationToken here rather than mergedCancellationToken.
-                    // there is a slight delay when merged cancellation token will be notified once cancellation token
-                    // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
-                    // actually care is the cancellation token given in, not the merged cancellation token.
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // record reason why task got aborted. use NFW here since we don't want to
-                    // crash VS on explicitly killing OOP.
-                    (task?.Exception ?? ex).ReportServiceHubNFW("JsonRpc Invoke Failed");
-
-                    throw;
-                }
+                return result;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ReportUnlessCanceled(ex, linkedCancellationSource.Token, cancellationToken))
             {
+                // Remote call may fail with different exception even when our cancellation token is signaled
+                // (e.g. on shutdown if the connection is dropped).
+                // It's important to use cancelationToken here rather than linked token as there is a slight 
+                // delay in between linked token being signaled and cancellation token being signaled.
+                cancellationToken.ThrowIfCancellationRequested();
+
                 throw CreateSoftCrashException(ex, cancellationToken);
             }
         }
 
-
-#pragma warning disable CA1068 // this method accepts 2 cancellation tokens
-        private static bool ReportUnlessCanceled(Exception ex, CancellationToken remoteToken, CancellationToken hostToken)
-#pragma warning restore CA1068 // CancellationToken parameters must come last
-        {
-            // check whether we are in cancellation mode
-
-            // things are either cancelled by us (hostToken) or cancelled by OOP (remoteToken). 
-            // "cancelled by us" means operation user invoked is cancelled by another user action such as explicit cancel, or typing.
-            // "cancelled by OOP" means operation user invoked is cancelled due to issue on OOP such as user killed OOP process.
-
-            if (hostToken.IsCancellationRequested)
-            {
-                // we are under our own cancellation, we don't care what the exception is.
-                // due to the way we do cancellation (forcefully closing connection in the middle of reading/writing)
-                // various exceptions can be thrown. for example, if we close our own named pipe stream in the middle of
-                // object reader/writer using it, we could get invalid operation exception or invalid cast exception.
-                return true;
-            }
-
-            if (remoteToken.IsCancellationRequested)
-            {
-                // now we allow connection to be closed by users by killing remote host process.
-                // in those case, it will be converted to remote token cancellation. we accept that as known
-                // exception, and allow us to not crash
-                return true;
-            }
-
-            // unexpected exception case. crash VS
-            return FatalError.Report(ex);
-        }
-
-        private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource mergedCancellation, CancellationToken cancellationToken)
+        private static void RaiseCancellationIfInvokeFailed(Task task, CancellationTokenSource linkedCancellationSource, CancellationToken cancellationToken)
         {
             // if invoke throws an exception, make sure we raise cancellation
-            var dummy = task.ContinueWith(p =>
+            _ = task.ContinueWith(p =>
             {
                 try
                 {
@@ -220,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // just raise cancellation. 
                     // otherwise, stream.WaitForDirectConnectionAsync can stuck there forever since
                     // cancellation from user won't be raised
-                    mergedCancellation.Cancel();
+                    linkedCancellationSource.Cancel();
                 }
                 catch (ObjectDisposedException)
                 {
@@ -229,39 +193,120 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        private bool ReportUnlessCanceled(Exception ex, CancellationToken linkedCancellationToken, CancellationToken cancellationToken)
         {
+            // check whether we are in cancellation mode
+
+            // things are either cancelled by us (cancellationToken) or cancelled by OOP (linkedCancellationToken). 
+            // "cancelled by us" means operation user invoked is cancelled by another user action such as explicit cancel, or typing.
+            // "cancelled by OOP" means operation user invoked is cancelled due to issue on OOP such as user killed OOP process.
+
             if (cancellationToken.IsCancellationRequested)
             {
-                // let cancellation exception thru if they are associated with our cancellation token
-                return false;
+                // we are under our own cancellation, we don't care what the exception is.
+                // due to the way we do cancellation (forcefully closing connection in the middle of reading/writing)
+                // various exceptions can be thrown. for example, if we close our own named pipe stream in the middle of
+                // object reader/writer using it, we could get invalid operation exception or invalid cast exception.
+                return true;
             }
 
-            _logger.TraceEvent(TraceEventType.Error, 1, ex.ToString());
+            if (linkedCancellationToken.IsCancellationRequested)
+            {
+                // Connection can be closed when the remote process is killed.
+                // That will manifest as remote token cancellation.
+                return true;
+            }
 
+            ReportNonFatalWatson(ex, UnexpectedExceptionLogMessage);
+            return true;
+        }
+
+        private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                ReportNonFatalWatson(ex, UnexpectedExceptionLogMessage);
+            }
+
+            return true;
+        }
+
+        private void ReportNonFatalWatson(Exception ex, string message)
+        {
             s_debuggingLastDisconnectReason = _debuggingLastDisconnectReason;
             s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
 
-            // send NFW to figure out why this is happening
-            ex.ReportServiceHubNFW("RemoteHost Failed");
+            ReportNonFatalWatsonWithServiceHubLogs(ex, message);
 
             GC.KeepAlive(_debuggingLastDisconnectReason);
             GC.KeepAlive(_debuggingLastDisconnectCallstack);
+        }
 
-            // we return true here to catch all exceptions from servicehub.
-            // we record them in NFW and convert that to our soft crash exception.
-            return true;
+        public static void ReportNonFatalWatsonWithServiceHubLogs(Exception ex, string message)
+        {
+            WatsonReporter.Report(message, ex, AddServiceHubLogFiles, WatsonSeverity.Critical);
+        }
+
+        /// <summary>
+        /// Use in an exception filter on the receiving end of a remote call to report a non-fatal Watson for the exception thrown by the method being called remotely.
+        /// </summary>
+        public bool ReportAndPropagateUnexpectedException(Exception ex, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                var logMessage = "Unexpected exception from " + callerName;
+                LogError($"{logMessage}: {ex}");
+                ReportNonFatalWatson(ex, logMessage);
+            }
+
+            return false;
+        }
+
+        private static int AddServiceHubLogFiles(IFaultUtility faultUtility)
+        {
+            // 0 means send watson, otherwise, cancel watson
+            // we always send watson since dump itself can have valuable data
+            var exitCode = 0;
+
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                if (!Directory.Exists(logPath))
+                {
+                    return exitCode;
+                }
+
+                // attach all log files that are modified less than 1 day before.
+                var now = DateTime.UtcNow;
+                var oneDay = TimeSpan.FromDays(1);
+
+                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                {
+                    var lastWrite = File.GetLastWriteTimeUtc(file);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    faultUtility.AddFile(file);
+                }
+            }
+            catch (Exception)
+            {
+                // it is okay to fail on reporting watson
+            }
+
+            return exitCode;
         }
 
         private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)
         {
-            // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
+            // TODO: revisit https://github.com/dotnet/roslyn/issues/40476
+            // We are getting unexpected exception from service hub. Rather than doing hard crash on unexpected exception,
             // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
             // their works and close VS"
 
-            cancellationToken.ThrowIfCancellationRequested();
-
-            LogError($"exception: {ex.ToString()}");
+            LogError($"{UnexpectedExceptionLogMessage}: {ex}");
 
             UnexpectedExceptionThrown?.Invoke(ex);
 
@@ -269,10 +314,10 @@ namespace Microsoft.CodeAnalysis.Remote
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
 
             // throw soft crash exception
-            return new SoftCrashException("remote host call failed", ex, cancellationToken);
+            return new SoftCrashException(UnexpectedExceptionLogMessage, ex, cancellationToken);
         }
 
-        public void LogError(string message)
+        private void LogError(string message)
         {
             _logger.TraceEvent(TraceEventType.Error, 1, message);
         }
@@ -282,10 +327,10 @@ namespace Microsoft.CodeAnalysis.Remote
             if (e != null)
             {
                 LogError($@"Stream disconnected unexpectedly: 
-{nameof(e.Description)}: {e.Description}
-{nameof(e.Reason)}: {e.Reason}
-{nameof(e.LastMessage)}: {e.LastMessage}
-{nameof(e.Exception)}: {e.Exception?.ToString()}");
+Description: {e.Description}
+Reason: {e.Reason}
+LastMessage: {e.LastMessage}
+Exception: {e.Exception?.ToString()}");
             }
 
             if (callstack != null)
@@ -294,6 +339,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// Handle disconnection event, so that we detect disconnection as soon as it happens
+        /// without waiting for the next failing remote call. The remote call may not happen 
+        /// if there is an issue with the connection. E.g. the client end point might not receive
+        /// a callback from server, or the server end point might not receive a call from client.
+        /// </summary>
         private void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             _debuggingLastDisconnectReason = e;

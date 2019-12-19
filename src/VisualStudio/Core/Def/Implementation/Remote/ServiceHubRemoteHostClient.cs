@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 bool success = false;
                 try
                 {
-                    // make sure connection is done right
+                    // initialize the remote service
                     _ = await client._endPoint.InvokeAsync<string>(
                         nameof(IRemoteHostService.Connect),
                         new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() },
@@ -119,40 +119,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             HostGroup hostGroup,
             CancellationToken cancellationToken)
         {
-            Exception unexpectedException;
+            const string LogMessage = "Unexpected exception from HubClient";
 
             var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
             try
             {
                 return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (e is ConnectionLostException || e is RemoteInvocationException re && re.InnerException is InvalidOperationException)
+            catch (Exception e) when (ReportNonFatalWatson(e, cancellationToken))
             {
-                // ServiceHub may throw these exceptions if it is called after VS started to shut down.
-                // Cancel the operation and do not report an error in these cases.
+                // TODO: Once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1040692.
+                // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
+                // even if our cancellation token is signaled. Cancel the operation and do not report an error in these cases.
                 // 
-                // TODO: Once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1040692 is implemented,
-                // i.e. the ServiceHub does not throw these exceptions when cancellation token is signaled,
+                // If ServiceHub did not throw non-cancellation exceptions when cancellation token is signaled,
                 // we can assume that these exceptions indicate a failure and should be reported to the user.
-                // That's because we expect the cancellation to be requested on the token before HubClient gets disposed.
                 cancellationToken.ThrowIfCancellationRequested();
 
-                unexpectedException = e;
+                client.Logger.TraceEvent(TraceEventType.Error, 1, $"{LogMessage}: {e}");
+
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, e);
+
+                // TODO: Propagate the original exception (see https://github.com/dotnet/roslyn/issues/40476)
+                throw new SoftCrashException(LogMessage, e, cancellationToken);
             }
-            catch (Exception e) when (!(e is OperationCanceledException))
+
+            static bool ReportNonFatalWatson(Exception e, CancellationToken cancellationToken)
             {
-                unexpectedException = e;
+                // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
+                // even if our cancellation token is signaled. Do not report Watson in such cases to reduce noice.
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    RemoteEndPoint.ReportNonFatalWatsonWithServiceHubLogs(e, LogMessage);
+                }
+
+                return true;
             }
-
-            throw SoftCrash(workspace, client, unexpectedException, "RequestServiceAsync Failed", cancellationToken);
-        }
-
-        private static SoftCrashException SoftCrash(Workspace workspace, HubClient client, Exception unexpectedException, string message, CancellationToken cancellationToken)
-        {
-            client.Logger.TraceEvent(TraceEventType.Error, 1, unexpectedException.ToString());
-            unexpectedException.ReportServiceHubNFW(message);
-            RemoteHostCrashInfoBar.ShowInfoBar(workspace, unexpectedException);
-            return new SoftCrashException(message, unexpectedException, cancellationToken);
         }
 
         public override string ClientId => _connectionManager.HostGroup.Id;

@@ -33,56 +33,34 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
             {
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
+                return await _owner.RunServiceAsync(() =>
                 {
-                    // Surround this with a try/catch to report exceptions because we want to report any crashes here.
-                    try
+                    using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                     {
-                        return await _owner.RunServiceAsync(() =>
-                        {
-                            return _owner.EndPoint.InvokeAsync(
-                                WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                                new object[] { scopeId, checksums.ToArray() },
-                                (s, c) => Task.FromResult(ReadAssets(s, scopeId, checksums, serializerService, c)),
-                                cancellationToken);
-
-                        }, cancellationToken).ConfigureAwait(false);
+                        return _owner.EndPoint.InvokeAsync(
+                            WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                            new object[] { scopeId, checksums.ToArray() },
+                            (s, c) => Task.FromResult(ReadAssets(s, scopeId, checksums, serializerService, c)),
+                            cancellationToken);
                     }
-                    catch (Exception ex) when (ReportUnlessCanceled(ex))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                }
+                }, cancellationToken).ConfigureAwait(false);
             }
 
             public override async Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
             {
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_IsExperimentEnabledAsync, experimentName, cancellationToken))
+                return await _owner.RunServiceAsync(() =>
                 {
-                    return await _owner.RunServiceAsync(() =>
+                    using (RoslynLogger.LogBlock(FunctionId.SnapshotService_IsExperimentEnabledAsync, experimentName, cancellationToken))
                     {
                         return _owner.EndPoint.InvokeAsync<bool>(
                             WellKnownServiceHubServices.AssetService_IsExperimentEnabledAsync,
                             new object[] { experimentName },
                             cancellationToken);
-
-                    }, cancellationToken).ConfigureAwait(false);
-                }
+                    }
+                }, cancellationToken).ConfigureAwait(false);
             }
 
-            private bool ReportUnlessCanceled(Exception ex)
-            {
-                // TODO: check !cancellationToken.IsCancellationRequeste instead (https://github.com/dotnet/roslyn/issues/39723)
-                if (!(ex is OperationCanceledException) && !(ex is TaskCanceledException) && _owner.IsDisposed)
-                {
-                    // kill OOP if snapshot service got disconnected due to this exception.
-                    FailFast.OnFatalException(ex);
-                }
-
-                return false;
-            }
-
-            private IList<(Checksum, object)> ReadAssets(
+            private static IList<(Checksum, object)> ReadAssets(
                 Stream stream,
                 int scopeId,
                 ISet<Checksum> checksums,
@@ -111,9 +89,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                     // in service hub, cancellation means simply closed stream
-                    var @object = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+                    var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
 
-                    results.Add((responseChecksum, @object));
+                    results.Add((responseChecksum, result));
                 }
 
                 return results;
