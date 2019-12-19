@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a diagnostic, such as a compiler error or a warning, along with the location where it occurred.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public abstract partial class Diagnostic : IEquatable<Diagnostic>, IFormattable
+    public abstract partial class Diagnostic : IEquatable<Diagnostic?>, IFormattable
     {
         internal const string CompilerDiagnosticCategory = "Compiler";
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location location,
-            params object[] messageArgs)
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, null, null, messageArgs);
         }
@@ -54,8 +56,8 @@ namespace Microsoft.CodeAnalysis
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location location,
-            ImmutableDictionary<string, string> properties,
-            params object[] messageArgs)
+            ImmutableDictionary<string, string>? properties,
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, null, properties, messageArgs);
         }
@@ -75,8 +77,8 @@ namespace Microsoft.CodeAnalysis
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location location,
-            IEnumerable<Location> additionalLocations,
-            params object[] messageArgs)
+            IEnumerable<Location>? additionalLocations,
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, additionalLocations, properties: null, messageArgs: messageArgs);
         }
@@ -101,9 +103,9 @@ namespace Microsoft.CodeAnalysis
         public static Diagnostic Create(
             DiagnosticDescriptor descriptor,
             Location location,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
-            params object[] messageArgs)
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string>? properties,
+            params object?[] messageArgs)
         {
             return Create(descriptor, location, effectiveSeverity: descriptor.DefaultSeverity, additionalLocations, properties, messageArgs);
         }
@@ -130,9 +132,9 @@ namespace Microsoft.CodeAnalysis
             DiagnosticDescriptor descriptor,
             Location location,
             DiagnosticSeverity effectiveSeverity,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
-            params object[] messageArgs)
+            IEnumerable<Location>? additionalLocations,
+            ImmutableDictionary<string, string>? properties,
+            params object?[] messageArgs)
         {
             if (descriptor == null)
             {
@@ -187,13 +189,13 @@ namespace Microsoft.CodeAnalysis
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
-            LocalizableString title = null,
-            LocalizableString description = null,
-            string helpLink = null,
-            Location location = null,
-            IEnumerable<Location> additionalLocations = null,
-            IEnumerable<string> customTags = null,
-            ImmutableDictionary<string, string> properties = null)
+            LocalizableString? title = null,
+            LocalizableString? description = null,
+            string? helpLink = null,
+            Location? location = null,
+            IEnumerable<Location>? additionalLocations = null,
+            IEnumerable<string>? customTags = null,
+            ImmutableDictionary<string, string>? properties = null)
         {
             return Create(id, category, message, severity, defaultSeverity, isEnabledByDefault, warningLevel, false,
                 title, description, helpLink, location, additionalLocations, customTags, properties);
@@ -238,13 +240,13 @@ namespace Microsoft.CodeAnalysis
             bool isEnabledByDefault,
             int warningLevel,
             bool isSuppressed,
-            LocalizableString title = null,
-            LocalizableString description = null,
-            string helpLink = null,
-            Location location = null,
-            IEnumerable<Location> additionalLocations = null,
-            IEnumerable<string> customTags = null,
-            ImmutableDictionary<string, string> properties = null)
+            LocalizableString? title = null,
+            LocalizableString? description = null,
+            string? helpLink = null,
+            Location? location = null,
+            IEnumerable<Location>? additionalLocations = null,
+            IEnumerable<string>? customTags = null,
+            ImmutableDictionary<string, string>? properties = null)
         {
             if (id == null)
             {
@@ -298,7 +300,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the culture specific text of the message.
         /// </summary>
-        public abstract string GetMessage(IFormatProvider formatProvider = null);
+        public abstract string GetMessage(IFormatProvider? formatProvider = null);
 
         /// <summary>
         /// Gets the default <see cref="DiagnosticSeverity"/> of the diagnostic's <see cref="DiagnosticDescriptor"/>.
@@ -332,14 +334,14 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="SuppressionInfo"/> for suppressed diagnostics, i.e. <see cref="IsSuppressed"/> = true.
         /// Otherwise, returns null.
         /// </summary>
-        public SuppressionInfo GetSuppressionInfo(Compilation compilation)
+        public SuppressionInfo? GetSuppressionInfo(Compilation compilation)
         {
             if (!IsSuppressed)
             {
                 return null;
             }
 
-            AttributeData attribute;
+            AttributeData? attribute;
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
             if (!suppressMessageState.IsDiagnosticSuppressed(
                     this,
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract override int GetHashCode();
 
-        public abstract bool Equals(Diagnostic obj);
+        public abstract bool Equals(Diagnostic? obj);
 
         private string GetDebuggerDisplay()
         {
@@ -453,20 +455,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Diagnostic WithProgrammaticSuppression(ProgrammaticSuppressionInfo programmaticSuppressionInfo)
         {
-            Debug.Assert(this.ProgrammaticSuppressionInfo == null);
-            Debug.Assert(programmaticSuppressionInfo != null);
+            RoslynDebug.Assert(this.ProgrammaticSuppressionInfo == null);
+            RoslynDebug.Assert(programmaticSuppressionInfo != null);
 
             return new DiagnosticWithProgrammaticSuppression(this, programmaticSuppressionInfo);
         }
 
-        internal virtual ProgrammaticSuppressionInfo ProgrammaticSuppressionInfo { get { return null; } }
+        internal virtual ProgrammaticSuppressionInfo? ProgrammaticSuppressionInfo { get { return null; } }
 
         // compatibility
         internal virtual int Code { get { return 0; } }
 
-        internal virtual IReadOnlyList<object> Arguments
+        internal virtual IReadOnlyList<object?>? Arguments
         {
-            get { return SpecializedCollections.EmptyReadOnlyList<object>(); }
+            get { return SpecializedCollections.EmptyReadOnlyList<object?>(); }
         }
 
         /// <summary>
@@ -506,7 +508,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal Diagnostic WithReportDiagnostic(ReportDiagnostic reportAction)
+        internal Diagnostic? WithReportDiagnostic(ReportDiagnostic reportAction)
         {
             switch (reportAction)
             {

@@ -402,17 +402,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
                 typeInfo.ConvertedType?.IsFormattableString() == true)
             {
-                return typeInfo.GetConvertedTypeWithFlowNullability();
+                return typeInfo.ConvertedType;
             }
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.GetTypeWithFlowNullability();
+                return typeInfo.Type;
             }
 
             if (typeInfo.ConvertedType != null)
             {
-                return typeInfo.GetConvertedTypeWithFlowNullability();
+                return typeInfo.ConvertedType;
             }
 
             if (objectAsDefault)
