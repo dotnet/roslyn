@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
@@ -58,25 +56,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             var operations = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance();
             operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
-
-            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-
-            // It's possible we're not in a host context providing this service, in which case
-            // just provide a code action that won't notify of the symbol rename.
-            // Without the symbol rename operation, code generators (like WPF) may not
-            // know to regenerate code correctly.
-            if (symbolRenameCodeActionOperationFactory != null)
-            {
-                foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)
-                {
-                    operations.Add(symbolRenameCodeActionOperationFactory.CreateSymbolRenamedOperation(
-                        symbol,
-                        newName,
-                        moveToNamespaceResult.OriginalSolution,
-                        moveToNamespaceResult.UpdatedSolution));
-                }
-            }
-
             return operations.ToImmutableAndFree();
         }
 

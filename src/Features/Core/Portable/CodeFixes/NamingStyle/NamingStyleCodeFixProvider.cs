@@ -130,13 +130,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-                var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-                return new CodeActionOperation[]
-                {
-                    new ApplyChangesOperation(newSolution),
-                    factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
-                }.AsEnumerable();
+                return SpecializedCollections.SingletonEnumerable(
+                    new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
             }
 
             public override string Title => _title;

@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 End If
             Next
 
-            Assert.True(False, "Did not find any rename annotated nodes")
+            Throw New Exception("Did not find any rename annotated nodes")
         End Sub
 
         Private Function GetLabeledLocations(label As String) As IEnumerable(Of Location)
