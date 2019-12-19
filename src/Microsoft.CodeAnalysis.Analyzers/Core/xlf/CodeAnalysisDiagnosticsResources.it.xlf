@@ -137,6 +137,21 @@
         <target state="translated">Quando si registra un'azione dell'analizzatore di sintassi, operazioni o simboli, è necessario specificare rispettivamente almeno un tipo di sintassi, operazione o simbolo. In caso contrario, l'azione registrata non verrà mai richiamata durante l'analisi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
+        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
+        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">
         <source>SymbolKind '{0}' is not supported for symbol analyzer actions.</source>
         <target state="translated">L'elemento SymbolKind '{0}' non è supportato per le azioni dell'analizzatore di simboli.</target>
