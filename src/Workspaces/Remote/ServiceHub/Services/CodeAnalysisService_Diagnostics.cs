@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
         /// </summary>
-        public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
+        public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string pipeName, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     var result = await new DiagnosticComputer(solution.GetProject(projectId)).GetDiagnosticsAsync(
                         analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
 
-                    await ClientDirectStream.WriteDataAsync(streamName, result, (writer, data, cancellationToken) =>
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, (writer, data, cancellationToken) =>
                     {
                         var (diagnostics, telemetry, exceptions) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, data, cancellationToken);
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -135,26 +136,40 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
+        /// <summary>
+        /// Invokes a remote method <paramref name="targetName"/> with specified <paramref name="arguments"/> and 
+        /// establishes a pipe through which the target method may transfer large binary data.
+        /// The name of the pipe is passed to the target method as an additional argument following the specified <paramref name="arguments"/>.
+        /// The target method is expected to use <see cref="WriteDataToNamedPipeAsync"/> to write the data to the pipe stream.
+        /// </summary>
+        public async Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object?> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
         {
+            const int BufferSize = 12 * 1024;
+
             Contract.ThrowIfFalse(_startedListening);
 
             using var linkedCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            using var stream = new ServerDirectStream();
+
+            var pipeName = Guid.NewGuid().ToString();
+
+            var pipe = new NamedPipeServerStream(pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
             try
             {
+                // Transfer ownership of the pipe to BufferedStream, it will dispose it:
+                using var stream = new BufferedStream(pipe, BufferSize);
+
                 // send request to asset source
-                var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
+                var task = _rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(pipeName).ToArray(), cancellationToken);
 
                 // if invoke throws an exception, make sure we raise cancellation.
                 RaiseCancellationIfInvokeFailed(task, linkedCancellationSource, cancellationToken);
 
                 // wait for asset source to respond
-                await stream.WaitForDirectConnectionAsync(linkedCancellationSource.Token).ConfigureAwait(false);
+                await pipe.WaitForConnectionAsync(linkedCancellationSource.Token).ConfigureAwait(false);
 
                 // run user task with direct stream
-                var result = await directStreamReader(stream, linkedCancellationSource.Token).ConfigureAwait(false);
+                var result = await dataReader(stream, linkedCancellationSource.Token).ConfigureAwait(false);
 
                 // wait task to finish
                 await task.ConfigureAwait(false);
@@ -170,6 +185,98 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken.ThrowIfCancellationRequested();
 
                 throw CreateSoftCrashException(ex, cancellationToken);
+            }
+        }
+
+        public static async Task WriteDataToNamedPipeAsync<TData>(string pipeName, TData data, Func<ObjectWriter, TData, CancellationToken, Task> dataWriter, CancellationToken cancellationToken)
+        {
+            const int BufferSize = 4 * 1024;
+
+            try
+            {
+                var pipe = new NamedPipeClientStream(serverName: ".", pipeName, PipeDirection.Out);
+
+                bool success = false;
+                try
+                {
+                    await ConnectPipeAsync(pipe, cancellationToken).ConfigureAwait(false);
+                    success = true;
+                }
+                finally
+                {
+                    if (!success)
+                    {
+                        pipe.Dispose();
+                    }
+                }
+
+                // Transfer ownership of the pipe to BufferedStream, it will dispose it:
+                using var stream = new BufferedStream(pipe, BufferSize);
+
+                using (var objectWriter = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                {
+                    await dataWriter(objectWriter, data, cancellationToken).ConfigureAwait(false);
+                }
+
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception) when (cancellationToken.IsCancellationRequested)
+            {
+                // The stream has closed before we had chance to check cancellation.
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        private static async Task ConnectPipeAsync(NamedPipeClientStream pipe, CancellationToken cancellationToken)
+        {
+            const int ConnectWithoutTimeout = 1;
+            const int MaxRetryAttemptsForFileNotFoundException = 3;
+            const int ErrorSemTimeoutHResult = unchecked((int)0x80070079);
+            var connectRetryInterval = TimeSpan.FromMilliseconds(20);
+
+            var retryCount = 0;
+            while (true)
+            {
+                try
+                {
+                    // Try connecting without wait.
+                    // Connecting with anything else will consume CPU causing a spin wait.
+                    pipe.Connect(ConnectWithoutTimeout);
+                    return;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Prefer to throw OperationCanceledException if the caller requested cancellation.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
+                catch (IOException ex) when (ex.HResult == ErrorSemTimeoutHResult)
+                {
+                    // Ignore and retry.
+                }
+                catch (TimeoutException)
+                {
+                    // Ignore and retry.
+                }
+                catch (FileNotFoundException) when (retryCount < MaxRetryAttemptsForFileNotFoundException)
+                {
+                    // Ignore and retry
+                    retryCount++;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    await Task.Delay(connectRetryInterval, cancellationToken).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException)
+                {
+                    // To be consistent as to what type of exception is thrown when cancellation is requested,
+                    // always throw OperationCanceledException.
+                    cancellationToken.ThrowIfCancellationRequested();
+                    throw;
+                }
             }
         }
 

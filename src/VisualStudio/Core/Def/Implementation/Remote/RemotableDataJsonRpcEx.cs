@@ -65,16 +65,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// <summary>
         /// Called remotely: <see cref="WellKnownServiceHubServices.AssetService_RequestAssetAsync"/>.
         /// </summary>
-        public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string streamName, CancellationToken cancellationToken)
+        public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken)
         {
             try
             {
                 using var combinedCancellationToken = _shutdownCancellationSource.Token.CombineWith(cancellationToken);
 
-                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, combinedCancellationToken.Token))
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, pipeName, combinedCancellationToken.Token))
                 {
-                    await ClientDirectStream.WriteDataAsync(
-                        streamName,
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(
+                        pipeName,
                         (scopeId, checksums),
                         (writer, data, ct) => WriteAssetAsync(writer, data.scopeId, data.checksums, ct),
                         combinedCancellationToken.Token).ConfigureAwait(false);
