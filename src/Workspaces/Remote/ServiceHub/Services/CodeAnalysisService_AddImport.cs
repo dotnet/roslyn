@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return await _endPoint.InvokeAsync<IList<PackageWithTypeResult>>(
-                    nameof(AbstractAddImportFeatureService<SyntaxNode>.RemoteSymbolSearchService.FindPackagesWithTypeAsync),
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     new object[] { source, name, arity },
                     cancellationToken).ConfigureAwait(false);
             }
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 string source, string assemblyName, CancellationToken cancellationToken)
             {
                 return await _endPoint.InvokeAsync<IList<PackageWithAssemblyResult>>(
-                    nameof(AbstractAddImportFeatureService<SyntaxNode>.RemoteSymbolSearchService.FindPackagesWithAssemblyAsync),
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     new object[] { source, assemblyName },
                     cancellationToken).ConfigureAwait(false);
             }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 string name, int arity, CancellationToken cancellationToken)
             {
                 return await _endPoint.InvokeAsync<IList<ReferenceAssemblyWithTypeResult>>(
-                    nameof(AbstractAddImportFeatureService<SyntaxNode>.RemoteSymbolSearchService.FindReferenceAssembliesWithTypeAsync),
+                    nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     new object[] { name, arity },
                     cancellationToken).ConfigureAwait(false);
             }

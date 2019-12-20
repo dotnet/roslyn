@@ -105,7 +105,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            return await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+            SessionWithSolution? session = null;
+            try
+            {
+                // transfer ownership of the connection to the session object:
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (session == null)
+                {
+                    connection.Dispose();
+                }
+            }
+
+            return session;
         }
 
         /// <summary>

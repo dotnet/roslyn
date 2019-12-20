@@ -17,9 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     {
         private partial class ConnectionManager : IDisposable
         {
+            private readonly Workspace _workspace;
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
-            private readonly Workspace _workspace;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
@@ -42,9 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 int maxPoolConnection,
                 ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
+                _workspace = workspace;
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
-                _workspace = workspace;
 
                 _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;

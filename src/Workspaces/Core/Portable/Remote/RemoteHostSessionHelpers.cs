@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(connection);
             Contract.ThrowIfNull(solution);
 
-            PinnedRemotableDataScope? scope = null;
+            var service = solution.Workspace.Services.GetRequiredService<IRemotableDataService>();
+            var scope = await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
+
+            SessionWithSolution? session = null;
             try
             {
-                var service = solution.Workspace.Services.GetRequiredService<IRemotableDataService>();
-                scope = await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
-
                 // set connection state for this session.
                 // we might remove this in future. see https://github.com/dotnet/roslyn/issues/24836
                 await connection.InvokeAsync(
@@ -39,25 +39,18 @@ namespace Microsoft.CodeAnalysis.Remote
                     new object[] { scope.SolutionInfo },
                     cancellationToken).ConfigureAwait(false);
 
-                return new SessionWithSolution(connection, scope);
+                // transfer ownership of connection and scope to the session object:
+                session = new SessionWithSolution(connection, scope);
             }
-            catch
+            finally
             {
-                // Make sure disposable objects are disposed when exceptions are thrown. The try/finally is used to
-                // ensure 'scope' is disposed even if an exception is thrown while disposing 'connection'.
-                try
+                if (session == null)
                 {
-                    connection.Dispose();
+                    scope.Dispose();
                 }
-                finally
-                {
-                    scope?.Dispose();
-                }
-
-                // we only expect this to happen on cancellation. otherwise, rethrow
-                cancellationToken.ThrowIfCancellationRequested();
-                throw;
             }
+
+            return session;
         }
 
         private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope)

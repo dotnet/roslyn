@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             var pipeName = Guid.NewGuid().ToString();
 
-            var pipe = new NamedPipeServerStream(pipeName, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            var pipe = new NamedPipeServerStream(pipeName, PipeDirection.In, maxNumberOfServerInstances: 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
             try
             {
@@ -265,18 +265,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-
-                try
-                {
-                    await Task.Delay(connectRetryInterval, cancellationToken).ConfigureAwait(false);
-                }
-                catch (TaskCanceledException)
-                {
-                    // To be consistent as to what type of exception is thrown when cancellation is requested,
-                    // always throw OperationCanceledException.
-                    cancellationToken.ThrowIfCancellationRequested();
-                    throw;
-                }
+                await Task.Delay(connectRetryInterval, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -344,9 +333,6 @@ namespace Microsoft.CodeAnalysis.Remote
             s_debuggingLastDisconnectCallstack = _debuggingLastDisconnectCallstack;
 
             ReportNonFatalWatsonWithServiceHubLogs(ex, message);
-
-            GC.KeepAlive(_debuggingLastDisconnectReason);
-            GC.KeepAlive(_debuggingLastDisconnectCallstack);
         }
 
         public static void ReportNonFatalWatsonWithServiceHubLogs(Exception ex, string message)
@@ -359,7 +345,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public bool ReportAndPropagateUnexpectedException(Exception ex, CancellationToken cancellationToken, [CallerMemberName]string? callerName = null)
         {
-            if (!cancellationToken.IsCancellationRequested)
+            // The exception is unexpected unless it's a cancelation exception and the cancelation is requested on the current token.
+            if (!(ex is OperationCanceledException && cancellationToken.IsCancellationRequested))
             {
                 var logMessage = "Unexpected exception from " + callerName;
                 LogError($"{logMessage}: {ex}");
@@ -457,11 +444,11 @@ Exception: {e.Exception?.ToString()}");
             _debuggingLastDisconnectReason = e;
             _debuggingLastDisconnectCallstack = new StackTrace().ToString();
 
+            // Don't log info in cases that are common - such as if we dispose the connection or the remote host process shuts down.
             if (e.Reason != DisconnectedReason.LocallyDisposed &&
                 e.Reason != DisconnectedReason.RemotePartyTerminated)
             {
-                // log when this happens
-                LogDisconnectInfo(e, new StackTrace().ToString());
+                LogDisconnectInfo(e, _debuggingLastDisconnectCallstack);
             }
 
             Disconnected?.Invoke(e);

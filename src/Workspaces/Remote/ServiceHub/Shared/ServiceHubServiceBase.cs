@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
+        /// <summary>
+        /// Invoked remotely - <see cref="WellKnownServiceHubServices.ServiceHubServiceBase_Initialize"/>
+        /// </summary>
         public virtual void Initialize(PinnedSolutionInfo info)
         {
             // set pinned solution info
