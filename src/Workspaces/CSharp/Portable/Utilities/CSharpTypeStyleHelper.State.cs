@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal partial class CSharpTypeStyleHelper
     {
-        protected class State
+        protected struct State
         {
             private readonly Dictionary<UseVarPreference, ReportDiagnostic> _styleToSeverityMap;
 
@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             private State(bool isVariableDeclarationContext)
             {
+                TypeStylePreference = default;
+                IsInIntrinsicTypeContext = default;
+                IsTypeApparentInContext = default;
+
                 this.IsInVariableDeclarationContext = isVariableDeclarationContext;
                 _styleToSeverityMap = new Dictionary<UseVarPreference, ReportDiagnostic>();
             }
