@@ -8,10 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure TemporaryLookupResults
-        Implements IDisposable
-
-        Private Shared ReadOnly s_stackPool As New ObjectPool(Of Stack(Of LookupResult))(
-                Function() New Stack(Of LookupResult))
+        Private Shared ReadOnly s_stackPool As New ObjectPool(Of Stack(Of LookupResult))(Function() New Stack(Of LookupResult))
 
         Private _stack As Stack(Of LookupResult)
 
@@ -19,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _stack = s_stackPool.Allocate()
         End Sub
 
-        Private Sub Dispose() Implements IDisposable.Dispose
+        Public Sub Dispose()
             s_stackPool.Free(_stack)
             _stack = Nothing
         End Sub
@@ -62,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(options.IsValid())
 
             options = BinderSpecificLookupOptions(options)
-            Dim tempResult = LookupResult.GetInstance()
-            MemberLookup.Lookup(lookupResult, container, name, arity, options, Me, tempResult, useSiteDiagnostics)
-            tempResult.Free()
+            Dim tempResults = New TemporaryLookupResults()
+            MemberLookup.Lookup(lookupResult, container, name, arity, options, Me, tempResults, useSiteDiagnostics)
+            tempResults.Dispose()
         End Sub
 
         Friend Sub LookupMember(lookupResult As LookupResult,
@@ -367,9 +364,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If container.IsNamespace Then
                     Lookup(lookupResult, DirectCast(container, NamespaceSymbol), name, arity, options, binder, useSiteDiagnostics)
                 Else
-                    Dim tempResult = LookupResult.GetInstance()
-                    Lookup(lookupResult, DirectCast(container, TypeSymbol), name, arity, options, binder, tempResult, useSiteDiagnostics)
-                    tempResult.Free()
+                    Dim tempResults = New TemporaryLookupResults(True)
+                    Lookup(lookupResult, DirectCast(container, TypeSymbol), name, arity, options, binder, tempResults, useSiteDiagnostics)
+                    tempResults.Dispose()
                 End If
             End Sub
 
@@ -515,22 +512,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' NOTE: while looking up the symbol in modules we should ignore base class
                 options = options Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
-                Dim currentResult As LookupResult = Nothing
-                Dim tempResult = LookupResult.GetInstance()
+
+                Dim tempResults = New TemporaryLookupResults(True)
+
+                Dim currentResult = tempResults.GetTempLookupResult()
 
                 ' Next, do a lookup in each contained module and merge the results.
                 For Each containedModule As NamedTypeSymbol In container.GetModuleMembers()
                     If firstModule Then
-                        Lookup(lookupResult, containedModule, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                        Lookup(lookupResult, containedModule, name, arity, options, binder, tempResults, useSiteDiagnostics)
                         firstModule = False
                     Else
-                        If currentResult Is Nothing Then
-                            currentResult = LookupResult.GetInstance()
-                        Else
-                            currentResult.Clear()
-                        End If
-
-                        Lookup(currentResult, containedModule, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                        currentResult.Clear()
+                        Lookup(currentResult, containedModule, name, arity, options, binder, tempResults, useSiteDiagnostics)
 
                         ' Symbols in source take priority over symbols in a referenced assembly.
                         If currentResult.StopFurtherLookup AndAlso currentResult.Symbols.Count > 0 AndAlso
@@ -556,8 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                tempResult.Free()
-                currentResult?.Free()
+                tempResults.FreeTempLookupResult(currentResult)
             End Sub
 
             Private Shared Sub AddLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
@@ -962,19 +955,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Sub LookupDefaultProperty(result As LookupResult, container As TypeSymbol, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
                 Select Case container.TypeKind
                     Case TypeKind.Class, TypeKind.Module, TypeKind.Structure
-                        Dim tempResult = LookupResult.GetInstance()
-                        LookupDefaultPropertyInClass(result, DirectCast(container, NamedTypeSymbol), binder, tempResult, useSiteDiagnostics)
-                        tempResult.Free()
+                        Dim tempResults = New TemporaryLookupResults(True)
+                        LookupDefaultPropertyInClass(result, DirectCast(container, NamedTypeSymbol), binder, tempResults, useSiteDiagnostics)
+                        tempResults.Dispose()
 
                     Case TypeKind.Interface
-                        Dim tempResult = LookupResult.GetInstance()
-                        LookupDefaultPropertyInInterface(result, DirectCast(container, NamedTypeSymbol), binder, tempResult, useSiteDiagnostics)
-                        tempResult.Free()
+                        Dim tempResults = New TemporaryLookupResults(True)
+                        LookupDefaultPropertyInInterface(result, DirectCast(container, NamedTypeSymbol), binder, tempResults, useSiteDiagnostics)
+                        tempResults.Dispose()
 
                     Case TypeKind.TypeParameter
-                        Dim tempResult = LookupResult.GetInstance()
-                        LookupDefaultPropertyInTypeParameter(result, DirectCast(container, TypeParameterSymbol), binder, tempResult, useSiteDiagnostics)
-                        tempResult.Free()
+                        Dim tempResults = New TemporaryLookupResults(True)
+                        LookupDefaultPropertyInTypeParameter(result, DirectCast(container, TypeParameterSymbol), binder, tempResults, useSiteDiagnostics)
+                        tempResults.Dispose()
                 End Select
             End Sub
 
