@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis
         // compatibility
         internal virtual int Code { get { return 0; } }
 
-        internal virtual IReadOnlyList<object?>? Arguments
+        internal virtual IReadOnlyList<object?> Arguments
         {
             get { return SpecializedCollections.EmptyReadOnlyList<object?>(); }
         }

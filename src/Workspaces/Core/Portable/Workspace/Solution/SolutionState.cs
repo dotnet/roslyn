@@ -421,9 +421,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+
         private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
         {
-            return new CompilationTracker(solution.GetProjectState(projectId));
+            var projectState = solution.GetProjectState(projectId);
+            Contract.ThrowIfNull(projectState);
+            return new CompilationTracker(projectState);
         }
 
         private CompilationTracker GetCompilationTracker(ProjectId projectId)
@@ -1958,8 +1961,8 @@ namespace Microsoft.CodeAnalysis
         public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation
-                ? this.GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken)
-                : SpecializedTasks.Default<Compilation?>();
+                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
+                : SpecializedTasks.Null<Compilation>();
         }
 
         /// <summary>
