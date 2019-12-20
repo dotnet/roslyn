@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // In C# 8 and later we follow the ECMA specification, which neatly handles null and expressions of exception type.
-                boundExpr = GenerateConversionForAssignment(Compilation.GetWellKnownType(WellKnownType.System_Exception), boundExpr, diagnostics);
+                boundExpr = GenerateConversionForAssignment(GetWellKnownType(WellKnownType.System_Exception, diagnostics, exprSyntax), boundExpr, diagnostics);
             }
 
             return boundExpr;
@@ -575,7 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
                     // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
                     // It's a bit of code duplication, but refactoring would make things worse.
-                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, blockDiagnostics);
+                    // However, we don't need to report diagnostics here. They will be reported when analyzing the parent method.
+                    var ignored = DiagnosticBag.GetInstance();
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, ignored);
+                    ignored.Free();
                     if (endIsReachable)
                     {
                         if (ImplicitReturnIsOkay(localSymbol))
@@ -2066,6 +2069,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (targetType.IsVoidType())
+            {
+                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, operand.Display, targetType);
+                return;
+            }
+
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
@@ -2084,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypes) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypes) &&
                             targetElementTypes.Length == tuple.Arguments.Length)
                         {
                             GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);

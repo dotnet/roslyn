@@ -177,6 +177,11 @@
         <target state="translated">Un árbol de expresión no puede contener un operador de tupla == o !=.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">La característica "{0}" se encuentra actualmente en vista previa y *no se admite*. Para usar características en vista previa, utilice la versión de idioma "vista previa".</target>
@@ -298,8 +303,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">"{0}": el tipo usado en una instrucción using debe poder convertirse de forma implícita en "System.IDisposable" o implemente un método "Dispose" adecuado. ¿Quiso decir "await using" en lugar de "using"?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">"{0}": el tipo usado en una instrucción using debe poder convertirse de forma implícita en "System.IDisposable" o implemente un método "Dispose" adecuado. ¿Quiso decir "await using" en lugar de "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -1478,16 +1483,6 @@
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Posible asignación de referencia de tipo NULL a variable de iteración</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Posible asignación de referencia de tipo NULL a variable de iteración</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -6099,8 +6094,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">"{0}": el tipo usado en una instrucción using debe poder convertirse de forma implícita en "System.IDisposable" o implemente un método "Dispose" adecuado.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">"{0}": el tipo usado en una instrucción using debe poder convertirse de forma implícita en "System.IDisposable" o implemente un método "Dispose" adecuado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -7779,8 +7774,8 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">No se pudo emitir el módulo '{0}'.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="new">Failed to emit module '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">

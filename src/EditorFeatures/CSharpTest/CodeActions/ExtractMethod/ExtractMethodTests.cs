@@ -17,6 +17,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ExtractMethodCodeRefactoringProvider();
 
+        [Fact]
+        [WorkItem(39946, "https://github.com/dotnet/roslyn/issues/39946")]
+        public async Task LocalFuncExtract()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    int Testing;
+
+    void M()
+    {
+        local();
+
+        [|NewMethod();|]
+        
+        Testing = 5;
+
+        void local()
+        { }
+    }
+
+    void NewMethod()
+    {
+    }
+}", @"
+class C
+{
+    int Testing;
+
+    void M()
+    {
+        local();
+        {|Rename:NewMethod1|}();
+
+        Testing = 5;
+
+        void local()
+        { }
+    }
+
+    private void NewMethod1()
+    {
+        NewMethod();
+    }
+
+    void NewMethod()
+    {
+    }
+}");
+        }
+
         [WorkItem(540799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540799")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestPartialSelection()

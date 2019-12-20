@@ -177,6 +177,11 @@
         <target state="translated">İfade ağacı, demetin == veya != işlecini içeremez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">'{0}' özelliği şu anda Önizleme aşamasındadır ve *desteklenmemektedir*. Önizleme özelliklerini kullanmak için 'önizleme' dil sürümünü kullanın.</target>
@@ -298,8 +303,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -1477,16 +1482,6 @@
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
         <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Yineleme değişkenine olası null başvuru ataması</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullReferenceIterationVariable_Title">
-        <source>Possible null reference assignment to iteration variable</source>
-        <target state="translated">Yineleme değişkenine olası null başvuru ataması</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -6098,8 +6093,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -7778,8 +7773,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
-        <source>Failed to emit module '{0}'.</source>
-        <target state="translated">{0}' modülü gösterilemedi.</target>
+        <source>Failed to emit module '{0}': {1}</source>
+        <target state="new">Failed to emit module '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedLocalInLambda">

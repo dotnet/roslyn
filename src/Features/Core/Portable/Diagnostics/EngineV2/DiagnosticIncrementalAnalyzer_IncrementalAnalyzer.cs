@@ -304,9 +304,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
-            // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
-            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer) ||
-                analyzer == FileContentLoadAnalyzer.Instance)
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (DiagnosticAnalyzerInfoCache.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
             {
                 return true;
             }
@@ -327,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = AnalyzerService.GetDiagnosticDescriptors(analyzer);
-            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions) != ReportDiagnostic.Hidden);
+            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -506,7 +505,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
                 if (client == null)
                 {
                     // no remote support
@@ -537,9 +536,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                await client.TryRunCodeAnalysisRemoteAsync(
+                _ = await client.TryRunRemoteAsync(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                     new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(AnalyzerService), /* unit count */ 1 },
+                    solution: null,
+                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))

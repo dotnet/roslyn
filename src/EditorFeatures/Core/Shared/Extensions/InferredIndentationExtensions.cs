@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
@@ -15,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static async Task<DocumentOptionSet> GetDocumentOptionsWithInferredIndentationAsync(
             this Document document,
             bool explicitFormat,
-            IIndentationManagerService? indentationManagerService,
+            IIndentationManagerService indentationManagerService,
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
 
-            if (snapshot != null && indentationManagerService != null)
+            if (snapshot != null)
             {
                 indentationManagerService.GetIndentation(snapshot.TextBuffer, explicitFormat, out bool convertTabsToSpaces, out int tabSize, out int indentSize);
 

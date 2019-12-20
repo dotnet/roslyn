@@ -52,11 +52,6 @@
         <target state="translated">O documento não dá suporte a árvores de sintaxe</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_reading_content_of_source_file_0_1">
-        <source>Error reading content of source file '{0}' -- '{1}'.</source>
-        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">Preferências de nível de expressão</target>
@@ -1347,11 +1342,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">A adição de importações inserirá um método de extensão ao escopo com o mesmo nome de '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Workspace_error">
-        <source>Workspace error</source>
-        <target state="new">Workspace error</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">Workspace não está vazio.</target>
@@ -1820,11 +1810,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
         <target state="translated">Este espaço de trabalho não oferece suporte a abertura e fechamento de documentos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">Uso:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">

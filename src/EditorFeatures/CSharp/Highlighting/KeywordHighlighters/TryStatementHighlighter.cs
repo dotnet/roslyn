@@ -17,24 +17,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            TryStatementSyntax tryStatement, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            TryStatementSyntax tryStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            yield return tryStatement.TryKeyword.Span;
+            highlights.Add(tryStatement.TryKeyword.Span);
 
             foreach (var catchDeclaration in tryStatement.Catches)
             {
-                yield return catchDeclaration.CatchKeyword.Span;
+                highlights.Add(catchDeclaration.CatchKeyword.Span);
 
                 if (catchDeclaration.Filter != null)
                 {
-                    yield return catchDeclaration.Filter.WhenKeyword.Span;
+                    highlights.Add(catchDeclaration.Filter.WhenKeyword.Span);
                 }
             }
 
             if (tryStatement.Finally != null)
             {
-                yield return tryStatement.Finally.FinallyKeyword.Span;
+                highlights.Add(tryStatement.Finally.FinallyKeyword.Span);
             }
         }
     }

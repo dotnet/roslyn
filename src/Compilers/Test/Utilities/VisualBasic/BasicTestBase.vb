@@ -430,7 +430,7 @@ Public MustInherit Class BasicTestBase
         Return attributes.Select(Function(a) a.AttributeClass.Name)
     End Function
 
-    Friend Overrides Function VisualizeRealIL(peModule As IModuleSymbol, methodData As CompilationTestData.MethodData, markers As IReadOnlyDictionary(Of Integer, String)) As String
+    Friend Overrides Function VisualizeRealIL(peModule As IModuleSymbol, methodData As CompilationTestData.MethodData, markers As IReadOnlyDictionary(Of Integer, String), areLocalsZeroed As Boolean) As String
         Throw New NotImplementedException()
     End Function
 

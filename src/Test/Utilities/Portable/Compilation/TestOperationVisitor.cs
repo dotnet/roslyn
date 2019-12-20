@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (root != null)
             {
                 Assert.Null(root.Parent);
-                var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+                var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
                 foreach (IOperation descendant in root.DescendantsAndSelf())
                 {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(descendant.Syntax, descendant);
+                            explicitNodeMap.Add(descendant.Syntax, descendant);
                         }
                         catch (ArgumentException)
                         {
