@@ -65,5 +65,11 @@ namespace Microsoft.CodeAnalysis
         /// Allow the use of <c>default</c> instead of <c>default(T)</c> where applicable.
         /// </summary>
         AllowDefaultLiteral = 1 << 7,
+
+        /// <summary>
+        /// Append '!' to non-nullable reference types.
+        /// This option implies <see cref="IncludeNullableReferenceTypeModifier"/>
+        /// </summary>
+        IncludeNonNullableReferenceTypeModifier = 1 << 8,
     }
 }
