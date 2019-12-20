@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
         {
             if (!(oldNode is ExpressionSyntax expression))
             {
-                return SpecializedTasks.Default<SyntaxNode>();
+                return SpecializedTasks.Null<SyntaxNode>();
             }
 
             switch (diagnostic.Id)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 case CS4016:
                     if (!DoesExpressionReturnTask(expression, semanticModel))
                     {
-                        return SpecializedTasks.Default<SyntaxNode>();
+                        return SpecializedTasks.Null<SyntaxNode>();
                     }
 
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
@@ -84,13 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 case CS0029:
                     if (!DoesExpressionReturnGenericTaskWhoseArgumentsMatchLeftSide(expression, semanticModel, document.Project, cancellationToken))
                     {
-                        return SpecializedTasks.Default<SyntaxNode>();
+                        return SpecializedTasks.Null<SyntaxNode>();
                     }
 
                     return Task.FromResult(root.ReplaceNode(oldNode, ConvertToAwaitExpression(expression)));
 
                 default:
-                    return SpecializedTasks.Default<SyntaxNode>();
+                    return SpecializedTasks.Null<SyntaxNode>();
             }
         }
 

@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // local functions
 
             static Task<Compilation?> GetCompilationOrNullAsync(Project? project, CancellationToken cancellationToken)
-                => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Default<Compilation?>();
+                => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Null<Compilation>();
         }
 
 

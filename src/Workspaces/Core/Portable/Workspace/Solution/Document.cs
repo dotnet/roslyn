@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return SpecializedTasks.Default<SyntaxTree?>();
+                return SpecializedTasks.Null<SyntaxTree>();
             }
 
             // if we have a cached result task use it
