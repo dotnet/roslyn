@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Threading;
 
@@ -23,15 +24,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private readonly Lazy<ILanguageClientBroker> _languageClientBroker;
         private readonly TaskCompletionSource<object> _taskCompletionSource;
 
-        public Task WorkspaceStarted => _taskCompletionSource.Task;
+        private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerClientEventListener(LanguageServerClient languageServerClient, Lazy<ILanguageClientBroker> languageClientBroker)
+        public LanguageServerClientEventListener(LanguageServerClient languageServerClient, Lazy<ILanguageClientBroker> languageClientBroker,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             this._languageServerClient = languageServerClient;
             this._languageClientBroker = languageClientBroker;
             this._taskCompletionSource = new TaskCompletionSource<object>();
+            this._asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
         }
 
         /// <summary>
@@ -44,14 +47,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // mark that roslyn solution is added
             this._taskCompletionSource.SetResult(null);
 
-            Task.Run(() =>
-            {
-                // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
-                // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
-                // The synchronous execution happens under the sln load threaded wait dialog, so user actions cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
-                // The result task from OnLoadedAsync is waited on before invoking LSP requests to the ILanguageClient.
-                this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new string[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), this._languageServerClient).Forget();
-            });
+            var token = this._asynchronousOperationListener.BeginAsyncOperation("LoadAsync");
+            // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
+            // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
+            // The synchronous execution happens under the sln load threaded wait dialog, so user actions cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
+            // The result task from OnLoadedAsync is waited on before invoking LSP requests to the ILanguageClient.
+            this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new string[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), this._languageServerClient)
+                .CompletesAsyncOperation(token).Forget();
         }
 
         /// <summary>
