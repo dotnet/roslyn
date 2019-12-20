@@ -3,12 +3,12 @@
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
 # FxCop rules
-Design: CA1000-CA1099
+Design: CA1000-CA1099, CA2210
 Globalization: CA1300-CA1399, CA2101
 Mobility: CA1600-CA1699
 Performance: CA1800-CA1899, HA
 Security: CA2100-CA2199, CA2300-CA2399, CA3000-CA3147, CA5300-CA5499
-Usage: CA1801, CA1806, CA1816, CA2200-CA2299
+Usage: CA1801, CA1806, CA1816, CA2200-CA2209, CA2211-CA2299
 Naming: CA1700-CA1799
 Maintainability: CA1500-CA1599
 Reliability: CA2000-CA2099, CA9999
