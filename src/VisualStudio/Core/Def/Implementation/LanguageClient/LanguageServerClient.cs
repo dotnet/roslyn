@@ -79,7 +79,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                // there is no OOP. either user turned it off, or process got killed.
+                // There is no OOP. either user turned it off, or process got killed.
+                // We should have already gotten a gold bar + nfw already if the OOP is missing.
+                // so just log telemetry here so we can connect the two with session explorer.
+                Logger.Log(FunctionId.LanguageServer_ActivateFailed);
                 return null;
             }
 
@@ -113,13 +116,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ((RemoteHostClientServiceFactory.RemoteHostClientService)_workspace.Services.GetService<IRemoteHostClientService>()).Enable();
 
             // wait until remote host is available before let platform know that they can activate our LSP
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
             if (client == null)
             {
                 // There is no OOP. either user turned it off, or process got killed.
                 // We should have already gotten a gold bar + nfw already if the OOP is missing.
                 // so just log telemetry here so we can connect the two with session explorer.
-                Logger.Log(FunctionId.LanguageServer_ActivateFailed);
+                Logger.Log(FunctionId.LanguageServer_OnLoadedFailed);
                 // don't ask platform to start LSP.
                 // we shouldn't throw as the LSP client does not expect exceptions here.
                 return;
