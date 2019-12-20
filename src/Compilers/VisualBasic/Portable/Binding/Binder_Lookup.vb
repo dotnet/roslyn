@@ -794,7 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 End If
 
-                Dim tmp = LookupResult.GetInstance()
+                Dim tmp = tempResults.GetTempLookupResult()
 
                 ' Dev11 searches all declared and undeclared base interfaces
                 For Each iface In type.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
@@ -829,7 +829,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                tmp.Free()
+                tempResults.FreeTempLookupResult(tmp)
+
                 If result.IsGood Then
                     For Each sym In result.Symbols
                         If sym.Kind <> SymbolKind.Field Then
