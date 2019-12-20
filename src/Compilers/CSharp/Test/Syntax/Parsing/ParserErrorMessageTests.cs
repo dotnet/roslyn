@@ -5772,7 +5772,7 @@ class TestClass { }";
                                 N(SyntaxKind.IdentifierToken, "One");
                             }
                         }
-                        N(SyntaxKind.CommaToken, ""); // missing
+                        M(SyntaxKind.CommaToken);
                         N(SyntaxKind.Attribute);
                         {
                             N(SyntaxKind.IdentifierName);

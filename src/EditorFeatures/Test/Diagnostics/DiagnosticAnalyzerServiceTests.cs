@@ -9,14 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -94,6 +91,81 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var document = GetDocumentFromIncompleteProject(workspace);
 
             await TestAnalyzerAsync(workspace, document, new CSharpCompilerDiagnosticAnalyzer(), CompilerAnalyzerResultSetter, expectedSyntax: true, expectedSemantic: false);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TestDisabledByDefaultAnalyzerEnabledWithEditorConfig(bool enabledWithEditorconfig)
+        {
+            using var workspace = new AdhocWorkspace();
+            workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
+
+            var project = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "CSharpProject",
+                    "CSharpProject",
+                    LanguageNames.CSharp,
+                    filePath: "z:\\CSharpProject.csproj"));
+
+            if (enabledWithEditorconfig)
+            {
+                var editorconfigText = @$"
+[*.cs]
+dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_syntaxRule.Id}.severity = warning
+dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_semanticRule.Id}.severity = warning
+dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = warning";
+
+                project = project.AddAnalyzerConfigDocument(".editorconfig", filePath: "z:\\.editorconfig", text: SourceText.From(editorconfigText)).Project;
+            }
+
+            var document = project.AddDocument("test.cs", SourceText.From("class A {}"), filePath: "z:\\test.cs");
+            var applied = workspace.TryApplyChanges(document.Project.Solution);
+            Assert.True(applied);
+
+            // create listener/service/analyzer
+            var listener = new AsynchronousOperationListener();
+            var service = new MyDiagnosticAnalyzerService(new DisabledByDefaultAnalyzer(), listener);
+            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+
+            // listen to events
+            var syntaxDiagnostic = false;
+            var semanticDiagnostic = false;
+            var compilationDiagnostic = false;
+            service.DiagnosticsUpdated += (s, a) =>
+            {
+                var diagnostic = Assert.Single(a.Diagnostics);
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+
+                if (diagnostic.Id == DisabledByDefaultAnalyzer.s_syntaxRule.Id)
+                {
+                    syntaxDiagnostic = true;
+                }
+                else if (diagnostic.Id == DisabledByDefaultAnalyzer.s_semanticRule.Id)
+                {
+                    semanticDiagnostic = true;
+                }
+                else if (diagnostic.Id == DisabledByDefaultAnalyzer.s_compilationRule.Id)
+                {
+                    compilationDiagnostic = true;
+                }
+            };
+
+            // open document
+            workspace.OpenDocument(document.Id);
+            await analyzer.DocumentOpenAsync(document, CancellationToken.None).ConfigureAwait(false);
+
+            // run analysis
+            await RunAllAnalysisAsync(analyzer, document).ConfigureAwait(false);
+
+            // wait for all events to raised
+            await listener.CreateExpeditedWaitTask().ConfigureAwait(false);
+
+            Assert.Equal(enabledWithEditorconfig, syntaxDiagnostic);
+            Assert.Equal(enabledWithEditorconfig, semanticDiagnostic);
+            Assert.Equal(enabledWithEditorconfig, compilationDiagnostic);
         }
 
         private static async Task TestAnalyzerAsync(
@@ -406,6 +478,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
             internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
             internal static readonly DiagnosticDescriptor s_compilationRule = new DiagnosticDescriptor("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule, s_semanticRule, s_compilationRule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
+                context.RegisterSemanticModelAction(c => c.ReportDiagnostic(Diagnostic.Create(s_semanticRule, c.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
+                context.RegisterCompilationAction(c => c.ReportDiagnostic(Diagnostic.Create(s_compilationRule, c.Compilation.SyntaxTrees.First().GetRoot().GetLocation())));
+            }
+        }
+
+        private class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
+        {
+            internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+            internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
+            internal static readonly DiagnosticDescriptor s_compilationRule = new DiagnosticDescriptor("compilation", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule, s_semanticRule, s_compilationRule);
 
