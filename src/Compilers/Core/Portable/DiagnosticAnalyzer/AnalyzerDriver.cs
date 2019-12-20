@@ -1938,11 +1938,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool isGenerated;
             if (!_lazyGeneratedCodeFilesMap.TryGetValue(tree, out isGenerated))
             {
-                isGenerated = _isGeneratedCode(tree, AnalyzerExecutor.CancellationToken);
+                isGenerated = computeIsGeneratedCode();
                 _lazyGeneratedCodeFilesMap.TryAdd(tree, isGenerated);
             }
 
             return isGenerated;
+
+            bool computeIsGeneratedCode()
+            {
+                // Check for explicit user configuration for generated code from options.
+                //     generated_code = true | false
+                // If there is no explicit user configuration, fallback to our generated code heuristic.
+                var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
+                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                    _isGeneratedCode(tree, AnalyzerExecutor.CancellationToken);
+            }
         }
 
         protected bool DoNotAnalyzeGeneratedCode => _doNotAnalyzeGeneratedCode;
