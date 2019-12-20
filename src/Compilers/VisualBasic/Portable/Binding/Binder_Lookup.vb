@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(options.IsValid())
 
             options = BinderSpecificLookupOptions(options)
-            Dim tempResults = New TemporaryLookupResults()
+            Dim tempResults = New TemporaryLookupResults(True)
             MemberLookup.Lookup(lookupResult, container, name, arity, options, Me, tempResults, useSiteDiagnostics)
             tempResults.Dispose()
         End Sub
