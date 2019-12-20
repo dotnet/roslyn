@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
             }
 
-            protected override UnboundLambdaState WithNoCacheCore()
+            protected override UnboundLambdaState WithCachingCore(bool includeCache)
             {
-                return new QueryUnboundLambdaState(Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache: false);
+                return new QueryUnboundLambdaState(Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache);
             }
 
             protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)

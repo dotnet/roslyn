@@ -346,12 +346,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal UnboundLambda WithNullableState(Binder binder, NullableWalker.VariableState nullableState)
         {
-            return new UnboundLambda(Syntax, Data, nullableState, HasErrors);
+            var data = Data.WithCaching(true);
+            var lambda = new UnboundLambda(Syntax, data, nullableState, HasErrors);
+            data.SetUnboundLambda(lambda);
+            return lambda;
         }
 
         internal UnboundLambda WithNoCache()
         {
-            var data = Data.WithNoCache();
+            var data = Data.WithCaching(false);
             if ((object)data == Data)
             {
                 return this;
@@ -428,21 +431,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void SetUnboundLambda(UnboundLambda unbound)
         {
             Debug.Assert(unbound != null);
-            Debug.Assert(_unboundLambda == null);
+            Debug.Assert(_unboundLambda == null || (object)_unboundLambda == unbound);
             _unboundLambda = unbound;
         }
 
-        protected abstract UnboundLambdaState WithNoCacheCore();
+        protected abstract UnboundLambdaState WithCachingCore(bool includeCache);
 
-        internal UnboundLambdaState WithNoCache()
+        internal UnboundLambdaState WithCaching(bool includeCache)
         {
-            if (_bindingCache == null)
+            if ((_bindingCache == null) != includeCache)
             {
                 return this;
             }
 
-            var state = WithNoCacheCore();
-            Debug.Assert(state._bindingCache == null);
+            var state = WithCachingCore(includeCache);
+            Debug.Assert((state._bindingCache == null) != includeCache);
             return state;
         }
 
@@ -1200,9 +1203,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterTypesWithAnnotations[index];
         }
 
-        protected override UnboundLambdaState WithNoCacheCore()
+        protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, includeCache: false);
+            return new PlainUnboundLambdaState(unboundLambda: null, Binder, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _isAsync, includeCache);
         }
 
         protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)
