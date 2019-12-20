@@ -114,6 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var dataRpc = _remotableDataRpc.TryAddReference();
                 if (dataRpc == null)
                 {
+                    // TODO: If we used multiplex stream we wouldn't get to this state and we could always assume to have a connection
+                    // unless the service process stops working, in which case we should report an error and ask user to restart VS
+                    // (https://github.com/dotnet/roslyn/issues/40146)
+                    //
                     // dataRpc is disposed. this can happen if someone killed remote host process while there is
                     // no other one holding the data connection.
                     // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null

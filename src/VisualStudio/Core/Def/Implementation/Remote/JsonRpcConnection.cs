@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public JsonRpcConnection(
             TraceSource logger,
-            object callbackTarget,
+            object? callbackTarget,
             Stream serviceStream,
             ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc)
         {
@@ -71,14 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// </summary>
         private sealed class ServiceJsonRpcEx : JsonRpcEx
         {
-            private readonly object _callbackTarget;
-
-            public ServiceJsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object callbackTarget)
+            public ServiceJsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object? callbackTarget)
                 : base(workspace, logger, stream, callbackTarget, useThisAsCallback: false)
             {
-                // this one doesn't need cancellation token since it has nothing to cancel
-                _callbackTarget = callbackTarget;
-
                 StartListening();
             }
 

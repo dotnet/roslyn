@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         public readonly IList<string> ContainingNamespaceNames;
         public readonly string TypeName;
-        public readonly string Version;
+        public readonly string? Version;
 
         public PackageWithTypeResult(
             string packageName,
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
     internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult>, IComparable<PackageWithAssemblyResult>
     {
-        public readonly string Version;
+        public readonly string? Version;
 
         public PackageWithAssemblyResult(
             string packageName,

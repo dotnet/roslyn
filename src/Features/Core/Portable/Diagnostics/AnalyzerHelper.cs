@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         break;
                     case LocationKind.SourceFile:
                         {
+                            RoslynDebug.Assert(location.SourceTree != null);
                             if (project.GetDocument(location.SourceTree) == null)
                             {
                                 // Disallow diagnostics with source locations outside this project.

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyInstance == null)
                 {
-                    return SpecializedTasks.Default<RemoteHostClient>();
+                    return SpecializedTasks.Null<RemoteHostClient>();
                 }
 
                 return _lazyInstance.GetValueAsync(cancellationToken);
