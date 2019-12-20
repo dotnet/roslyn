@@ -3002,7 +3002,7 @@ static class Ex
                 // (13,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2),
-        // (8,13): error CS8070: Control cannot fall out of switch from final case label ('case
+                // (8,13): error CS8070: Control cannot fall out of switch from final case label ('case
                 //             case
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, @"case
 
