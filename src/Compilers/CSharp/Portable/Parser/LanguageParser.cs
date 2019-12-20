@@ -10202,8 +10202,20 @@ tryAgain:
                 case ScanTypeFlags.NullableType:
                 case ScanTypeFlags.MustBeType:
                 case ScanTypeFlags.AliasQualifiedName:
-                    // In a pattern, we need more lookahead to confirm it is a cast
-                    return !forPattern || CanFollowCast(this.CurrentToken.Kind);
+                    // The thing between parens is unambiguously a type.
+                    // In a pattern, we need more lookahead to confirm it is a cast and not
+                    // a parenthesized type pattern.  In this case the tokens that
+                    // have both unary and binary operator forms may appear in their unary form
+                    // following a cast.
+                    return !forPattern || this.CurrentToken.Kind switch
+                    {
+                        SyntaxKind.PlusToken => true,
+                        SyntaxKind.MinusToken => true,
+                        SyntaxKind.AmpersandToken => true,
+                        SyntaxKind.AsteriskToken => true,
+                        SyntaxKind.DotDotToken => true,
+                        _ => CanFollowCast(this.CurrentToken.Kind)
+                    };
 
                 case ScanTypeFlags.GenericTypeOrMethod:
                 case ScanTypeFlags.GenericTypeOrExpression:

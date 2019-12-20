@@ -66,8 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
+            bool suppressExhaustiveWarning = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
+                if (arm.Pattern.HasErrors)
+                {
+                    // If there was a problem with a pattern, we suppress a non-exhaustive warning
+                    suppressExhaustiveWarning = true;
+                }
+
                 if (!reachableLabels.Contains(arm.Label))
                 {
                     diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
@@ -79,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // switch expression is exhaustive; no default label needed.
                 defaultLabel = null;
                 return false;
+            }
+
+            if (suppressExhaustiveWarning)
+            {
+                return true;
             }
 
             // We only report exhaustive warnings when the default label is reachable through some series of

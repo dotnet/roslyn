@@ -96,15 +96,18 @@ class X
 }
 ";
             string expectedOperationTree = @"
-    ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
-      Value: 
-        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
-      Arms(1):
-          ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '=> 5')
-            Pattern: 
-              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
+  Value: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
+  Arms(1):
+      ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '=> 5')
+        Pattern: 
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '') (InputType: System.Int32?)
             Value: 
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
+        Value: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(7,34): error CS8504: Pattern missing
@@ -349,9 +352,6 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
-                //         y = /*<bind>*/x switch { NotFound => 5 }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 25),
                 // file.cs(7,34): error CS0103: The name 'NotFound' does not exist in the current context
                 //         y = /*<bind>*/x switch { NotFound => 5 }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 34)
@@ -1229,9 +1229,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(9,17): error CS0150: A constant value is expected
+                // file.cs(9,18): error CS0150: A constant value is expected
                 //                 (a ? input1 : input2) => true
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(a ? input1 : input2)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "a ? input1 : input2").WithLocation(9, 18)
                 };
             string expectedFlowGraph = @"
 Block[B0] - Entry

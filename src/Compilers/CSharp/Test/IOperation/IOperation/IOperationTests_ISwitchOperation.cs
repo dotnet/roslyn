@@ -1324,11 +1324,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case other:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other:') (InputType: MyClass)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other') (InputType: MyClass)
                   Value: 
                     IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'other')
             Leaving: {R1}
@@ -1408,11 +1408,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case 1:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:') (InputType: MyClass)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: MyClass)
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyClass, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1487,11 +1487,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: MyClass) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case 1:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1:') (InputType: MyClass)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: '1') (InputType: MyClass)
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: MyClass MyClass.op_Implicit(System.Int64 x)) (OperationKind.Conversion, Type: MyClass, IsInvalid, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: MyClass MyClass.op_Implicit(System.Int64 x))
@@ -1962,11 +1962,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: dynamic)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: dynamic)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -2023,7 +2023,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null) 
           Clauses:
               IPatternCaseClauseOperation (Label Id: 1) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null) (Syntax: 'case 1:')
                 Pattern: 
-                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: dynamic)
+                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: dynamic)
                     Value: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Body:
@@ -2080,11 +2080,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case other:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other:') (InputType: dynamic)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other') (InputType: dynamic)
                   Value: 
                     IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'other')
             Leaving: {R1}
@@ -2459,11 +2459,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             Leaving: {R1}
@@ -2580,11 +2580,11 @@ Block[B0] - Entry
             Predecessors: [B3] [B4]
             Statements (0)
             Jump if False (Regular) to Block[B7]
-                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case other ?? 1:')
+                IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other ?? 1')
                   Value: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
                   Pattern: 
-                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case other ?? 1:') (InputType: System.Object)
+                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'other ?? 1') (InputType: System.Object)
                       Value: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'other ?? 1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2836,11 +2836,11 @@ Block[B0] - Entry
                 IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'input')
 
         Jump if False (Regular) to Block[B3]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 1:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 1:') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '1') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
@@ -2862,11 +2862,11 @@ Block[B0] - Entry
         Predecessors: [B1]
         Statements (0)
         Jump if False (Regular) to Block[B5]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: 'case 2:')
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsImplicit) (Syntax: '2')
               Value: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
               Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: 'case 2:') (InputType: System.Object)
+                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsImplicit) (Syntax: '2') (InputType: System.Object)
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             Leaving: {R1}

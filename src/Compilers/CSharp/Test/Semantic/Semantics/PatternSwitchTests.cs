@@ -1429,13 +1429,13 @@ class Program
         {
             if (o is (int, int)) {}
             if (o is (int x, int y)) {}
-            if (o is (int, int) z)) {}
+            if (o is (int, int) z) {}
             if (o is (int a, int b) c) {}
         }
         {
             if (o is (System.Int32, System.Int32)) {}
             if (o is (System.Int32 x, System.Int32 y)) {}
-            if (o is (System.Int32, System.Int32) z)) {}
+            if (o is (System.Int32, System.Int32) z) {}
             if (o is (System.Int32 a, System.Int32 b) c) {}
         }
     }
@@ -1480,29 +1480,11 @@ class Program
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(43, 28),
                 // (45,23): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (o is (int, int) z)) {}
+                //             if (o is (int, int) z) {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(45, 23),
                 // (45,28): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //             if (o is (int, int) z)) {}
+                //             if (o is (int, int) z) {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "int").WithArguments("type pattern").WithLocation(45, 28),
-                // (45,35): error CS1525: Invalid expression term ')'
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(45, 35),
-                // (45,35): error CS1002: ; expected
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(45, 35),
-                // (45,35): error CS1513: } expected
-                //             if (o is (int, int) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(45, 35),
-                // (51,53): error CS1525: Invalid expression term ')'
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(51, 53),
-                // (51,53): error CS1002: ; expected
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(51, 53),
-                // (51,53): error CS1513: } expected
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(51, 53),
                 // (21,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int):
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(21, 18),
@@ -1536,24 +1518,24 @@ class Program
                 // (37,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int32, System.Int32) z:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(37, 18),
-                // (37,19): error CS0119: 'int' is a type, which is not valid in the given context
+                // (37,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 19),
-                // (37,33): error CS0119: 'int' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(37, 19),
+                // (37,33): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (System.Int32, System.Int32) z:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(37, 33),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(37, 33),
                 // (39,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int64, System.Int64)").WithArguments("object", "Deconstruct").WithLocation(39, 18),
                 // (39,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (System.Int64, System.Int64) d:
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int64, System.Int64)").WithArguments("object", "2").WithLocation(39, 18),
-                // (39,19): error CS0119: 'long' is a type, which is not valid in the given context
+                // (39,19): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 19),
-                // (39,33): error CS0119: 'long' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int64").WithArguments("type pattern").WithLocation(39, 19),
+                // (39,33): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             case (System.Int64, System.Int64) d:
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int64").WithArguments("long", "type").WithLocation(39, 33),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int64").WithArguments("type pattern").WithLocation(39, 33),
                 // (43,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (int, int)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(43, 22),
@@ -1564,7 +1546,7 @@ class Program
                 //             if (o is (int x, int y)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x, int y)").WithArguments("object", "2").WithLocation(44, 22),
                 // (45,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             if (o is (int, int) z)) {}
+                //             if (o is (int, int) z) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(45, 22),
                 // (46,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (int a, int b) c) {}
@@ -1578,12 +1560,12 @@ class Program
                 // (49,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             if (o is (System.Int32, System.Int32)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(49, 22),
-                // (49,23): error CS0119: 'int' is a type, which is not valid in the given context
+                // (49,23): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 23),
-                // (49,37): error CS0119: 'int' is a type, which is not valid in the given context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(49, 23),
+                // (49,37): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             if (o is (System.Int32, System.Int32)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(49, 37),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(49, 37),
                 // (50,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 x, System.Int32 y)").WithArguments("object", "Deconstruct").WithLocation(50, 22),
@@ -1591,17 +1573,17 @@ class Program
                 //             if (o is (System.Int32 x, System.Int32 y)) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32 x, System.Int32 y)").WithArguments("object", "2").WithLocation(50, 22),
                 // (51,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                //             if (o is (System.Int32, System.Int32) z)) {}
+                //             if (o is (System.Int32, System.Int32) z) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32, System.Int32)").WithArguments("object", "Deconstruct").WithLocation(51, 22),
                 // (51,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
-                //             if (o is (System.Int32, System.Int32) z)) {}
+                //             if (o is (System.Int32, System.Int32) z) {}
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(System.Int32, System.Int32)").WithArguments("object", "2").WithLocation(51, 22),
-                // (51,23): error CS0119: 'int' is a type, which is not valid in the given context
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 23),
-                // (51,37): error CS0119: 'int' is a type, which is not valid in the given context
-                //             if (o is (System.Int32, System.Int32) z)) {}
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.Int32").WithArguments("int", "type").WithLocation(51, 37),
+                // (51,23): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             if (o is (System.Int32, System.Int32) z) {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(51, 23),
+                // (51,37): error CS8652: The feature 'type pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             if (o is (System.Int32, System.Int32) z) {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Int32").WithArguments("type pattern").WithLocation(51, 37),
                 // (52,22): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(System.Int32 a, System.Int32 b)").WithArguments("object", "Deconstruct").WithLocation(52, 22),
@@ -3020,9 +3002,13 @@ static class Ex
                 // (13,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2),
-                // (10,9): error CS8070: Control cannot fall out of switch from final case label ('var q')
-                //         var q = 3;
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "var q").WithArguments("var q").WithLocation(10, 9)
+        // (8,13): error CS8070: Control cannot fall out of switch from final case label ('case
+                //             case
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, @"case
+
+        var q ").WithArguments(@"case
+
+        var q ").WithLocation(8, 13)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
