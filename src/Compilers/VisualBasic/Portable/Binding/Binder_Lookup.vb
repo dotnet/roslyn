@@ -120,7 +120,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(options.IsValid())
 
             options = BinderSpecificLookupOptions(options)
-            MemberLookup.AddLookupSymbolsInfo(nameSet, container, options, Me)
+            Dim tempResults = New TemporaryLookupResults(True)
+            MemberLookup.AddLookupSymbolsInfo(nameSet, container, options, Me, tempResults)
+            tempResults.Dispose()
         End Sub
 
         ' Validates a symbol to check if it 
@@ -375,11 +377,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Sub AddLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
                                                     container As NamespaceOrTypeSymbol,
                                                     options As LookupOptions,
-                                                    binder As Binder)
+                                                    binder As Binder,
+                                                    tempResults As TemporaryLookupResults)
                 If container.IsNamespace Then
-                    AddLookupSymbolsInfo(nameSet, DirectCast(container, NamespaceSymbol), options, binder)
+                    AddLookupSymbolsInfo(nameSet, DirectCast(container, NamespaceSymbol), options, binder, tempResults)
                 Else
-                    AddLookupSymbolsInfo(nameSet, DirectCast(container, TypeSymbol), options, binder)
+                    AddLookupSymbolsInfo(nameSet, DirectCast(container, TypeSymbol), options, binder, tempResults)
                 End If
             End Sub
 
@@ -556,7 +559,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub AddLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
                                            container As NamespaceSymbol,
                                            options As LookupOptions,
-                                           binder As Binder)
+                                           binder As Binder,
+                                           tempResults As TemporaryLookupResults)
                 ' Add names from the namespace
                 For Each sym In container.GetMembersUnordered()
                     ' UNDONE: filter by options
@@ -567,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Next, add names from each contained module.
                 For Each containedModule As NamedTypeSymbol In container.GetModuleMembers()
-                    AddLookupSymbolsInfo(nameSet, containedModule, options, binder)
+                    AddLookupSymbolsInfo(nameSet, containedModule, options, binder, tempResults)
                 Next
             End Sub
 
