@@ -3614,7 +3614,7 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DiscardInAssignment()
+        public async Task DiscardInOutDeclaration()
         {
             await TestAsync(@"
 class X
@@ -3631,7 +3631,7 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task ShortDiscardInAssignment()
+        public async Task DiscardInOutAssignment()
         {
             await TestAsync(@"
 class X
@@ -3644,6 +3644,123 @@ class X
             Method("TryParse"),
             Static("TryParse"),
             Keyword("_"));
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (x, _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstructionDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        (int x, int _) = (0, 0);
+    }
+}",
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x is int _;
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        switch(x)
+        {
+            case int _:
+                return true;
+            default:
+                return false;
+        }
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInSwitchPatternMatch()
+        {
+            await TestAsync(@"
+class X
+{
+    bool N(object x)
+    {
+        return x switch
+        {
+            _ => return true;
+        };
+    }
+}",
+            Parameter("x"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"));
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task NonDiscardInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int> a = (int _) => _.GetHashCode();
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Parameter("_"),
+            Method("GetHashCode"));
         }
     }
 }
