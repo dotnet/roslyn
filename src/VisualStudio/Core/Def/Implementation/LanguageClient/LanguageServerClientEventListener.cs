@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
                 // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
-                // The synchronous execution happens under the sln load threaded wait dialog, so LSP requests cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
+                // The synchronous execution happens under the sln load threaded wait dialog, so user actions cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
                 // The result task from OnLoadedAsync is waited on before invoking LSP requests to the ILanguageClient.
                 this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new string[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), this._languageServerClient).Forget();
             }, TaskScheduler.Default);
@@ -58,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// The <see cref="ILanguageClientBroker.LoadAsync(ILanguageClientMetadata, ILanguageClient)"/> 
         /// requires that we pass the <see cref="ILanguageClientMetadata"/> along with the language client instance.
         /// The implementation of <see cref="ILanguageClientMetadata"/> is not public, so have to re-implement.
+        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043922 tracking to remove this.
         /// </summary>
         private class LanguageClientMetadata : ILanguageClientMetadata
         {

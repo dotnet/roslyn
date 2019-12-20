@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -115,8 +116,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var client = await _workspace.TryGetRemoteHostClientAsync(CancellationToken.None).ConfigureAwait(false);
             if (client == null)
             {
-                // there is no OOP. either user turned it off, or process got killed.
-                // don't ask platform to start LSP
+                // There is no OOP. either user turned it off, or process got killed.
+                // We should have already gotten a gold bar + nfw already if the OOP is missing.
+                // so just log telemetry here so we can connect the two with session explorer.
+                Logger.Log(FunctionId.LanguageServer_ActivateFailed);
+                // don't ask platform to start LSP.
+                // we shouldn't throw as the LSP client does not expect exceptions here.
                 return;
             }
 
