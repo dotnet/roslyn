@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
 
         protected override SyntaxNode AddSimplificationAnnotationTo(SyntaxNode expressionSyntax)
         {
-            var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+            var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(
+                Simplifier.Annotation, Formatter.Annotation, DoNotAllowVarAnnotation.Annotation);
 
             if (annotatedexpressionSyntax.Kind() == SyntaxKind.IsExpression || annotatedexpressionSyntax.Kind() == SyntaxKind.AsExpression)
             {
