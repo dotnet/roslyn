@@ -277,35 +277,32 @@
                                         Width="16" 
                                         Moniker="{x:Static imagecatalog:KnownMonikers.MoveDown}" 
                                         Grayscale="{Binding IsEnabled, ElementName=DownButton, Converter={StaticResource NegateBooleanConverter}}"/>
-
                 </vs:DialogButton>
                 <vs:DialogButton
-                        Name="RemoveButton"
-                        Margin="9 29 0 0"
-                        IsEnabled="{Binding CanRemove, Mode=OneWay}" 
-                        AutomationProperties.Name="{Binding RemoveAutomationText}"
-                        Click="Remove_Click" 
-                        AutomationProperties.AutomationId="RemoveButton" 
-                        Content="{Binding ElementName=dialog, Path=Remove}" 
-                        Height="Auto" Width="Auto">
-                </vs:DialogButton>
-
-                <vs:DialogButton
-                        Name="RestoreButton"
-                        Margin="9 9 0 0"
-                        IsEnabled="{Binding CanRestore, Mode=OneWay}" 
-                        Click="Restore_Click" 
-                        AutomationProperties.AutomationId="RestoreButton" 
-                        AutomationProperties.Name="{Binding RestoreAutomationText}"
-                        Content="{Binding ElementName=dialog, Path=Restore}" 
-                        Height="Auto" Width="Auto"/>
-
-                <vs:DialogButton
+                        Name="AddButton"
                         Margin="9 29 0 0"
                         AutomationProperties.Name="{Binding AddAutomationText}"
                         Click="Add_Click"
                         AutomationProperties.AutomationId="AddButton"
                         Content="{Binding ElementName=dialog, Path=Add}"
+                        Height="Auto" Width="Auto"/>
+                <vs:DialogButton
+                        Name="RemoveButton"
+                        Margin="9 9 0 0"
+                        IsEnabled="{Binding CanRemove, Mode=OneWay}" 
+                        AutomationProperties.Name="{Binding RemoveAutomationText}"
+                        Click="Remove_Click" 
+                        AutomationProperties.AutomationId="RemoveButton" 
+                        Content="{Binding ElementName=dialog, Path=Remove}" 
+                        Height="Auto" Width="Auto"/>
+                <vs:DialogButton
+                        Name="RestoreButton"
+                        Margin="9 29 0 0"
+                        IsEnabled="{Binding CanRestore, Mode=OneWay}" 
+                        Click="Restore_Click" 
+                        AutomationProperties.AutomationId="RestoreButton" 
+                        AutomationProperties.Name="{Binding RestoreAutomationText}"
+                        Content="{Binding ElementName=dialog, Path=Restore}" 
                         Height="Auto" Width="Auto"/>
             </StackPanel>
         </Grid>
