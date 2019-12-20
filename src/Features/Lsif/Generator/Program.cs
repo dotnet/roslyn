@@ -21,15 +21,16 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             {
                 new Option("--solution", "input solution file") { Argument = new Argument<FileInfo>().ExistingOnly(), Required = true },
                 new Option("--output", "file to write the LSIF output to, instead of the console") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() },
+                new Option("--output-format", "format of LSIF output") { Argument = new Argument<LsifFormat>(defaultValue: () => LsifFormat.Line) },
                 new Option("--log", "file to write a log to") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() }
             };
 
-            generateCommand.Handler = CommandHandler.Create((Func<FileInfo, string?, string?, Task>)GenerateAsync);
+            generateCommand.Handler = CommandHandler.Create((Func<FileInfo, string?, LsifFormat, string?, Task>)GenerateAsync);
 
             return generateCommand.InvokeAsync(args);
         }
 
-        private static async Task GenerateAsync(FileInfo solution, string? output, string? log)
+        private static async Task GenerateAsync(FileInfo solution, string? output, LsifFormat outputFormat, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
             using StreamWriter? outputFile = output != null ? new StreamWriter(output) : null;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             try
             {
-                await GenerateAsync(solution, outputWriter, logFile);
+                await GenerateAsync(solution, outputWriter, outputFormat, logFile);
             }
             catch (Exception e)
             {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task GenerateAsync(FileInfo solutionFile, TextWriter outputWriter, TextWriter logFile)
+        private static async Task GenerateAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
         {
             await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
 
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
 
-            using var lsifWriter = new TextLsifJsonWriter(outputWriter);
+            using var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
             var lsifGenerator = new Generator(lsifWriter);
 
             Stopwatch totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();

@@ -12,15 +12,16 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
     {
         private readonly JsonTextWriter _jsonTextWriter;
         private readonly JsonSerializer _jsonSerializer;
+        private readonly LsifFormat _format;
 
-        public TextLsifJsonWriter(TextWriter outputWriter)
+        public TextLsifJsonWriter(TextWriter outputWriter, LsifFormat format)
         {
+            _format = format;
             _jsonTextWriter = new JsonTextWriter(outputWriter);
-            _jsonTextWriter.WriteStartArray();
 
             var settings = new JsonSerializerSettings
             {
-                Formatting = Newtonsoft.Json.Formatting.Indented,
+                Formatting = _format == LsifFormat.Json ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None,
                 NullValueHandling = NullValueHandling.Ignore,
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 TypeNameHandling = TypeNameHandling.None,
@@ -28,16 +29,30 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.Writing
             };
 
             _jsonSerializer = JsonSerializer.Create(settings);
+
+            if (_format == LsifFormat.Json)
+            {
+                _jsonTextWriter.WriteStartArray();
+            }
         }
 
         public void Write(Element element)
         {
             _jsonSerializer.Serialize(_jsonTextWriter, element);
+
+            if (_format == LsifFormat.Line)
+            {
+                _jsonTextWriter.WriteWhitespace("\r\n");
+            }
         }
 
         public void Dispose()
         {
-            _jsonTextWriter.WriteEndArray();
+            if (_format == LsifFormat.Json)
+            {
+                _jsonTextWriter.WriteEndArray();
+            }
+
             _jsonTextWriter.Close();
         }
 
