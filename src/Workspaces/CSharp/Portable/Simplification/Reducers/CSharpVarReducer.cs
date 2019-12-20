@@ -17,13 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         }
 
         public override bool IsApplicable(OptionSet optionSet)
-        {
-            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
-                return false;
-
-            return optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value ||
-                   optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Value ||
-                   optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
-        }
+            => optionSet.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Value ||
+               optionSet.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Value ||
+               optionSet.GetOption(CSharpCodeStyleOptions.VarElsewhere).Value;
     }
 }
