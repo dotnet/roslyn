@@ -1,19 +1,43 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+    Friend Structure TemporaryLookupResults
+        Implements IDisposable
+
+        Private Shared ReadOnly s_stackPool As New ObjectPool(Of Stack(Of LookupResult))(
+                Function() New Stack(Of LookupResult))
+
+        Private _stack As Stack(Of LookupResult)
+
+        Public Sub New(unused As Boolean)
+            _stack = s_stackPool.Allocate()
+        End Sub
+
+        Private Sub Dispose() Implements IDisposable.Dispose
+            s_stackPool.Free(_stack)
+            _stack = Nothing
+        End Sub
+
+        Public Function GetTempLookupResult() As LookupResult
+            If _stack.Count = 0 Then
+                Return New LookupResult()
+            End If
+
+            Return _stack.Pop()
+        End Function
+
+        Public Sub FreeTempLookupResult(result As LookupResult)
+            result.Clear()
+            _stack.Push(result)
+        End Sub
+    End Structure
+
     ' Handler the parts of binding for member lookup.
     Partial Friend Class Binder
 
@@ -575,22 +599,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       arity As Integer,
                                       options As LookupOptions,
                                       binder As Binder,
-                                      tempResult As LookupResult,
+                                      tempResults As TemporaryLookupResults,
                                       <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
                 Debug.Assert(lookupResult.IsClear)
 
                 Select Case type.TypeKind
                     Case TypeKind.Class, TypeKind.Module, TypeKind.Structure, TypeKind.Delegate, TypeKind.Array, TypeKind.Enum
-                        LookupInClass(lookupResult, type, name, arity, options, type, binder, tempResult, useSiteDiagnostics)
+                        LookupInClass(lookupResult, type, name, arity, options, type, binder, tempResults, useSiteDiagnostics)
 
                     Case TypeKind.Submission
                         LookupInSubmissions(lookupResult, type, name, arity, options, binder, useSiteDiagnostics)
 
                     Case TypeKind.Interface
-                        LookupInInterface(lookupResult, DirectCast(type, NamedTypeSymbol), name, arity, options, binder, tempResult, useSiteDiagnostics)
+                        LookupInInterface(lookupResult, DirectCast(type, NamedTypeSymbol), name, arity, options, binder, tempResults, useSiteDiagnostics)
 
                     Case TypeKind.TypeParameter
-                        LookupInTypeParameter(lookupResult, DirectCast(type, TypeParameterSymbol), name, arity, options, binder, tempResult, useSiteDiagnostics)
+                        LookupInTypeParameter(lookupResult, DirectCast(type, TypeParameterSymbol), name, arity, options, binder, tempResults, useSiteDiagnostics)
 
                     Case TypeKind.Error
                         ' Error types have no members.
@@ -604,22 +628,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub AddLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
                                                      container As TypeSymbol,
                                                      options As LookupOptions,
-                                                     binder As Binder)
+                                                     binder As Binder,
+                                                     tempResults As TemporaryLookupResults)
                 Select Case container.TypeKind
                     Case TypeKind.Class, TypeKind.Structure, TypeKind.Delegate, TypeKind.Array, TypeKind.Enum
-                        AddLookupSymbolsInfoInClass(nameSet, container, options, binder)
+                        AddLookupSymbolsInfoInClass(nameSet, container, options, binder, tempResults)
 
                     Case TypeKind.Module
-                        AddLookupSymbolsInfoInClass(nameSet, container, options Or LookupOptions.NoBaseClassLookup, binder)
+                        AddLookupSymbolsInfoInClass(nameSet, container, options Or LookupOptions.NoBaseClassLookup, binder, tempResults)
 
                     Case TypeKind.Submission
                         AddLookupSymbolsInfoInSubmissions(nameSet, container, options, binder)
 
                     Case TypeKind.Interface
-                        AddLookupSymbolsInfoInInterface(nameSet, DirectCast(container, NamedTypeSymbol), options, binder)
+                        AddLookupSymbolsInfoInInterface(nameSet, DirectCast(container, NamedTypeSymbol), options, binder, tempResults)
 
                     Case TypeKind.TypeParameter
-                        AddLookupSymbolsInfoInTypeParameter(nameSet, DirectCast(container, TypeParameterSymbol), options, binder)
+                        AddLookupSymbolsInfoInTypeParameter(nameSet, DirectCast(container, TypeParameterSymbol), options, binder, tempResults)
 
                     Case TypeKind.Error
                         ' Error types have no members.
@@ -643,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              options As LookupOptions,
                                              accessThroughType As TypeSymbol,
                                              binder As Binder,
-                                             tempResult As LookupResult,
+                                             tempResults As TemporaryLookupResults,
                                              <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
                 Debug.Assert(result.IsClear)
 
@@ -652,6 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Lookup proceeds up the base class chain.
                 Dim currentType = container
 
+                Dim tempResult = tempResults.GetTempLookupResult()
                 Do
                     tempResult.Clear()
                     Dim hitNonoverloadingSymbol As Boolean = False
@@ -671,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         FindWinRTMembers(result,
                                          namedType,
                                          binder,
-                                         tempResult,
+                                         tempResults,
                                          useSiteDiagnostics,
                                          lookupMembersNotDefaultProperties:=True,
                                          name:=name,
@@ -710,8 +736,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Loop
 
+                tempResults.FreeTempLookupResult(tempResult)
+
                 ClearLookupResultIfNotMethods(methodsOnly, result)
-                LookupForExtensionMethodsIfNeedTo(result, container, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                LookupForExtensionMethodsIfNeedTo(result, container, name, arity, options, binder, tempResults, useSiteDiagnostics)
             End Sub
 
             Public Delegate Sub WinRTLookupDelegate(iface As NamedTypeSymbol,
@@ -735,7 +763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub FindWinRTMembers(result As LookupResult,
                                                 type As NamedTypeSymbol,
                                                 binder As Binder,
-                                                tempResult As LookupResult,
+                                                tempResults As TemporaryLookupResults,
                                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                 lookupMembersNotDefaultProperties As Boolean,
                                                 Optional name As String = Nothing,
@@ -786,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               iface,
                                                               iface,
                                                               binder,
-                                                              tempResult,
+                                                              tempResults,
                                                               useSiteDiagnostics)
                         End If
                         ' only add viable members
@@ -953,14 +981,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result As LookupResult,
                 type As NamedTypeSymbol,
                 binder As Binder,
-                tempResult As LookupResult,
+                tempResults As TemporaryLookupResults,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
                 Debug.Assert(type.IsClassType OrElse type.IsModuleType OrElse type.IsStructureType OrElse type.IsDelegateType)
                 Dim accessThroughType As NamedTypeSymbol = type
 
                 While type IsNot Nothing
-                    If LookupDefaultPropertyInSingleType(result, type, accessThroughType, binder, tempResult, useSiteDiagnostics) Then
+                    If LookupDefaultPropertyInSingleType(result, type, accessThroughType, binder, tempResults, useSiteDiagnostics) Then
                         Return
                     End If
 
@@ -970,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         FindWinRTMembers(result,
                                          type,
                                          binder,
-                                         tempResult,
+                                         tempResults,
                                          useSiteDiagnostics,
                                          lookupMembersNotDefaultProperties:=False)
                         If result.IsGood Then
@@ -989,19 +1017,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result As LookupResult,
                 [interface] As NamedTypeSymbol,
                 binder As Binder,
-                tempResult As LookupResult,
+                tempResults As TemporaryLookupResults,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
                 Debug.Assert([interface].IsInterfaceType)
 
-                If LookupDefaultPropertyInSingleType(result, [interface], [interface], binder, tempResult, useSiteDiagnostics) Then
+                If LookupDefaultPropertyInSingleType(result, [interface], [interface], binder, tempResults, useSiteDiagnostics) Then
                     Return
                 End If
 
                 For Each baseInterface In [interface].InterfacesNoUseSiteDiagnostics
                     baseInterface.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
 
-                    LookupDefaultPropertyInBaseInterface(result, baseInterface, binder, tempResult, useSiteDiagnostics)
+                    LookupDefaultPropertyInBaseInterface(result, baseInterface, binder, tempResults, useSiteDiagnostics)
                     If result.HasDiagnostic Then
                         Return
                     End If
@@ -1012,12 +1040,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result As LookupResult,
                     typeParameter As TypeParameterSymbol,
                     binder As Binder,
-                    tempResult As LookupResult,
+                    tempResults As TemporaryLookupResults,
                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
                 ' Look up in class constraint.
                 Dim constraintClass = typeParameter.GetClassConstraint(useSiteDiagnostics)
                 If constraintClass IsNot Nothing Then
-                    LookupDefaultPropertyInClass(result, constraintClass, binder, tempResult, useSiteDiagnostics)
+                    LookupDefaultPropertyInClass(result, constraintClass, binder, tempResults, useSiteDiagnostics)
                     If Not result.IsClear Then
                         Return
                     End If
@@ -1030,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If lookIn IsNot Nothing Then
                     For Each baseInterface In lookIn
-                        LookupDefaultPropertyInBaseInterface(result, baseInterface.InterfaceType, binder, tempResult, useSiteDiagnostics)
+                        LookupDefaultPropertyInBaseInterface(result, baseInterface.InterfaceType, binder, tempResults, useSiteDiagnostics)
                         If result.HasDiagnostic Then
                             Return
                         End If
@@ -1043,7 +1071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result As LookupResult,
                 type As NamedTypeSymbol,
                 binder As Binder,
-                tempResult As LookupResult,
+                tempResults As TemporaryLookupResults,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
                 If type.IsErrorType() Then
@@ -1053,9 +1081,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(type.IsInterfaceType)
                 Debug.Assert(Not result.HasDiagnostic)
 
-                Dim tmpResult = LookupResult.GetInstance()
+                Dim tmpResult = tempResults.GetTempLookupResult()
                 Try
-                    LookupDefaultPropertyInInterface(tmpResult, type, binder, tempResult, useSiteDiagnostics)
+                    LookupDefaultPropertyInInterface(tmpResult, type, binder, tempResults, useSiteDiagnostics)
 
                     If Not tmpResult.HasSymbol Then
                         Return
@@ -1075,7 +1103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         result.MergeAmbiguous(tmpResult, AddressOf GenerateAmbiguousDefaultPropertyDiagnostic)
                     End If
                 Finally
-                    tmpResult.Free()
+                    tempResults.FreeTempLookupResult(tmpResult)
                 End Try
             End Sub
 
@@ -1085,7 +1113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 type As NamedTypeSymbol,
                 accessThroughType As TypeSymbol,
                 binder As Binder,
-                tempResult As LookupResult,
+                tempResults As TemporaryLookupResults,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             ) As Boolean
                 Dim defaultPropertyName = type.DefaultPropertyName
@@ -1103,7 +1131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             options:=LookupOptions.Default,
                             accessThroughType:=accessThroughType,
                             binder:=binder,
-                            tempResult:=tempResult,
+                            tempResults:=tempResults,
                             useSiteDiagnostics:=useSiteDiagnostics)
 
                     Case TypeKind.Interface
@@ -1115,7 +1143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             arity:=0,
                             options:=LookupOptions.Default,
                             binder:=binder,
-                            tempResult:=tempResult,
+                            tempResults:=tempResults,
                             useSiteDiagnostics:=useSiteDiagnostics)
 
                     Case TypeKind.TypeParameter
@@ -1152,7 +1180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 arity As Integer,
                 options As LookupOptions,
                 binder As Binder,
-                tempResult As LookupResult,
+                tempResults As TemporaryLookupResults,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
                 If result.IsGood AndAlso
@@ -1161,10 +1189,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                tempResult.Clear()
+                Dim tempResult = tempResults.GetTempLookupResult()
                 LookupForExtensionMethods(tempResult, container, name, arity, options, binder, useSiteDiagnostics)
                 MergeInternalXmlHelperValueIfNecessary(tempResult, container, name, arity, options, binder, useSiteDiagnostics)
                 result.MergeOverloadedOrPrioritized(tempResult, checkIfCurrentHasOverloads:=False)
+                tempResults.FreeTempLookupResult(tempResult)
             End Sub
 
             Private Shared Function ShouldLookupExtensionMethods(options As LookupOptions, container As TypeSymbol) As Boolean
@@ -1289,8 +1318,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub AddLookupSymbolsInfoOfExtensionMethods(nameSet As LookupSymbolsInfo,
                                                                container As TypeSymbol,
                                                                newInfo As LookupSymbolsInfo,
-                                                               binder As Binder)
-                Dim lookup = LookupResult.GetInstance()
+                                                               binder As Binder,
+                                                                      tempResults As TemporaryLookupResults)
+                Dim lookup = tempResults.GetTempLookupResult()
 
                 For Each name In newInfo.Names
                     lookup.Clear()
@@ -1306,13 +1336,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                lookup.Free()
+                tempResults.FreeTempLookupResult(lookup)
             End Sub
 
-            Public Shared Sub AddExtensionMethodLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
+            Private Shared Sub AddExtensionMethodLookupSymbolsInfo(nameSet As LookupSymbolsInfo,
                                                                    container As TypeSymbol,
                                                                    options As LookupOptions,
-                                                                   binder As Binder)
+                                                                   binder As Binder,
+                                                                   tempResults As TemporaryLookupResults)
                 If Not ShouldLookupExtensionMethods(options, container) Then
                     Return
                 End If
@@ -1333,7 +1364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     currentBinder = currentBinder.m_containingBinder
                 Loop While currentBinder IsNot Nothing
 
-                AddLookupSymbolsInfoOfExtensionMethods(nameSet, container, newInfo, binder)
+                AddLookupSymbolsInfoOfExtensionMethods(nameSet, container, newInfo, binder, tempResults)
 
                 newInfo.Free()
 
@@ -1452,7 +1483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          arity As Integer,
                          options As LookupOptions,
                          binder As Binder,
-                         tempResult As LookupResult,
+                         tempResults As TemporaryLookupResults,
                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
                 Debug.Assert(lookupResult.IsClear)
@@ -1468,28 +1499,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim processed As New HashSet(Of InterfaceInfo)
                 processed.Add(info)
 
-                LookupInInterfaces(lookupResult, container, lookIn, processed, name, arity, options, binder, methodsOnly, useSiteDiagnostics)
+                LookupInInterfaces(lookupResult, container, lookIn, processed, name, arity, options, binder, methodsOnly, tempResults, useSiteDiagnostics)
 
                 ' If no viable or ambiguous results, look in Object.
                 If Not lookupResult.IsGoodOrAmbiguous AndAlso (options And LookupOptions.NoSystemObjectLookupForInterfaces) = 0 Then
-                    Dim currentResult = LookupResult.GetInstance()
+                    Dim currentResult = tempResults.GetTempLookupResult()
                     Dim obj As NamedTypeSymbol = binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
 
                     LookupInClass(currentResult,
                                   obj,
                                   name, arity, options Or LookupOptions.IgnoreExtensionMethods, obj, binder,
-                                  tempResult,
+                                  tempResults,
                                   useSiteDiagnostics)
 
                     If currentResult.IsGood Then
                         lookupResult.SetFrom(currentResult)
                     End If
 
-                    currentResult.Free()
+                    tempResults.FreeTempLookupResult(currentResult)
                 End If
 
                 ClearLookupResultIfNotMethods(methodsOnly, lookupResult)
-                LookupForExtensionMethodsIfNeedTo(lookupResult, container, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                LookupForExtensionMethodsIfNeedTo(lookupResult, container, name, arity, options, binder, tempResults, useSiteDiagnostics)
                 Return
             End Sub
 
@@ -1502,6 +1533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          options As LookupOptions,
                          binder As Binder,
                          methodsOnly As Boolean,
+                         tempResults As TemporaryLookupResults,
                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             )
                 Debug.Assert(lookupResult.IsClear)
@@ -1510,7 +1542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim isEventsOnlySpecified As Boolean = (options And LookupOptions.EventsOnly) <> 0
 
-                Dim currentResult = LookupResult.GetInstance()
+                Dim currentResult = tempResults.GetTempLookupResult()
                 Do
                     Dim info As InterfaceInfo = lookIn.Dequeue()
                     Debug.Assert(processed.Contains(info))
@@ -1543,7 +1575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Loop While lookIn.Count <> 0
 
-                currentResult.Free()
+                tempResults.FreeTempLookupResult(currentResult)
 
                 If methodsOnly AndAlso lookupResult.IsGood Then
                     ' We need to filter out non-method symbols from 'currentResult' 
@@ -1616,14 +1648,14 @@ ExitForFor:
                          arity As Integer,
                          options As LookupOptions,
                          binder As Binder,
-                         tempResult As LookupResult,
+                         tempResults As TemporaryLookupResults,
                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
 
                 Dim methodsOnly = CheckAndClearMethodsOnlyOption(options)
-                LookupInTypeParameterNoExtensionMethods(lookupResult, typeParameter, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                LookupInTypeParameterNoExtensionMethods(lookupResult, typeParameter, name, arity, options, binder, tempResults, useSiteDiagnostics)
 
                 ClearLookupResultIfNotMethods(methodsOnly, lookupResult)
-                LookupForExtensionMethodsIfNeedTo(lookupResult, typeParameter, name, arity, options, binder, tempResult, useSiteDiagnostics)
+                LookupForExtensionMethodsIfNeedTo(lookupResult, typeParameter, name, arity, options, binder, tempResults, useSiteDiagnostics)
             End Sub
 
             Private Shared Sub LookupInTypeParameterNoExtensionMethods(result As LookupResult,
@@ -1632,7 +1664,7 @@ ExitForFor:
                          arity As Integer,
                          options As LookupOptions,
                          binder As Binder,
-                         tempResult As LookupResult,
+                         tempResults As TemporaryLookupResults,
                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
                 Debug.Assert((options And LookupOptions.MethodsOnly) = 0)
 
@@ -1645,7 +1677,7 @@ ExitForFor:
                 ' Look up in class constraint.
                 Dim constraintClass = typeParameter.GetClassConstraint(useSiteDiagnostics)
                 If constraintClass IsNot Nothing Then
-                    LookupInClass(result, constraintClass, name, arity, options, constraintClass, binder, tempResult, useSiteDiagnostics)
+                    LookupInClass(result, constraintClass, name, arity, options, constraintClass, binder, tempResults, useSiteDiagnostics)
                     If result.StopFurtherLookup Then
                         Return
                     End If
@@ -1659,11 +1691,11 @@ ExitForFor:
                 If lookIn IsNot Nothing Then
                     ' §4.9.2: "If a member with the same name appears in more than one interface
                     ' constraint the member is unavailable (as in multiple interface inheritance)"
-                    Dim interfaceResult = LookupResult.GetInstance()
+                    Dim interfaceResult = tempResults.GetTempLookupResult()
                     Debug.Assert((options And LookupOptions.MethodsOnly) = 0)
-                    LookupInInterfaces(interfaceResult, typeParameter, lookIn, processed, name, arity, options, binder, False, useSiteDiagnostics)
+                    LookupInInterfaces(interfaceResult, typeParameter, lookIn, processed, name, arity, options, binder, False, tempResults, useSiteDiagnostics)
                     result.MergePrioritized(interfaceResult)
-                    interfaceResult.Free()
+                    tempResults.FreeTempLookupResult(interfaceResult)
                     If Not result.IsClear Then
                         Return
                     End If
@@ -1673,7 +1705,7 @@ ExitForFor:
                 If constraintClass Is Nothing Then
                     Debug.Assert(result.IsClear)
                     Dim baseType = GetTypeParameterBaseType(typeParameter)
-                    LookupInClass(result, baseType, name, arity, options, baseType, binder, tempResult, useSiteDiagnostics)
+                    LookupInClass(result, baseType, name, arity, options, baseType, binder, tempResults, useSiteDiagnostics)
                 End If
             End Sub
 
@@ -1930,7 +1962,8 @@ ExitForFor:
             Private Shared Sub AddLookupSymbolsInfoInClass(nameSet As LookupSymbolsInfo,
                                                   container As TypeSymbol,
                                                   options As LookupOptions,
-                                                  binder As Binder)
+                                                  binder As Binder,
+                                                  tempResults As TemporaryLookupResults)
                 ' We need a check for SpecialType.System_Void as its base type is
                 ' ValueType but we don't wish to return any members for void type
                 If container IsNot Nothing And container.SpecialType = SpecialType.System_Void Then
@@ -1959,7 +1992,7 @@ ExitForFor:
                 Loop While currentType IsNot Nothing
 
                 ' Search for extension methods.
-                AddExtensionMethodLookupSymbolsInfo(nameSet, container, options, binder)
+                AddExtensionMethodLookupSymbolsInfo(nameSet, container, options, binder, tempResults)
 
                 ' Special case: if we're in a constructor of a class or structure, then we can call constructors on ourself or our immediate base
                 ' (via Me.New or MyClass.New or MyBase.New). We don't have enough info to check the constraints that the constructor must be
@@ -1997,7 +2030,8 @@ ExitForFor:
             Private Shared Sub AddLookupSymbolsInfoInInterface(nameSet As LookupSymbolsInfo,
                                                                 container As NamedTypeSymbol,
                                                                 options As LookupOptions,
-                                                                binder As Binder)
+                                                                binder As Binder,
+                                                                tempResults As TemporaryLookupResults)
 
                 Dim info As New InterfaceInfo(container, False)
 
@@ -2012,10 +2046,10 @@ ExitForFor:
                 ' Look in Object.
                 AddLookupSymbolsInfoInClass(nameSet,
                               binder.SourceModule.ContainingAssembly.GetSpecialType(SpecialType.System_Object),
-                              options Or LookupOptions.IgnoreExtensionMethods, binder)
+                              options Or LookupOptions.IgnoreExtensionMethods, binder, tempResults)
 
                 ' Search for extension methods.
-                AddExtensionMethodLookupSymbolsInfo(nameSet, container, options, binder)
+                AddExtensionMethodLookupSymbolsInfo(nameSet, container, options, binder, tempResults)
             End Sub
 
             Private Shared Sub AddLookupSymbolsInfoInInterfaces(nameSet As LookupSymbolsInfo,
@@ -2044,27 +2078,29 @@ ExitForFor:
             Private Shared Sub AddLookupSymbolsInfoInTypeParameter(nameSet As LookupSymbolsInfo,
                                                                     typeParameter As TypeParameterSymbol,
                                                                     options As LookupOptions,
-                                                                    binder As Binder)
+                                                                    binder As Binder,
+                                                                    tempResults As TemporaryLookupResults)
                 If typeParameter.TypeParameterKind = TypeParameterKind.Cref Then
                     Return
                 End If
 
-                AddLookupSymbolsInfoInTypeParameterNoExtensionMethods(nameSet, typeParameter, options, binder)
+                AddLookupSymbolsInfoInTypeParameterNoExtensionMethods(nameSet, typeParameter, options, binder, tempResults)
 
                 ' Search for extension methods.
-                AddExtensionMethodLookupSymbolsInfo(nameSet, typeParameter, options, binder)
+                AddExtensionMethodLookupSymbolsInfo(nameSet, typeParameter, options, binder, tempResults)
             End Sub
 
             Private Shared Sub AddLookupSymbolsInfoInTypeParameterNoExtensionMethods(nameSet As LookupSymbolsInfo,
                                                                                       typeParameter As TypeParameterSymbol,
                                                                                       options As LookupOptions,
-                                                                                      binder As Binder)
+                                                                                      binder As Binder,
+                                                                                      tempResults As TemporaryLookupResults)
                 options = options Or LookupOptions.IgnoreExtensionMethods
 
                 ' Look up in class constraint.
                 Dim constraintClass = typeParameter.GetClassConstraint(Nothing)
                 If constraintClass IsNot Nothing Then
-                    AddLookupSymbolsInfoInClass(nameSet, constraintClass, options, binder)
+                    AddLookupSymbolsInfoInClass(nameSet, constraintClass, options, binder, tempResults)
                 End If
 
                 ' Look up in interface constraints.
@@ -2079,7 +2115,7 @@ ExitForFor:
                 ' Look up in System.ValueType or System.Object.
                 If constraintClass Is Nothing Then
                     Dim baseType = GetTypeParameterBaseType(typeParameter)
-                    AddLookupSymbolsInfoInClass(nameSet, baseType, options, binder)
+                    AddLookupSymbolsInfoInClass(nameSet, baseType, options, binder, tempResults)
                 End If
             End Sub
 
