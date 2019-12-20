@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 #if DEBUG
                 default;
 #else
-                CompoundUseSiteInfo.Discarded;
+                CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif
             var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenThis, baseType, ref discardedSiteInfo);
             Debug.Assert(discardedSiteInfo.Diagnostics == null || !conversion.IsValid || discardedSiteInfo.Diagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
