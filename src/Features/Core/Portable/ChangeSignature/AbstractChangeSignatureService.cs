@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         internal ChangeSignatureResult ChangeSignature(Document document, int position, Action<string, NotificationSeverity> errorHandler, CancellationToken cancellationToken)
         {
-            var context = GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var context = GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             if (context.CanChangeSignature)
             {
-                return ChangeSignatureWithContextAsync(context, cancellationToken).WaitAndGetResult(cancellationToken);
+                return ChangeSignatureWithContextAsync(context, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             }
             else
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var symbols = FindChangeSignatureReferencesAsync(
                 SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
-                context.Solution, cancellationToken).WaitAndGetResult(cancellationToken);
+                context.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             foreach (var symbol in symbols)
             {

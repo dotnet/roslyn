@@ -57,10 +57,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
+            ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
+            ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
+
             if (ViewModel.TrySubmit())
             {
-                ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
-                ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
                 DialogResult = true;
             }
         }

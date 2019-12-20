@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.InvocationExpression))
             {
                 var invocation = (InvocationExpressionSyntax)updatedNode;
-                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
                 var isReducedExtensionMethod = false;
@@ -466,10 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 if (updatedParameters[i] is AddedParameter addedParameter)
                 {
-                    fullList.Add(SyntaxFactory.Argument(
-                        seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
-                        refKindKeyword: default,
-                        expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
+                    if (addedParameter.CallsiteValue != null)
+                    {
+                        fullList.Add(SyntaxFactory.Argument(
+                            seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
+                            refKindKeyword: default,
+                            expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
+                    }
                 }
                 else
                 {
