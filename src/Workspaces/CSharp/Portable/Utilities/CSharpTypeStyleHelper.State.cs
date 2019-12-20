@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     _ => null,
                 };
 
-            private UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
+            private static UseVarPreference GetCurrentTypeStylePreferences(OptionSet optionSet)
             {
                 var stylePreferences = UseVarPreference.None;
 

@@ -128,7 +128,10 @@ namespace Microsoft.CodeAnalysis.Simplification
                     reducers = _reducers;
                 }
 
-                reducers = reducers.WhereAsArray(r => r.IsApplicable(optionSet))
+                // Take out any reducers that don't even apply with the current
+                // set of users options. i.e. no point running 'reduce to var'
+                // if the user doesn't have the 'var' preference set.
+                reducers = reducers.WhereAsArray(r => r.IsApplicable(optionSet));
 
                 var reducedNodesMap = new ConcurrentDictionary<SyntaxNode, SyntaxNode>();
                 var reducedTokensMap = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
