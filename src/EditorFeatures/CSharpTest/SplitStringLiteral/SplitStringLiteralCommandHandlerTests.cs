@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
                 .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
                 .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
 
+            if (useTabs && expectedOutputMarkup != null)
+            {
+                Assert.Contains("\t", expectedOutputMarkup);
+            }
+
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
 
