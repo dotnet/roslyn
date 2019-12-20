@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MakeClassAbstract;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeClassAbstract
                    "CS0513" // 'C.M()' is abstract but it is contained in non-abstract class 'C'
                );
 
-        protected override bool IsValidRefactoringContext(SyntaxNode? node, out ClassDeclarationSyntax? classDeclaration)
+        protected override bool IsValidRefactoringContext(SyntaxNode? node, [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
         {
             classDeclaration = null;
 
