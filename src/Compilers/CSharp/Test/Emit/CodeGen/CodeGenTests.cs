@@ -13232,7 +13232,7 @@ expectedOutput: "-100");
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
                 emitMethodBodies: true,
-                diagnostics: diagnostics,
+                diagnostics: new BindingDiagnosticBag(diagnostics),
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);

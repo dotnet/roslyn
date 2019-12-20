@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected readonly BoundStatement body;
         protected readonly MethodSymbol method;
-        protected readonly DiagnosticBag diagnostics;
+        protected readonly BindingDiagnosticBag diagnostics;
         protected readonly SyntheticBoundNodeFactory F;
         protected readonly SynthesizedContainer stateMachineType;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedContainer stateMachineType,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(body != null);
             Debug.Assert(method != null);
@@ -189,10 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int previousSlotIndex;
                             if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 declaratorSyntax,
-                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics.DiagnosticBag),
                                 synthesizedKind,
                                 id,
-                                diagnostics,
+                                diagnostics.DiagnosticBag,
                                 out previousSlotIndex))
                             {
                                 slotIndex = previousSlotIndex;

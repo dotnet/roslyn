@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             SyntaxReference blockSyntax,
             DebugId lambdaId,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType,
                    originalMethod,
                    blockSyntax,

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _info = info;
         }
 
-        public static void AddAll(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
+        public static void AddAll(bool isNullableEnabled, TypeWithAnnotations type, Location location, BindingDiagnosticBag diagnostics)
         {
             var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
             GetRawDiagnosticInfos(isNullableEnabled, (CSharpSyntaxTree)location.SourceTree, rawInfos);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - an error before C# 8.0
         /// - a warning outside of a NonNullTypes context
         /// </summary>
-        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
+        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, TypeWithAnnotations type, Location location, BindingDiagnosticBag diagnostics)
         {
             if (IsNullableReference(type.Type))
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, Location location, DiagnosticBag diagnostics)
+        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, Location location, BindingDiagnosticBag diagnostics)
         {
             var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
             GetRawDiagnosticInfos(isNullableEnabled, (CSharpSyntaxTree)location.SourceTree, rawInfos);

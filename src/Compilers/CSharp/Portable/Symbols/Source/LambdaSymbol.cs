@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
             TypeWithAnnotations returnType,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
 

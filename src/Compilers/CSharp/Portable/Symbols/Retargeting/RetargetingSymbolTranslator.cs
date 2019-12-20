@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 // TODO: if it is a missing symbol error but no longer missing in the target assembly, then we can resolve it here.
 
-                var useSiteDiagnostic = type.GetUseSiteDiagnostic();
+                var useSiteDiagnostic = type.GetUseSiteInfo().DiagnosticInfo;
                 if (useSiteDiagnostic != null)
                 {
                     return type;

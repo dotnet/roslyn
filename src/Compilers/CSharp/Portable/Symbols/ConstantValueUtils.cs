@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class EvaluatedConstant
     {
         public readonly ConstantValue Value;
-        public readonly ImmutableArray<Diagnostic> Diagnostics;
+        public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-        public EvaluatedConstant(ConstantValue value, ImmutableArray<Diagnostic> diagnostics)
+        public EvaluatedConstant(ConstantValue value, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
         {
             this.Value = value;
             this.Diagnostics = diagnostics.NullToEmpty();
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EqualsValueClauseSyntax equalsValueNode,
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var compilation = symbol.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             FieldSymbol fieldSymbol,
             EqualsValueClauseSyntax initializer,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var enumConstant = fieldSymbol as SourceEnumConstantSymbol;
             Binder collisionDetector = new LocalScopeBinder(binder);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol thisSymbol,
             TypeSymbol typeSymbol,
             Location initValueNodeLocation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var value = ConstantValue.Bad;
             if (!boundValue.HasAnyErrors)

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void CheckAccessibility(DiagnosticBag diagnostics)
+        protected void CheckAccessibility(BindingDiagnosticBag diagnostics)
         {
             var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
             if (info != null)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected void ReportModifiersDiagnostics(DiagnosticBag diagnostics)
+        protected void ReportModifiersDiagnostics(BindingDiagnosticBag diagnostics)
         {
             if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ErrorLocation;
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> dependencies;
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
 
             // Only persist if there are no dependencies and the calculation
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var builder = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             if (startsCycle)
             {
                 diagnostics.Add(ErrorCode.ERR_CircConstValue, _location, this);
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void SetLazyConstantValue(
             ConstantValue value,
             bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool startsCycle)
         {
             Debug.Assert(value != Microsoft.CodeAnalysis.ConstantValue.Unset);
@@ -373,6 +374,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, DiagnosticBag diagnostics);
+        protected abstract ConstantValue MakeConstantValue(HashSet<SourceFieldSymbolWithSyntaxReference> dependencies, bool earlyDecodingWellKnownAttributes, BindingDiagnosticBag diagnostics);
     }
 }

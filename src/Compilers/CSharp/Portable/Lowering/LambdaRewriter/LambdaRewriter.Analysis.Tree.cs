@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Builds a tree of <see cref="Scope"/> nodes corresponding to a given method.
-            /// <see cref="Build(BoundNode, MethodSymbol, HashSet{MethodSymbol}, DiagnosticBag)"/>
+            /// <see cref="Build(BoundNode, MethodSymbol, HashSet{MethodSymbol}, BindingDiagnosticBag)"/>
             /// visits the bound tree and translates information from the bound tree about
             /// variable scope, declared variables, and variable captures into the resulting
             /// <see cref="Scope"/> tree.
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// Also contains all lambdas (as they are converted to delegates implicitly).
                 /// </summary>
                 private readonly HashSet<MethodSymbol> _methodsConvertedToDelegates;
-                private readonly DiagnosticBag _diagnostics;
+                private readonly BindingDiagnosticBag _diagnostics;
 
                 /// <summary>
                 /// For every label visited so far, this dictionary maps to a list of all scopes either visited so far, or currently being visited,
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Scope rootScope,
                     MethodSymbol topLevelMethod,
                     HashSet<MethodSymbol> methodsConvertedToDelegates,
-                    DiagnosticBag diagnostics)
+                    BindingDiagnosticBag diagnostics)
                 {
                     Debug.Assert(rootScope != null);
                     Debug.Assert(topLevelMethod != null);
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundNode node,
                     MethodSymbol topLevelMethod,
                     HashSet<MethodSymbol> methodsConvertedToDelegates,
-                    DiagnosticBag diagnostics)
+                    BindingDiagnosticBag diagnostics)
                 {
                     // This should be the top-level node
                     Debug.Assert(node == FindNodeToAnalyze(node));

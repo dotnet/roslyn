@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteDiagnostics));
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref useSiteInfo));
                 return overriddenAccessibility;
             }
         }

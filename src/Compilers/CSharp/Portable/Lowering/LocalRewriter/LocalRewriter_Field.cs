@@ -96,9 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _factory.Field(rewrittenReceiver, underlyingField);
         }
 
-        private Symbol GetWellKnownMemberInTuple(NamedTypeSymbol type, WellKnownMember relativeMember, DiagnosticBag diagnostics, SyntaxNode syntax)
+        private Symbol GetWellKnownMemberInTuple(NamedTypeSymbol type, WellKnownMember relativeMember, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            _compilation.AddUsedAssembly(type.ContainingAssembly);
             return TupleTypeSymbol.GetWellKnownMemberInType(type, relativeMember, diagnostics, syntax);
         }
 
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields from inferred names are not usable in C# 7.0.
             field = field.CorrespondingTupleField ?? field;
 
-            DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+            DiagnosticInfo useSiteInfo = field.GetUseSiteInfo().DiagnosticInfo;
             if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
             {
                 Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);

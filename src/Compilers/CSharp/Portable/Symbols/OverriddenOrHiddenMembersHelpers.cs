@@ -962,8 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private static bool IsOverriddenSymbolAccessible(Symbol overridden, NamedTypeSymbol overridingContainingType)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return AccessCheck.IsSymbolAccessible(overridden.OriginalDefinition, overridingContainingType.OriginalDefinition, ref useSiteDiagnostics);
+            var unused = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return AccessCheck.IsSymbolAccessible(overridden.OriginalDefinition, overridingContainingType.OriginalDefinition, ref unused);
         }
     }
 }

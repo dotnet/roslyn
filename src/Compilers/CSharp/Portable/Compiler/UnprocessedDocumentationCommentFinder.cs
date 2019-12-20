@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class UnprocessedDocumentationCommentFinder : CSharpSyntaxWalker
     {
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CancellationToken _cancellationToken;
         private readonly TextSpan? _filterSpanWithinTree;
 
         private bool _isValidLocation;
 
-        private UnprocessedDocumentationCommentFinder(DiagnosticBag diagnostics, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
+        private UnprocessedDocumentationCommentFinder(BindingDiagnosticBag diagnostics, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.Trivia)
         {
             _diagnostics = diagnostics;
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken = cancellationToken;
         }
 
-        public static void ReportUnprocessed(SyntaxTree tree, TextSpan? filterSpanWithinTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        public static void ReportUnprocessed(SyntaxTree tree, TextSpan? filterSpanWithinTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (tree.ReportDocumentationCommentDiagnostics())
             {

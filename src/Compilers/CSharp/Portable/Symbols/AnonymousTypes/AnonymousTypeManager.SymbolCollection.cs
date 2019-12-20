@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Reports all use site errors in special or well known symbols required for anonymous types
         /// </summary>
         /// <returns>true if there was at least one error</returns>
-        public bool ReportMissingOrErroneousSymbols(DiagnosticBag diagnostics)
+        public bool ReportMissingOrErroneousSymbols(BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -46,21 +46,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Error reporting implementation
 
-        private static void ReportErrorOnSymbol(Symbol symbol, DiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnSymbol(Symbol symbol, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
                 return;
             }
 
-            DiagnosticInfo info = symbol.GetUseSiteDiagnostic();
+            DiagnosticInfo info = symbol.GetUseSiteInfo().DiagnosticInfo;
             if (info != null)
             {
                 hasError = Symbol.ReportUseSiteDiagnostic(info, diagnostics, NoLocation.Singleton);
             }
         }
 
-        private static void ReportErrorOnSpecialMember(Symbol symbol, SpecialMember member, DiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnSpecialMember(Symbol symbol, SpecialMember member, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void ReportErrorOnWellKnownMember(Symbol symbol, WellKnownMember member, DiagnosticBag diagnostics, ref bool hasError)
+        private static void ReportErrorOnWellKnownMember(Symbol symbol, WellKnownMember member, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             if ((object)symbol == null)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public NamedTypeSymbol System_Diagnostics_DebuggerBrowsableState
         {
-            get { return Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState, recordUsage: false); }
+            get { return Compilation.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState); }
         }
 
         public MethodSymbol System_Object__Equals
@@ -142,22 +142,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public MethodSymbol System_Collections_Generic_EqualityComparer_T__Equals
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals, recordUsage: false) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__Equals) as MethodSymbol; }
         }
 
         public MethodSymbol System_Collections_Generic_EqualityComparer_T__GetHashCode
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode, recordUsage: false) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__GetHashCode) as MethodSymbol; }
         }
 
         public MethodSymbol System_Collections_Generic_EqualityComparer_T__get_Default
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default, recordUsage: false) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_EqualityComparer_T__get_Default) as MethodSymbol; }
         }
 
         public MethodSymbol System_String__Format_IFormatProvider
         {
-            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider, recordUsage: false) as MethodSymbol; }
+            get { return this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_String__Format_IFormatProvider) as MethodSymbol; }
         }
 
         #endregion

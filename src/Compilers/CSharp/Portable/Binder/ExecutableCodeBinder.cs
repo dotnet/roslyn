@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public void ValidateIteratorMethods(DiagnosticBag diagnostics)
+        public void ValidateIteratorMethods(BindingDiagnosticBag diagnostics)
         {
             foreach (var iterator in MethodSymbolsWithYield)
             {

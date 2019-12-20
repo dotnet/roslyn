@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VariableDeclaratorSyntax declarator,
             DeclarationModifiers modifiers,
             bool modifierErrors,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType, declarator, modifiers, modifierErrors, diagnostics)
         {
             // Checked in parser: a fixed field declaration requires a length in square brackets
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
-            var systemType = compilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false);
+            var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
             var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
             var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_fixedSize == FixedSizeNotInitialized)
                 {
-                    DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+                    BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
                     int size = 0;
 
                     VariableDeclaratorSyntax declarator = VariableDeclaratorNode;

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
                 ArrayBuilder<ClosureDebugInfo> closureDebugInfo,
-                DiagnosticBag diagnostics)
+                BindingDiagnosticBag diagnostics)
             {
                 var methodsConvertedToDelegates = PooledHashSet<MethodSymbol>.GetInstance();
                 var scopeTree = ScopeTreeBuilder.Build(

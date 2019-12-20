@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate an accessor for a field-like event.
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(eventSymbol.HasAssociatedField);
             return eventSymbol.IsWindowsRuntimeEvent
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Remove:
         ///   EventRegistrationTokenTable&lt;Event&gt;.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).RemoveEventHandler(value);
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -240,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol getOrCreateMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(
                 compilation,
                 WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable,
-                recordUsage: true,
                 diagnostics,
                 syntax: syntax);
 
@@ -259,7 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol processHandlerMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(
                 compilation,
                 processHandlerMember,
-                recordUsage: false, // Recorded above, when looked for WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable
                 diagnostics,
                 syntax: syntax);
 
@@ -336,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// _event = (DelegateType)Delegate.Combine(_event, value); //Remove for -=
         /// 
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -365,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundBlock.SynthesizedNoLocals(syntax, @return);
             }
 
-            Binder.ReportUseSiteDiagnostics(updateMethod, diagnostics, syntax);
+            Binder.ReportUseSite(updateMethod, diagnostics, syntax);
 
             BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
                 null :
@@ -383,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression delegateUpdate;
 
-            MethodSymbol compareExchangeMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T, recordUsage: true);
+            MethodSymbol compareExchangeMethod = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
             if ((object)compareExchangeMethod == null)
             {
@@ -413,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create<TypeSymbol>(delegateType));
 
-            Binder.ReportUseSiteDiagnostics(compareExchangeMethod, diagnostics, syntax);
+            Binder.ReportUseSite(compareExchangeMethod, diagnostics, syntax);
 
             GeneratedLabelSymbol loopLabel = new GeneratedLabelSymbol("loop");
 

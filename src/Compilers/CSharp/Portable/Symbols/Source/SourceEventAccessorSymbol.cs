@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // rather than Interlocked.CompareExchange.
                 if (_event.IsWindowsRuntimeEvent)
                 {
-                    TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken, recordUsage: true);
+                    TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
                     Binder.ReportUseSiteDiagnostics(eventTokenType, diagnostics, this.Location);
 
                     if (this.MethodKind == MethodKind.EventAdd)

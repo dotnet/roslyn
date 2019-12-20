@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <summary>
         /// First error calculating bounds.
         /// </summary>
-        private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedConstraintsUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyCachedConstraintsUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     // we do not recognize these combinations as "unmanaged"
                     hasUnmanagedModreqPattern = false;
-                    Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                    _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
                 }
 
                 _lazyHasIsUnmanagedConstraint = hasUnmanagedModreqPattern.ToThreeState();
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             catch (BadImageFormatException)
             {
                 constraints = default(GenericParameterConstraintHandleCollection);
-                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             return constraints;
@@ -615,43 +615,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
                 var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, currentCompilation: null,
                                                 diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder);
-                DiagnosticInfo errorInfo = null;
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                var useSiteInfo = new UseSiteInfo<AssemblySymbol>(primaryDependency);
 
                 if (diagnostics.Count > 0)
                 {
-                    errorInfo = diagnostics[0].DiagnosticInfo;
+                    useSiteInfo = diagnostics[0].UseSiteInfo;
                 }
                 else if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
                 {
                     foreach (var diag in useSiteDiagnosticsBuilder)
                     {
-                        if (diag.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
+                        MergeUseSiteInfo(ref useSiteInfo, diag.UseSiteInfo);
+                        if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                         {
-                            errorInfo = diag.DiagnosticInfo;
                             break;
-                        }
-                        else if ((object)errorInfo == null)
-                        {
-                            errorInfo = diag.DiagnosticInfo;
                         }
                     }
                 }
 
                 diagnostics.Free();
 
-                Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
+                _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency, useSiteInfo);
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
-            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
+            Debug.Assert(_lazyCachedConstraintsUseSiteInfo.IsInitialized);
             return _lazyBounds;
         }
 
-        internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
+        internal override UseSiteInfo<AssemblySymbol> GetConstraintsUseSiteErrorInfo()
         {
             EnsureAllConstraintsAreResolved();
-            Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
-            return _lazyConstraintsUseSiteErrorInfo;
+            Debug.Assert(_lazyCachedConstraintsUseSiteInfo.IsInitialized);
+            return _lazyCachedConstraintsUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
         private NamedTypeSymbol GetDefaultBaseType()

@@ -82,9 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool shouldCheckConstraints,
             bool includeNullability,
             ImmutableArray<bool> errorPositions,
-            bool recordUsage,
             CSharpSyntaxNode syntax = null,
-            DiagnosticBag diagnostics = null)
+            BindingDiagnosticBag diagnostics = null)
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypesWithAnnotations.Length == elementNames.Length);
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, recordUsage, diagnostics);
+            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
 
             if (numElements >= RestPosition && diagnostics != null && !underlyingType.IsErrorType())
             {
@@ -105,10 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _ = GetWellKnownMemberInType(underlyingType.OriginalDefinition, wellKnownTupleRest, diagnostics, syntax);
             }
 
-            if (diagnostics != null && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
+            if (diagnostics?.DiagnosticBag is object && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
             {
                 // Complain about unembeddable types from linked assemblies.
-                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
+                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics.DiagnosticBag);
             }
 
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
@@ -351,13 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///
         /// Pass a null diagnostic bag and syntax node if you don't care about diagnostics.
         /// </summary>
-        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, bool recordUsage, DiagnosticBag diagnostics)
+        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             int numElements = elementTypes.Length;
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage);
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
             if ((object)diagnostics != null && (object)syntax != null)
             {
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
@@ -366,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol chainedTupleType = null;
             if (chainLength > 1)
             {
-                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage);
+                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
                     ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
@@ -396,33 +395,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
-        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
         {
-            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            Binder.ReportUseSite(firstTupleType, diagnostics, syntax);
             Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
         }
 
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
-        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, bool recordUsage, DiagnosticBag diagnostics)
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)diagnostics != null && (object)syntax != null);
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
-            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder), recordUsage);
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
             ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
 
             if (chainLength > 1)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition), recordUsage);
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
             }
         }
 
-        internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, DiagnosticBag diagnostics)
+        internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, BindingDiagnosticBag diagnostics)
         {
             var sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
@@ -652,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Lookup well-known member declaration in provided type and reports diagnostics.
         /// </summary>
-        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             Symbol member = GetWellKnownMemberInType(type, relativeMember);
 
@@ -663,11 +662,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                DiagnosticInfo useSiteDiag = member.GetUseSiteDiagnostic();
-                if ((object)useSiteDiag != null && useSiteDiag.Severity == DiagnosticSeverity.Error)
+                UseSiteInfo<AssemblySymbol> useSiteInfo = member.GetUseSiteInfo();
+                if ((object)useSiteInfo.DiagnosticInfo != null && useSiteInfo.DiagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
-                    diagnostics.Add(useSiteDiag, syntax.GetLocation());
+                    diagnostics.Add(useSiteInfo.DiagnosticInfo, syntax.GetLocation());
                 }
+
+                diagnostics.AddDependencies(useSiteInfo);
             }
 
             return member;
@@ -1489,9 +1490,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _underlyingType.GetUseSiteDiagnostic();
+            return _underlyingType.GetUseSiteInfo();
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public BoundExpression LowerIsPattern(
-                BoundIsPatternExpression isPatternExpression, BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
+                BoundIsPatternExpression isPatternExpression, BoundPattern pattern, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
             {
                 BoundDecisionDag decisionDag = isPatternExpression.DecisionDag;
                 LabelSymbol whenTrueLabel = isPatternExpression.WhenTrueLabel;

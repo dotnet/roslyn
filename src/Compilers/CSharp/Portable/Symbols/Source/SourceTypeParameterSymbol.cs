@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_lazyBounds.IsSet())
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 var bounds = this.ResolveBounds(inProgress, diagnostics);
 
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyBounds;
         }
 
-        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics);
+        protected abstract TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// Check constraints of generic types referenced in constraint types. For instance,
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// on I&lt;T&gt;. Those constraints are not checked when binding ConstraintTypes
         /// since ConstraintTypes has not been set on I&lt;T&gt; at that point.
         /// </summary>
-        private void CheckConstraintTypeConstraints(DiagnosticBag diagnostics)
+        private void CheckConstraintTypeConstraints(BindingDiagnosticBag diagnostics)
         {
             var constraintTypes = this.ConstraintTypesNoUseSiteDiagnostics;
             if (constraintTypes.Length == 0)
@@ -260,17 +260,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var constraintType in constraintTypes)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                constraintType.Type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
-
-                if (!diagnostics.Add(location, useSiteDiagnostics))
+                if (!diagnostics.ReportUseSite(constraintType.Type, location))
                 {
                     constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                 }
             }
         }
 
-        private void CheckUnmanagedConstraint(DiagnosticBag diagnostics)
+        private void CheckUnmanagedConstraint(BindingDiagnosticBag diagnostics)
         {
             if (this.HasUnmanagedTypeConstraint)
             {
@@ -298,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return modifyCompilation;
         }
 
-        private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
+        private void CheckNullableAnnotationsInConstraints(BindingDiagnosticBag diagnostics)
         {
             if (ConstraintsNeedNullableAttribute())
             {
@@ -415,6 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override sealed void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -554,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _owner.GetTypeParameterConstraintClause(this.Ordinal);
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics)
         {
             var constraintClause = GetTypeParameterConstraintClause();
             if (constraintClause.IsEmpty)
@@ -583,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _owner = owner;
         }
 
-        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
             => _owner.AddDeclarationDiagnostics(diagnostics);
 
         public override TypeParameterKind TypeParameterKind
@@ -676,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constraintClauses.IsEmpty ? TypeParameterConstraintClause.Empty : constraintClauses[Ordinal];
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics)
         {
             var constraintClause = GetTypeParameterConstraintClause();
             if (constraintClause.IsEmpty)
@@ -905,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Owner.TypeParameters; }
         }
 
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
+        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, BindingDiagnosticBag diagnostics)
         {
             var typeParameter = this.OverriddenTypeParameter;
             if ((object)typeParameter == null)

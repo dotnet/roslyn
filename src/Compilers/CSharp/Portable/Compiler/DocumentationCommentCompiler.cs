@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
         private readonly bool _processIncludes;
         private readonly bool _isForSingleSymbol; //minor differences in behavior between batch case and API case.
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CancellationToken _cancellationToken;
 
         private SyntaxNodeLocationComparer _lazyComparer;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextSpan? filterSpanWithinTree,
             bool processIncludes,
             bool isForSingleSymbol,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
             _assemblyName = assemblyName;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">To stop traversing the symbol table early.</param>
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
-        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
+        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
             StreamWriter writer = null;
             if (xmlDocStream != null && xmlDocStream.CanWrite)
@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringWriter writer = new StringWriter(pooled.Builder);
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
 
             var compiler = new DocumentationCommentCompiler(
                 assemblyName: null,
@@ -150,12 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 filterSpanWithinTree: null,
                 processIncludes: processIncludes,
                 isForSingleSymbol: true,
-                diagnostics: discardedDiagnostics,
+                diagnostics: BindingDiagnosticBag.Discarded,
                 cancellationToken: cancellationToken);
             compiler.Visit(symbol);
             Debug.Assert(compiler._indentDepth == 0);
 
-            discardedDiagnostics.Free();
             writer.Dispose();
             return pooled.ToStringAndFree();
         }
@@ -932,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not respect DocumentationMode, so use a temporary bag if diagnostics are not desired.
         /// </remarks>
-        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, DiagnosticBag diagnostics)
+        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
         {
             if (crefSyntax.ContainsDiagnostics)
             {
@@ -961,18 +959,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol = ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved: null);
             }
 
-            if (symbol is TypeSymbol type)
-            {
-                binder.Compilation.AddAssembliesUsedByTypeReference(type);
-            }
-            else if (symbol is NamespaceSymbol ns)
+            if (symbol is NamespaceSymbol ns)
             {
                 Debug.Assert(!ns.IsGlobalNamespace);
-                binder.Compilation.AddAssembliesUsedByNamespaceReference(ns);
+                diagnostics.AddAssembliesUsedByNamespaceReference(ns);
             }
             else
             {
-                binder.Compilation.AddAssembliesUsedByTypeReference(symbol.ContainingType);
+                diagnostics.AddDependencies(symbol as TypeSymbol ?? symbol.ContainingType);
             }
 
             return symbol.OriginalDefinition.GetDocumentationCommentId();
@@ -1003,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol memberSymbol,
             ref HashSet<ParameterSymbol> documentedParameters,
             ref HashSet<TypeParameterSymbol> documentedTypeParameters,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             XmlNameAttributeElementKind elementKind = syntax.GetElementKind();
 
@@ -1032,9 +1026,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteDiagnostics);
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
 
             if (referencedSymbols.IsEmpty)
             {

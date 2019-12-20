@@ -604,9 +604,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
@@ -623,10 +623,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
@@ -643,11 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }

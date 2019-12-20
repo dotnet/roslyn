@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
+        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         private class QueryUnboundLambdaState : UnboundLambdaState
         {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
 
-            public override void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
+            public override void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
             {
                 // TODO: improved diagnostics for query expressions
                 base.GenerateAnonymousFunctionConversionError(diagnostics, targetType);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
             }
 
-            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)
+            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
             {
                 return _bodyFactory(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }

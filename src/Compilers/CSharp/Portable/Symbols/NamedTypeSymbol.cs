@@ -54,22 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics { get; }
 
-        internal ImmutableArray<TypeWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             foreach (var typeArgument in result)
             {
-                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                useSiteInfo.AddForSymbol(typeArgument.Type.OriginalDefinition);
             }
 
             return result;
         }
 
-        internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            useSiteInfo.AddForSymbol(result.Type.OriginalDefinition);
             return result;
         }
 
@@ -1107,36 +1107,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Given C<int>.D<string, double>, yields { int, string, double }
-        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+                outer.GetAllTypeArguments(builder, ref useSiteInfo);
             }
 
-            foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 builder.Add(argument.Type);
             }
         }
 
-        internal ImmutableArray<TypeWithAnnotations> GetAllTypeArguments(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> GetAllTypeArguments(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            GetAllTypeArguments(builder, ref useSiteDiagnostics);
+            GetAllTypeArguments(builder, ref useSiteInfo);
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetAllTypeArguments(ArrayBuilder<TypeWithAnnotations> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal void GetAllTypeArguments(ArrayBuilder<TypeWithAnnotations> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+                outer.GetAllTypeArguments(builder, ref useSiteInfo);
             }
 
-            builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+            builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo));
         }
 
         internal void GetAllTypeArgumentsNoUseSiteDiagnostics(ArrayBuilder<TypeWithAnnotations> builder)
@@ -1203,30 +1203,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
+            UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
+
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return result;
             }
 
-            DiagnosticInfo result = null;
-
             // Check definition, type arguments 
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.OriginalDefinition) ||
-                DeriveUseSiteDiagnosticFromTypeArguments(ref result))
+            if (!DeriveUseSiteInfoFromType(ref result, this.OriginalDefinition))
             {
-                return result;
+                DeriveUseSiteDiagnosticFromTypeArguments(ref result);
             }
 
             return result;
         }
 
-        private bool DeriveUseSiteDiagnosticFromTypeArguments(ref DiagnosticInfo result)
+        private bool DeriveUseSiteDiagnosticFromTypeArguments(ref UseSiteInfo<AssemblySymbol> result)
         {
             foreach (TypeWithAnnotations arg in this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                if (DeriveUseSiteDiagnosticFromType(ref result, arg))
+                if (DeriveUseSiteInfoFromType(ref result, arg))
                 {
                     return true;
                 }
@@ -1267,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (@base.IsErrorType() && @base is NoPiaIllegalGenericInstantiationSymbol)
                 {
-                    return @base.GetUseSiteDiagnostic();
+                    return @base.GetUseSiteInfo().DiagnosticInfo;
                 }
 
                 @base = @base.BaseTypeNoUseSiteDiagnostics;

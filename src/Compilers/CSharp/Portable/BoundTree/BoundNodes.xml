@@ -32,6 +32,7 @@
   <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
+  <ValueType Name="ImmutableBindingDiagnostic<AssemblySymbol>"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -1867,7 +1868,7 @@
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
-    <Field Name="Diagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" />
+    <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic<AssemblySymbol>" />
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 

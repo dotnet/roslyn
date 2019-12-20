@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
@@ -231,8 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ErrorCode.ERR_BadVisOpReturn :
                 ErrorCode.ERR_BadVisReturnType;
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteInfo))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
                 diagnostics.Add(code, Locations[0], this, returnType.Type);
@@ -244,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in parameters)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
                     diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
-            diagnostics.Add(Locations[0], useSiteDiagnostics);
+            diagnostics.Add(Locations[0], useSiteInfo);
         }
 
         protected void MakeFlags(
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// In particular, it should not (generally) be necessary to use CompareExchange to
         /// protect assignments to fields.
         /// </remarks>
-        protected abstract void MethodChecks(DiagnosticBag diagnostics);
+        protected abstract void MethodChecks(BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// We can usually lock on the syntax reference of this method, but it turns
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // By setting StartMethodChecks, we've committed to doing the checks and setting
                         // FinishMethodChecks.  So there is no cancellation supported between one and the other.
-                        var diagnostics = DiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
                         try
                         {
                             MethodChecks(diagnostics);
@@ -1153,6 +1153,7 @@ done:
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             if (arguments.SymbolPart == AttributeLocation.None)
             {
@@ -1167,6 +1168,7 @@ done:
         private void DecodeWellKnownAttributeAppliedToMethod(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -1193,7 +1195,7 @@ done:
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
-                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
@@ -1270,6 +1272,7 @@ done:
             ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments,
             AttributeDescription description)
         {
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
             if (arguments.Attribute.IsTargetAttribute(this, description))
             {
                 if (this.IsAccessor())
@@ -1282,7 +1285,7 @@ done:
                     }
                     else
                     {
-                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(((BindingDiagnosticBag)arguments.Diagnostics), arguments.AttributeSyntaxOpt);
                     }
                 }
 
@@ -1292,7 +1295,7 @@ done:
             return false;
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
 
@@ -1522,7 +1525,7 @@ done:
             }
         }
 
-        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1700,7 +1703,7 @@ done:
 
         #endregion
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -1783,7 +1786,7 @@ done:
             // type will not have been created. In this case, omit the attribute.
             if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out NamedTypeSymbol stateMachineType))
             {
-                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false),
+                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                     TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
                 if (isAsync && isIterator)
@@ -1819,7 +1822,7 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, BindingDiagnosticBag diagnostics)
         {
             if (IsExtern && !IsAbstract)
             {
@@ -1833,7 +1836,7 @@ done:
             // in that case ("member cannot be both extern and abstract").
         }
 
-        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, DiagnosticBag diagnostics)
+        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, BindingDiagnosticBag diagnostics)
         {
             if (_containingType.IsInterface)
             {

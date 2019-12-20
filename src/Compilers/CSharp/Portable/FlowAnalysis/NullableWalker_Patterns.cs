@@ -262,9 +262,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagTypeEvaluation e:
                                     {
                                         var output = new BoundDagTemp(e.Syntax, e.Type, e);
-                                        HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                                        var unused = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                                         int outputSlot;
-                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, ref discardedDiagnostics).Kind)
+                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, ref unused).Kind)
                                         {
                                             case ConversionKind.Identity:
                                             case ConversionKind.ImplicitReference:
@@ -540,10 +540,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var placeholders = placeholderBuilder.ToImmutableAndFree();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var unused = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
             TypeSymbol inferredType =
-                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) : null)
+                (inferType ? BestTypeInferrer.InferBestType(placeholders, _conversions, ref unused) : null)
                     ?? node.Type?.SetUnknownNullabilityForReferenceTypes()
                     ?? new ExtendedErrorTypeSymbol(this.compilation, "", arity: 0, errorInfo: null, unreported: false);
 

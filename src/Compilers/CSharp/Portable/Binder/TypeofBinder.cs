@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /////// <summary>
         /////// Returns the list of the symbols which represent the argument of the nameof operator. Ambiguities are not an error for the nameof.
         /////// </summary>
-        ////internal ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, DiagnosticBag diagnostics, bool isAliasQualified, out bool hasErrors)
+        ////internal ImmutableArray<Symbol> LookupForNameofArgument(ExpressionSyntax left, IdentifierNameSyntax right, string name, BindingDiagnosticBag diagnostics, bool isAliasQualified, out bool hasErrors)
         ////{
         ////    ArrayBuilder<Symbol> symbols = ArrayBuilder<Symbol>.GetInstance();
         ////    Symbol container = null;

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns deterministically ordered list of variables that ought to be hoisted.
-        public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
+        public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, BindingDiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
             var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables);

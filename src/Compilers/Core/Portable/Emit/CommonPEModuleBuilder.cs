@@ -592,9 +592,9 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
-            => GetAdditionalTopLevelTypes(context.Diagnostics);
+            => GetAdditionalTopLevelTypes();
 
-        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes(DiagnosticBag diagnostics)
+        public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()
             => ImmutableArray<TNamedTypeSymbol>.Empty;
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetEmbeddedTypeDefinitions(EmitContext context)

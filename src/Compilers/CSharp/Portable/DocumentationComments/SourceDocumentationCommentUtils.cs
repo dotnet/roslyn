@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lazyXmlText;
         }
 
-        internal static ImmutableArray<DocumentationCommentTriviaSyntax> GetDocumentationCommentTriviaFromSyntaxNode(CSharpSyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        internal static ImmutableArray<DocumentationCommentTriviaSyntax> GetDocumentationCommentTriviaFromSyntaxNode(CSharpSyntaxNode syntaxNode, BindingDiagnosticBag diagnostics)
         {
             if (syntaxNode.SyntaxTree.Options.DocumentationMode < DocumentationMode.Parse)
             {

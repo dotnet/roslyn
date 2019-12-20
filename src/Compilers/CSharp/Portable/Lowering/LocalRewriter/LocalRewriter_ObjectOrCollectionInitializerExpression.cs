@@ -449,9 +449,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isRhsNestedInitializer)
         {
             var memberSymbol = rewrittenLeft.MemberSymbol;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Debug.Assert(memberSymbol != null && _compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
+#if DEBUG
+            var unused = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            Debug.Assert(memberSymbol != null && _compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, ref unused).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
+#endif
 
             switch (memberSymbol.Kind)
             {

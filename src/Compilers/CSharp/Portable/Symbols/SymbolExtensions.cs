@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the members of superType are accessible from subType due to inheritance.
         /// </summary>
-        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // NOTE: we don't use strict inheritance.  Instead we ignore constructed generic types
             // and only consider the unconstructed types.  Ecma-334, 4th edition contained the
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol originalSuperType = superType.OriginalDefinition;
             for (NamedTypeSymbol current = subType;
                 (object)current != null;
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
                 {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (originalSuperType.IsInterface)
             {
-                foreach (NamedTypeSymbol current in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                foreach (NamedTypeSymbol current in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                 {
                     if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
                     {
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return superType.TypeKind == TypeKind.Submission && subType.TypeKind == TypeKind.Submission;
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
+            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteInfo);
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
+            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteInfo);
         }
 
         public static LocalizableErrorArgument GetKindText(this Symbol symbol)
@@ -246,12 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.DeclaringCompilation.Options.AllowUnsafe;
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, DiagnosticBag diagnostics)
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, BindingDiagnosticBag diagnostics)
         {
             symbol.CheckUnsafeModifier(modifiers, symbol.Locations[0], diagnostics);
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag diagnostics)
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (((modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe) && !symbol.CompilationAllowsUnsafe())
             {

@@ -1530,7 +1530,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (enumeratorInfoOpt != null)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var unused = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
                 info = new ForEachLoopOperationInfo(enumeratorInfoOpt.ElementType.GetPublicSymbol(),
@@ -1543,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType,
                                                                                                                             compilation.GetSpecialType(SpecialType.System_IDisposable),
-                                                                                                                            ref useSiteDiagnostics).IsImplicit :
+                                                                                                                            ref unused).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.CurrentConversion,
                                                     boundForEachStatement.ElementConversion);

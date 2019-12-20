@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform additional checks after the member has been
         /// added to the member list of the containing type.
         /// </summary>
-        internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal virtual void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -821,13 +821,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return $"{this.Kind} {this.ToDisplayString(s_debuggerDisplayFormat)}";
         }
 
-        internal virtual void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal virtual void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
         {
-            if (!diagnostics.IsEmptyWithoutResolution)
+            if (diagnostics.DiagnosticBag?.IsEmptyWithoutResolution == false || diagnostics.DependenciesBag?.Count > 0)
             {
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
-                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+
+                compilation.AddUsedAssemblies(diagnostics.DependenciesBag);
+
+                if (diagnostics.DiagnosticBag?.IsEmptyWithoutResolution == false)
+                {
+                    compilation.DeclarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
+                }
             }
         }
 
@@ -840,17 +846,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var diagnostic = GetUseSiteDiagnostic();
-                return diagnostic != null && diagnostic.Severity == DiagnosticSeverity.Error;
+                var info = GetUseSiteInfo();
+                return info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error;
             }
         }
 
         /// <summary>
         /// Returns diagnostic info that should be reported at the use site of the symbol, or null if there is none.
         /// </summary>
-        internal virtual DiagnosticInfo GetUseSiteDiagnostic()
+        internal virtual UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return null;
+            return default;
+        }
+
+        protected AssemblySymbol PrimaryDependency
+        {
+            get
+            {
+                AssemblySymbol dependency = this.ContainingAssembly;
+                if (dependency is object && dependency.CorLibrary == dependency)
+                {
+                    return null;
+                }
+
+                return dependency;
+            }
         }
 
         /// <summary>
@@ -892,17 +912,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal DiagnosticInfo GetUseSiteDiagnosticForSymbolOrContainingType()
-        {
-            var info = this.GetUseSiteDiagnostic();
-            if (info != null && info.Severity == DiagnosticSeverity.Error)
-            {
-                return info;
-            }
-
-            return this.ContainingType.GetUseSiteDiagnostic() ?? info;
-        }
-
         /// <summary>
         /// Merges given diagnostic to the existing result diagnostic.
         /// </summary>
@@ -932,6 +941,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Merges given diagnostic and dependencies to the existing result.
+        /// </summary>
+        internal bool MergeUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, UseSiteInfo<AssemblySymbol> info)
+        {
+            DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
+
+            bool retVal = MergeUseSiteDiagnostics(ref diagnosticInfo, info.DiagnosticInfo);
+
+            if (diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                result = new UseSiteInfo<AssemblySymbol>(diagnosticInfo);
+                return retVal;
+            }
+
+            var secondaryDependencies = (result.SecondaryDependencies ?? ImmutableHashSet<AssemblySymbol>.Empty).Union(info.SecondaryDependencies ?? ImmutableHashSet<AssemblySymbol>.Empty);
+            var resultPrimaryDependency = result.PrimaryDependency ?? info.PrimaryDependency;
+
+            if (resultPrimaryDependency != info.PrimaryDependency && info.PrimaryDependency is object)
+            {
+                secondaryDependencies = secondaryDependencies.Add(info.PrimaryDependency);
+            }
+
+            result = new UseSiteInfo<AssemblySymbol>(diagnosticInfo, resultPrimaryDependency, secondaryDependencies);
+            Debug.Assert(!retVal);
+            return retVal;
+        }
+
+        /// <summary>
         /// Reports specified use-site diagnostic to given diagnostic bag. 
         /// </summary>
         /// <remarks>
@@ -956,15 +993,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info.Severity == DiagnosticSeverity.Error;
         }
 
-        /// <summary>
-        /// Derive error info from a type symbol.
-        /// </summary>
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbol type)
+        internal static bool ReportUseSiteDiagnostic(DiagnosticInfo info, BindingDiagnosticBag diagnostics, Location location)
         {
-            DiagnosticInfo info = type.GetUseSiteDiagnostic();
-            if (info != null)
+            return diagnostics.ReportUseSiteDiagnostic(info, location);
+        }
+
+        /// <summary>
+        /// Derive use-site info from a type symbol.
+        /// </summary>
+        internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeSymbol type)
+        {
+            UseSiteInfo<AssemblySymbol> info = type.GetUseSiteInfo();
+            if (info.DiagnosticInfo != null)
             {
-                if (info.Code == (int)ErrorCode.ERR_BogusType)
+                if (info.DiagnosticInfo.Code == (int)ErrorCode.ERR_BogusType)
                 {
                     switch (this.Kind)
                     {
@@ -972,32 +1014,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SymbolKind.Method:
                         case SymbolKind.Property:
                         case SymbolKind.Event:
-                            info = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                            info = new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
                             break;
                     }
                 }
             }
 
-            return MergeUseSiteDiagnostics(ref result, info);
+            return MergeUseSiteInfo(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
+        internal bool DeriveUseSiteInfoFromType(ref UseSiteInfo<AssemblySymbol> result, TypeWithAnnotations type)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
+            return DeriveUseSiteInfoFromType(ref result, type.Type) ||
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, type.CustomModifiers);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
+        internal bool DeriveUseSiteInfoFromParameter(ref UseSiteInfo<AssemblySymbol> result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
-                   DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
+            return DeriveUseSiteInfoFromType(ref result, param.TypeWithAnnotations) ||
+                   DeriveUseSiteInfoFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromParameters(ref DiagnosticInfo result, ImmutableArray<ParameterSymbol> parameters)
+        internal bool DeriveUseSiteInfoFromParameters(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<ParameterSymbol> parameters)
         {
             foreach (ParameterSymbol param in parameters)
             {
-                if (DeriveUseSiteDiagnosticFromParameter(ref result, param))
+                if (DeriveUseSiteInfoFromParameter(ref result, param))
                 {
                     return true;
                 }
@@ -1006,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal bool DeriveUseSiteDiagnosticFromCustomModifiers(ref DiagnosticInfo result, ImmutableArray<CustomModifier> customModifiers)
+        internal bool DeriveUseSiteInfoFromCustomModifiers(ref UseSiteInfo<AssemblySymbol> result, ImmutableArray<CustomModifier> customModifiers)
         {
             foreach (CustomModifier modifier in customModifiers)
             {
@@ -1018,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     modifierType = modifierType.OriginalDefinition;
                 }
 
-                if (DeriveUseSiteDiagnosticFromType(ref result, modifierType))
+                if (DeriveUseSiteInfoFromType(ref result, modifierType))
                 {
                     return true;
                 }
@@ -1195,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode block,
             CSharpSyntaxNode expression,
             CSharpSyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (block != null && expression != null)
             {
