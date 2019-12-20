@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 {
     internal partial class SplitCommentCommandHandler
     {
-        private abstract class CommentSplitter
+        private class CommentSplitter
         {
             protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
 
@@ -26,12 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             protected readonly bool UseTabs;
             protected readonly CancellationToken CancellationToken;
 
+            private const string CommentCharacter = "//";
+            private readonly SyntaxTrivia _trivia;
+
             private readonly IndentStyle _indentStyle;
 
             public CommentSplitter(
                Document document, int position,
                SyntaxNode root, SourceText sourceText,
-               bool useTabs, int tabSize,
+               bool useTabs, int tabSize, SyntaxTrivia trivia,
                IndentStyle indentStyle, CancellationToken cancellationToken)
             {
                 Document = document;
@@ -40,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 SourceText = sourceText;
                 UseTabs = useTabs;
                 TabSize = tabSize;
+                _trivia = trivia;
                 _indentStyle = indentStyle;
                 CancellationToken = cancellationToken;
             }
@@ -53,18 +57,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 var trivia = root.FindTrivia(position);
 
                 return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                    ? new SimpleCommentSplitter(
+                    ? new CommentSplitter(
                         document, position, root,
-                        sourceText, trivia, useTabs, tabSize,
-                        indentStyle, cancellationToken)
+                        sourceText, useTabs, tabSize,
+                        trivia, indentStyle, cancellationToken)
                     : null;
             }
 
-            protected abstract int CommentTokenLength();
+            protected SyntaxNode GetNodeToReplace() => _trivia.Token.Parent;
 
-            protected abstract SyntaxNode GetNodeToReplace();
+            protected SyntaxTriviaList CreateSplitComment(string indentString)
+            {
+                var prefix = SourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, CursorPosition)).ToString();
+                var suffix = SourceText.GetSubText(TextSpan.FromBounds(CursorPosition, _trivia.Span.End)).ToString();
 
-            protected abstract SyntaxTriviaList CreateSplitComment(string indentString);
+                var firstTrivia = SyntaxFactory.Comment(prefix);
+                var secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
+                var thirdTrivia = SyntaxFactory.Comment(indentString + CommentCharacter + suffix);
+
+                return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
+            }
+
+            protected int CommentTokenLength() => "//".Length;
 
             public int? TrySplit()
             {

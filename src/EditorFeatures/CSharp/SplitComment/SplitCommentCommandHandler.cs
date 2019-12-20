@@ -2,7 +2,7 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
+using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(SplitCommentCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    internal partial class SplitCommentCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
+    internal partial class SplitCommentCommandHandler : AbstractSplitCommentCommandHandler
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -37,19 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        public string DisplayName => CSharpEditorResources.Split_comment;
+        public override string DisplayName => CSharpEditorResources.Split_comment;
 
-        public CommandState GetCommandState(ReturnKeyCommandArgs args)
+        public override CommandState GetCommandState(ReturnKeyCommandArgs args)
         {
             return CommandState.Unspecified;
         }
 
-        public bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
+        public override bool ExecuteCommand(ReturnKeyCommandArgs args, CommandExecutionContext context)
         {
             return ExecuteCommandWorker(args);
         }
 
-        public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
+        public override bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             return false;
         }
 
-        private bool SplitComment(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)
+        protected override bool SplitComment(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint caret)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             return false;
         }
 
-        private bool LineContainsComment(ITextSnapshotLine line, int caretPosition)
+        protected override bool LineContainsComment(ITextSnapshotLine line, int caretPosition)
         {
             var snapshot = line.Snapshot;
             for (int i = line.Start; i < caretPosition; i++)
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             return false;
         }
 
-        private int? SplitComment(
+        protected override int? SplitComment(
            Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
