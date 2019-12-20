@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Remote;
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // There is no OOP. either user turned it off, or process got killed.
                 // We should have already gotten a gold bar + nfw already if the OOP is missing.
                 // so just log telemetry here so we can connect the two with session explorer.
-                Logger.Log(FunctionId.LanguageServer_ActivateFailed);
+                Logger.Log(FunctionId.LanguageServer_ActivateFailed, KeyValueLogMessage.NoProperty);
                 return null;
             }
 
@@ -122,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // There is no OOP. either user turned it off, or process got killed.
                 // We should have already gotten a gold bar + nfw already if the OOP is missing.
                 // so just log telemetry here so we can connect the two with session explorer.
-                Logger.Log(FunctionId.LanguageServer_OnLoadedFailed);
+                Logger.Log(FunctionId.LanguageServer_OnLoadedFailed, KeyValueLogMessage.NoProperty);
                 // don't ask platform to start LSP.
                 // we shouldn't throw as the LSP client does not expect exceptions here.
                 return;
