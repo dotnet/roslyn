@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis.Simplification
                     reducers = _reducers;
                 }
 
+                reducers = reducers.WhereAsArray(r => r.IsApplicable(optionSet))
+
                 var reducedNodesMap = new ConcurrentDictionary<SyntaxNode, SyntaxNode>();
                 var reducedTokensMap = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
 
