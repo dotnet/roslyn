@@ -44,14 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // mark that roslyn solution is added
             this._taskCompletionSource.SetResult(null);
 
-            this.WorkspaceStarted.ContinueWith(_ =>
+            Task.Run(() =>
             {
                 // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
                 // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
                 // The synchronous execution happens under the sln load threaded wait dialog, so user actions cannot be made in between triggering LoadAsync and storing the result task from OnLoadedAsync.
                 // The result task from OnLoadedAsync is waited on before invoking LSP requests to the ILanguageClient.
                 this._languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new string[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), this._languageServerClient).Forget();
-            }, TaskScheduler.Default);
+            });
         }
 
         /// <summary>
