@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 Assert.True(_treeEnumerator!.MoveNext());
                 Assert.Equal(kind, _treeEnumerator.Current.Kind());
+                Assert.False(_treeEnumerator.Current.IsMissing);
 
                 if (value != null)
                 {
