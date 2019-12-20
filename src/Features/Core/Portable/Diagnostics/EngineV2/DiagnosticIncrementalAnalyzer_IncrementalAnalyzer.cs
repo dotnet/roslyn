@@ -187,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var removeDiagnosticsOnDocumentClose = document.Project.Solution.Options.GetOption(ServiceFeatureOnOffOptions.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
 
-            // TODO: Remove the below hard-coded check for TypeScript once they update their code to explicitly set the above option.
-            if (document.Project.Language != "TypeScript" &&
-                !removeDiagnosticsOnDocumentClose)
+            if (!removeDiagnosticsOnDocumentClose)
             {
                 return;
             }
