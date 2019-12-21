@@ -1153,22 +1153,8 @@ next:;
             var members = this.GetMembersUnordered();
             for (var i = 0; i < members.Length; i++)
             {
-                var m = members[i];
-                if (!m.IsStatic)
-                {
-                    switch (m.Kind)
-                    {
-                        case SymbolKind.Field:
-                            return true;
-
-                        case SymbolKind.Event:
-                            if (((EventSymbol)m).AssociatedField != null)
-                            {
-                                return true;
-                            }
-                            break;
-                    }
-                }
+                if (members[i] is { IsStatic: false, Kind: SymbolKind.Field })
+                    return true;
             }
 
             return false;

@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
                                                            .Where(s => !s.Equals(renamedSymbol) &&
+                                                                       s.CanBeReferencedByName &&
                                                                        string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal));
 
                     IEnumerable<ISymbol> otherThingsNamedTheSameExcludeMethodAndParameterizedProperty;

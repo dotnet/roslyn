@@ -600,6 +600,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             var underlyingField = field is TupleElementFieldSymbol tupleElement ? tupleElement.UnderlyingField.OriginalDefinition : field.OriginalDefinition;
+                            if (underlyingField.AssociatedSymbol is EventSymbol)
+                            {
+                                members.Add(member);
+                                continue;
+                            }
+
                             int tupleFieldIndex = currentFieldsForElements.IndexOf(underlyingField, ReferenceEqualityComparer.Instance);
                             if (underlyingField is TupleErrorFieldSymbol)
                             {
@@ -1068,6 +1074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case SymbolKind.Method:
                         case SymbolKind.Property:
+                        case SymbolKind.Event:
                         case SymbolKind.NamedType:
                             map.Add(member.OriginalDefinition, member);
                             break;
@@ -1078,20 +1085,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 map[tupleUnderlyingField.OriginalDefinition] = member;
                             }
-                            break;
-
-                        case SymbolKind.Event:
-                            var underlyingEvent = (EventSymbol)member;
-                            var underlyingAssociatedField = underlyingEvent.AssociatedField;
-                            // The field is not part of the members list
-                            if ((object)underlyingAssociatedField != null)
-                            {
-                                Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == TupleUnderlyingType);
-                                Debug.Assert(TupleUnderlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
-                                map.Add(underlyingAssociatedField.OriginalDefinition, new TupleFieldSymbol(TupleUnderlyingType, underlyingAssociatedField, -i - 1));
-                            }
-
-                            map.Add(underlyingEvent.OriginalDefinition, member);
                             break;
 
                         default:

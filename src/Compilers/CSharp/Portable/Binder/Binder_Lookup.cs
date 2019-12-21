@@ -665,6 +665,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (Symbol member in members)
             {
+                if ((member as FieldSymbol)?.AssociatedSymbol is EventSymbol)
+                {
+                    continue;
+                }
+
                 // Do we need to exclude override members, or is that done later by overload resolution. It seems like
                 // not excluding them here can't lead to problems, because we will always find the overridden method as well.
                 SingleLookupResult resultOfThisMember = originalBinder.CheckViability(member, arity, options, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);

@@ -158,29 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasGenerics = false;
             if (partialClosure.Add(type))
             {
-                foreach (var member in type.GetInstanceFieldsAndEvents())
+                foreach (var field in type.GetInstanceFields())
                 {
-                    // Only instance fields (including field-like events) affect the outcome.
-                    FieldSymbol field;
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.Field:
-                            field = (FieldSymbol)member;
-                            Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
-                                "Didn't expect to find a field-like event backing field in the member list.");
-                            break;
-                        case SymbolKind.Event:
-                            field = ((EventSymbol)member).AssociatedField;
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(member.Kind);
-                    }
-
-                    if ((object)field == null)
-                    {
-                        continue;
-                    }
-
                     TypeSymbol fieldType = field.NonPointerType();
                     if (fieldType is null)
                     {

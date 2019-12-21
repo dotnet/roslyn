@@ -530,22 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static bool IsFieldOrFieldLikeEvent(this Symbol member, out FieldSymbol field)
-        {
-            switch (member.Kind)
-            {
-                case SymbolKind.Field:
-                    field = (FieldSymbol)member;
-                    return true;
-                case SymbolKind.Event:
-                    field = ((EventSymbol)member).AssociatedField;
-                    return (object)field != null;
-                default:
-                    field = null;
-                    return false;
-            }
-        }
-
         internal static string GetMemberCallerName(this Symbol member)
         {
             if (member.Kind == SymbolKind.Method)

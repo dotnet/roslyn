@@ -2469,7 +2469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (!field.CanBeReferencedByName)
+                    if (!(field.AssociatedSymbol is EventSymbol || field.CanBeReferencedByName))
                     {
                         continue;
                     }
@@ -2526,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    if (!field.CanBeReferencedByName)
+                    if (!(field.AssociatedSymbol is EventSymbol || field.CanBeReferencedByName))
                     {
                         continue;
                     }

@@ -270,20 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                         break;
 
                                     case SymbolKind.Property:
+                                    case SymbolKind.Event:
                                     case SymbolKind.Field:
                                         // NOTE: Dev11 does not add synthesized backing fields for properties,
                                         //       but adds backing fields for events, Roslyn adds both
                                         AddSymbolLocation(result, member);
-                                        break;
-
-                                    case SymbolKind.Event:
-                                        AddSymbolLocation(result, member);
-                                        //  event backing fields do not show up in GetMembers
-                                        FieldSymbol field = ((EventSymbol)member).AssociatedField;
-                                        if ((object)field != null)
-                                        {
-                                            AddSymbolLocation(result, field);
-                                        }
                                         break;
 
                                     default:

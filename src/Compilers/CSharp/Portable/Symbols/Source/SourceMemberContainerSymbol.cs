@@ -600,10 +600,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     Accessibility containerEffectiveAccessibility = EffectiveAccessibility();
 
-                    foreach (var member in _lazyMembersAndInitializers.NonTypeNonIndexerMembers)
+                    foreach (var field in _lazyMembersAndInitializers.NonTypeNonIndexerMembers.OfType<FieldSymbol>())
                     {
-                        FieldSymbol field;
-                        if (!member.IsFieldOrFieldLikeEvent(out field) || field.IsConst || field.IsFixedSizeBuffer)
+                        if (field.IsConst || field.IsFixedSizeBuffer)
                         {
                             continue;
                         }
@@ -1274,19 +1273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var m in this.GetMembers())
             {
-                switch (m.Kind)
-                {
-                    case SymbolKind.Field:
-                        yield return (FieldSymbol)m;
-                        break;
-                    case SymbolKind.Event:
-                        FieldSymbol associatedField = ((EventSymbol)m).AssociatedField;
-                        if ((object)associatedField != null)
-                        {
-                            yield return associatedField;
-                        }
-                        break;
-                }
+                if (m.Kind == SymbolKind.Field)
+                    yield return (FieldSymbol)m;
             }
         }
 
@@ -1394,10 +1382,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
-        internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        internal override IEnumerable<FieldSymbol> GetInstanceFields()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
-            return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceFieldOrEvent);
+            return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceField).Cast<FieldSymbol>();
         }
 
         protected void AfterMembersChecks(DiagnosticBag diagnostics)
@@ -1793,7 +1781,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
             foreach (var member in this.GetMembersUnordered())
             {
-                member.AfterAddingTypeMembersChecks(conversions, diagnostics);
+                if (!((member as FieldSymbol)?.AssociatedSymbol is EventSymbol))
+                {
+                    member.AfterAddingTypeMembersChecks(conversions, diagnostics);
+                }
             }
         }
 
@@ -3158,8 +3149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if ((object)associatedField != null)
                                 {
-                                    // NOTE: specifically don't add the associated field to the members list
-                                    // (regard it as an implementation detail).
+                                    builder.NonTypeNonIndexerMembers.Add(associatedField);
 
                                     if (declarator.Initializer != null)
                                     {

@@ -192,26 +192,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FieldSymbol GetActualField(Symbol member, NamedTypeSymbol type)
         {
-            switch (member.Kind)
+            if (!(member is FieldSymbol field))
             {
-                case SymbolKind.Field:
-                    var field = (FieldSymbol)member;
-                    // Do not report virtual tuple fields.
-                    // They are additional aliases to the fields of the underlying struct or nested extensions.
-                    // and as such are already accounted for via the nonvirtual fields.
-                    if (field.IsVirtualTupleField)
-                    {
-                        return null;
-                    }
-
-                    return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
-
-                case SymbolKind.Event:
-                    var eventSymbol = (EventSymbol)member;
-                    return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
+                return null;
             }
 
-            return null;
+            if (field.AssociatedSymbol is EventSymbol eventSymbol)
+            {
+                if (ShouldIgnoreStructField(eventSymbol, eventSymbol.Type))
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                // Do not report virtual tuple fields.
+                // They are additional aliases to the fields of the underlying struct or nested extensions.
+                // and as such are already accounted for via the nonvirtual fields.
+                if (field.IsVirtualTupleField || field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type))
+                {
+                    return null;
+                }
+            }
+
+            return field.AsMember(type);
         }
 
         private bool ShouldIgnoreStructField(Symbol member, TypeSymbol memberType)

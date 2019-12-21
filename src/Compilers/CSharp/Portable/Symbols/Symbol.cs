@@ -443,7 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
         /// that cannot be referenced by name are:
         ///    constructors, destructors, operators, explicit interface implementations,
-        ///    accessor methods for properties and events, array types.
+        ///    accessor methods for properties and events, array types,
+        ///    backing fields (event backing fields have the same name as the event).
         /// </summary>
         public bool CanBeReferencedByName
         {
@@ -458,8 +459,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // never imported, and always references by name.
                         return true;
 
-                    case SymbolKind.Namespace:
                     case SymbolKind.Field:
+                        if (((FieldSymbol)this).AssociatedSymbol is EventSymbol)
+                            return false;
+                        break;
+
+                    case SymbolKind.Namespace:
                     case SymbolKind.ErrorType:
                     case SymbolKind.Parameter:
                     case SymbolKind.TypeParameter:
@@ -540,24 +545,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this.Kind == SymbolKind.Method)
+                switch (Kind)
                 {
-                    var method = (MethodSymbol)this;
-                    switch (method.MethodKind)
-                    {
-                        case MethodKind.Ordinary:
-                        case MethodKind.LocalFunction:
-                        case MethodKind.DelegateInvoke:
-                        case MethodKind.Destructor: // See comment in CanBeReferencedByName.
-                            return true;
-                        case MethodKind.PropertyGet:
-                        case MethodKind.PropertySet:
-                            return ((PropertySymbol)method.AssociatedSymbol).CanCallMethodsDirectly();
-                        default:
-                            return false;
-                    }
+                    case SymbolKind.Method:
+                        var method = (MethodSymbol)this;
+                        switch (method.MethodKind)
+                        {
+                            case MethodKind.Ordinary:
+                            case MethodKind.LocalFunction:
+                            case MethodKind.DelegateInvoke:
+                            case MethodKind.Destructor: // See comment in CanBeReferencedByName.
+                                return true;
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                                return ((PropertySymbol)method.AssociatedSymbol).CanCallMethodsDirectly();
+                            default:
+                                return false;
+                        }
+
+                    case SymbolKind.Field:
+                        return !(((FieldSymbol)this).AssociatedSymbol is EventSymbol);
+
+                    default:
+                        return true;
                 }
-                return true;
             }
         }
 

@@ -130,35 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<UnassignedFieldsWalker, Symbol, Symbol> getSymbolForLocation,
             DiagnosticBag diagnostics)
         {
-            foreach (var member in members)
+            foreach (var field in members.OfType<FieldSymbol>())
             {
-                if (member.IsStatic != isStatic)
+                if (field.IsStatic != isStatic || field.IsConst)
                 {
                     continue;
                 }
-                TypeWithAnnotations fieldType;
-                FieldSymbol field;
-                switch (member)
-                {
-                    case FieldSymbol f:
-                        fieldType = f.TypeWithAnnotations;
-                        field = f;
-                        break;
-                    case EventSymbol e:
-                        fieldType = e.TypeWithAnnotations;
-                        field = e.AssociatedField;
-                        if (field is null)
-                        {
-                            continue;
-                        }
-                        break;
-                    default:
-                        continue;
-                }
-                if (field.IsConst)
-                {
-                    continue;
-                }
+
+                var fieldType = field.TypeWithAnnotations;
                 if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
@@ -171,11 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                var symbol = member switch
-                {
-                    FieldSymbol { AssociatedSymbol: PropertySymbol p } => p,
-                    _ => member
-                };
+
+                var symbol = field.AssociatedSymbol is PropertySymbol || field.AssociatedSymbol is EventSymbol ? field.AssociatedSymbol : field;
                 var location = getSymbolForLocation(walkerOpt, symbol).Locations.FirstOrNone();
                 diagnostics.Add(ErrorCode.WRN_UninitializedNonNullableField, location, symbol.Kind.Localize(), symbol.Name);
             }
