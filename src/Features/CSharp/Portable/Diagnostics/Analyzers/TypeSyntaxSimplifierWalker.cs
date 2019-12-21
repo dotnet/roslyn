@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         public override void VisitGenericName(GenericNameSyntax node)
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node) &&
-                TryReplaceWithPredefinedTypeOrAlias(node))
+                TryReplaceWithPredefinedTypeOrAliasOrNullable(node))
                 return;
 
             base.VisitGenericName(node);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node) &&
-                TryReplaceWithPredefinedTypeOrAlias(node))
+                TryReplaceWithPredefinedTypeOrAliasOrNullable(node))
                 return;
 
             base.VisitIdentifierName(node);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node))
             {
-                if (TryReplaceWithPredefinedTypeOrAlias(node))
+                if (TryReplaceWithPredefinedTypeOrAliasOrNullable(node))
                     return;
 
                 if (TryReplaceQualifiedNameWithRightSide(node, node.Alias, node.Name))
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node))
             {
-                if (TryReplaceWithPredefinedTypeOrAlias(node))
+                if (TryReplaceWithPredefinedTypeOrAliasOrNullable(node))
                     return;
 
                 if (TryReplaceQualifiedNameWithRightSide(node, node.Left, node.Right))
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         /// Returns <see langword="true"/> if this is a type-syntax that can be
         /// simplified. <see langword="false"/> otherwise.
         /// </summary>
-        private bool TryReplaceWithPredefinedTypeOrAlias(TypeSyntax typeSyntax)
+        private bool TryReplaceWithPredefinedTypeOrAliasOrNullable(TypeSyntax typeSyntax)
         {
             var typeSymbol = _semanticModel.GetTypeInfo(typeSyntax, _cancellationToken).Type;
             if (typeSymbol == null)
@@ -137,14 +137,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 }
             }
 
+            if (typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                return true;
+            }
+
             // Next, see if there's an alias in scope we can bind to.
             if (TryGetAlias(typeSymbol, out var alias))
             {
                 var symbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
-                if (symbols.Contains(typeSymbol))
+                foreach (var symbol in symbols)
                 {
-                    this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                    return true;
+                    if (symbol is IAliasSymbol aliasSymbol &&
+                        aliasSymbol.Target.Equals(typeSymbol))
+                    {
+                        this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                        return true;
+                    }
                 }
             }
 
