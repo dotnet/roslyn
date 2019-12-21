@@ -62,6 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return result;
         }
 
+        public override void DefaultVisit(SyntaxNode node)
+        {
+            // For any member-decl (which includes named-types), descend into any leading doc
+            // comments so we can fixup types there as well.
+            if (node is MemberDeclarationSyntax memberDeclaration)
+            {
+                foreach (var trivia in memberDeclaration.GetLeadingTrivia())
+                {
+                    if (trivia.HasStructure)
+                        this.Visit(trivia.GetStructure());
+                }
+            }
+
+            base.DefaultVisit(node);
+        }
+
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
             _aliasStack.Add(GetAliases(node.Usings));
