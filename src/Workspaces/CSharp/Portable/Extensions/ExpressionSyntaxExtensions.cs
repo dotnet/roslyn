@@ -1646,6 +1646,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         if (!name.Parent.IsKind(SyntaxKind.QualifiedName) && (inDeclarationContext || inMemberAccessContext))
                         {
+                            // See if we can simplify this name (like System.Int32) to a built-in type (like 'int').
+                            // If not, we'll still fall through and see if we can convert it to Int32.
+
                             var codeStyleOptionName = inDeclarationContext
                                 ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
                                 : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
@@ -1654,9 +1657,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             if (type != null)
                             {
                                 var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                                if (keywordKind != SyntaxKind.None)
+                                if (keywordKind != SyntaxKind.None &&
+                                    CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName))
                                 {
-                                    return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName);
+                                    return true;
                                 }
                             }
                             else
@@ -1665,9 +1669,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 if (typeSymbol.IsKind(SymbolKind.NamedType))
                                 {
                                     var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)typeSymbol).SpecialType);
-                                    if (keywordKind != SyntaxKind.None)
+                                    if (keywordKind != SyntaxKind.None &&
+                                        CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName))
                                     {
-                                        return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName);
+                                        return true;
                                     }
                                 }
                             }
