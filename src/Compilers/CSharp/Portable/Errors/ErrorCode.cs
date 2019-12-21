@@ -1740,6 +1740,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_ExternEventInitializer = 8760,
 
+        // available 8761-8779
+
+        #region diagnostics introduced for C# 9.0
+
+        ERR_DesignatorBeneathPatternCombinator = 8780,
+
+        #endregion diagnostics introduced for C# 9.0
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
