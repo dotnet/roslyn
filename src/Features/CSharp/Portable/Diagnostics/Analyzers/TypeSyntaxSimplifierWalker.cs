@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -75,7 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node) &&
                 TryReplaceWithPredefinedTypeOrAliasOrNullable(node))
+            {
                 return;
+            }
 
             base.VisitGenericName(node);
         }
@@ -84,7 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node) &&
                 TryReplaceWithPredefinedTypeOrAliasOrNullable(node))
+            {
                 return;
+            }
 
             base.VisitIdentifierName(node);
         }
@@ -138,21 +139,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (typeSymbol == null)
                 return false;
 
-            // First, see if we can replace this type with a builtin type.
-            if (_preferPredefinedTypeInDecl)
+            // First, see if we can replace this type with a built-in type.
+            if (!typeSyntax.IsParentKind(SyntaxKind.UsingDirective))
             {
-                var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
-                if (specialTypeKind != SyntaxKind.None)
+                if (_preferPredefinedTypeInDecl)
                 {
-                    this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
+                    var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
+                    if (specialTypeKind != SyntaxKind.None)
+                    {
+                        this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
+                        return true;
+                    }
+                }
+
+                if (typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                     return true;
                 }
-            }
-
-            if (typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                return true;
             }
 
             // Next, see if there's an alias in scope we can bind to.
