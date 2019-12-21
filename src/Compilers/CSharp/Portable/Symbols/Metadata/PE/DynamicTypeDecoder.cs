@@ -207,11 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NamedTypeSymbol TransformNamedType(NamedTypeSymbol namedType, bool isContaining = false)
         {
-            if (namedType.IsTupleType)
-            {
-                return TransformTupleType(namedType, isContaining);
-            }
-
             // Native compiler encodes a bool for the given namedType, but none for its containing types.
             if (!isContaining)
             {
@@ -257,29 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return namedType.ConstructIfGeneric(transformedTypeArguments);
                 }
 
-                return namedType.ConstructedFrom.Construct(transformedTypeArguments, unbound: false);
+                return namedType.ConstructedFrom.Construct(transformedTypeArguments, unbound: false).WithTupleDataFrom(namedType);
             }
             else
             {
                 return namedType;
             }
-        }
-
-        private NamedTypeSymbol TransformTupleType(NamedTypeSymbol tupleType, bool isContaining)
-        {
-            Debug.Assert(tupleType.IsTupleType);
-
-            var underlying = tupleType.TupleUnderlyingType;
-            var transformedUnderlying = TransformNamedType(underlying, isContaining);
-
-            if ((object)transformedUnderlying == null)
-            {
-                // Bail, something is wrong with the flags.
-                // the dynamic transformation should be ignored.
-                return null;
-            }
-
-            return TupleTypeSymbol.Create(transformedUnderlying, tupleType.TupleElementNames);
         }
 
         private ImmutableArray<TypeWithAnnotations> TransformTypeArguments(ImmutableArray<TypeWithAnnotations> typeArguments)

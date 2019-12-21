@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  string? diagnosticId = null,
                  CancellationToken cancellationToken = default)
             {
-                // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
-                //         Here we don't filter out hidden diagnostic only analyzer since such analyzer can produce hidden diagnostic
-                //         on active file (non local diagnostic)
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => !owner.AnalyzerService.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 

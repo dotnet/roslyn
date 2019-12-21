@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public virtual bool HasPreview => false;
 
         public virtual Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-            => SpecializedTasks.Default<object>();
+            => SpecializedTasks.Null<object>();
 
         public virtual bool HasActionSets => false;
 

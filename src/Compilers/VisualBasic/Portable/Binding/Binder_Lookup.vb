@@ -517,7 +517,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options = options Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
 
                 Dim tempResults = New TemporaryLookupResults(True)
-
                 Dim currentResult = tempResults.GetTempLookupResult()
 
                 ' Next, do a lookup in each contained module and merge the results.

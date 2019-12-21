@@ -9022,7 +9022,7 @@ class C
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (System.ValueTuple<string, bool> V_0) //v
-  IL_0000:  call       ""(string Value, bool Success) C.TrySomething()""
+  IL_0000:  call       ""System.ValueTuple<string, bool> C.TrySomething()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
@@ -9361,8 +9361,8 @@ class Program
 @"{
   // Code size       86 (0x56)
   .maxstack  1
-  .locals init (Generic<object, (int a, int b)> V_0, //g
-                Generic<dynamic, (int x, int y)> V_1, //g
+  .locals init (Generic<object, System.ValueTuple<int, int>> V_0, //g
+                Generic<dynamic, System.ValueTuple<int, int>> V_1, //g
                 object V_2,
                 object V_3)
   IL_0000:  nop
@@ -9371,13 +9371,13 @@ class Program
   IL_0003:  ldloc.3
   IL_0004:  stloc.2
   IL_0005:  ldloc.2
-  IL_0006:  isinst     ""Generic<object, (int a, int b)>""
+  IL_0006:  isinst     ""Generic<object, System.ValueTuple<int, int>>""
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
   IL_000d:  brtrue.s   IL_001a
   IL_000f:  br.s       IL_0031
   IL_0011:  ldloc.2
-  IL_0012:  castclass  ""Generic<dynamic, (int x, int y)>""
+  IL_0012:  castclass  ""Generic<dynamic, System.ValueTuple<int, int>>""
   IL_0017:  stloc.1
   IL_0018:  br.s       IL_0043
   IL_001a:  ldarg.1

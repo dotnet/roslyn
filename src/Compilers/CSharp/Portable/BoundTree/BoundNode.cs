@@ -143,7 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+#if DEBUG
             this.WasConverted = original.WasConverted;
+#endif
         }
 
         /// <remarks>
@@ -288,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#if DEBUG
         /// <summary>
         /// WasConverted flag is used for debugging purposes only (not to direct the behavior of semantic analysis).
         /// It is used on BoundLocal and BoundParameter to check that every such rvalue that has not been converted to
@@ -297,23 +300,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-#if DEBUG
                 return (_attributes & BoundNodeAttributes.WasConverted) != 0;
-#else
-                return true;
-#endif
             }
             protected set
             {
-#if DEBUG
                 Debug.Assert((_attributes & BoundNodeAttributes.WasConverted) == 0, "WasConverted flag should not be set twice or reset");
                 if (value)
                 {
                     _attributes |= BoundNodeAttributes.WasConverted;
                 }
-#endif
             }
         }
+#endif
 
         public BoundKind Kind
         {

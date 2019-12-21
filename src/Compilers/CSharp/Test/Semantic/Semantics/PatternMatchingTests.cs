@@ -6854,5 +6854,82 @@ public class C
 ").VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        [WorkItem(39960, "https://github.com/dotnet/roslyn/issues/39960")]
+        public void MissingExceptionType()
+        {
+            var source = @"
+class C
+{
+    void M(bool b, dynamic d)
+    {
+        _ = b
+            ? throw new System.NullReferenceException()
+            : throw null;
+        L();
+        throw null;
+        void L() => throw d;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new System.NullReferenceException()").WithArguments("System.Exception").WithLocation(7, 21),
+                // (8,21): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //             : throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(8, 21),
+                // (10,15): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "null").WithArguments("System.Exception").WithLocation(10, 15),
+                // (11,27): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Exception").WithLocation(11, 27)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS0155: The type caught or thrown must be derived from System.Exception
+                //             ? throw new System.NullReferenceException()
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "new System.NullReferenceException()").WithLocation(7, 21),
+                // (11,27): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         void L() => throw d;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "d").WithLocation(11, 27)
+                );
+        }
+
+        [Fact]
+        public void MissingExceptionType_In7()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            Test();
+        }
+        catch
+        {
+            System.Console.WriteLine(""in catch"");
+        }
+    }
+
+    static void Test()
+    {
+        throw null;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7);
+            comp.MakeTypeMissing(WellKnownType.System_Exception);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: "in catch");
+        }
     }
 }
