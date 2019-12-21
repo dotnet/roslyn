@@ -53,17 +53,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                    declaration.IsKind(SyntaxKind.VariableDeclaration) &&
-                    IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
+                        declaration.IsKind(SyntaxKind.VariableDeclaration)
+                     && IsTypeApparentInDeclaration((VariableDeclarationSyntax)declaration, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =
-                    IsPredefinedTypeInDeclaration(declaration, semanticModel) ||
-                    IsInferredPredefinedType(declaration, semanticModel);
+                        IsPredefinedTypeInDeclaration(declaration, semanticModel)
+                     || IsInferredPredefinedType(declaration, semanticModel);
             }
 
             public ReportDiagnostic GetDiagnosticSeverityPreference()
                 => IsInIntrinsicTypeContext ? _forBuiltInTypes :
-                    IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
+                   IsTypeApparentInContext ? _whenTypeIsApparent : _elsewhere;
 
             /// <summary>
             /// Returns true if type information could be gleaned by simply looking at the given statement.
