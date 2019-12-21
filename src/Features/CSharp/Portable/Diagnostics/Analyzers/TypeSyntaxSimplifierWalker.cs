@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     /// </summary>
     internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
-        private static ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>> s_aliasMapPool
+        private static readonly ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>> s_aliasMapPool
             = new ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>>(() => new Dictionary<INamespaceOrTypeSymbol, string>());
 
         private readonly SemanticModel _semanticModel;
@@ -48,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             Dictionary<INamespaceOrTypeSymbol, string> aliasMap,
             SyntaxList<UsingDirectiveSyntax> usings)
         {
-            var result = s_aliasMapPool.Allocate();
-
             foreach (var @using in usings)
             {
                 if (@using.Alias != null)
