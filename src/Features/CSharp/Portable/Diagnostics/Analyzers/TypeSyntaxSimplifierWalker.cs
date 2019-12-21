@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     /// </summary>
     internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
+        private static ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>> s_aliasMapPool
+            = new ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>>(() => new Dictionary<INamespaceOrTypeSymbol, string>());
+
         private readonly SemanticModel _semanticModel;
         private readonly OptionSet _optionSet;
         private readonly bool _preferPredefinedTypeInDecl;
@@ -41,10 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             _cancellationToken = cancellationToken;
         }
 
-        private Dictionary<INamespaceOrTypeSymbol, string> GetAliases(
+        private void AddAliases(
+            Dictionary<INamespaceOrTypeSymbol, string> aliasMap,
             SyntaxList<UsingDirectiveSyntax> usings)
         {
-            var result = new Dictionary<INamespaceOrTypeSymbol, string>();
+            var result = s_aliasMapPool.Allocate();
 
             foreach (var @using in usings)
             {
@@ -55,11 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                         continue;
 
                     if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
-                        result[symbol] = @using.Alias.Name.Identifier.ValueText;
+                        aliasMap[symbol] = @using.Alias.Name.Identifier.ValueText;
                 }
             }
-
-            return result;
         }
 
         public override void DefaultVisit(SyntaxNode node)
@@ -80,14 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
-            _aliasStack.Add(GetAliases(node.Usings));
+            using var aliases = s_aliasMapPool.GetPooledObject();
+            AddAliases(aliases.Object, node.Usings);
+
+            _aliasStack.Add(aliases.Object);
             base.VisitCompilationUnit(node);
             _aliasStack.RemoveAt(_aliasStack.Count - 1);
         }
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
-            _aliasStack.Add(GetAliases(node.Usings));
+            using var aliases = s_aliasMapPool.GetPooledObject();
+            AddAliases(aliases.Object, node.Usings);
+
+            _aliasStack.Add(aliases.Object);
             base.VisitNamespaceDeclaration(node);
             _aliasStack.RemoveAt(_aliasStack.Count - 1);
         }
@@ -291,18 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             this.Diagnostics.Add(CSharpSimplifyTypeNamesDiagnosticAnalyzer.CreateDiagnostic(
                 _semanticModel, _optionSet, issueSpan, diagnosticId, inDeclaration: true));
             return true;
-        }
-
-        private void AddAliases(INamespaceOrTypeSymbol symbol, ArrayBuilder<string> aliases)
-        {
-            for (var i = _aliasStack.Count - 1; i >= 0; i--)
-            {
-                var symbolToAlias = _aliasStack[i];
-                if (symbolToAlias.TryGetValue(symbol, out var alias))
-                {
-                    aliases.Add(alias);
-                }
-            }
         }
     }
 }
