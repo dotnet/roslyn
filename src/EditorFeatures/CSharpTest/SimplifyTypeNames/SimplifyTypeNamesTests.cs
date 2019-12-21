@@ -4235,9 +4235,9 @@ namespace N
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
 
         private IDictionary<OptionKey, object> PreferImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
         private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
