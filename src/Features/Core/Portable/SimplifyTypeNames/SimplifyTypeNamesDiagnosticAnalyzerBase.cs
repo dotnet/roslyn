@@ -114,6 +114,15 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 return false;
             }
 
+            diagnostic = CreateDiagnostic(model, optionSet, issueSpan, diagnosticId, inDeclaration);
+            return true;
+        }
+
+        internal static Diagnostic CreateDiagnostic(
+            SemanticModel model, OptionSet optionSet, TextSpan issueSpan,
+            string diagnosticId, bool inDeclaration)
+        {
+            Diagnostic diagnostic;
             PerLanguageOption<CodeStyleOption<bool>> option;
             DiagnosticDescriptor descriptor;
             ReportDiagnostic severity;
@@ -135,16 +144,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                         : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
-                    var optionValue = optionSet.GetOption(option, GetLanguageName());
+                    var optionValue = optionSet.GetOption(option, model.Language);
                     severity = optionValue.Notification.Severity;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
-            }
-
-            if (descriptor == null)
-            {
-                return false;
             }
 
             var tree = model.SyntaxTree;
@@ -152,7 +156,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
-            return true;
+            return diagnostic;
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()

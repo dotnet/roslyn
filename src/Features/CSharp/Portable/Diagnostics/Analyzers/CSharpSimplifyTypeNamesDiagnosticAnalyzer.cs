@@ -1,13 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
@@ -33,6 +39,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
+
+            var syntaxTree = semanticModel.SyntaxTree;
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
+            var root = syntaxTree.GetRoot(cancellationToken);
+
+            var simplifier = new TypeSyntaxSimplifierWalker(
+                semanticModel, optionSet, preferPredefinedTypeInDecl, cancellationToken);
+            simplifier.Visit(root);
+
+            foreach (var diagnostic in simplifier.Diagnostics)
+            {
+                context.ReportDiagnostic(diagnostic);
+            }
         }
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
