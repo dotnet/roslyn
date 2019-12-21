@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -7,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
-    internal static class PopulateSwitchHelpers
+    internal static class PopulateSwitchStatementHelpers
     {
         public const string MissingCases = nameof(MissingCases);
         public const string MissingDefaultCase = nameof(MissingDefaultCase);
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             return true;
         }
 
-        private static bool TryGetAllEnumMembers(
+        public static bool TryGetAllEnumMembers(
             ITypeSymbol enumType,
             Dictionary<long, ISymbol> enumValues)
         {

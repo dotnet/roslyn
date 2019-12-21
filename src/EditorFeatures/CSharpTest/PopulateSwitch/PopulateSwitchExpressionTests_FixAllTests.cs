@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch
 {
-    public partial class PopulateSwitchTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class PopulateSwitchExpressionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
@@ -28,20 +29,18 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            {|FixAllInDocument:|}switch (e)
+            _ = e {|FixAllInDocument:|}switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
-            switch (e)
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -54,13 +53,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -75,13 +73,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -104,24 +101,20 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
-            switch (e)
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }
@@ -134,13 +127,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -155,13 +147,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -173,7 +164,6 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
@@ -192,13 +182,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            {|FixAllInProject:|}switch (e)
+            _ = e {|FixAllInProject:|}switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -211,13 +200,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -232,13 +220,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -261,15 +248,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }
@@ -282,15 +267,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }
@@ -305,13 +288,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum.Fizz:
-                case MyEnum.Buzz:
-                case MyEnum.FizzBuzz:
-                    break;
-            }
+                MyEnum.Fizz => 1,
+                MyEnum.Buzz => 2,
+                MyEnum.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -323,7 +305,6 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
@@ -342,13 +323,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum1.Fizz;
-            {|FixAllInSolution:|}switch (e)
+            _ = e {|FixAllInSolution:|}switch
             {
-                case MyEnum1.Fizz:
-                case MyEnum1.Buzz:
-                case MyEnum1.FizzBuzz:
-                    break;
-            }
+                MyEnum1.Fizz => 1,
+                MyEnum1.Buzz => 2,
+                MyEnum1.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -365,13 +345,12 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum2.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum2.Fizz:
-                case MyEnum2.Buzz:
-                case MyEnum2.FizzBuzz:
-                    break;
-            }
+                MyEnum2.Fizz => 1,
+                MyEnum2.Buzz => 2,
+                MyEnum2.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -390,13 +369,12 @@ namespace ConsoleApplication2
         void Method()
         {
             var e = MyEnum3.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum3.Fizz:
-                case MyEnum3.Buzz:
-                case MyEnum3.FizzBuzz:
-                    break;
-            }
+                MyEnum3.Fizz => 1,
+                MyEnum3.Buzz => 2,
+                MyEnum3.FizzBuzz => 3,
+            };
         }
     }
 }
@@ -419,15 +397,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum1.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum1.Fizz:
-                case MyEnum1.Buzz:
-                case MyEnum1.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum1.Fizz => 1,
+                MyEnum1.Buzz => 2,
+                MyEnum1.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }
@@ -444,15 +420,13 @@ namespace ConsoleApplication1
         void Method()
         {
             var e = MyEnum2.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum2.Fizz:
-                case MyEnum2.Buzz:
-                case MyEnum2.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum2.Fizz => 1,
+                MyEnum2.Buzz => 2,
+                MyEnum2.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }
@@ -471,15 +445,13 @@ namespace ConsoleApplication2
         void Method()
         {
             var e = MyEnum3.Fizz;
-            switch (e)
+            _ = e switch
             {
-                case MyEnum3.Fizz:
-                case MyEnum3.Buzz:
-                case MyEnum3.FizzBuzz:
-                    break;
-                default:
-                    break;
-            }
+                MyEnum3.Fizz => 1,
+                MyEnum3.Buzz => 2,
+                MyEnum3.FizzBuzz => 3,
+                _ => throw new System.NotImplementedException(),
+            };
         }
     }
 }
