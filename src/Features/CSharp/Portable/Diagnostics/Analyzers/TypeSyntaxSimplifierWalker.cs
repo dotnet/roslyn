@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
@@ -116,13 +117,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             base.VisitQualifiedName(node);
         }
 
+        private INamespaceOrTypeSymbol GetNamespaceOrTypeSymbol(TypeSyntax typeSyntax)
+        {
+            var symbolInfo = _semanticModel.GetSymbolInfo(typeSyntax, _cancellationToken);
+
+            // Don't offer if we have ambiguity involved.
+            if (symbolInfo.CandidateSymbols.Length > 0)
+                return null;
+
+            return symbolInfo.Symbol as INamespaceOrTypeSymbol;
+        }
+
         /// <summary>
         /// Returns <see langword="true"/> if this is a type-syntax that can be
         /// simplified. <see langword="false"/> otherwise.
         /// </summary>
         private bool TryReplaceWithPredefinedTypeOrAliasOrNullable(TypeSyntax typeSyntax)
         {
-            var typeSymbol = _semanticModel.GetTypeInfo(typeSyntax, _cancellationToken).Type;
+            var typeSymbol = GetNamespaceOrTypeSymbol(typeSyntax) as ITypeSymbol;
             if (typeSymbol == null)
                 return false;
 
@@ -144,16 +156,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             // Next, see if there's an alias in scope we can bind to.
-            if (TryGetAlias(typeSymbol, out var alias))
+            using (var pooledArray = ArrayBuilder<string>.GetInstance(out var aliases))
             {
-                var symbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
-                foreach (var symbol in symbols)
+                AddAliases(typeSymbol, aliases);
+                foreach (var alias in aliases)
                 {
-                    if (symbol is IAliasSymbol aliasSymbol &&
-                        aliasSymbol.Target.Equals(typeSymbol))
+                    var symbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
+                    foreach (var symbol in symbols)
                     {
-                        this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                        return true;
+                        if (symbol is IAliasSymbol aliasSymbol &&
+                            aliasSymbol.Target.Equals(typeSymbol))
+                        {
+                            this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                            return true;
+                        }
                     }
                 }
             }
@@ -164,18 +180,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private bool TryReplaceQualifiedNameWithRightSide(
             NameSyntax qualifiedName, NameSyntax left, SimpleNameSyntax right)
         {
-            var typeSymbol = _semanticModel.GetTypeInfo(qualifiedName, _cancellationToken).Type;
-            if (typeSymbol != null)
+            var namespaceOrTypeSymbol = GetNamespaceOrTypeSymbol(qualifiedName);
+            if (namespaceOrTypeSymbol == null)
+                return false;
+
+            var symbols = _semanticModel.LookupSymbols(qualifiedName.SpanStart, name: right.Identifier.ValueText);
+            foreach (var symbol in symbols)
             {
-                typeSymbol = typeSymbol.OriginalDefinition;
-                var symbols = _semanticModel.LookupSymbols(qualifiedName.SpanStart, name: right.Identifier.ValueText);
-                foreach (var symbol in symbols)
+                if (symbol.OriginalDefinition.Equals(namespaceOrTypeSymbol.OriginalDefinition))
                 {
-                    if (symbol.OriginalDefinition.Equals(typeSymbol))
-                    {
-                        AddDiagnostic(left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                        return true;
-                    }
+                    AddDiagnostic(left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                    return true;
                 }
             }
 
@@ -188,19 +203,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 _semanticModel, _optionSet, issueSpan, diagnosticId, inDeclaration: true));
         }
 
-        private bool TryGetAlias(ITypeSymbol typeSymbol, out string alias)
+        private void AddAliases(ITypeSymbol typeSymbol, ArrayBuilder<string> aliases)
         {
-            for (int i = _aliasStack.Count - 1; i >= 0; i--)
+            for (var i = _aliasStack.Count - 1; i >= 0; i--)
             {
-                var aliases = _aliasStack[i];
-                if (aliases.TryGetValue(typeSymbol, out alias))
+                var typeToAlias = _aliasStack[i];
+                if (typeToAlias.TryGetValue(typeSymbol, out var alias))
                 {
-                    return true;
+                    aliases.Add(alias);
                 }
             }
-
-            alias = null;
-            return false;
         }
     }
 }
