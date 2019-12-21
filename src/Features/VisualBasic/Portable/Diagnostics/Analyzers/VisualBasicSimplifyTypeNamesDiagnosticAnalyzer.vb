@@ -25,6 +25,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             MyBase.New(s_kindsOfInterest)
         End Sub
 
+        Protected Overrides Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext)
+        End Sub
+
         Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
             If context.Node.Ancestors(ascendOutOfTrivia:=False).Any(AddressOf IsNodeKindInteresting) Then
                 ' Already simplified an ancestor of this node.

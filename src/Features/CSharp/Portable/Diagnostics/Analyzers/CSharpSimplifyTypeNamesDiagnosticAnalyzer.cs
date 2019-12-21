@@ -31,8 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         {
         }
 
+        protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+        {
+        }
+
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            if (context.Node is ExpressionSyntax expression &&
+                SyntaxFacts.IsInNamespaceOrTypeContext(expression))
+            {
+                // types are handled in AnalyzeSemanticModel.
+                return;
+            }
+
             if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => !n.IsKind(SyntaxKind.QualifiedCref) && s_kindsOfInterest.Contains(n.Kind())))
             {
                 // Bail out early because we have already simplified an ancestor of this node (except in the QualifiedCref case).
