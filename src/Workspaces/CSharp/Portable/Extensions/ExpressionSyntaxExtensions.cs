@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            return expression.TrySimplify(semanticModel, optionSet, out replacementNode, out issueSpan);
+            return expression.TrySimplify(semanticModel, out replacementNode, out issueSpan);
         }
 
         public static bool TryReduceExplicitName(
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!memberAccess.IsRightSideOfDot())
             {
                 // Check if we need to replace this syntax with an alias identifier
-                if (memberAccess.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out var aliasReplacement))
+                if (memberAccess.TryReplaceWithAlias(semanticModel, cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
                     var text = aliasReplacement.Name;
@@ -1105,7 +1105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
-        private static bool TryReplaceWithAlias(this ExpressionSyntax node, SemanticModel semanticModel, bool preferAliasToQualifiedName, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
+        private static bool TryReplaceWithAlias(this ExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
 
@@ -1188,6 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            var preferAliasToQualifiedName = true;
             if (node is QualifiedNameSyntax qualifiedName)
             {
                 if (!qualifiedName.Right.HasAnnotation(Simplifier.SpecialTypeAnnotation))
@@ -1488,12 +1489,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (symbol.Kind == SymbolKind.Method && name.Kind() == SyntaxKind.GenericName)
             {
-                // The option wants the generic method invocation name to be explicit, then quit the reduction
-                if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInference))
-                {
-                    return false;
-                }
-
                 var genericName = (GenericNameSyntax)name;
                 replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier)
                     .WithLeadingTrivia(genericName.GetLeadingTrivia())
@@ -1524,7 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (!name.IsRightSideOfDotOrColonColon())
                 {
-                    if (name.TryReplaceWithAlias(semanticModel, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), cancellationToken, out var aliasReplacement))
+                    if (name.TryReplaceWithAlias(semanticModel, cancellationToken, out var aliasReplacement))
                     {
                         // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
@@ -1927,7 +1922,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool TrySimplify(
             this ExpressionSyntax expression,
             SemanticModel semanticModel,
-            OptionSet optionSet,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan)
         {
@@ -1944,7 +1938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return false;
                         }
 
-                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, out var newLeft, out issueSpan))
+                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
                         {
                             // replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
@@ -1960,7 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.QualifiedName:
                     {
                         var qualifiedName = (QualifiedNameSyntax)expression;
-                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, optionSet, out var newLeft, out issueSpan))
+                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
                         {
                             // replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)
@@ -1988,7 +1982,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             ExpressionSyntax left,
             ExpressionSyntax right,
             SemanticModel semanticModel,
-            OptionSet optionSet,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan)
         {
@@ -2032,15 +2025,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         if (containingType != null && !containingType.Equals(leftSymbol))
                         {
-                            if (leftSymbol is INamedTypeSymbol namedType)
+                            if (leftSymbol is INamedTypeSymbol namedType &&
+                                containingType.TypeArguments.Length != 0)
                             {
-                                if ((namedType.GetBaseTypes().Contains(containingType) &&
-                                    !optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) ||
-                                    (!optionSet.GetOption(SimplificationOptions.AllowSimplificationToGenericType) &&
-                                    containingType.TypeArguments.Length != 0))
-                                {
-                                    return false;
-                                }
+                                return false;
                             }
 
                             // We have a static member access or a nested type member access using a more derived type.
