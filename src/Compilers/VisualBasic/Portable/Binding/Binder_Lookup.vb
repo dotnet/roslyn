@@ -1316,7 +1316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                container As TypeSymbol,
                                                                newInfo As LookupSymbolsInfo,
                                                                binder As Binder,
-                                                                      tempResults As TemporaryLookupResults)
+                                                               tempResults As TemporaryLookupResults)
                 Dim lookup = tempResults.GetTempLookupResult()
 
                 For Each name In newInfo.Names
