@@ -45,32 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     .WithTrailingTrivia(typeSyntax.GetTrailingTrivia());
             }
 
-            public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitGenericName(GenericNameSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitArrayType(ArrayTypeSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitNullableType(NullableTypeSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitPointerType(PointerTypeSyntax node)
-                => ProcessTypeSyntax(node);
-
-            public override SyntaxNode VisitTupleType(TupleTypeSyntax node)
-                => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitArrayType(ArrayTypeSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitGenericName(GenericNameSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitNullableType(NullableTypeSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitPointerType(PointerTypeSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitPredefinedType(PredefinedTypeSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitQualifiedName(QualifiedNameSyntax node) => ProcessTypeSyntax(node);
+            public override SyntaxNode VisitTupleType(TupleTypeSyntax node) => ProcessTypeSyntax(node);
         }
     }
 }
