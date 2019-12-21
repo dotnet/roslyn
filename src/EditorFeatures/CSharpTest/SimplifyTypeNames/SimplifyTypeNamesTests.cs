@@ -4215,22 +4215,7 @@ namespace N
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
-        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType2(string typeName)
-        {
-            await TestMissingAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}");
-        }
-
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
-        [InlineData("Float32")]
-        [InlineData("Float64")]
-        public async Task TestDoesSimplifyUsingAliasWithUnboundTypes(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToBuiltInType(string typeName)
         {
             await TestInRegularAndScript1Async(
 $@"using System;
@@ -4241,7 +4226,22 @@ namespace N
 $@"using System;
 namespace N
 {{
-    using My{typeName} = System.{typeName};
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
 }}");
         }
 
