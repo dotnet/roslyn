@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option tells the simplification engine if the Qualified Name should be replaced by Alias
         /// if the user had initially not used the Alias
         /// </summary>
+        [Obsolete]
         public static Option<bool> PreferAliasToQualification { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferAliasToQualification), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferAliasToQualification"));
 
@@ -22,30 +23,35 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// This option influences the name reduction of members of a module in VB. If set to true, the 
         /// name reducer will e.g. reduce Namespace.Module.Member to Namespace.Member.
         /// </summary>
+        [Obsolete]
         public static Option<bool> PreferOmittingModuleNamesInQualification { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferOmittingModuleNamesInQualification), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferOmittingModuleNamesInQualification"));
 
         /// <summary>
         /// This option says that if we should simplify the Generic Name which has the type argument inferred
         /// </summary>
+        [Obsolete]
         public static Option<bool> PreferImplicitTypeInference { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInference), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInference"));
 
         /// <summary>
         /// This option says if we should simplify the Explicit Type in Local Declarations
         /// </summary>
+        [Obsolete]
         public static Option<bool> PreferImplicitTypeInLocalDeclaration { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(PreferImplicitTypeInLocalDeclaration), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferImplicitTypeInLocalDeclaration"));
 
         /// <summary>
         /// This option says if we should simplify to NonGeneric Name rather than GenericName
         /// </summary>
+        [Obsolete]
         public static Option<bool> AllowSimplificationToGenericType { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(AllowSimplificationToGenericType), false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AllowSimplificationToGenericType"));
 
         /// <summary>
         /// This option says if we should simplify from Derived types to Base types in Static Member Accesses
         /// </summary>
+        [Obsolete]
         public static Option<bool> AllowSimplificationToBaseType { get; } = new Option<bool>(nameof(SimplificationOptions), nameof(AllowSimplificationToBaseType), true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AllowSimplificationToBaseType"));
 
