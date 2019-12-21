@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private readonly bool _preferPredefinedTypeInDecl;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly List<Dictionary<ITypeSymbol, string>> _aliasStack
-            = new List<Dictionary<ITypeSymbol, string>>();
+        private readonly List<Dictionary<INamespaceOrTypeSymbol, string>> _aliasStack
+            = new List<Dictionary<INamespaceOrTypeSymbol, string>>();
 
         public readonly List<Diagnostic> Diagnostics = new List<Diagnostic>();
 
@@ -41,20 +41,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             _cancellationToken = cancellationToken;
         }
 
-        private Dictionary<ITypeSymbol, string> GetAliases(
+        private Dictionary<INamespaceOrTypeSymbol, string> GetAliases(
             SyntaxList<UsingDirectiveSyntax> usings)
         {
-            var result = new Dictionary<ITypeSymbol, string>();
+            var result = new Dictionary<INamespaceOrTypeSymbol, string>();
 
             foreach (var @using in usings)
             {
                 if (@using.Alias != null)
                 {
-                    var aliasVal = _semanticModel.GetTypeInfo(@using.Name, _cancellationToken).Type;
-                    if (aliasVal != null)
-                    {
-                        result[aliasVal] = @using.Alias.Name.Identifier.ValueText;
-                    }
+                    var symbolInfo = _semanticModel.GetSymbolInfo(@using.Name, _cancellationToken);
+                    if (symbolInfo.CandidateSymbols.Length > 0)
+                        continue;
+
+                    if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
+                        result[symbol] = @using.Alias.Name.Identifier.ValueText;
                 }
             }
 
@@ -151,12 +152,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         /// </summary>
         private bool TryReplaceWithPredefinedTypeOrAliasOrNullable(TypeSyntax typeSyntax)
         {
-            var typeSymbol = GetNamespaceOrTypeSymbol(typeSyntax) as ITypeSymbol;
-            if (typeSymbol == null)
+            var symbol = GetNamespaceOrTypeSymbol(typeSyntax);
+            if (symbol == null)
                 return false;
 
+            if (TryReplaceWithPredefinedTypeOrNullable(typeSyntax, symbol))
+                return true;
+
+            if (TryReplaceWithAlias(typeSyntax, symbol))
+                return true;
+
+            return false;
+        }
+
+        private bool TryReplaceWithAlias(TypeSyntax typeSyntax, INamespaceOrTypeSymbol symbol)
+        {
+            // Next, see if there's an alias in scope we can bind to.
+            for (var i = _aliasStack.Count - 1; i >= 0; i--)
+            {
+                var symbolToAlias = _aliasStack[i];
+                if (symbolToAlias.TryGetValue(symbol, out var alias))
+                {
+                    var foundSymbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
+                    foreach (var found in foundSymbols)
+                    {
+                        if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
+                            return AddAliasDiagnostic(typeSyntax, alias);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool AddAliasDiagnostic(TypeSyntax typeSyntax, string alias)
+        {
+            if (typeSyntax is IdentifierNameSyntax identifier &&
+                alias == identifier.Identifier.ValueText)
+            {
+                // No point simplifying an identifier to the same alias name.
+                return false;
+            }
+
+            // If we're replacing a qualified name with an alias that is the same as
+            // the RHS, then don't mark the entire type-syntax as being simplified.
+            // Only mark the LHS.
+            if (typeSyntax is QualifiedNameSyntax { Right: IdentifierNameSyntax qualifiedRight, Left: var qualifiedLeft } &&
+                alias == qualifiedRight.Identifier.ValueText)
+            {
+                return this.AddDiagnostic(qualifiedLeft.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+            }
+
+            if (typeSyntax is AliasQualifiedNameSyntax { Name: IdentifierNameSyntax aliasName, Alias: var aliasAlias } &&
+                alias == aliasName.Identifier.ValueText)
+            {
+                return this.AddDiagnostic(aliasAlias.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+            }
+
+            return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+        }
+
+        private bool TryReplaceWithPredefinedTypeOrNullable(TypeSyntax typeSyntax, INamespaceOrTypeSymbol symbol)
+        {
             // First, see if we can replace this type with a built-in type.
-            if (!typeSyntax.IsParentKind(SyntaxKind.UsingDirective))
+            if (!typeSyntax.IsParentKind(SyntaxKind.UsingDirective) &&
+                symbol is ITypeSymbol typeSymbol)
             {
                 if (_preferPredefinedTypeInDecl)
                 {
@@ -167,21 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
                 if (typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                     return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-            }
-
-            // Next, see if there's an alias in scope we can bind to.
-            using (var pooledArray = ArrayBuilder<string>.GetInstance(out var aliases))
-            {
-                AddAliases(typeSymbol, aliases);
-                foreach (var alias in aliases)
-                {
-                    var symbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
-                    foreach (var symbol in symbols)
-                    {
-                        if (symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(typeSymbol))
-                            return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                    }
-                }
             }
 
             return false;
@@ -197,6 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (aliasedOrQualifiedName is QualifiedNameSyntax qualifiedName &&
                 IsNameOfUsingDirective(qualifiedName, out var usingDirective))
             {
+                // Check for a couple of cases where it is legal to simplify, but where users prefer
+                // that we not do that.
+
                 // Do not replace `using NS1.NS2` with anything shorter if it binds to a namespace.
                 // In a using declaration we've found that people prefer to see the full name for
                 // clarity. Note: this does not apply to stripping the 'global' alias off of
@@ -229,12 +277,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return true;
         }
 
-        private void AddAliases(ITypeSymbol typeSymbol, ArrayBuilder<string> aliases)
+        private void AddAliases(INamespaceOrTypeSymbol symbol, ArrayBuilder<string> aliases)
         {
             for (var i = _aliasStack.Count - 1; i >= 0; i--)
             {
-                var typeToAlias = _aliasStack[i];
-                if (typeToAlias.TryGetValue(typeSymbol, out var alias))
+                var symbolToAlias = _aliasStack[i];
+                if (symbolToAlias.TryGetValue(symbol, out var alias))
                 {
                     aliases.Add(alias);
                 }
