@@ -176,7 +176,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
 
                     case CrefParameter:
-                        return true;
+                        return ((CrefParameterSyntax)parent).Type == node;
+
+                    case TypeCref:
+                        // From the docs: "The syntax in a TypeCrefSyntax will always be bound as
+                        // type, so it's safer to use QualifiedCrefSyntax or MemberCrefSyntax if the
+                        // symbol might be a non-type member."
+                        //
+                        // As such QualifiedCrefSyntax and MemberCrefSyntax are in
+                        // IsInNamespaceOrTypeContext
+                        return ((TypeCrefSyntax)parent).Type == node;
 
                     case ConversionOperatorMemberCref:
                         return ((ConversionOperatorMemberCrefSyntax)parent).Type == node;
@@ -214,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != null)
             {
-                node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
+                node = SyntaxFactory.GetStandaloneExpression(node);
                 var parent = node.Parent;
                 if (parent != null)
                 {
@@ -229,6 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Qualified names are only parsed when the parser knows it's a type only
                             // context.
                             return ((QualifiedNameSyntax)parent).Left == node;
+
+                        case QualifiedCref:
+                            return ((QualifiedCrefSyntax)parent).Container == node;
 
                         default:
                             return IsInTypeOnlyContext(node);
