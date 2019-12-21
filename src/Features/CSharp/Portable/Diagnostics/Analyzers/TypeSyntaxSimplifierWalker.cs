@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
@@ -12,6 +13,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 {
+    /// <summary>
+    /// This walker sees if we can simplify types/namespaces that it encounters.
+    /// Importantly, it only checks types/namespaces in contexts that are known to
+    /// only allows types/namespaces only (i.e. declarations, casts, etc.).  It does
+    /// not check general expression contexts.
+    /// </summary>
     internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
         private readonly SemanticModel _semanticModel;
@@ -118,6 +125,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             base.VisitQualifiedName(node);
         }
 
+        private bool IsNameOfUsingDirective(QualifiedNameSyntax node, out UsingDirectiveSyntax usingDirective)
+        {
+            while (node.Parent is QualifiedNameSyntax parent)
+                node = parent;
+
+            usingDirective = node.Parent as UsingDirectiveSyntax;
+            return usingDirective != null;
+        }
+
         private INamespaceOrTypeSymbol GetNamespaceOrTypeSymbol(TypeSyntax typeSyntax)
         {
             var symbolInfo = _semanticModel.GetSymbolInfo(typeSyntax, _cancellationToken);
@@ -146,17 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 {
                     var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
                     if (specialTypeKind != SyntaxKind.None)
-                    {
-                        this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
-                        return true;
-                    }
+                        return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
                 }
 
                 if (typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-                {
-                    this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                    return true;
-                }
+                    return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
             }
 
             // Next, see if there's an alias in scope we can bind to.
@@ -168,12 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     var symbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
                     foreach (var symbol in symbols)
                     {
-                        if (symbol is IAliasSymbol aliasSymbol &&
-                            aliasSymbol.Target.Equals(typeSymbol))
-                        {
-                            this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                            return true;
-                        }
+                        if (symbol is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(typeSymbol))
+                            return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                     }
                 }
             }
@@ -182,29 +188,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         }
 
         private bool TryReplaceQualifiedNameWithRightSide(
-            NameSyntax qualifiedName, NameSyntax left, SimpleNameSyntax right)
+            NameSyntax aliasedOrQualifiedName, NameSyntax left, SimpleNameSyntax right)
         {
-            var namespaceOrTypeSymbol = GetNamespaceOrTypeSymbol(qualifiedName);
+            var namespaceOrTypeSymbol = GetNamespaceOrTypeSymbol(aliasedOrQualifiedName);
             if (namespaceOrTypeSymbol == null)
                 return false;
 
-            var symbols = _semanticModel.LookupSymbols(qualifiedName.SpanStart, name: right.Identifier.ValueText);
+            if (aliasedOrQualifiedName is QualifiedNameSyntax qualifiedName &&
+                IsNameOfUsingDirective(qualifiedName, out var usingDirective))
+            {
+                // Do not replace `using NS1.NS2` with anything shorter if it binds to a namespace.
+                // In a using declaration we've found that people prefer to see the full name for
+                // clarity. Note: this does not apply to stripping the 'global' alias off of
+                // something like `using global::NS1.NS2`.
+                if (namespaceOrTypeSymbol is INamespaceSymbol)
+                    return false;
+
+                // Do not replace `using static NS1.C1` with anything shorter if it binds to a type.
+                // In a using declaration we've found that people prefer to see the full name for
+                // clarity. Note: this does not apply to stripping the 'global' alias off of
+                // something like `using static global::NS1.C1`.
+                if (usingDirective.StaticKeyword != default)
+                    return false;
+            }
+
+            var symbols = _semanticModel.LookupSymbols(aliasedOrQualifiedName.SpanStart, name: right.Identifier.ValueText);
             foreach (var symbol in symbols)
             {
                 if (symbol.OriginalDefinition.Equals(namespaceOrTypeSymbol.OriginalDefinition))
-                {
-                    AddDiagnostic(left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-                    return true;
-                }
+                    return AddDiagnostic(left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
             }
 
             return false;
         }
 
-        private void AddDiagnostic(TextSpan issueSpan, string diagnosticId)
+        private bool AddDiagnostic(TextSpan issueSpan, string diagnosticId)
         {
             this.Diagnostics.Add(CSharpSimplifyTypeNamesDiagnosticAnalyzer.CreateDiagnostic(
                 _semanticModel, _optionSet, issueSpan, diagnosticId, inDeclaration: true));
+            return true;
         }
 
         private void AddAliases(ITypeSymbol typeSymbol, ArrayBuilder<string> aliases)
