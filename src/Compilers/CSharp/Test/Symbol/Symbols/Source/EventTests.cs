@@ -845,6 +845,39 @@ class C
             Assert.True(eventSymbol.RequiresInstanceReceiver);
         }
 
+        [Fact, WorkItem(36259, "https://github.com/dotnet/roslyn/issues/36259")]
+        public void BackingFieldSymbolIsPresentInDeclaringTypeForFieldLikeEvent()
+        {
+            var source = @"
+class C
+{
+    public event System.EventHandler E;
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // warning CS0067: The event 'C.E' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
+
+            var declaringType = compilation.GetMember<ITypeSymbol>("C");
+
+            var fieldSymbol = Assert.Single(declaringType.GetMembers().OfType<IFieldSymbol>());
+
+            Assert.Same(declaringType.GetMembers().OfType<IEventSymbol>().Single(), fieldSymbol.AssociatedSymbol);
+        }
+
+        [Fact]
+        public void BackingFieldSymbolIsNotPresentInDeclaringTypeForCustomEvent()
+        {
+            var source = @"
+class C
+{
+    public event System.EventHandler E { add { } remove { } }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var declaringType = compilation.GetMember<ITypeSymbol>("C");
+
+            Assert.Empty(declaringType.GetMembers().OfType<IFieldSymbol>());
+        }
+
         #endregion
 
         #region Error cases

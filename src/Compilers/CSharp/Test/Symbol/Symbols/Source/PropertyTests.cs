@@ -2970,5 +2970,21 @@ class C
             var property = compilation.GetMember<PropertySymbol>("C.P");
             Assert.True(property.RequiresInstanceReceiver);
         }
+
+        [Fact]
+        public void BackingFieldSymbolIsPresentInDeclaringType()
+        {
+            var source = @"
+class C
+{
+    public int P { get; }
+}";
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            var declaringType = compilation.GetMember<ITypeSymbol>("C");
+
+            var fieldSymbol = Assert.Single(declaringType.GetMembers().OfType<IFieldSymbol>());
+
+            Assert.Same(compilation.GetMember<IPropertySymbol>("C.P"), fieldSymbol.AssociatedSymbol);
+        }
     }
 }
