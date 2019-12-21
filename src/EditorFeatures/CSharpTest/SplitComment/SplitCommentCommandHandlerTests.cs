@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
 {
     public static void Main(string[] args) 
     { 
-        // Test [||]Comment
+        // Test Comment[||] 
     }
 }",
 @"public class Program
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     public static void Main(string[] args) 
     { 
         // Test Comment
-        
+        // 
     }
 }");
         }
