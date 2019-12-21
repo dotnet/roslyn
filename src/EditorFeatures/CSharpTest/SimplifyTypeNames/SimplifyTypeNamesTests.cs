@@ -3960,7 +3960,26 @@ class C
 
         }
     }
-}", new TestParameters(options: PreferImplicitTypeWithSilent));
+}", new TestParameters(options: PreferImplicitTypeEverywhere));
+        }
+
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach ([|string|] arg in args)
+        {
+
+        }
+    }
+}", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
         [Fact, WorkItem(31849, "https://github.com/dotnet/roslyn/issues/31849")]
@@ -4108,6 +4127,44 @@ namespace N
 }");
         }
 
+        [WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo()
+    {
+        [|System.Int32|] i = 0;
+    }
+}",
+@"
+class C
+{
+    void Goo()
+    {
+        int i = 0;
+    }
+}", options: PreferImplicitTypeEverywhere);
+        }
+
+        [WorkItem(27819, "https://github.com/dotnet/roslyn/issues/27819")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyToVar_EvenIfVarIsPreferred_2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void Goo()
+    {
+        [|int|] i = 0;
+    }
+}", new TestParameters(options: PreferImplicitTypeEverywhere));
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
@@ -4177,10 +4234,10 @@ namespace N
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
 
-        private IDictionary<OptionKey, object> PreferImplicitTypeWithSilent => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private IDictionary<OptionKey, object> PreferImplicitTypeEverywhere => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
 
         private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
         private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
