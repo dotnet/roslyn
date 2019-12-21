@@ -113,10 +113,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
             Assert.True(notHandled);
         }
 
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitStartOfComment()
+        {
+            TestHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //[||] Test Comment
+    }
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        //
+        // Test Comment
+    }
+}");
+        }
 
         [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
-        public void TestSplitComment()
+        public void TestSplitMiddleOfComment()
         {
             TestHandled(
 @"public class Program
@@ -132,6 +153,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     { 
         // Test 
         //Comment
+    }
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitEndOfComment()
+        {
+            TestHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        // Test [||]Comment
+    }
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        // Test Comment
+        
     }
 }");
         }
