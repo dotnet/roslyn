@@ -106,6 +106,8 @@ public class Base
                     case "this[]":
                     case "get_Item":
                         break;
+                    case "Event1" when member.Kind == SymbolKind.Field:
+                        break;
                     default:
                         Assert.Equal(Accessibility.ProtectedAndInternal, member.DeclaredAccessibility);
                         break;

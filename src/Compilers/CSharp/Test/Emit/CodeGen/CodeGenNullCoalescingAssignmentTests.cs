@@ -629,15 +629,15 @@ class C
   .maxstack  2
   IL_0000:  ldsfld     ""System.EventHandler C.E""
   IL_0005:  brtrue.s   IL_002b
-  IL_0007:  ldsfld     ""System.EventHandler C.<>c.<>9__3_0""
+  IL_0007:  ldsfld     ""System.EventHandler C.<>c.<>9__4_0""
   IL_000c:  dup
   IL_000d:  brtrue.s   IL_0026
   IL_000f:  pop
   IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""void C.<>c.<Main>b__3_0(object, System.EventArgs)""
+  IL_0015:  ldftn      ""void C.<>c.<Main>b__4_0(object, System.EventArgs)""
   IL_001b:  newobj     ""System.EventHandler..ctor(object, System.IntPtr)""
   IL_0020:  dup
-  IL_0021:  stsfld     ""System.EventHandler C.<>c.<>9__3_0""
+  IL_0021:  stsfld     ""System.EventHandler C.<>c.<>9__4_0""
   IL_0026:  stsfld     ""System.EventHandler C.E""
   IL_002b:  ret
 }

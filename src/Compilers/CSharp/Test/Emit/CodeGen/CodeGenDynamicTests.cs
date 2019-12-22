@@ -5410,7 +5410,7 @@ public class C
   // Code size       76 (0x4c)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__4.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__5.<>p__0""
   IL_0006:  brtrue.s   IL_002c
   IL_0008:  ldc.i4.0
   IL_0009:  ldtoken    ""System.Action""
@@ -5419,10 +5419,10 @@ public class C
   IL_0018:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_001d:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
   IL_0022:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0027:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__4.<>p__0""
-  IL_002c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__4.<>p__0""
+  IL_0027:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__5.<>p__0""
+  IL_002c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__5.<>p__0""
   IL_0031:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>>.Target""
-  IL_0036:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__4.<>p__0""
+  IL_0036:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>> C.<>o__5.<>p__0""
   IL_003b:  ldarg.0
   IL_003c:  ldfld      ""dynamic C.v""
   IL_0041:  callvirt   ""System.Action System.Func<System.Runtime.CompilerServices.CallSite, object, System.Action>.Invoke(System.Runtime.CompilerServices.CallSite, object)""

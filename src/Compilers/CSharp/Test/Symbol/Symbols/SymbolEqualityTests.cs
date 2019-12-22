@@ -754,8 +754,8 @@ public class B
                 expectedIncludeNullability: false
                 );
 
-            var event1 = (IEventSymbol)type1.GetMembers()[2];
-            var event2 = (IEventSymbol)type2.GetMembers()[2];
+            var event1 = (IEventSymbol)type1.GetMembers()[3];
+            var event2 = (IEventSymbol)type2.GetMembers()[3];
 
             VerifyEquality(event1, event2,
                 expectedDefault: true,

@@ -15491,6 +15491,7 @@ null
                 "System.Int32 (System.Int32, System.Int64).Item1",
                 "System.Int64 (System.Int32, System.Int64).Item2",
                 "(System.Int32, System.Int64)..ctor(System.Int32 item1, System.Int64 item2)",
+                "System.Action<System.Int32> (System.Int32, System.Int64).E1",
                 "void (System.Int32, System.Int64).E1.add",
                 "void (System.Int32, System.Int64).E1.remove",
                 "event System.Action<System.Int32> (System.Int32, System.Int64).E1",
@@ -15504,9 +15505,11 @@ null
                 "(System.Int32, System.Int64)..ctor()");
 
             AssertTupleTypeEquality(m1Tuple);
-            Assert.Equal(new string[] { "Item1", "Item2", ".ctor", "add_E1", "remove_E1", "E1", "_e2", "E2", "add_E2", "remove_E2", "RaiseE1", "RaiseE2", "Test" },
+            Assert.Equal(new string[] { "Item1", "Item2", ".ctor", "E1", "add_E1", "remove_E1", "_e2", "E2", "add_E2", "remove_E2", "RaiseE1", "RaiseE2", "Test" },
                          m1Tuple.MemberNames.ToArray());
-            Assert.Equal("event System.Action<System.Int32> (System.Int32, System.Int64).E1", m1Tuple.GetEarlyAttributeDecodingMembers("E1").Single().ToTestDisplayString());
+
+            Assert.Equal("System.Action<System.Int32> (System.Int32, System.Int64).E1", m1Tuple.GetEarlyAttributeDecodingMembers("E1").Single(m => m.Kind == SymbolKind.Field).ToTestDisplayString());
+            Assert.Equal("event System.Action<System.Int32> (System.Int32, System.Int64).E1", m1Tuple.GetEarlyAttributeDecodingMembers("E1").Single(m => m.Kind == SymbolKind.Event).ToTestDisplayString());
             Assert.Equal("event System.Action<System.Int64> (System.Int32, System.Int64).E2", m1Tuple.GetEarlyAttributeDecodingMembers("E2").Single().ToTestDisplayString());
 
             var m2Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M2").ReturnType;
