@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Module
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                     End Class
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -467,7 +467,7 @@ class D : C
 }]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInference, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -522,7 +522,7 @@ End Class
 ]]>
               </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInference, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -568,7 +568,7 @@ Namespace X
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
@@ -618,7 +618,7 @@ Namespace Y
 End Namespace
                 </text>
 
-            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOptionSet = New Dictionary(Of OptionKey, Object) From {}
 
             Await TestAsync(input, expected, simplificationOptionSet)
         End Function
