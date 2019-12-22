@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private _stack As Stack(Of LookupResult)
 
+        ''' <summary>
+        ''' Constructor parameter is unused as exists solely to bypass the public default
+        ''' struct constructor.
+        ''' </summary>
         Public Sub New(unused As Boolean)
             _stack = s_stackPool.Allocate()
         End Sub
