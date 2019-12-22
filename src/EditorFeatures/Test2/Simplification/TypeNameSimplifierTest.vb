@@ -2023,7 +2023,7 @@ class E
 
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestDoSimplifyToGenericName() As Task
+        Public Async Function TestDoNotSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
@@ -4827,7 +4827,7 @@ End Class
 
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_DoSimplifyToGenericName() As Task
+        Public Async Function TestVisualBasic_DoNotSimplifyToGenericName() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
@@ -4922,7 +4922,7 @@ End Class
 
 NotInheritable Class M
 	Public Shared Sub Main()
-        ReDim Preserve.X.Y(1)
+        ReDim [Preserve].X.Y(1)
 	End Sub
 End Class]]></text>
 
