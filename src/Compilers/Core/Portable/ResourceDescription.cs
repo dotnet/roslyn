@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using Roslyn.Utilities;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     public sealed class ResourceDescription : Cci.IFileReference
     {
         internal readonly string ResourceName;
-        internal readonly string FileName; // null if embedded
+        internal readonly string? FileName; // null if embedded
         internal readonly bool IsPublic;
         internal readonly Func<Stream> DataProvider;
         private readonly CryptographicHashProvider _hashes;
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a stream of the data to embed.
         /// </remarks> 
         public ResourceDescription(string resourceName, Func<Stream> dataProvider, bool isPublic)
-            : this(resourceName, null, dataProvider, isPublic, isEmbedded: true, checkArgs: true)
+            : this(resourceName, fileName: null, dataProvider, isPublic, isEmbedded: true, checkArgs: true)
         {
         }
 
@@ -50,12 +52,12 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Function returning a stream of the resource content (used to calculate hash).
         /// </remarks>
-        public ResourceDescription(string resourceName, string fileName, Func<Stream> dataProvider, bool isPublic)
+        public ResourceDescription(string resourceName, string? fileName, Func<Stream> dataProvider, bool isPublic)
             : this(resourceName, fileName, dataProvider, isPublic, isEmbedded: false, checkArgs: true)
         {
         }
 
-        internal ResourceDescription(string resourceName, string fileName, Func<Stream> dataProvider, bool isPublic, bool isEmbedded, bool checkArgs)
+        internal ResourceDescription(string resourceName, string? fileName, Func<Stream> dataProvider, bool isPublic, bool isEmbedded, bool checkArgs)
         {
             if (checkArgs)
             {
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis
 
             public ResourceHashProvider(ResourceDescription resource)
             {
-                Debug.Assert(resource != null);
+                RoslynDebug.Assert(resource != null);
                 _resource = resource;
             }
 
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis
             return _hashes.GetHash(algorithmId);
         }
 
-        string Cci.IFileReference.FileName
+        string? Cci.IFileReference.FileName
         {
             get { return FileName; }
         }

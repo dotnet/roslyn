@@ -2011,12 +2011,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = source.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(arguments.Length))
             {
                 return Conversion.NoConversion;
             }
 
-            var targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            var targetElementTypes = destination.TupleElementTypesWithAnnotations;
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 
@@ -2084,8 +2084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> sourceTypes;
             ImmutableArray<TypeWithAnnotations> destTypes;
 
-            if (!source.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out sourceTypes) ||
-                !destination.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out destTypes) ||
+            if (!source.TryGetElementTypesWithAnnotationsIfTupleType(out sourceTypes) ||
+                !destination.TryGetElementTypesWithAnnotationsIfTupleType(out destTypes) ||
                 sourceTypes.Length != destTypes.Length)
             {
                 return Conversion.NoConversion;
@@ -2790,7 +2790,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeParameters: { Length: 1 }
                 };
             }
-
         }
 
         // Spec 6.1.10

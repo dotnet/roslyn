@@ -3073,7 +3073,7 @@ public class C
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
                 // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (c, s) = (local, null);
+                //         (c, s) = (local, null); // error 7
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(21, 18)
             );
 

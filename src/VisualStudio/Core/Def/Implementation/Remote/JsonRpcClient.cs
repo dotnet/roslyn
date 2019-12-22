@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -23,14 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly TraceSource _logger;
         private readonly JsonRpc _rpc;
 
-        private JsonRpcDisconnectedEventArgs _debuggingLastDisconnectReason;
-        private string _debuggingLastDisconnectCallstack;
+        private JsonRpcDisconnectedEventArgs? _debuggingLastDisconnectReason;
+        private string? _debuggingLastDisconnectCallstack;
 
-        public JsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object callbackTarget, bool useThisAsCallback)
+        public JsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object? callbackTarget, bool useThisAsCallback)
         {
-            Debug.Assert(workspace != null);
-            Debug.Assert(logger != null);
-            Debug.Assert(stream != null);
+            RoslynDebug.Assert(workspace != null);
+            RoslynDebug.Assert(logger != null);
+            RoslynDebug.Assert(stream != null);
 
             var target = useThisAsCallback ? this : callbackTarget;
 
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                HandleException(ex, cancellationToken);
+                throw CreateSoftCrashException(ex, cancellationToken);
             }
         }
 
@@ -77,8 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) when (ReportUnlessCanceled(ex, cancellationToken))
             {
-                HandleException(ex, cancellationToken);
-                return Contract.FailWithReturn<T>("can't reach here");
+                throw CreateSoftCrashException(ex, cancellationToken);
             }
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                HandleException(ex, cancellationToken);
+                throw CreateSoftCrashException(ex, cancellationToken);
             }
         }
 
@@ -108,27 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
             catch (Exception ex) // no when since Extensions.InvokeAsync already recorded it
             {
-                HandleException(ex, cancellationToken);
-                return Contract.FailWithReturn<T>("can't reach here");
+                throw CreateSoftCrashException(ex, cancellationToken);
             }
-        }
-
-        private void HandleException(Exception ex, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            LogError($"exception: {ex.ToString()}");
-
-            // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
-            // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
-            // their works and close VS"
-            ThrowSoftCrashException(ex, cancellationToken);
         }
 
         // these are for debugging purpose. once we find out root cause of the issue
         // we will remove these.
-        private static JsonRpcDisconnectedEventArgs s_debuggingLastDisconnectReason;
-        private static string s_debuggingLastDisconnectCallstack;
+        private static JsonRpcDisconnectedEventArgs? s_debuggingLastDisconnectReason;
+        private static string? s_debuggingLastDisconnectCallstack;
 
         private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
         {
@@ -151,15 +138,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return true;
         }
 
-        private void ThrowSoftCrashException(Exception ex, CancellationToken token)
+        private SoftCrashException CreateSoftCrashException(Exception ex, CancellationToken cancellationToken)
         {
+
+            // we are getting unexpected exception from service hub. rather than doing hard crash on unexpected exception,
+            // we decided to do soft crash where we show info bar to users saying "VS got corrupted and users should save
+            // their works and close VS"
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            LogError($"exception: {ex.ToString()}");
             RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
 
             // log disconnect information before throw
             LogDisconnectInfo(_debuggingLastDisconnectReason, _debuggingLastDisconnectCallstack);
 
             // throw soft crash exception
-            throw new SoftCrashException("remote host call failed", ex, token);
+            return new SoftCrashException("remote host call failed", ex, cancellationToken);
         }
 
         protected void Disconnect()
@@ -179,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _logger.TraceEvent(TraceEventType.Error, 1, message);
         }
 
-        protected void LogDisconnectInfo(JsonRpcDisconnectedEventArgs e, string callstack)
+        protected void LogDisconnectInfo(JsonRpcDisconnectedEventArgs? e, string? callstack)
         {
             if (e != null)
             {

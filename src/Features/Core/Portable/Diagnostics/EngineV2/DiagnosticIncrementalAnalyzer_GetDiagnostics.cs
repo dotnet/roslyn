@@ -266,7 +266,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 // get analyzers that are not suppressed.
-                // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
@@ -295,7 +294,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
-                // REVIEW: this can be expensive. any way to do this cheaper?
                 var diagnosticService = Owner.AnalyzerService;
                 if (diagnosticService.IsAnalyzerSuppressed(stateSet.Analyzer, project))
                 {

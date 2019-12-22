@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parseOptions,
                             scriptParseOptions,
                             analyzerConfigOptions.IsDefault
-                                ? null
-                                : analyzerConfigOptions[i].TreeOptions,
+                                ? (AnalyzerConfigOptionsResult?)null
+                                : analyzerConfigOptions[i],
                             ref hadErrors,
                             sourceFiles[i],
                             diagnosticBag,
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parseOptions,
                         scriptParseOptions,
                         analyzerConfigOptions.IsDefault
-                            ? null
-                            : analyzerConfigOptions[i].TreeOptions,
+                            ? (AnalyzerConfigOptionsResult?)null
+                            : analyzerConfigOptions[i],
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxTree ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            AnalyzerConfigOptionsResult? analyzerConfigOptionsResult,
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(fileDiagnostics.Count == 0);
-                return ParseFile(parseOptions, scriptParseOptions, content, file, diagnosticOptions);
+                return ParseFile(parseOptions, scriptParseOptions, content, file, analyzerConfigOptionsResult);
             }
         }
 
@@ -207,13 +207,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions scriptParseOptions,
             SourceText content,
             CommandLineSourceFile file,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+            AnalyzerConfigOptionsResult? analyzerConfigOptionsResult)
         {
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions;
+            bool? isUserConfiguredGeneratedCode;
+            if (analyzerConfigOptionsResult.HasValue)
+            {
+                diagnosticOptions = analyzerConfigOptionsResult.Value.TreeOptions;
+                isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerConfigOptionsResult.Value.AnalyzerOptions);
+            }
+            else
+            {
+                diagnosticOptions = null;
+                isUserConfiguredGeneratedCode = null;
+            }
+
             var tree = SyntaxFactory.ParseSyntaxTree(
                 content,
                 file.IsScript ? scriptParseOptions : parseOptions,
                 file.Path,
-                diagnosticOptions);
+                diagnosticOptions,
+                isUserConfiguredGeneratedCode);
 
             // prepopulate line tables.
             // we will need line tables anyways and it is better to not wait until we are in emit
