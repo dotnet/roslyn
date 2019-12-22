@@ -227,6 +227,11 @@
         <target state="translated">此上下文中不允许使用抑制运算符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitIndexerWithName">
+        <source>Implicit {0} indexer cannot have a named argument.</source>
+        <target state="new">Implicit {0} indexer cannot have a named argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>

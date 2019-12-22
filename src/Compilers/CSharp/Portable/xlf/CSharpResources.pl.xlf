@@ -227,6 +227,11 @@
         <target state="translated">Operator pominięcia jest niedozwolony w tym kontekście</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitIndexerWithName">
+        <source>Implicit {0} indexer cannot have a named argument.</source>
+        <target state="new">Implicit {0} indexer cannot have a named argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Nie można używać argumentów z modyfikatorem „in” w wyrażeniach wysyłanych dynamicznie.</target>

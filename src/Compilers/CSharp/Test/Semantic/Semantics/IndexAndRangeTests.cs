@@ -1550,5 +1550,87 @@ partial class Program
                 //         var result = y..Create(out Index y);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 22));
         }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void DontAllowNamedArgumentsForImplicitRangeIndexer()
+        {
+            CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public class C 
+{
+    public static void M(string text) 
+    {
+        _ = text[startIndex: 1..^1];
+        _ = new Span<char>(text.ToCharArray())[start: 1..^1];
+        _ = text[range: 1..^1];
+    }
+}").VerifyDiagnostics(
+                    // (7,18): error CS8761: Implicit Range indexer cannot have a named argument.
+                    //         _ = text[startIndex: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexerWithName, "startIndex").WithArguments("Range").WithLocation(7, 18),
+                    // (8,48): error CS8761: Implicit Range indexer cannot have a named argument.
+                    //         _ = new Span<char>(text.ToCharArray())[start: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexerWithName, "start").WithArguments("Range").WithLocation(8, 48),
+                    // (9,18): error CS8761: Implicit Range indexer cannot have a named argument.
+                    //         _ = text[range: 1..^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexerWithName, "range").WithArguments("Range").WithLocation(9, 18));
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void DontAllowNamedArgumentsForImplicitIndexIndexer()
+        {
+            CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public class C 
+{
+    public static void M(string text) 
+    {
+        _ = text[index: ^1];
+        _ = new Span<char>(text.ToCharArray())[index: ^1];
+    }
+}").VerifyDiagnostics(
+                    // (7,18): error CS8761: Implicit Index indexer cannot have a named argument.
+                    //         _ = text[index: ^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexerWithName, "index").WithArguments("Index").WithLocation(7, 18),
+                    // (8,48): error CS8761: Implicit Index indexer cannot have a named argument.
+                    //         _ = new Span<char>(text.ToCharArray())[index: ^1];
+                    Diagnostic(ErrorCode.ERR_ImplicitIndexerWithName, "index").WithArguments("Index").WithLocation(8, 48));
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void AllowNamedArgumentsForRealRangeIndexer()
+        {
+            CreateCompilationWithIndexAndRange(@"
+using System;
+public class A
+{
+     public int this[Range range] => throw new Exception();
+}
+public class C 
+{
+    public static void M(string text) 
+    {
+        _ = new A()[range: 1..^1];
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public void AllowNamedArgumentsForRealIndexIndexer()
+        {
+            CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+public class A
+{
+     public int this[Index index] => throw new Exception();
+}
+public class C 
+{
+    public static void M(string text) 
+    {
+        _ = new A()[index: ^1];
+    }
+}").VerifyDiagnostics();
+        }
     }
 }
