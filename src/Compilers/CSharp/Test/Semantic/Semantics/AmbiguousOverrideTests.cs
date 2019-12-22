@@ -888,7 +888,7 @@ public class Derived : Base
             var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
 
             var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
+            var derivedEvent = derivedClass.GetEvent("E");
 
             Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
             Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
@@ -971,7 +971,7 @@ public class Derived : Base
             var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
 
             var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
+            var derivedEvent = derivedClass.GetEvent("E");
 
             Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
             Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);

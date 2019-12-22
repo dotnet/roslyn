@@ -64,7 +64,7 @@ public class App : C
             var typesym = comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault() as INamedTypeSymbol;
 
             // 'D'
-            var member01 = (typesym.GetMembers("myEvent").Single() as IEventSymbol).Type;
+            var member01 = typesym.GetMembers("myEvent").OfType<IEventSymbol>().Single().Type;
 
             // 'I'
             var member02 = (typesym.GetMembers("Prop").Single() as IPropertySymbol).Type;

@@ -201,7 +201,7 @@ class C
         private static void ValidateEvent(ModuleSymbol module, bool isFromSource, bool isStatic, bool isFieldLike)
         {
             var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var @event = @class.GetMember<EventSymbol>("E");
+            var @event = @class.GetEvent("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Public, @event.DeclaredAccessibility);
@@ -708,7 +708,7 @@ class C
                                             symbolValidator: module =>
                                                                 {
                                                                     var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                                                                    var @event = @class.GetMember<EventSymbol>("e");
+                                                                    var @event = @class.GetEvent("e");
 
                                                                     var addMethod = @event.AddMethod;
                                                                     Assert.False((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
@@ -780,7 +780,7 @@ struct C
                                             symbolValidator: module =>
                                             {
                                                 var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                                                var @event = @class.GetMember<EventSymbol>("e");
+                                                var @event = @class.GetEvent("e");
 
                                                 var addMethod = @event.AddMethod;
                                                 Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);

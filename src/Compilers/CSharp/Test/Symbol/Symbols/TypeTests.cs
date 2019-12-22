@@ -1604,8 +1604,7 @@ public struct S
             var nestedType = topType.GetTypeMembers("Nested").Single();
             var enumType = comp.SourceModule.GlobalNamespace.GetTypeMembers("E").Single();
             // ------------------------------
-            var mem = topType.GetMembers("efield").Single();
-            var deleType = (mem as EventSymbol).Type;
+            var deleType = topType.GetEvent("efield").Type;
             Assert.True(deleType.IsDelegateType());
             var memType = deleType.DelegateInvokeMethod().ReturnType;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Nullable_T), memType.OriginalDefinition);
@@ -1619,7 +1618,7 @@ public struct S
             Assert.Same(enumType, memType.GetNullableUnderlyingType());
             Assert.Equal("E?", memType.ToDisplayString());
             // ------------------------------
-            mem = topType.GetMembers(WellKnownMemberNames.ImplicitConversionName).Single();
+            var mem = topType.GetMembers(WellKnownMemberNames.ImplicitConversionName).Single();
             memType = (mem as MethodSymbol).ReturnType;
             Assert.True(memType.IsNullableType());
             Assert.False(memType.CanBeConst());

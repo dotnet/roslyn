@@ -2520,10 +2520,10 @@ class D : C
             var comp = CreateCompilation(source);
             var global = comp.GlobalNamespace;
 
-            var eventA = global.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E");
-            var eventB = global.GetMember<NamedTypeSymbol>("B").GetMember<EventSymbol>("E");
-            var eventC = global.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
-            var eventD = global.GetMember<NamedTypeSymbol>("D").GetMember<EventSymbol>("E");
+            var eventA = global.GetMember<NamedTypeSymbol>("A").GetEvent("E");
+            var eventB = global.GetMember<NamedTypeSymbol>("B").GetEvent("E");
+            var eventC = global.GetMember<NamedTypeSymbol>("C").GetEvent("E");
+            var eventD = global.GetMember<NamedTypeSymbol>("D").GetEvent("E");
 
             var ohmA = eventA.OverriddenOrHiddenMembers;
             var ohmB = eventB.OverriddenOrHiddenMembers;
@@ -3300,14 +3300,14 @@ public class C : B
 
             var events = new[]
             {
-                comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E"),
+                comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetEvent("E"),
 
-                comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E"),
-                comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<EventSymbol>("E"),
+                comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetEvent("E"),
+                comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetEvent("E"),
 
-                comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<EventSymbol>("E"),
-                comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<EventSymbol>("E"),
-                comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E"),
+                comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetEvent("E"),
+                comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("B").GetEvent("E"),
+                comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetEvent("E"),
             };
 
             AssertEx.All(events, e =>

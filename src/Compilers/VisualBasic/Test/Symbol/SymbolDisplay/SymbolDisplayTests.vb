@@ -4574,7 +4574,7 @@ class Outer
             Dim method = outer.GetMembers("M").Single()
             Dim [property] = outer.GetMembers("P").Single()
             Dim field = outer.GetMembers("F").Single()
-            Dim [event] = outer.GetMembers("E").Single()
+            Dim [event] = outer.GetMembers("E").Single(Function(m) m.Kind <> SymbolKind.Field)
             Dim [delegate] = outer.GetMembers("D").Single()
             Dim [error] = outer.GetMembers("Error").Single()
 

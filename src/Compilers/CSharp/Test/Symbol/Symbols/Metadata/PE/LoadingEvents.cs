@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private static void CheckInstanceAndStaticEvents(NamedTypeSymbol @class, string eventTypeDisplayString)
         {
-            var instanceEvent = @class.GetMember<EventSymbol>("InstanceEvent");
+            var instanceEvent = @class.GetEvent("InstanceEvent");
 
             Assert.Equal(SymbolKind.Event, instanceEvent.Kind);
             Assert.False(instanceEvent.IsStatic);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             CheckAccessorShape(instanceEvent.AddMethod, instanceEvent);
             CheckAccessorShape(instanceEvent.RemoveMethod, instanceEvent);
 
-            var staticEvent = @class.GetMember<EventSymbol>("StaticEvent");
+            var staticEvent = @class.GetEvent("StaticEvent");
 
             Assert.Equal(SymbolKind.Event, staticEvent.Kind);
             Assert.True(staticEvent.IsStatic);
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var globalNamespace = assemblies.ElementAt(1).GlobalNamespace;
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("SignatureMismatch");
-            var mismatchedAddEvent = @class.GetMember<EventSymbol>("AddMismatch");
-            var mismatchedRemoveEvent = @class.GetMember<EventSymbol>("RemoveMismatch");
+            var mismatchedAddEvent = @class.GetEvent("AddMismatch");
+            var mismatchedRemoveEvent = @class.GetEvent("RemoveMismatch");
 
             Assert.NotEqual(mismatchedAddEvent.Type, mismatchedAddEvent.AddMethod.Parameters.Single().Type);
             Assert.True(mismatchedAddEvent.MustCallMethodsDirectly);
@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var globalNamespace = assemblies.ElementAt(1).GlobalNamespace;
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("AccessorMissingParameter");
-            var noParamAddEvent = @class.GetMember<EventSymbol>("AddNoParam");
-            var noParamRemoveEvent = @class.GetMember<EventSymbol>("RemoveNoParam");
+            var noParamAddEvent = @class.GetEvent("AddNoParam");
+            var noParamRemoveEvent = @class.GetEvent("RemoveNoParam");
 
             Assert.Equal(0, noParamAddEvent.AddMethod.Parameters.Length);
             Assert.True(noParamAddEvent.MustCallMethodsDirectly);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var globalNamespace = assemblies.ElementAt(1).GlobalNamespace;
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("NonDelegateEvent");
-            var nonDelegateEvent = @class.GetMember<EventSymbol>("NonDelegate");
+            var nonDelegateEvent = @class.GetEvent("NonDelegate");
 
             Assert.Equal(SpecialType.System_Int32, nonDelegateEvent.Type.SpecialType);
         }
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 foreach (var mod2 in modList)
                 {
-                    var @event = type.GetMember<EventSymbol>(mod1.ToString() + mod2.ToString());
+                    var @event = type.GetEvent(mod1.ToString() + mod2.ToString());
                     var addMethod = @event.AddMethod;
                     var removeMethod = @event.RemoveMethod;
 

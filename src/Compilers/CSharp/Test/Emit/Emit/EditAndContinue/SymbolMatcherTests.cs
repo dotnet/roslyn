@@ -1244,22 +1244,22 @@ interface I
                 null);
 
             var x0 = compilation0.GetMember<FieldSymbol>("I.X");
-            var y0 = compilation0.GetMember<EventSymbol>("I.Y");
+            var y0 = compilation0.GetEvent("I.Y");
             var m0 = compilation0.GetMember<MethodSymbol>("I.M");
             var n0 = compilation0.GetMember<MethodSymbol>("I.N");
             var p0 = compilation0.GetMember<PropertySymbol>("I.P");
             var q0 = compilation0.GetMember<PropertySymbol>("I.Q");
-            var e0 = compilation0.GetMember<EventSymbol>("I.E");
-            var f0 = compilation0.GetMember<EventSymbol>("I.F");
+            var e0 = compilation0.GetEvent("I.E");
+            var f0 = compilation0.GetEvent("I.F");
 
             var x1 = compilation1.GetMember<FieldSymbol>("I.X");
-            var y1 = compilation1.GetMember<EventSymbol>("I.Y");
+            var y1 = compilation1.GetEvent("I.Y");
             var m1 = compilation1.GetMember<MethodSymbol>("I.M");
             var n1 = compilation1.GetMember<MethodSymbol>("I.N");
             var p1 = compilation1.GetMember<PropertySymbol>("I.P");
             var q1 = compilation1.GetMember<PropertySymbol>("I.Q");
-            var e1 = compilation1.GetMember<EventSymbol>("I.E");
-            var f1 = compilation1.GetMember<EventSymbol>("I.F");
+            var e1 = compilation1.GetEvent("I.E");
+            var f1 = compilation1.GetEvent("I.F");
 
             Assert.Same(x0, matcher.MapDefinition(x1));
             Assert.Same(y0, matcher.MapDefinition(y1));

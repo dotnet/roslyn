@@ -1869,7 +1869,7 @@ class C {
 
             Func<NamespaceSymbol, Symbol> findSymbol2 = global =>
                 global.GetMember<NamedTypeSymbol>("C").
-                GetMember<EventSymbol>("F");
+                GetEvent("F");
 
             var format = new SymbolDisplayFormat(
                 memberOptions:
@@ -1922,7 +1922,7 @@ class C {
 
             Func<NamespaceSymbol, Symbol> findSymbol2 = global =>
                 global.GetMember<NamedTypeSymbol>("C").
-                GetMember<EventSymbol>("F");
+                GetEvent("F");
 
             var format = new SymbolDisplayFormat(
                 memberOptions: SymbolDisplayMemberOptions.IncludeType,
@@ -4095,7 +4095,7 @@ class C
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
             var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
-            var eventSymbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
+            var eventSymbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetEvent("E");
             Assert.True(eventSymbol.IsWindowsRuntimeEvent);
 
             Verify(
@@ -4159,7 +4159,7 @@ namespace N
             var comp = CreateCompilation(source);
             var namespaceSymbol = comp.GlobalNamespace.GetMember<NamespaceSymbol>("N");
             var typeSymbol = namespaceSymbol.GetMember<NamedTypeSymbol>("C");
-            var eventSymbol = typeSymbol.GetMember<EventSymbol>("E");
+            var eventSymbol = typeSymbol.GetEvent("E");
 
             Verify(
                 namespaceSymbol.ToDisplayParts(memberFormat),

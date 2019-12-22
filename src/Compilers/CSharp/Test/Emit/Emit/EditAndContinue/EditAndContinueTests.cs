@@ -1142,7 +1142,7 @@ class B
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<EventSymbol>("B.F"))));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetEvent("B.F"))));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -1220,8 +1220,8 @@ class B
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetMember<EventSymbol>("A.G")),
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetMember<EventSymbol>("B.H"))));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetEvent("A.G")),
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation2.GetEvent("B.H"))));
 
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
@@ -1987,13 +1987,13 @@ interface I
             var compilation2 = compilation1.WithSource(source2);
 
             var x1 = compilation1.GetMember<FieldSymbol>("I.X");
-            var y1 = compilation1.GetMember<EventSymbol>("I.Y");
+            var y1 = compilation1.GetEvent("I.Y");
             var m1 = compilation1.GetMember<MethodSymbol>("I.M");
             var n1 = compilation1.GetMember<MethodSymbol>("I.N");
             var p1 = compilation1.GetMember<PropertySymbol>("I.P");
             var q1 = compilation1.GetMember<PropertySymbol>("I.Q");
-            var e1 = compilation1.GetMember<EventSymbol>("I.E");
-            var f1 = compilation1.GetMember<EventSymbol>("I.F");
+            var e1 = compilation1.GetEvent("I.E");
+            var f1 = compilation1.GetEvent("I.F");
             var j1 = compilation1.GetMember<NamedTypeSymbol>("I.J");
             var getP1 = compilation1.GetMember<MethodSymbol>("I.get_P");
             var setP1 = compilation1.GetMember<MethodSymbol>("I.set_P");
@@ -2196,7 +2196,7 @@ delegate void D();
                     SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.M2")),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<FieldSymbol>("C.F2")),
                     SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<PropertySymbol>("C.P2")),
-                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<EventSymbol>("C.E2"))));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetEvent("C.E2"))));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();

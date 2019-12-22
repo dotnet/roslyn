@@ -522,7 +522,7 @@ namespace N1 {
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 1);
             }
 
-            var ev1 = c1.GetMembers("ev1").Single() as IEventSymbol;
+            var ev1 = c1.GetEvent("ev1");
             var prop3 = c1.GetMembers("Prop3").Single() as IPropertySymbol;
 
             foreach (ISymbol memb in c1.GetMembers())

@@ -4300,7 +4300,7 @@ public class B<T> :
                 type.GetMember<FieldSymbol>("Field").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "System.EventHandler<(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)>",
-                type.GetMember<EventSymbol>("Event").TypeWithAnnotations.ToTestDisplayString());
+                type.GetEvent("Event").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Method((dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) arg)",
                 type.GetMember<MethodSymbol>("Method").ToTestDisplayString());

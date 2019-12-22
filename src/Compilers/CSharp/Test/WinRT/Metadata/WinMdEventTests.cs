@@ -2839,8 +2839,8 @@ class C : Interface<int>
             comp.VerifyDiagnostics();
 
             var interfaceType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Interface");
-            var interfaceNormalEvent = interfaceType.GetMember<EventSymbol>("Normal");
-            var interfaceWinRTEvent = interfaceType.GetMember<EventSymbol>("WinRT");
+            var interfaceNormalEvent = interfaceType.GetEvent("Normal");
+            var interfaceWinRTEvent = interfaceType.GetEvent("WinRT");
 
             Assert.IsType<PEEventSymbol>(interfaceNormalEvent);
             Assert.IsType<PEEventSymbol>(interfaceWinRTEvent);
@@ -2914,11 +2914,11 @@ interface I
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var classEvent = @class.GetMember<EventSymbol>("E");
+                var classEvent = @class.GetEvent("E");
 
                 // Specifically test interfaces because they follow a different code path.
                 var @interface = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
-                var interfaceEvent = @interface.GetMember<EventSymbol>("E");
+                var interfaceEvent = @interface.GetEvent("E");
 
                 Assert.Equal(kind.IsWindowsRuntime(), classEvent.IsWindowsRuntimeEvent);
                 Assert.Equal(kind.IsWindowsRuntime(), interfaceEvent.IsWindowsRuntimeEvent);
@@ -2958,8 +2958,8 @@ class C : Interface
                 comp.VerifyDiagnostics();
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var normalEvent = @class.GetMember<EventSymbol>("Normal");
-                var winRTEvent = @class.GetMember<EventSymbol>("WinRT");
+                var normalEvent = @class.GetEvent("Normal");
+                var winRTEvent = @class.GetEvent("WinRT");
 
                 Assert.False(normalEvent.IsWindowsRuntimeEvent);
                 Assert.True(winRTEvent.IsWindowsRuntimeEvent);
@@ -3034,8 +3034,8 @@ class OverrideAndImplIncorrectly : ReversedBase, Interface
 
                 {
                     var overrideNoImplClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("OverrideNoImpl");
-                    var normalEvent = overrideNoImplClass.GetMember<EventSymbol>("Normal");
-                    var winRTEvent = overrideNoImplClass.GetMember<EventSymbol>("WinRT");
+                    var normalEvent = overrideNoImplClass.GetEvent("Normal");
+                    var winRTEvent = overrideNoImplClass.GetEvent("WinRT");
 
                     Assert.False(normalEvent.IsWindowsRuntimeEvent);
                     Assert.True(winRTEvent.IsWindowsRuntimeEvent);
@@ -3043,8 +3043,8 @@ class OverrideAndImplIncorrectly : ReversedBase, Interface
 
                 {
                     var overrideAndImplCorrectlyClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("OverrideAndImplCorrectly");
-                    var normalEvent = overrideAndImplCorrectlyClass.GetMember<EventSymbol>("Normal");
-                    var winRTEvent = overrideAndImplCorrectlyClass.GetMember<EventSymbol>("WinRT");
+                    var normalEvent = overrideAndImplCorrectlyClass.GetEvent("Normal");
+                    var winRTEvent = overrideAndImplCorrectlyClass.GetEvent("WinRT");
 
                     Assert.False(normalEvent.IsWindowsRuntimeEvent);
                     Assert.True(winRTEvent.IsWindowsRuntimeEvent);
@@ -3052,8 +3052,8 @@ class OverrideAndImplIncorrectly : ReversedBase, Interface
 
                 {
                     var overrideAndImplIncorrectlyClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("OverrideAndImplIncorrectly");
-                    var normalEvent = overrideAndImplIncorrectlyClass.GetMember<EventSymbol>("Normal");
-                    var winRTEvent = overrideAndImplIncorrectlyClass.GetMember<EventSymbol>("WinRT");
+                    var normalEvent = overrideAndImplIncorrectlyClass.GetEvent("Normal");
+                    var winRTEvent = overrideAndImplIncorrectlyClass.GetEvent("WinRT");
 
                     // NB: reversed
                     Assert.True(normalEvent.IsWindowsRuntimeEvent);
@@ -3168,7 +3168,7 @@ class C : IWinRT, INormal
                     Diagnostic(ErrorCode.ERR_MixingWinRTEventWithRegular, "E").WithArguments("C.E", "INormal.E", "C.E", "INormal.E"));
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var @event = @class.GetMember<EventSymbol>("E");
+                var @event = @class.GetEvent("E");
 
                 Assert.True(@event.IsWindowsRuntimeEvent); //Implemented at least one WinRT event.
             }
@@ -3195,7 +3195,7 @@ class C : INormal, IWinRT
                     Diagnostic(ErrorCode.ERR_MixingWinRTEventWithRegular, "E").WithArguments("C.E", "INormal.E", "C.E", "INormal.E"));
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var @event = @class.GetMember<EventSymbol>("E");
+                var @event = @class.GetEvent("E");
 
                 Assert.True(@event.IsWindowsRuntimeEvent); //Implemented at least one WinRT event.
             }
@@ -3256,8 +3256,8 @@ class Derived : ReversedBase, Interface
                 Diagnostic(ErrorCode.ERR_MixingWinRTEventWithRegular, "Normal").WithArguments("Derived.Normal", "Interface.Normal", "Derived.Normal", "Interface.Normal"));
 
             var derivedClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var normalEvent = derivedClass.GetMember<EventSymbol>("Normal");
-            var winRTEvent = derivedClass.GetMember<EventSymbol>("WinRT");
+            var normalEvent = derivedClass.GetEvent("Normal");
+            var winRTEvent = derivedClass.GetEvent("WinRT");
 
             // NB: reversed, since overriding beats implicitly implementing.
             Assert.True(normalEvent.IsWindowsRuntimeEvent);
@@ -3291,8 +3291,8 @@ class C
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("C.F"));
 
                 var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var customEvent = @class.GetMember<EventSymbol>("E");
-                var fieldLikeEvent = @class.GetMember<EventSymbol>("F");
+                var customEvent = @class.GetEvent("E");
+                var fieldLikeEvent = @class.GetEvent("F");
 
                 if (kind.IsWindowsRuntime())
                 {
@@ -3340,7 +3340,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
 
             var @class = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var @event = @class.GetMember<EventSymbol>("E");
+            var @event = @class.GetEvent("E");
             var field = @event.AssociatedField;
             var fieldType = (NamedTypeSymbol)field.Type;
             Assert.Equal(TypeKind.Error, fieldType.TypeKind);
@@ -3498,8 +3498,8 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             var compilation = CreateCompilationWithIL("", il, targetFramework: TargetFramework.Empty, references: WinRtRefs);
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Events");
-            var instanceEvent = type.GetMember<EventSymbol>("Instance");
-            var staticEvent = type.GetMember<EventSymbol>("Static");
+            var instanceEvent = type.GetEvent("Instance");
+            var staticEvent = type.GetEvent("Static");
 
             Assert.True(instanceEvent.IsWindowsRuntimeEvent);
             Assert.False(instanceEvent.AddMethod.IsStatic);

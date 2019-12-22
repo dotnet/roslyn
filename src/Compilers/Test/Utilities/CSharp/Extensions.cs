@@ -285,7 +285,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static EventSymbol GetEvent(this NamedTypeSymbol symbol, string name)
         {
-            return (EventSymbol)symbol.GetMembers(name).Single();
+            return (EventSymbol)symbol.GetMembers(name).Single(m => m.Kind == SymbolKind.Event);
+        }
+
+        public static EventSymbol GetEvent(this CSharpCompilation compilation, string qualifiedName)
+        {
+            return compilation.GlobalNamespace.GetEvent(qualifiedName);
+        }
+
+        public static IEventSymbol GetEvent(this Compilation compilation, string qualifiedName)
+        {
+            return compilation.GlobalNamespace.GetEvent(qualifiedName);
+        }
+
+        public static EventSymbol GetEvent(this NamespaceOrTypeSymbol container, string qualifiedName)
+        {
+            return (EventSymbol)GetMembers(container, qualifiedName, lastContainer: out _).Single(m => m.Kind == SymbolKind.Event);
+        }
+
+        public static IEventSymbol GetEvent(this INamespaceOrTypeSymbol container, string qualifiedName)
+        {
+            return (IEventSymbol)GetMembers(container, qualifiedName, lastContainer: out _).Single(m => m.Kind == SymbolKind.Event);
         }
 
         public static MethodSymbol GetMethod(this NamedTypeSymbol symbol, string name)

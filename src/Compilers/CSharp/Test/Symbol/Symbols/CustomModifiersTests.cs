@@ -2704,12 +2704,12 @@ class CL3
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
-            var test2 = cl2.GetMember<EventSymbol>("Test");
+            var test2 = cl2.GetEvent("Test");
             Assert.Equal("event System.Action<dynamic modopt(System.Runtime.CompilerServices.IsConst) []> CL2.Test",
                          test2.ToTestDisplayString());
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
-            var test3 = cl3.GetMember<EventSymbol>("Test");
+            var test3 = cl3.GetEvent("Test");
             Assert.Equal("event System.Action<System.Object modopt(System.Runtime.CompilerServices.IsConst) []> CL3.Test",
                          test3.ToTestDisplayString());
 
@@ -2798,12 +2798,12 @@ class CL3 : CL1
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
-            var test2 = cl2.GetMember<EventSymbol>("Test");
+            var test2 = cl2.GetEvent("Test");
             Assert.Equal("event System.Action<dynamic modopt(System.Runtime.CompilerServices.IsConst) []> CL2.Test",
                          test2.ToTestDisplayString());
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
-            var test3 = cl3.GetMember<EventSymbol>("Test");
+            var test3 = cl3.GetEvent("Test");
             Assert.Equal("event System.Action<System.Object modopt(System.Runtime.CompilerServices.IsConst) []> CL3.Test",
                          test3.ToTestDisplayString());
 

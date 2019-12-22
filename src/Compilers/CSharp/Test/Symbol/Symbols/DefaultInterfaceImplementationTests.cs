@@ -4764,7 +4764,7 @@ class Test2 : I1
         private static void ValidateEventImplementationTest1_101(ModuleSymbol m, bool haveAdd, bool haveRemove)
         {
             var i1 = m.GlobalNamespace.GetTypeMember("I1");
-            var e1 = i1.GetMember<EventSymbol>("E1");
+            var e1 = i1.GetEvent("E1");
             var addE1 = e1.AddMethod;
             var rmvE1 = e1.RemoveMethod;
 
@@ -4847,7 +4847,7 @@ class Test2 : I1
             var test2 = m.GlobalNamespace.GetTypeMember("Test2");
             Assert.Equal("I1", test2.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-            var e1 = test2.InterfacesNoUseSiteDiagnostics().Single().GetMember<EventSymbol>("E1");
+            var e1 = test2.InterfacesNoUseSiteDiagnostics().Single().GetEvent("E1");
             Assert.Same(e1, test2.FindImplementationForInterfaceMember(e1));
 
             if (haveAdd)
@@ -5253,8 +5253,8 @@ remove E8",
 
         private static void ValidateEventImplementation_201(ModuleSymbol m)
         {
-            var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
-            var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
+            var e7 = m.GlobalNamespace.GetEvent("I1.E7");
+            var e8 = m.GlobalNamespace.GetEvent("I1.E8");
 
             var derived = m.ContainingAssembly.GetTypeByMetadataName("Derived");
 
@@ -5375,8 +5375,8 @@ class Test : I1
 
             void Validate(ModuleSymbol m)
             {
-                var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
-                var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
+                var e7 = m.GlobalNamespace.GetEvent("I1.E7");
+                var e8 = m.GlobalNamespace.GetEvent("I1.E8");
 
                 var derived = m.ContainingAssembly.GetTypeByMetadataName("Derived");
 
@@ -5455,8 +5455,8 @@ class Test : I1
 
             void Validate(ModuleSymbol m)
             {
-                var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
-                var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
+                var e7 = m.GlobalNamespace.GetEvent("I1.E7");
+                var e8 = m.GlobalNamespace.GetEvent("I1.E8");
 
                 var derived = m.ContainingAssembly.GetTypeByMetadataName("Derived");
 
@@ -5548,7 +5548,7 @@ class Test2 : I1
             var i1 = derived.InterfacesNoUseSiteDiagnostics().Single();
             Assert.Equal("I1", i1.ToTestDisplayString());
 
-            var e7 = i1.GetMember<EventSymbol>("E7");
+            var e7 = i1.GetEvent("E7");
 
             Assert.True(e7.IsVirtual);
             Assert.False(e7.IsAbstract);
@@ -5655,7 +5655,7 @@ class Test2 : I2
             var i1 = compilation3.GetTypeByMetadataName("I1");
             Assert.Equal("I1", i1.ToTestDisplayString());
 
-            var e7 = i1.GetMember<EventSymbol>("E7");
+            var e7 = i1.GetEvent("E7");
 
             Assert.Null(test2.FindImplementationForInterfaceMember(e7));
 
@@ -5838,7 +5838,7 @@ class Test1 : I1
             var i1 = derived.InterfacesNoUseSiteDiagnostics().Single();
             Assert.Equal("I1", i1.ToTestDisplayString());
 
-            var e7 = i1.GetMember<EventSymbol>("E7");
+            var e7 = i1.GetEvent("E7");
 
             Assert.False(e7.IsVirtual);
             Assert.False(e7.IsAbstract);
@@ -23769,7 +23769,7 @@ public interface I1
         private static void ValidateSymbolsEventModifiers_01(CSharpCompilation compilation1)
         {
             var i1 = compilation1.GetTypeByMetadataName("I1");
-            var p01 = i1.GetMember<EventSymbol>("P01");
+            var p01 = i1.GetEvent("P01");
 
             Assert.True(p01.IsAbstract);
             Assert.False(p01.IsVirtual);
@@ -23794,7 +23794,7 @@ public interface I1
                 Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
             }
 
-            var p02 = i1.GetMember<EventSymbol>("P02");
+            var p02 = i1.GetEvent("P02");
             var p02get = p02.AddMethod;
 
             Assert.False(p02.IsAbstract);
@@ -23815,7 +23815,7 @@ public interface I1
             Assert.False(p02get.IsOverride);
             Assert.Equal(Accessibility.Protected, p02get.DeclaredAccessibility);
 
-            var p03 = i1.GetMember<EventSymbol>("P03");
+            var p03 = i1.GetEvent("P03");
             var p03set = p03.RemoveMethod;
 
             Assert.False(p03.IsAbstract);
@@ -23836,7 +23836,7 @@ public interface I1
             Assert.False(p03set.IsOverride);
             Assert.Equal(Accessibility.ProtectedOrInternal, p03set.DeclaredAccessibility);
 
-            var p04 = i1.GetMember<EventSymbol>("P04");
+            var p04 = i1.GetEvent("P04");
             var p04get = p04.AddMethod;
 
             Assert.False(p04.IsAbstract);
@@ -23857,7 +23857,7 @@ public interface I1
             Assert.False(p04get.IsOverride);
             Assert.Equal(Accessibility.Internal, p04get.DeclaredAccessibility);
 
-            var p05 = i1.GetMember<EventSymbol>("P05");
+            var p05 = i1.GetEvent("P05");
             var p05set = p05.RemoveMethod;
 
             Assert.False(p05.IsAbstract);
@@ -23878,7 +23878,7 @@ public interface I1
             Assert.False(p05set.IsOverride);
             Assert.Equal(Accessibility.Private, p05set.DeclaredAccessibility);
 
-            var p06 = i1.GetMember<EventSymbol>("P06");
+            var p06 = i1.GetEvent("P06");
             var p06get = p06.AddMethod;
 
             Assert.False(p06.IsAbstract);
@@ -23899,7 +23899,7 @@ public interface I1
             Assert.False(p06get.IsOverride);
             Assert.Equal(Accessibility.Public, p06get.DeclaredAccessibility);
 
-            var p07 = i1.GetMember<EventSymbol>("P07");
+            var p07 = i1.GetEvent("P07");
             var p07set = p07.RemoveMethod;
 
             Assert.False(p07.IsAbstract);
@@ -23920,7 +23920,7 @@ public interface I1
             Assert.False(p07set.IsOverride);
             Assert.Equal(Accessibility.Public, p07set.DeclaredAccessibility);
 
-            var p08 = i1.GetMember<EventSymbol>("P08");
+            var p08 = i1.GetEvent("P08");
             var p08get = p08.AddMethod;
 
             Assert.False(p08.IsAbstract);
@@ -23941,7 +23941,7 @@ public interface I1
             Assert.False(p08get.IsOverride);
             Assert.Equal(Accessibility.Public, p08get.DeclaredAccessibility);
 
-            var p09 = i1.GetMember<EventSymbol>("P09");
+            var p09 = i1.GetEvent("P09");
             var p09set = p09.RemoveMethod;
 
             Assert.False(p09.IsAbstract);
@@ -23962,7 +23962,7 @@ public interface I1
             Assert.False(p09set.IsOverride);
             Assert.Equal(Accessibility.Public, p09set.DeclaredAccessibility);
 
-            var p10 = i1.GetMember<EventSymbol>("P10");
+            var p10 = i1.GetEvent("P10");
             var p10get = p10.AddMethod;
 
             Assert.True(p10.IsAbstract);
@@ -23985,7 +23985,7 @@ public interface I1
 
             foreach (var name in new[] { "P11", "P12", "P13" })
             {
-                var p11 = i1.GetMember<EventSymbol>(name);
+                var p11 = i1.GetEvent(name);
 
                 Assert.False(p11.IsAbstract);
                 Assert.True(p11.IsVirtual);
@@ -24011,7 +24011,7 @@ public interface I1
                 }
             }
 
-            var p14 = i1.GetMember<EventSymbol>("P14");
+            var p14 = i1.GetEvent("P14");
 
             Assert.True(p14.IsAbstract);
             Assert.False(p14.IsVirtual);
@@ -24648,7 +24648,7 @@ public interface I1
         private static void ValidateEventModifiers_06(CSharpCompilation compilation1)
         {
             var i1 = compilation1.GetTypeByMetadataName("I1");
-            var p1 = i1.GetMember<EventSymbol>("P1");
+            var p1 = i1.GetEvent("P1");
 
             Assert.True(p1.IsAbstract);
             Assert.False(p1.IsVirtual);
@@ -24748,7 +24748,7 @@ set_P3", symbolValidator: Validate);
                                               (name: "P2", access: Accessibility.Internal),
                                               (name: "P3", access: Accessibility.Private)})
                 {
-                    var p1 = i1.GetMember<EventSymbol>(tuple.name);
+                    var p1 = i1.GetEvent(tuple.name);
 
                     Assert.False(p1.IsAbstract);
                     Assert.False(p1.IsVirtual);
@@ -24910,7 +24910,7 @@ class Test2 : I1
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
             var i1 = compilation1.GetTypeByMetadataName("I1");
-            var p1 = i1.GetMember<EventSymbol>("P1");
+            var p1 = i1.GetEvent("P1");
 
             Assert.True(p1.IsAbstract);
             Assert.False(p1.IsVirtual);
@@ -24937,7 +24937,7 @@ class Test2 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
             }
 
-            var p2 = i1.GetMember<EventSymbol>("P2");
+            var p2 = i1.GetEvent("P2");
 
             Assert.False(p2.IsAbstract);
             Assert.True(p2.IsVirtual);
@@ -24964,7 +24964,7 @@ class Test2 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
             }
 
-            var p3 = i1.GetMember<EventSymbol>("P3");
+            var p3 = i1.GetEvent("P3");
 
             Assert.False(p3.IsAbstract);
             Assert.False(p3.IsVirtual);
@@ -26256,7 +26256,7 @@ class Test1 : I1
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
             var i1 = compilation1.GetTypeByMetadataName("I1");
-            var p1 = i1.GetMember<EventSymbol>("P1");
+            var p1 = i1.GetEvent("P1");
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
             Assert.Null(test1.FindImplementationForInterfaceMember(p1.AddMethod));
             Assert.Null(test1.FindImplementationForInterfaceMember(p1.RemoveMethod));
@@ -28002,7 +28002,7 @@ set_P2",
                                               (name: "P2", access: Accessibility.ProtectedOrInternal),
                                               (name: "P3", access: Accessibility.ProtectedAndInternal)})
                 {
-                    var p1 = i1.GetMember<EventSymbol>(tuple.name);
+                    var p1 = i1.GetEvent(tuple.name);
 
                     Assert.False(p1.IsAbstract);
                     Assert.False(p1.IsVirtual);
@@ -39760,10 +39760,10 @@ class Test1 : I1
             void Validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                var f1 = i1.GetMember<EventSymbol>("F1");
-                var f2 = i1.GetMember<EventSymbol>("F2");
-                var f3 = i1.GetMember<EventSymbol>("F3");
-                var f4 = i1.GetMember<EventSymbol>("F4");
+                var f1 = i1.GetEvent("F1");
+                var f2 = i1.GetEvent("F2");
+                var f3 = i1.GetEvent("F3");
+                var f4 = i1.GetEvent("F4");
 
                 Assert.True(f1.IsStatic);
                 Assert.True(f2.IsStatic);
@@ -39900,10 +39900,10 @@ class Test1 : I1
             void Validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
-                var f1 = i1.GetMember<EventSymbol>("F1");
-                var f2 = i1.GetMember<EventSymbol>("F2");
-                var f3 = i1.GetMember<EventSymbol>("F3");
-                var f4 = i1.GetMember<EventSymbol>("F4");
+                var f1 = i1.GetEvent("F1");
+                var f2 = i1.GetEvent("F2");
+                var f3 = i1.GetEvent("F3");
+                var f4 = i1.GetEvent("F4");
 
                 Assert.True(f1.IsStatic);
                 Assert.True(f2.IsStatic);
@@ -55081,11 +55081,11 @@ class C1 : I1, Interface<int>
                     Assert.True(baseInterface.IsInterface);
                     Assert.True(i1.IsInterface);
 
-                    var i1Normal = i1.GetMember<EventSymbol>("Interface<System.Int32>.Normal");
-                    var i1WinRT = i1.GetMember<EventSymbol>("Interface<System.Int32>.WinRT");
+                    var i1Normal = i1.GetEvent("Interface<System.Int32>.Normal");
+                    var i1WinRT = i1.GetEvent("Interface<System.Int32>.WinRT");
 
-                    var baseInterfaceNormal = baseInterface.GetMember<EventSymbol>("Normal");
-                    var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
+                    var baseInterfaceNormal = baseInterface.GetEvent("Normal");
+                    var baseInterfaceWinRT = baseInterface.GetEvent("WinRT");
 
                     Assert.False(baseInterfaceNormal.IsWindowsRuntimeEvent);
                     Assert.False(i1Normal.IsWindowsRuntimeEvent);
@@ -55150,7 +55150,7 @@ class C1 : I1
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
 
-                var i1WinRT = i1.GetMember<EventSymbol>("WinRT");
+                var i1WinRT = i1.GetEvent("WinRT");
 
                 Assert.True(i1WinRT.IsWindowsRuntimeEvent);
 
@@ -55207,9 +55207,9 @@ class C1 : I1, Interface
                 Assert.True(baseInterface.IsInterface);
                 Assert.True(i1.IsInterface);
 
-                var i1WinRT = i1.GetMember<EventSymbol>("Interface.WinRT");
+                var i1WinRT = i1.GetEvent("Interface.WinRT");
 
-                var baseInterfaceWinRT = baseInterface.GetMember<EventSymbol>("WinRT");
+                var baseInterfaceWinRT = baseInterface.GetEvent("WinRT");
 
                 Assert.True(baseInterfaceWinRT.IsWindowsRuntimeEvent);
                 Assert.True(i1WinRT.IsWindowsRuntimeEvent);
@@ -55497,7 +55497,7 @@ class Test4 : C1, I1
             var i1P1 = i1.GetMember<PropertySymbol>("P1");
             var i1P2 = i1.GetMember<PropertySymbol>("P2");
             var i1P3 = i1.GetMember<PropertySymbol>("P3");
-            var i1E1 = i1.GetMember<EventSymbol>("E1");
+            var i1E1 = i1.GetEvent("E1");
             var i2i1P1get = i2.GetMember<MethodSymbol>("I1.get_P1");
             var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
             var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");
@@ -56385,7 +56385,7 @@ interface I3 : I2
             var i1P1 = i1.GetMember<PropertySymbol>("P1");
             var i1P2 = i1.GetMember<PropertySymbol>("P2");
             var i1P3 = i1.GetMember<PropertySymbol>("P3");
-            var i1E1 = i1.GetMember<EventSymbol>("E1");
+            var i1E1 = i1.GetEvent("E1");
             var i2i1P1get = i2.GetMember<MethodSymbol>("I1.get_P1");
             var i2i1P2get = i2.GetMember<MethodSymbol>("I1.get_P2");
             var i2i1P2set = i2.GetMember<MethodSymbol>("I1.set_P2");

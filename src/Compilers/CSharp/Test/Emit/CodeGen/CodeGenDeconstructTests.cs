@@ -7614,7 +7614,7 @@ class C : EventInterface
 Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
-            Assert.True(comp2.Compilation.GetMember<IEventSymbol>("C.E").IsWindowsRuntimeEvent);
+            Assert.True(comp2.Compilation.GetEvent("C.E").IsWindowsRuntimeEvent);
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
@@ -7677,7 +7677,7 @@ GetC
 Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
-            Assert.True(comp2.Compilation.GetMember<IEventSymbol>("S.E").IsWindowsRuntimeEvent);
+            Assert.True(comp2.Compilation.GetEvent("S.E").IsWindowsRuntimeEvent);
         }
 
         [Fact]

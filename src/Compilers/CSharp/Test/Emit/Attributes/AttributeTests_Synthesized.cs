@@ -232,7 +232,7 @@ abstract class C
                 Assert.Empty(peModule.GetCustomAttributesForToken(((PEMethodSymbol)q.GetMethod).Handle));
                 Assert.Empty(peModule.GetCustomAttributesForToken(((PEMethodSymbol)q.SetMethod).Handle));
 
-                var e = c.GetMember<EventSymbol>("E");
+                var e = c.GetEvent("E");
                 Assert.Equal("CompilerGeneratedAttribute", peModule.GetCustomAttributesForToken(((PEMethodSymbol)e.AddMethod).Handle).Single().AttributeClass.Name);
                 Assert.Equal("CompilerGeneratedAttribute", peModule.GetCustomAttributesForToken(((PEMethodSymbol)e.RemoveMethod).Handle).Single().AttributeClass.Name);
             });

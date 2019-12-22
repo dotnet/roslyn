@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IncludeTests : CSharpTestBase
     {
         [Theory]
-        [InlineData("Field", "F:Acme.Widget.Field")]
-        [InlineData(WellKnownMemberNames.StaticConstructorName, "M:Acme.Widget.#cctor")]
-        [InlineData("Event", "E:Acme.Widget.Event")]
-        [InlineData("Property", "P:Acme.Widget.Property")]
-        [InlineData("Method", "M:Acme.Widget.Method")]
-        [InlineData("NamedType", "T:Acme.Widget.NamedType")]
-        public void TestDocumentationCaching(string symbolName, string documentationId)
+        [InlineData("Field", SymbolKind.Field, "F:Acme.Widget.Field")]
+        [InlineData(WellKnownMemberNames.StaticConstructorName, SymbolKind.Method, "M:Acme.Widget.#cctor")]
+        [InlineData("Event", SymbolKind.Event, "E:Acme.Widget.Event")]
+        [InlineData("Property", SymbolKind.Property, "P:Acme.Widget.Property")]
+        [InlineData("Method", SymbolKind.Method, "M:Acme.Widget.Method")]
+        [InlineData("NamedType", SymbolKind.NamedType, "T:Acme.Widget.NamedType")]
+        public void TestDocumentationCaching(string symbolName, SymbolKind symbolKind, string documentationId)
         {
             using var _ = new EnsureEnglishUICulture();
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
             var widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
 
-            var symbol = widgetClass.GetMembers(symbolName).Single();
+            var symbol = widgetClass.GetMembers(symbolName).Single(m => m.Kind == symbolKind);
             Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
             Assert.Equal(
 $@"<member name=""{documentationId}"">

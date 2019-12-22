@@ -2057,16 +2057,16 @@ public class Test
             {
                 var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
 
-                var event1 = @class.GetMember<EventSymbol>("E1");
-                var event2 = @class.GetMember<EventSymbol>("E2");
-                var event3 = @class.GetMember<EventSymbol>("E3");
-                var event4 = @class.GetMember<EventSymbol>("E4");
-                var event5 = @class.GetMember<EventSymbol>("E5");
-                var event6 = @class.GetMember<EventSymbol>("E6");
-                var event7 = @class.GetMember<EventSymbol>("E7");
-                var event8 = @class.GetMember<EventSymbol>("E8");
-                var event9 = @class.GetMember<EventSymbol>("E9");
-                var event10 = @class.GetMember<EventSymbol>("E10");
+                var event1 = @class.GetEvent("E1");
+                var event2 = @class.GetEvent("E2");
+                var event3 = @class.GetEvent("E3");
+                var event4 = @class.GetEvent("E4");
+                var event5 = @class.GetEvent("E5");
+                var event6 = @class.GetEvent("E6");
+                var event7 = @class.GetEvent("E7");
+                var event8 = @class.GetEvent("E8");
+                var event9 = @class.GetEvent("E9");
+                var event10 = @class.GetEvent("E10");
 
                 var accessorsExpected = isFromSource ? new string[0] : new[] { "CompilerGeneratedAttribute" };
 
@@ -4612,7 +4612,7 @@ public struct S
             Assert.NotNull(idxsym);
             Assert.True(idxsym.HasSpecialName);
 
-            var etsym = typesym.GetMember("E") as EventSymbol;
+            var etsym = typesym.GetEvent("E");
             Assert.NotNull(etsym);
             Assert.True(etsym.HasSpecialName);
         }

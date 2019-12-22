@@ -3058,7 +3058,7 @@ public sealed class C
                 //     public event D E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
 
-            var @event = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
+            var @event = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetEvent("E");
             Assert.True(@event.IsWindowsRuntimeEvent);
         }
 

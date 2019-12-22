@@ -101,7 +101,7 @@ class C
 }
 ";
             var comp = CreateCompilation(source);
-            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
+            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetEvent("E");
             Assert.Equal(SymbolKind.Event, symbol.Kind);
             Assert.Equal("E:C.E", symbol.GetDocumentationCommentId());
         }

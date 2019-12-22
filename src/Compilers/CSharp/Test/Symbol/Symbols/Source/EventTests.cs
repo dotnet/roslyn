@@ -74,7 +74,7 @@ class C
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            var @event = @class.GetEvent("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Public, @event.DeclaredAccessibility);
@@ -113,7 +113,7 @@ class C
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            var @event = @class.GetEvent("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Internal, @event.DeclaredAccessibility);
@@ -151,7 +151,7 @@ class C
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            var @event = @class.GetEvent("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Protected, @event.DeclaredAccessibility);
@@ -186,7 +186,7 @@ class C
             var global = comp.GlobalNamespace;
             var @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var @event = @class.GetMember<EventSymbol>("E");
+            var @event = @class.GetEvent("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Private, @event.DeclaredAccessibility);
@@ -319,7 +319,7 @@ class C
 ";
             var comp = CreateCompilation(text);
             NamedTypeSymbol type01 = comp.SourceModule.GlobalNamespace.GetTypeMembers("C").Single();
-            var fevent = type01.GetMembers("FieldLikeEvent").Single() as EventSymbol;
+            var fevent = type01.GetMembers("FieldLikeEvent").OfType<EventSymbol>().Single();
             Assert.NotNull(fevent.AddMethod);
             Assert.True(fevent.AddMethod.IsImplicitlyDeclared, "FieldLikeEvent AddAccessor");
             Assert.NotNull(fevent.AddMethod);
@@ -340,8 +340,8 @@ class A
             {
                 var peModule = (PEModuleSymbol)module;
                 var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                var e1 = type.GetMember<EventSymbol>("E1");
-                var e2 = type.GetMember<EventSymbol>("E2");
+                var e1 = type.GetEvent("E1");
+                var e2 = type.GetEvent("E2");
                 var p = type.GetMember<PropertySymbol>("P");
 
                 Assert.Equal("System.Action<dynamic>", e1.Type.ToTestDisplayString());
@@ -601,8 +601,8 @@ public class CL2 : CL1
             {
                 var peModule = (PEModuleSymbol)module;
                 var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
-                var e1 = type.GetMember<EventSymbol>("E1");
-                var e2 = type.GetMember<EventSymbol>("E2");
+                var e1 = type.GetEvent("E1");
+                var e2 = type.GetEvent("E2");
 
                 Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
@@ -633,8 +633,8 @@ public class CL2 : CL1
             {
                 var peModule = (PEModuleSymbol)module;
                 var type = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("CL2");
-                var e1 = type.GetMember<EventSymbol>("E1");
-                var e2 = type.GetMember<EventSymbol>("E2");
+                var e1 = type.GetEvent("E1");
+                var e2 = type.GetEvent("E2");
 
                 Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
                 Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
@@ -825,7 +825,7 @@ class C
                 // (4,38): warning CS0067: The event 'C.E' is never used
                 //     public static event EventHandler E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38));
-            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            var eventSymbol = compilation.GetEvent("C.E");
             Assert.False(eventSymbol.RequiresInstanceReceiver);
         }
 
@@ -841,7 +841,7 @@ class C
                 // (4,31): warning CS0067: The event 'C.E' is never used
                 //     public event EventHandler E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
-            var eventSymbol = compilation.GetMember<EventSymbol>("C.E");
+            var eventSymbol = compilation.GetEvent("C.E");
             Assert.True(eventSymbol.RequiresInstanceReceiver);
         }
 
@@ -1879,9 +1879,9 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAccess, "b.Event3 += null").WithArguments("Base.Event3.add"));
 
             var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var event1 = @class.GetMember<EventSymbol>("Event1");
-            var event2 = @class.GetMember<EventSymbol>("Event2");
-            var event3 = @class.GetMember<EventSymbol>("Event3");
+            var event1 = @class.GetEvent("Event1");
+            var event2 = @class.GetEvent("Event2");
+            var event3 = @class.GetEvent("Event3");
 
             Assert.NotNull(event1.AddMethod);
             Assert.Equal(Accessibility.Private, event1.AddMethod.DeclaredAccessibility);
@@ -2277,19 +2277,19 @@ class Derived2 : Base
             var global = comp.GlobalNamespace;
 
             var @base = global.GetMember<NamedTypeSymbol>("Base");
-            var baseEvent = @base.GetMember<EventSymbol>("E");
+            var baseEvent = @base.GetEvent("E");
             var baseEventType = baseEvent.Type;
             Assert.Equal("System.Action<System.Int32 modopt(System.Int64) []>", baseEventType.ToTestDisplayString()); // Note modopt
 
             var derived1 = global.GetMember<NamedTypeSymbol>("Derived1");
-            var event1 = derived1.GetMember<EventSymbol>("E");
+            var event1 = derived1.GetEvent("E");
             Assert.Equal(baseEventType, event1.Type);
             Assert.Equal(baseEventType, event1.AssociatedField.Type);
             Assert.Equal(baseEventType, event1.AddMethod.ParameterTypesWithAnnotations.Single().Type);
             Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
-            var event2 = derived2.GetMember<EventSymbol>("E");
+            var event2 = derived2.GetEvent("E");
             Assert.Equal(baseEventType, event2.Type);
             Assert.Null(event2.AssociatedField);
             Assert.Equal(baseEventType, event2.AddMethod.ParameterTypesWithAnnotations.Single().Type);
@@ -2357,12 +2357,12 @@ class Derived2 : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Derived1.E"));
 
             var derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
-            var event1 = derived1.GetMember<EventSymbol>("E");
+            var event1 = derived1.GetEvent("E");
             Assert.Equal("myAdd", event1.AddMethod.Name);
             Assert.Equal("myRemove", event1.RemoveMethod.Name);
 
             var derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
-            var event2 = derived2.GetMember<EventSymbol>("E");
+            var event2 = derived2.GetEvent("E");
             Assert.Equal("myAdd", event2.AddMethod.Name);
             Assert.Equal("myRemove", event2.RemoveMethod.Name);
         }
@@ -2403,12 +2403,12 @@ class Derived2 : Base
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Derived1.E"));
 
             var derived1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
-            var event1 = derived1.GetMember<EventSymbol>("E");
+            var event1 = derived1.GetEvent("E");
             Assert.Equal("add_E", event1.AddMethod.Name);
             Assert.Equal("remove_E", event1.RemoveMethod.Name);
 
             var derived2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
-            var event2 = derived2.GetMember<EventSymbol>("E");
+            var event2 = derived2.GetEvent("E");
             Assert.Equal("add_E", event2.AddMethod.Name);
             Assert.Equal("remove_E", event2.RemoveMethod.Name);
         }
@@ -2430,8 +2430,8 @@ public abstract class A
             var comp = CreateCompilation(source);
 
             var typeA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var eventE = typeA.GetMember<EventSymbol>("E");
-            var eventF = typeA.GetMember<EventSymbol>("F");
+            var eventE = typeA.GetEvent("E");
+            var eventF = typeA.GetEvent("F");
 
             Assert.Null(eventE.AssociatedField);
             Assert.NotNull(eventF.AssociatedField); // Since it has an initializer.

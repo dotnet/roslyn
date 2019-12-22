@@ -58,8 +58,8 @@ public class C
             Assert.Equal("C.F [file.cs(6)]", distinguisher.First.ToString());
             Assert.Equal("C.F [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());
 
-            var sourceEvent = sourceType.GetMember<EventSymbol>("E");
-            var referencedEvent = referencedType.GetMember<EventSymbol>("E");
+            var sourceEvent = sourceType.GetEvent("E");
+            var referencedEvent = referencedType.GetEvent("E");
             distinguisher = new SymbolDistinguisher(comp, sourceEvent, referencedEvent);
             Assert.Equal("C.E [file.cs(7)]", distinguisher.First.ToString());
             Assert.Equal("C.E [Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]", distinguisher.Second.ToString());

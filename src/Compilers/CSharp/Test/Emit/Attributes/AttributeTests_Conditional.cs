@@ -174,7 +174,7 @@ public class Test
             attributesArrayBuilder.Add(propSetMethod.GetAttributes());
             attributesArrayBuilder.Add(propSetMethod.Parameters[0].GetAttributes());
 
-            var eventE = classZ.GetMember<EventSymbol>("e");
+            var eventE = classZ.GetEvent("e");
             attributesArrayBuilder.Add(eventE.GetAttributes());
             attributesArrayBuilder.Add(eventE.AddMethod.GetAttributes());
             attributesArrayBuilder.Add(eventE.RemoveMethod.GetAttributes());

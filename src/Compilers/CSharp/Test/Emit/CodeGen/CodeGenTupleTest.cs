@@ -12904,7 +12904,7 @@ partial class C
             var m10P2 = m10Tuple.GetMember<PropertySymbol>("P2");
             Assert.Equal("System.ObsoleteAttribute", m10P2.GetAttributes().Single().ToString());
 
-            var m10I1E1 = m10Tuple.GetMember<EventSymbol>("I1.E1");
+            var m10I1E1 = m10Tuple.GetEvent("I1.E1");
 
             Assert.True(m10I1E1.IsExplicitInterfaceImplementation);
             Assert.Equal("event System.Action I1.E1", m10I1E1.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
@@ -12913,7 +12913,7 @@ partial class C
             Assert.True(m10I1E1.RemoveMethod.IsExplicitInterfaceImplementation);
             Assert.Equal("void I1.E1.remove", m10I1E1.RemoveMethod.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
-            var m10E2 = m10Tuple.GetMember<EventSymbol>("E2");
+            var m10E2 = m10Tuple.GetEvent("E2");
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
         }
 
@@ -13894,7 +13894,7 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
 
             var test = comp.GetTypeByMetadataName("Test`1");
 
-            var e1Tuple = (INamedTypeSymbol)test.GetMember<IEventSymbol>("E1").Type;
+            var e1Tuple = (INamedTypeSymbol)test.GetEvent("E1").Type;
             Assert.False(e1Tuple.IsTupleType);
             Assert.Equal("System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, T>",
                          e1Tuple.ToTestDisplayString());
@@ -15515,7 +15515,7 @@ null
             AssertTupleTypeMembersEquality(m1Tuple, m2Tuple);
             AssertTupleTypeMembersEquality(m1Tuple, m3Tuple);
 
-            var m1E1 = m1Tuple.GetMember<EventSymbol>("E1");
+            var m1E1 = m1Tuple.GetEvent("E1");
             var m1E1Add = m1Tuple.GetMember<MethodSymbol>("add_E1");
             var m1E1Remove = m1Tuple.GetMember<MethodSymbol>("remove_E1");
 
@@ -15549,7 +15549,7 @@ null
             Assert.True(m1E1BackingField.IsImplicitlyDeclared);
             Assert.True(m1E1BackingField.TupleUnderlyingField.IsImplicitlyDeclared);
 
-            var m1E2 = m1Tuple.GetMember<EventSymbol>("E2");
+            var m1E2 = m1Tuple.GetEvent("E2");
             var m1E2Add = m1Tuple.GetMember<MethodSymbol>("add_E2");
             var m1E2Remove = m1Tuple.GetMember<MethodSymbol>("remove_E2");
 

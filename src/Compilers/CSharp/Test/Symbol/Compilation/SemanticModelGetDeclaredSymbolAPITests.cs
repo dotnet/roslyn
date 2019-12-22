@@ -4652,8 +4652,8 @@ class Other
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Enclosing.Declaring.E"));
 
             var declaringType = compilation.GlobalNamespace.GetMember<ITypeSymbol>("Enclosing").GetMember<ITypeSymbol>("Declaring");
-            var fieldLikeEvent = declaringType.GetMember<IEventSymbol>("E");
-            var customEvent = declaringType.GetMember<IEventSymbol>("F");
+            var fieldLikeEvent = declaringType.GetEvent("E");
+            var customEvent = declaringType.GetEvent("F");
 
             int enclosingTypePosition = text.IndexOf("AAA", StringComparison.Ordinal);
             Assert.InRange(enclosingTypePosition, 0, text.Length);

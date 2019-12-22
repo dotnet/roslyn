@@ -225,10 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("EventCustomModifierCombinations");
 
-            Assert.True(@class.GetMember<EventSymbol>("Event11").Type.IsErrorType()); //Can't have modopt on event type
-            Assert.Equal(1, @class.GetMember<EventSymbol>("Event10").Type.CustomModifierCount());
-            Assert.True(@class.GetMember<EventSymbol>("Event01").Type.IsErrorType()); //Can't have modopt on event type
-            Assert.Equal(0, @class.GetMember<EventSymbol>("Event00").Type.CustomModifierCount());
+            Assert.True(@class.GetEvent("Event11").Type.IsErrorType()); //Can't have modopt on event type
+            Assert.Equal(1, @class.GetEvent("Event10").Type.CustomModifierCount());
+            Assert.True(@class.GetEvent("Event01").Type.IsErrorType()); //Can't have modopt on event type
+            Assert.Equal(0, @class.GetEvent("Event00").Type.CustomModifierCount());
         }
 
         [Fact]

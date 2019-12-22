@@ -56,7 +56,7 @@ interface Interface
             var baseIndexer = @base.Indexers.Single();
             Assert.Null(@base.FindImplementationForInterfaceMember(baseIndexer)); //containing type is not an interface
 
-            var baseEvent = @base.GetMember<EventSymbol>("Event");
+            var baseEvent = @base.GetEvent("Event");
             Assert.Null(@base.FindImplementationForInterfaceMember(baseEvent)); //containing type is not an interface
 
             var baseField = @base.GetMembers("Field").Single();
@@ -2211,7 +2211,7 @@ Explicit implementation
             var baseType = global.GetMember<NamedTypeSymbol>("Base");
             var derivedType = global.GetMember<NamedTypeSymbol>("Derived");
 
-            var interfaceEvent = @interface.GetMember<EventSymbol>("E");
+            var interfaceEvent = @interface.GetEvent("E");
             var interfaceAdder = interfaceEvent.AddMethod;
 
             var baseAdder = baseType.GetMembers().OfType<MethodSymbol>().

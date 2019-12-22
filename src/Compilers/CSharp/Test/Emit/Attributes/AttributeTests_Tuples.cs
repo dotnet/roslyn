@@ -372,7 +372,7 @@ class C
             {
                 // public static event Delegate1<(dynamic e1,
                 //                                ValueTuple<(dynamic e2, dynamic e3)> e4)> Event1;
-                var event1 = _derivedClass.GetMember<EventSymbol>("Event1");
+                var event1 = _derivedClass.GetEvent("Event1");
                 Assert.NotNull(event1);
 
                 ValidateTupleNameAttribute(event1.GetAttributes(),

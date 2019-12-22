@@ -6578,15 +6578,15 @@ class C : I
 
             var @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
             var interfaceEvents = new EventSymbol[numEvents];
-            interfaceEvents[0] = @interface.GetMember<EventSymbol>("E");
-            interfaceEvents[1] = @interface.GetMember<EventSymbol>("F");
-            interfaceEvents[2] = @interface.GetMember<EventSymbol>("G");
+            interfaceEvents[0] = @interface.GetEvent("E");
+            interfaceEvents[1] = @interface.GetEvent("F");
+            interfaceEvents[2] = @interface.GetEvent("G");
 
             var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var classEvents = new EventSymbol[numEvents];
             classEvents[0] = @class.GetEvent("I.E");
-            classEvents[1] = @class.GetMember<EventSymbol>("F");
-            classEvents[2] = @class.GetMember<EventSymbol>("G");
+            classEvents[1] = @class.GetEvent("F");
+            classEvents[2] = @class.GetEvent("G");
 
             for (int i = 0; i < numEvents; i++)
             {

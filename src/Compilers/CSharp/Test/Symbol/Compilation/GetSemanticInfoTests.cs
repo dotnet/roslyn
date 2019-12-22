@@ -1264,7 +1264,7 @@ class C
             var systemActionType = GetSystemActionType(comp);
             Assert.Equal(systemActionType, bindInfo.Type);
 
-            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IEventSymbol>("E");
+            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetEvent("E");
             Assert.Equal(eventSymbol, bindInfo.Symbol);
         }
 
@@ -1292,7 +1292,7 @@ class C
             var systemActionType = GetSystemActionType(comp);
             Assert.Equal(systemActionType, bindInfo.Type);
 
-            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IEventSymbol>("E");
+            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetEvent("E");
             Assert.Equal(eventSymbol, bindInfo.Symbol);
         }
 
@@ -1319,7 +1319,7 @@ class C
 
             Assert.Equal(SpecialType.System_Void, bindInfo.Type.SpecialType);
 
-            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IEventSymbol>("E");
+            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetEvent("E");
             Assert.Equal(eventSymbol.AddMethod, bindInfo.Symbol);
         }
 
@@ -1346,7 +1346,7 @@ class C
 
             Assert.Equal(SpecialType.System_Void, bindInfo.Type.SpecialType);
 
-            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetMember<IEventSymbol>("E");
+            var eventSymbol = comp.GlobalNamespace.GetMember<INamedTypeSymbol>("C").GetEvent("E");
             Assert.Equal(eventSymbol.AddMethod, bindInfo.Symbol);
         }
 

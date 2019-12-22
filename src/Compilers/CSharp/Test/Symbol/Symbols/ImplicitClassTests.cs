@@ -81,7 +81,7 @@ event System.Action e;
 
             c.VerifyDiagnostics();
 
-            var @event = c.ScriptClass.GetMember<EventSymbol>("e");
+            var @event = c.ScriptClass.GetEvent("e");
             Assert.False(@event.TypeWithAnnotations.IsDefault);
         }
 

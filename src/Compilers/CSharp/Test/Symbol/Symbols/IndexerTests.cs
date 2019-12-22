@@ -1136,7 +1136,7 @@ class C : I
                     Assert.True(@interface.IsFromCompilation(compilation));
                 }
 
-                var interfaceEvent = @interface.GetMember<EventSymbol>("E");
+                var interfaceEvent = @interface.GetEvent("E");
                 var interfaceProperty = @interface.GetMember<PropertySymbol>("P");
                 var interfaceIndexer = @interface.Indexers.Single();
 
@@ -1160,7 +1160,7 @@ class C : I
                 Assert.False(classPropertyImpl.CanBeReferencedByName);
                 Assert.False(classIndexerImpl.CanBeReferencedByName);
 
-                var classEvent = @class.GetMember<EventSymbol>("E");
+                var classEvent = @class.GetEvent("E");
                 var classProperty = @class.GetMember<PropertySymbol>("P");
                 var classIndexer = @class.Indexers.Single();
 
