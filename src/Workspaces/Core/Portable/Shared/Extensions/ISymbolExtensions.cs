@@ -378,6 +378,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         [return: NotNullIfNotNull(parameterName: "symbol")]
         public static ISymbol? GetOriginalUnreducedDefinition(this ISymbol? symbol)
         {
+            if (symbol.IsTupleField())
+            {
+                return symbol;
+            }
+
             if (symbol.IsReducedExtension())
             {
                 // note: ReducedFrom is only a method definition and includes no type arguments.
@@ -1024,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return null;
             }
 
-            ISymbol symbol;
+            ISymbol? symbol;
             if (crefAttribute is null)
             {
                 Contract.ThrowIfNull(candidate);

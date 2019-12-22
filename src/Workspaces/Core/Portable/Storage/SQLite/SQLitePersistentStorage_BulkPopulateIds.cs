@@ -72,8 +72,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private static readonly ObjectPool<Dictionary<int, string>> s_dictionaryPool =
-            new ObjectPool<Dictionary<int, string>>(() => new Dictionary<int, string>());
+        private static readonly ObjectPool<Dictionary<int, string>> s_dictionaryPool
+            = SharedPools.Default<Dictionary<int, string>>();
 
         /// <summary>
         /// Returns 'true' if the bulk population succeeds, or false if it doesn't.

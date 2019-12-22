@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         }
 
         Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<IList<TextChange>?>();
+            => SpecializedTasks.Null<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)

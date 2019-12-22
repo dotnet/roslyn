@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -34,13 +37,15 @@ namespace Microsoft.CodeAnalysis.Host
         /// cache.
         /// </summary>
         /// <returns>The instance passed in is always returned</returns>
-        T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T instance) where T : class;
+        [return: NotNullIfNotNull("instance")]
+        T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class;
 
         /// <summary>
         /// If caching is enabled for <see cref="ProjectId"/> key, <see cref="ICachedObjectOwner.CachedObject"/>
         /// will be set to instance.
         /// </summary>
         /// <returns>The instance passed in is always returned</returns>
-        T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance) where T : class;
+        [return: NotNullIfNotNull("instance")]
+        T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class;
     }
 }

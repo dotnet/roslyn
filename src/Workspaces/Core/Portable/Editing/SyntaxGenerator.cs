@@ -1612,6 +1612,8 @@ namespace Microsoft.CodeAnalysis.Editing
         internal abstract SyntaxNode InterpolatedStringText(SyntaxToken textToken);
         internal abstract SyntaxNode Interpolation(SyntaxNode syntaxNode);
         internal abstract SyntaxNode InterpolatedStringExpression(SyntaxToken startToken, IEnumerable<SyntaxNode> content, SyntaxToken endToken);
+        internal abstract SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment);
+        internal abstract SyntaxNode InterpolationFormatClause(string format);
 
         /// <summary>
         /// An expression that represents the default value of a type.

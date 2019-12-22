@@ -1236,9 +1236,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case SymbolKind.Field:
-                    if (compilation.ShouldEmitNullableAttributes(this))
+                    var field = (FieldSymbol)this;
+                    if (field is TupleElementFieldSymbol tupleElement)
                     {
-                        builder.AddValue(((FieldSymbol)this).TypeWithAnnotations);
+                        field = tupleElement.TupleUnderlyingField;
+                    }
+
+                    if (compilation.ShouldEmitNullableAttributes(field))
+                    {
+                        builder.AddValue(field.TypeWithAnnotations);
                     }
                     break;
                 case SymbolKind.Method:

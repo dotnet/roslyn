@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
-                        return model.GetTypeInfo(variableDeclExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(variableDeclExpression.Type).Type;
                     }
                 }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression).GetTypeWithFlowNullability();
+                        return model.GetTypeInfo(castExpression).Type;
                     }
                 }
 
