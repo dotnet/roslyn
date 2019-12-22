@@ -2075,7 +2075,7 @@ class E
 {
     public static void Main()
     {
-        C<int>.D.F();
+        C.D.F();
     }
 }]]>
               </text>
@@ -2138,7 +2138,7 @@ static class M
 {
 	public static void Main()
 	{
-		int k = Z<float>.X.Y;
+		int k = Preserve.X.Y;
 	}
 }]]></text>
 
@@ -4861,7 +4861,7 @@ Imports System
 
 Class Program
     Sub Main(args As String())
-        C(OfInteger).D.F()
+        C.D.F()
     End Sub
 End Class
 Public Class C(Of T)
@@ -4922,7 +4922,7 @@ End Class
 
 NotInheritable Class M
 	Public Shared Sub Main()
-        ReDim Z(Of Integer).X.Y(1)
+        ReDim Preserve.X.Y(1)
 	End Sub
 End Class]]></text>
 
