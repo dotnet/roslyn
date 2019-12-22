@@ -7,34 +7,6 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Friend Structure TemporaryLookupResults
-        Private Shared ReadOnly s_stackPool As New ObjectPool(Of Stack(Of LookupResult))(Function() New Stack(Of LookupResult))
-
-        Private _stack As Stack(Of LookupResult)
-
-        Public Sub New(unused As Boolean)
-            _stack = s_stackPool.Allocate()
-        End Sub
-
-        Public Sub Dispose()
-            s_stackPool.Free(_stack)
-            _stack = Nothing
-        End Sub
-
-        Public Function GetTempLookupResult() As LookupResult
-            If _stack.Count = 0 Then
-                Return New LookupResult()
-            End If
-
-            Return _stack.Pop()
-        End Function
-
-        Public Sub FreeTempLookupResult(result As LookupResult)
-            result.Clear()
-            _stack.Push(result)
-        End Sub
-    End Structure
-
     ' Handler the parts of binding for member lookup.
     Partial Friend Class Binder
 
