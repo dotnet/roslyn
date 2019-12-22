@@ -30,15 +30,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             else
             {
                 Assert.True(symbol.GetSymbol().IsFromCompilation((CSharpCompilation)compilation) || symbol.GetSymbol() is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
-                Assert.False(symbol.IsImplicitlyDeclared);
 
-                foreach (var node in declaringReferences.Select(d => d.GetSyntax()))
+                if (!((symbol as IFieldSymbol)?.AssociatedSymbol is IEventSymbol))
                 {
-                    // Make sure GetDeclaredSymbol gets back to the symbol for each node.
+                    Assert.False(symbol.IsImplicitlyDeclared);
 
-                    SyntaxTree tree = node.SyntaxTree;
-                    SemanticModel model = compilation.GetSemanticModel(tree);
-                    Assert.Equal(symbol.OriginalDefinition, model.GetDeclaredSymbol(node));
+                    foreach (var node in declaringReferences.Select(d => d.GetSyntax()))
+                    {
+                        // Make sure GetDeclaredSymbol gets back to the symbol for each node.
+
+                        SyntaxTree tree = node.SyntaxTree;
+                        SemanticModel model = compilation.GetSemanticModel(tree);
+                        Assert.Equal(symbol.OriginalDefinition, model.GetDeclaredSymbol(node));
+                    }
                 }
             }
 
