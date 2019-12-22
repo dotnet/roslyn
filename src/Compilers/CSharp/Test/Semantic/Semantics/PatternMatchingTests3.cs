@@ -1581,7 +1581,7 @@ using System;
 public static class C {
     static void Main() {
         var x = ((Func<int, decimal>)(0 switch { 0 => M }))(0);
-    }preview
+    }
     static void M(int x) {}
 }";
             CreateCompilation(source).VerifyDiagnostics(
