@@ -441,10 +441,25 @@ async () => await base.g();
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
                         {
+                            N(SyntaxKind.BaseExpression);
+                            {
+                                N(SyntaxKind.BaseKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "g");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -468,9 +483,27 @@ async () => await this.g();
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.InvocationExpression);
                     {
+                        N(SyntaxKind.SimpleMemberAccessExpression);
+                        {
+                            N(SyntaxKind.ThisExpression);
+                            {
+                                N(SyntaxKind.ThisKeyword);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "g");
+                            }
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -494,9 +527,17 @@ async () => await default(Task);
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.DefaultExpression);
                     {
+                        N(SyntaxKind.DefaultKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Task");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -520,9 +561,11 @@ async () => await goo;
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
+                        N(SyntaxKind.IdentifierToken, "goo");
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -546,9 +589,17 @@ async () => await checked { };
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.CheckedExpression);
                     {
+                        N(SyntaxKind.CheckedKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -572,9 +623,17 @@ async () => await unchecked { };
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.UncheckedExpression);
                     {
+                        N(SyntaxKind.UncheckedKeyword);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -599,9 +658,23 @@ async () => await (goo());
                     N(SyntaxKind.ParenthesizedExpression);
                     {
                         N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "goo");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -625,9 +698,20 @@ async () => await new Goo();
                     N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.ObjectCreationExpression);
                     {
+                        N(SyntaxKind.NewKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Goo");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -1770,7 +1854,7 @@ async () => {
                             N(SyntaxKind.VariableDeclarator);
                             {
                                 N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.BracketedArgumentList);
+                                M(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
                                     M(SyntaxKind.CloseBracketToken);
