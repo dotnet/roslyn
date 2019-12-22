@@ -1470,7 +1470,6 @@ class C1
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1509,7 +1508,6 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1550,7 +1548,6 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1621,7 +1618,6 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
-                {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
                 {CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSilentEnforcement},
                 {CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement}
@@ -1671,7 +1667,7 @@ class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestCSharpSimplifyToVarDontSimplify() As Task
 
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
 <Workspace>
@@ -2028,7 +2024,7 @@ class E
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDoSimplifyToGenericName() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -2089,7 +2085,7 @@ class E
 
         <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestDontSimplifyAllNodes_SimplifyNestedType() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -4832,7 +4828,7 @@ End Class
         <WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_DoSimplifyToGenericName() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToGenericType, True}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
@@ -4885,7 +4881,7 @@ End Class
 
         <Fact, WorkItem(838109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838109"), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestVisualBasic_TestDontSimplifyAllNodes_SimplifyNestedType() As Task
-            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {{SimplificationOptions.AllowSimplificationToBaseType, False}}
+            Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {}
 
             Dim input =
         <Workspace>
