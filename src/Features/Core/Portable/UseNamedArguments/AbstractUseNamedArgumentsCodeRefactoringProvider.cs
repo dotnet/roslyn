@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
+                if (IsImplicitIndexOrRangeIndexer(parameters, argument, semanticModel))
+                {
+                    return;
+                }
+
                 for (var i = argumentIndex; i < argumentCount; i++)
                 {
                     if (!(arguments[i] is TSimpleArgumentSyntax))
@@ -169,6 +174,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             protected abstract SeparatedSyntaxList<TBaseArgumentSyntax> GetArguments(TArgumentListSyntax argumentList);
             protected abstract SyntaxNode GetReceiver(SyntaxNode argument);
             protected abstract bool SupportsNonTrailingNamedArguments(ParseOptions options);
+            protected abstract bool IsImplicitIndexOrRangeIndexer(ImmutableArray<IParameterSymbol> parameters, TBaseArgumentSyntax argument, SemanticModel semanticModel);
         }
 
         private readonly IAnalyzer _argumentAnalyzer;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,6 +31,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
 
             protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
                 => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+
+            protected override bool IsImplicitIndexOrRangeIndexer(ImmutableArray<IParameterSymbol> parameters, TSyntax argument, SemanticModel semanticModel)
+            {
+                var argType = semanticModel.GetTypeInfo(GetArgumentExpression(argument)).Type;
+                if (argType?.ContainingNamespace is { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } } &&
+                    (argType.Name == "Range" || argType.Name == "Index"))
+                {
+                    var conversion = semanticModel.Compilation.ClassifyConversion(argType, parameters[0].Type);
+                    if (!conversion.Exists || conversion.IsExplicit)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            protected abstract ExpressionSyntax GetArgumentExpression(TSyntax argumentSyntax);
         }
 
         private class ArgumentAnalyzer :
@@ -47,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
 
             protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
                 => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
+
+            protected override ExpressionSyntax GetArgumentExpression(ArgumentSyntax argumentSyntax) => argumentSyntax.Expression;
         }
 
         private class AttributeArgumentAnalyzer :
@@ -64,6 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
 
             protected override AttributeArgumentSyntax WithName(AttributeArgumentSyntax argument, string name)
                 => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
+
+            protected override ExpressionSyntax GetArgumentExpression(AttributeArgumentSyntax argumentSyntax)
+                => argumentSyntax.Expression;
         }
 
         [ImportingConstructor]

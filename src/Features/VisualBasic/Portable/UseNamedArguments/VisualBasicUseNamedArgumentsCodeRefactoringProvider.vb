@@ -2,9 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.UseNamedArguments
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
@@ -50,6 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNamedArguments
 
             Protected Overrides Function SupportsNonTrailingNamedArguments(options As ParseOptions) As Boolean
                 Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic15_5
+            End Function
+
+            Protected Overrides Function IsImplicitIndexOrRangeIndexer(parameters As ImmutableArray(Of IParameterSymbol), argument As ArgumentSyntax, semanticModel As SemanticModel) As Boolean
+                Return False
             End Function
         End Class
 
