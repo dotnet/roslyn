@@ -4701,13 +4701,7 @@ unsafe struct S
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
                 // (19,9): error CS0176: Member 'S.StaticCustomEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticCustomEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent"),
-                // (5,32): warning CS0067: The event 'S.StaticFieldLikeEvent' is never used
-                //     static event System.Action StaticFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
-                // (4,25): warning CS0067: The event 'S.InstanceFieldLikeEvent' is never used
-                //     event System.Action InstanceFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent")
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent")
                 );
         }
 
