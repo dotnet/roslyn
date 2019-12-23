@@ -36,5 +36,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         NullableReferenceTypes,
         DefaultInterfaceImplementation,
         LambdaDiscardParameters,
+        AnonymousFunctions,
     }
 }
