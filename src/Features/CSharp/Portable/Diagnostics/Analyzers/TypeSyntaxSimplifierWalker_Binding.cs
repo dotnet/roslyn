@@ -3,6 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq.Expressions;
+using Humanizer;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -32,10 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     /// </summary>
     internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
+        private ImmutableArray<ISymbol> LookupName(SyntaxNode location, bool inDeclaration, string name)
+            => inDeclaration
+                ? _semanticModel.LookupNamespacesAndTypes(location.SpanStart, name: name)
+                : _semanticModel.LookupSymbols(location.SpanStart, name: name);
+
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             // Don't bother looking at the right side of A.B or A::B.  We will process those in
-            // VisitQualifiedName and VisitAliasQualifiedName.
+            // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
             if (!node.IsRightSideOfDotOrArrowOrColonColon())
             {
                 var inDeclaration = SyntaxFacts.IsInNamespaceOrTypeContext(node);
@@ -48,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (TryReplaceWithPredefinedType(node, identifier, inDeclaration, ref symbol))
                     return;
 
-                if (TryReplaceWithAlias(node, identifier, inDeclaration, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
                     return;
             }
 
@@ -58,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitGenericName(GenericNameSyntax node)
         {
-            // Don't bother looking at the right side of A.G<...> or A::G<...>.  We will process
-            // those in VisitQualifiedName and VisitAliasQualifiedName.
+            // Don't bother looking at the right side of A.G<> or A::G<>.  We will process those in
+            // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
             if (!node.IsRightSideOfDotOrColonColon())
             {
                 var inDeclaration = SyntaxFacts.IsInNamespaceOrTypeContext(node);
@@ -67,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 // A generic name is never a predefined type. So we don't need to check for that.
                 var identifier = node.Identifier.ValueText;
                 INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, identifier, inDeclaration, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
                     return;
 
                 // Might be a reference to `Nullable<T>` that we can replace with `T?`
@@ -90,14 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithPredefinedType(node, identifier, inDeclaration, ref symbol))
                 return;
 
-            if (TryReplaceWithAlias(node, identifier, inDeclaration, ref symbol))
+            if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
                 return;
 
             if (TryReplaceWithNullable(node, identifier, inDeclaration, ref symbol))
                 return;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-            if (TryReplaceQualifiedNameWithRightSide(node, identifier, node.Left, node.Right, inDeclaration, ref symbol))
+            if (TryReplaceExprWithRightSide(node, identifier, node.Left, node.Right, inDeclaration, ref symbol))
                 return;
 
             // we could have something like `A.B.C<D.E>`.  We want to visit both A.B to see if that
@@ -114,15 +122,123 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithPredefinedType(node, identifier, inDeclaration, ref symbol))
                 return;
 
-            if (TryReplaceWithAlias(node, identifier, inDeclaration, ref symbol))
+            if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
                 return;
 
-            if (TryReplaceQualifiedNameWithRightSide(node, identifier, node.Alias, node.Name, inDeclaration, ref symbol))
+            if (TryReplaceExprWithRightSide(node, identifier, node.Alias, node.Name, inDeclaration, ref symbol))
                 return;
 
             // We still want to simplify the right side of this name.  We might have something
             // like `A::G<X.Y>` which could be simplified to `A::G<Y>`.
             this.Visit(node.Name);
+        }
+
+        public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            // Look for one of the following:
+            //
+            //      A.B.C
+            //      X::A.B.C
+            //      A.B.C<X.Y>
+            //
+            // In these cases we want to see if we can simplify what's on the left of 'C'.
+            // In case we're in a `nameof` we can simplify the entire expr.
+            //
+            //      nameof(A.B.C)
+
+            // To be able to simplify, we have to only contain other member-accesses or
+            // alias-qualified names.
+            if (IsSimplifiableMemberAccess(node))
+            {
+                // If we have `nameof(A.B.C)` then we can potentially simplify this just to
+                // 'C'.
+                if (node.IsNameOfArgumentExpression() &&
+                    SimplifyMemberAccessInNameofExpression(node))
+                {
+                    return;
+                }
+
+                if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
+                {
+                    return;
+                }
+            }
+
+            base.VisitMemberAccessExpression(node);
+        }
+
+        private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
+        {
+            // Can be one of:
+            //
+            //  A.B         expr is identifier
+            //  A.B.C       expr is member access
+            //  A::B.C      expr is alias qualified name
+            //  A<T>.B      expr is generic name.
+
+            // We could end up simplifying to a predefined type or alias.  We can't simplify
+            // to nullable as `A?.B` is not a legal member access for `Nullable<A>.B`
+            var identifier = node.GetRightmostName().Identifier.ValueText;
+            INamespaceOrTypeSymbol symbol = null;
+            if (TryReplaceWithPredefinedType(node, identifier, inDeclaration: false, ref symbol))
+                return true;
+
+            if (TryReplaceWithAlias(node, identifier, inDeclaration: false, nameMustMatch: false, ref symbol))
+                return true;
+
+            var parts = GetPartsOfQualifiedName(node);
+            if (parts != null &&
+                TryReplaceExprWithRightSide(node, identifier,
+                    parts.Value.left, parts.Value.right,
+                    inDeclaration: false, ref symbol))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool SimplifyMemberAccessInNameofExpression(MemberAccessExpressionSyntax node)
+        {
+            // in a nameof(...) expr, we cannot simplify to predefined types, or nullable. We can
+            // simplify to an alias if it has the same name as us.
+            INamespaceOrTypeSymbol symbol = null;
+            var memberName = node.Name.Identifier.ValueText;
+            if (TryReplaceWithAlias(node, memberName,
+                    inDeclaration: false, nameMustMatch: true, ref symbol))
+            {
+                return true;
+            }
+
+            if (TryReplaceExprWithRightSide(node, memberName,
+                    node.Expression, node.Name, inDeclaration: false, ref symbol))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsSimplifiableMemberAccess(MemberAccessExpressionSyntax node)
+        {
+            var current = node;
+            while (true)
+            {
+                if (current.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                {
+                    current = (MemberAccessExpressionSyntax)current.Expression;
+                    continue;
+                }
+
+                if (current.Kind() == SyntaxKind.AliasQualifiedName ||
+                    current.Kind() == SyntaxKind.IdentifierName ||
+                    current.Kind() == SyntaxKind.GenericName)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private bool IsNameOfUsingDirective(QualifiedNameSyntax node, out UsingDirectiveSyntax usingDirective)
@@ -134,9 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return usingDirective != null;
         }
 
-        private INamespaceOrTypeSymbol GetNamespaceOrTypeSymbol(TypeSyntax typeSyntax)
+        private INamespaceOrTypeSymbol GetNamespaceOrTypeSymbol(ExpressionSyntax typeOrExprSyntax)
         {
-            var symbolInfo = _semanticModel.GetSymbolInfo(typeSyntax, _cancellationToken);
+            var symbolInfo = _semanticModel.GetSymbolInfo(typeOrExprSyntax, _cancellationToken);
 
             // Don't offer if we have ambiguity involved.
             if (symbolInfo.CandidateSymbols.Length > 0)
@@ -145,9 +261,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return symbolInfo.Symbol as INamespaceOrTypeSymbol;
         }
 
-        private bool AddAliasDiagnostic(TypeSyntax typeSyntax, string alias, bool inDeclaration)
+        private bool AddAliasDiagnostic(ExpressionSyntax typeOrExprSyntax, string alias, bool inDeclaration)
         {
-            if (typeSyntax is IdentifierNameSyntax identifier &&
+            if (typeOrExprSyntax is IdentifierNameSyntax identifier &&
                 alias == identifier.Identifier.ValueText)
             {
                 // No point simplifying an identifier to the same alias name.
@@ -157,30 +273,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // If we're replacing a qualified name with an alias that is the same as
             // the RHS, then don't mark the entire type-syntax as being simplified.
             // Only mark the LHS.
-            if (typeSyntax is QualifiedNameSyntax { Right: IdentifierNameSyntax qualifiedRight, Left: var qualifiedLeft } &&
-                alias == qualifiedRight.Identifier.ValueText)
+            var parts = GetPartsOfQualifiedName(typeOrExprSyntax);
+            if (parts != null &&
+                parts.Value.right is IdentifierNameSyntax identifier2 &&
+                alias == identifier2.Identifier.ValueText)
             {
-                return this.AddDiagnostic(qualifiedLeft.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+                return this.AddDiagnostic(parts.Value.left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
             }
 
-            if (typeSyntax is AliasQualifiedNameSyntax { Name: IdentifierNameSyntax aliasName, Alias: var aliasAlias } &&
-                alias == aliasName.Identifier.ValueText)
-            {
-                return this.AddDiagnostic(aliasAlias.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
-            }
-
-            return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+            return this.AddDiagnostic(typeOrExprSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
         }
 
         private bool TryReplaceWithAlias(
-            TypeSyntax typeSyntax, string typeName,
-            bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
+            ExpressionSyntax typeOrExprSyntax, string typeName,
+            bool inDeclaration, bool nameMustMatch, ref INamespaceOrTypeSymbol symbol)
         {
             // See if we actually have an alias to something with our name.
             if (!Peek(_aliasedSymbolNamesStack).Contains(typeName))
                 return false;
 
-            symbol ??= GetNamespaceOrTypeSymbol(typeSyntax);
+            symbol ??= GetNamespaceOrTypeSymbol(typeOrExprSyntax);
             if (symbol == null)
                 return false;
 
@@ -190,12 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 var symbolToAlias = _aliasStack[i];
                 if (symbolToAlias.TryGetValue(symbol, out var alias))
                 {
-                    var foundSymbols = LookupName(typeSyntax, inDeclaration, alias);
+                    if (nameMustMatch && alias != typeName)
+                        continue;
+
+                    var foundSymbols = LookupName(typeOrExprSyntax, inDeclaration, alias);
                     foreach (var found in foundSymbols)
                     {
                         if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
                         {
-                            return AddAliasDiagnostic(typeSyntax, alias, inDeclaration);
+                            return AddAliasDiagnostic(typeOrExprSyntax, alias, inDeclaration);
                         }
                     }
                 }
@@ -204,13 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return false;
         }
 
-        private ImmutableArray<ISymbol> LookupName(TypeSyntax typeSyntax, bool inDeclaration, string name)
-            => inDeclaration
-                ? _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: name)
-                : _semanticModel.LookupSymbols(typeSyntax.SpanStart, name: name);
-
         private bool TryReplaceWithPredefinedType(
-            TypeSyntax typeSyntax, string typeName,
+            ExpressionSyntax typeOrExpressionSyntax, string typeName,
             bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
         {
             if (inDeclaration && !_preferPredefinedTypeInDecl)
@@ -220,16 +330,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             if (s_predefinedTypeNames.Contains(typeName) &&
-                !typeSyntax.IsParentKind(SyntaxKind.UsingDirective))
+                !typeOrExpressionSyntax.IsParentKind(SyntaxKind.UsingDirective))
             {
-                symbol ??= GetNamespaceOrTypeSymbol(typeSyntax);
+                symbol ??= GetNamespaceOrTypeSymbol(typeOrExpressionSyntax);
                 if (symbol is ITypeSymbol typeSymbol)
                 {
                     var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
                     if (specialTypeKind != SyntaxKind.None)
                     {
                         return this.AddDiagnostic(
-                            typeSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, inDeclaration);
+                            typeOrExpressionSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, inDeclaration);
                     }
                 }
             }
@@ -258,9 +368,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return false;
         }
 
-        private bool TryReplaceQualifiedNameWithRightSide(
-            NameSyntax aliasedOrQualifiedName, string identifier,
-            NameSyntax left, SimpleNameSyntax right,
+        private (ExpressionSyntax left, SimpleNameSyntax right)? GetPartsOfQualifiedName(ExpressionSyntax expression)
+            => expression switch
+            {
+                QualifiedNameSyntax qualifiedName => (qualifiedName.Left, qualifiedName.Right),
+                AliasQualifiedNameSyntax aliasName => (aliasName.Alias, aliasName.Name),
+                MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression, memberAccess.Name),
+                _ => null,
+            };
+
+        private bool TryReplaceExprWithRightSide(
+            ExpressionSyntax rootExpression, string identifier,
+            ExpressionSyntax left, SimpleNameSyntax right,
             bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
@@ -270,11 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (!Peek(_namesInScopeStack).Contains(identifier))
                 return false;
 
-            symbol ??= GetNamespaceOrTypeSymbol(aliasedOrQualifiedName);
+            symbol ??= GetNamespaceOrTypeSymbol(rootExpression);
             if (symbol == null)
                 return false;
 
-            if (aliasedOrQualifiedName is QualifiedNameSyntax qualifiedName &&
+            if (rootExpression is QualifiedNameSyntax qualifiedName &&
                 IsNameOfUsingDirective(qualifiedName, out var usingDirective))
             {
                 // Check for a couple of cases where it is legal to simplify, but where users prefer
@@ -297,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // Now try to bind just 'B' in our current location.  If it binds to 'A.B' then we can
             // reduce to just that name.
-            var foundSymbols = LookupName(aliasedOrQualifiedName, inDeclaration, right.Identifier.ValueText);
+            var foundSymbols = LookupName(rootExpression, inDeclaration, right.Identifier.ValueText);
             foreach (var found in foundSymbols)
             {
                 if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))

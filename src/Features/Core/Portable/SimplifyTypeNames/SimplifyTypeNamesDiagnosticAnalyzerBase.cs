@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
 
-        public sealed override void Initialize(AnalysisContext context)
+        public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            // context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
