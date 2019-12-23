@@ -2586,5 +2586,37 @@ class C
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [Fact, WorkItem(39313, "https://github.com/dotnet/roslyn/issues/39313")]
+        public async Task NoSuggestionOnNullableType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Bar
+{
+    void Foo()
+    {
+        [|Bar?|] bar = new Bar();
+        bar = null;
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [Fact, WorkItem(39313, "https://github.com/dotnet/roslyn/issues/39313")]
+        public async Task NoSuggestionOnNullableType_ForLoop()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"#nullable enable
+class Bar
+{
+    void Foo()
+    {
+        for ([|Bar?|] bar = this; bar == null; bar = new Bar())
+        {
+            bar = null;
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
