@@ -44,7 +44,7 @@ start:
             return hashCode;
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = this;
@@ -145,7 +145,7 @@ start:
         ///     return this.Goo&lt;T1, T2, ...&gt;(a1, a2, ...);
         /// }
         /// </summary>
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
@@ -183,7 +183,7 @@ start:
         /// Given a SynthesizedSealedPropertyAccessor (an accessor with a reference to the accessor it overrides),
         /// construct a BoundBlock body.
         /// </summary>
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             F.CurrentFunction = (MethodSymbol)this.OriginalDefinition;
@@ -218,7 +218,7 @@ start:
             /// Given a SynthesizedSealedPropertyAccessor (an accessor with a reference to the accessor it overrides),
             /// construct a BoundBlock body.
             /// </summary>
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
                 F.CurrentFunction = this.OriginalDefinition;

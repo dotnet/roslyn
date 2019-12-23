@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             declaredLocals.Add(local);
 
-            var typeType = compilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false);
+            var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
-            var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor, recordUsage: false);
+            var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
             var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
             bool hasCustomTypeInfoPayload;

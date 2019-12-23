@@ -53,14 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol> _scriptClass;
 
-        // All imports (using directives and extern aliases) in syntax trees in this compilation.
-        // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
-        // and re-created.
-        private ConcurrentSet<ImportInfo> _lazyImportInfos;
+        /// <summary>
+        /// All imports (using directives and extern aliases) in syntax trees in this compilation.
+        /// NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
+        /// and re-created.
+        /// Values are the sets of dependencies for corresponding directives.
+        /// </summary>
+        private ConcurrentDictionary<ImportInfo, ImmutableArray<AssemblySymbol>> _lazyImportInfos;
 
         // Cache the CLS diagnostics for the whole compilation so they aren't computed repeatedly.
         // NOTE: Presently, we do not cache the per-tree diagnostics.
         private ImmutableArray<Diagnostic> _lazyClsComplianceDiagnostics;
+        private ImmutableArray<AssemblySymbol> _lazyClsComplianceDependencies;
 
         private Conversions _conversions;
         internal Conversions Conversions
@@ -1408,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSpecialTypeMember(specialMember);
         }
 
-        internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
+        internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
             if ((object)result == null)
@@ -1523,12 +1527,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
             {
                 Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
-                return new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
+                return new EntryPoint(null, ImmutableBindingDiagnostic<AssemblySymbol>.Empty);
             }
 
             if (_lazyEntryPoint == null)
             {
-                ImmutableArray<Diagnostic> diagnostics;
+                ImmutableBindingDiagnostic<AssemblySymbol> diagnostics;
                 var entryPoint = FindEntryPoint(cancellationToken, out diagnostics);
                 Interlocked.CompareExchange(ref _lazyEntryPoint, new EntryPoint(entryPoint, diagnostics), null);
             }
@@ -1536,9 +1540,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyEntryPoint;
         }
 
-        private MethodSymbol FindEntryPoint(CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
+        private MethodSymbol FindEntryPoint(CancellationToken cancellationToken, out ImmutableBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
 
             try
@@ -1597,13 +1601,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Validity and diagnostics are also tracked because they must be conditionally handled
                 // if there are not any "traditional" entrypoints found.
-                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, DiagnosticBag SpecificDiagnostics)>.GetInstance();
+                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, BindingDiagnosticBag SpecificDiagnostics)>.GetInstance();
 
                 // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
-                DiagnosticBag noMainFoundDiagnostics = DiagnosticBag.GetInstance();
+                var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance();
 
-                bool CheckValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics)
+                bool CheckValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
                 {
                     if (!isCandidate)
                     {
@@ -1625,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var candidate in entryPointCandidates)
                 {
-                    var perCandidateBag = DiagnosticBag.GetInstance();
+                    var perCandidateBag = BindingDiagnosticBag.GetInstance();
                     var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
 
                     if (IsTaskLike)
@@ -1681,13 +1685,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We can't add those Errors to the general diagnostics bag because it would break previously-working programs.
                     // The fact that these warnings are not added when csc is invoked with /main is possibly a bug, and is tracked at
                     // https://github.com/dotnet/roslyn/issues/18964
-                    foreach (var diagnostic in noMainFoundDiagnostics.AsEnumerable())
+                    foreach (var diagnostic in noMainFoundDiagnostics.DiagnosticBag.AsEnumerable())
                     {
                         if (diagnostic.Code == (int)ErrorCode.WRN_InvalidMainSig || diagnostic.Code == (int)ErrorCode.WRN_MainCantBeGeneric)
                         {
                             diagnostics.Add(diagnostic);
                         }
                     }
+
+                    diagnostics.AddDependencies(noMainFoundDiagnostics);
                 }
 
                 MethodSymbol entryPoint = null;
@@ -1743,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
+        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             // Common case optimization
             if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
@@ -1757,8 +1763,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Early bail so we only ever check things that are System.Threading.Tasks.Task(<T>)
-            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task, recordUsage: false), TypeCompareKind.ConsiderEverything2) ||
-                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T, recordUsage: false), TypeCompareKind.ConsiderEverything2)))
+            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
                 return false;
             }
@@ -1780,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, BindingDiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -1835,9 +1841,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal class EntryPoint
         {
             public readonly MethodSymbol MethodSymbol;
-            public readonly ImmutableArray<Diagnostic> Diagnostics;
+            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public EntryPoint(MethodSymbol methodSymbol, ImmutableArray<Diagnostic> diagnostics)
+            public EntryPoint(MethodSymbol methodSymbol, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.MethodSymbol = methodSymbol;
                 this.Diagnostics = diagnostics;
@@ -1881,8 +1887,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol cssource = source.EnsureCSharpSymbolOrNull(nameof(source));
             TypeSymbol csdest = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return Conversions.ClassifyConversionFromType(cssource, csdest, ref discardedUseSiteInfo);
         }
 
         /// <summary>
@@ -1970,11 +1976,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol symbol0 = symbol.EnsureCSharpSymbolOrNull(nameof(symbol));
             Symbol within0 = within.EnsureCSharpSymbolOrNull(nameof(within));
             TypeSymbol throughType0 = throughType.EnsureCSharpSymbolOrNull(nameof(throughType));
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return
                 within0.Kind == SymbolKind.Assembly ?
-                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref useSiteDiagnostics) :
-                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
+                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref discardedUseSiteInfo) :
+                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref discardedUseSiteInfo, throughType0);
         }
 
         [Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", true)]
@@ -2097,12 +2103,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
+            ReportUnusedImports(filterTree, new BindingDiagnosticBag(diagnostics), cancellationToken);
+        }
+
+        internal void ReportUnusedImports(SyntaxTree filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        {
             if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
-                foreach (ImportInfo info in _lazyImportInfos)
+                PooledHashSet<NamespaceSymbol> externAliasesToCheck = null;
+
+                if (diagnostics.DependenciesBag is object)
+                {
+                    externAliasesToCheck = PooledHashSet<NamespaceSymbol>.GetInstance();
+                }
+
+                foreach (var pair in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    ImportInfo info = pair.Key;
                     SyntaxTree infoTree = info.Tree;
                     if ((filterTree == null || filterTree == infoTree) && ReportUnusedImportsInTree(infoTree))
                     {
@@ -2114,7 +2133,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : ErrorCode.HDN_UnusedUsingDirective;
                             diagnostics.Add(code, infoTree.GetLocation(infoSpan));
                         }
+                        else if (diagnostics.DependenciesBag is object)
+                        {
+                            ImmutableArray<AssemblySymbol> dependencies = pair.Value;
+
+                            if (!dependencies.IsDefaultOrEmpty)
+                            {
+                                diagnostics.AddDependencies(dependencies);
+                            }
+                            else if (info.Kind == SyntaxKind.ExternAliasDirective)
+                            {
+                                // Record targets of used extern aliases
+                                var node = info.Tree.GetRoot().FindToken(info.Span.Start, findInsideTrivia: false).
+                                               Parent.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
+
+                                if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))
+                                {
+                                    externAliasesToCheck.Add(target);
+                                }
+                            }
+                        }
                     }
+                }
+
+                if (externAliasesToCheck is object)
+                {
+                    // PROTOTYPE(UsedAssemblyReferences): Perhaps we should do this check after we have built the transitive closure
+                    //                                    in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
+                    //                                    this level of accuracy is probably not worth the complexity this would add.
+                    var bindingDiagnostics = new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+
+                    foreach (var aliasedNamespace in externAliasesToCheck)
+                    {
+                        bindingDiagnostics.Clear();
+                        bindingDiagnostics.AddAssembliesUsedByNamespaceReference(aliasedNamespace);
+
+                        // See if any of the references with the alias are registered as used. We can get in a situation when none of them are.
+                        // For example, when the alias was used in a doc comment, but nothing was found within it. We would get only a warning
+                        // in this case and no assembly marked as used.
+                        if (_lazyUsedAssemblyReferences?.IsEmpty == false || diagnostics.DependenciesBag.Count != 0)
+                        {
+                            foreach (var assembly in bindingDiagnostics.DependenciesBag)
+                            {
+                                if (_lazyUsedAssemblyReferences?.Contains(assembly) == true ||
+                                    diagnostics.DependenciesBag.Contains(assembly))
+                                {
+                                    bindingDiagnostics.DependenciesBag.Clear();
+                                    break;
+                                }
+                            }
+                        }
+
+                        diagnostics.AddDependencies(bindingDiagnostics);
+                    }
+
+                    bindingDiagnostics.Free();
+                    externAliasesToCheck.Free();
                 }
             }
 
@@ -2155,7 +2229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RecordImportInternal(CSharpSyntaxNode syntax)
         {
             LazyInitializer.EnsureInitialized(ref _lazyImportInfos).
-                Add(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span));
+                TryAdd(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), default);
+        }
+
+        internal void RecordImportDependencies(UsingDirectiveSyntax syntax, ImmutableArray<AssemblySymbol> dependencies)
+        {
+            _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
         }
 
         private struct ImportInfo : IEquatable<ImportInfo>
@@ -2299,15 +2378,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var builder = DiagnosticBag.GetInstance();
 
-            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, builder, cancellationToken);
+            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, new BindingDiagnosticBag(builder), cancellationToken);
 
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
             FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
         }
 
-        private void GetDiagnosticsWithoutFiltering(CompilationStage stage, bool includeEarlierStages, DiagnosticBag builder, CancellationToken cancellationToken)
+        private void GetDiagnosticsWithoutFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(builder.DiagnosticBag is object);
+
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
                 var syntaxTrees = this.SyntaxTrees;
@@ -2321,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
                             var syntaxTree = syntaxTrees[i];
-                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            AppendLoadDirectiveDiagnostics(builder.DiagnosticBag, _syntaxAndDeclarations, syntaxTree);
                             builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
                         }));
                 }
@@ -2330,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var syntaxTree in syntaxTrees)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                        AppendLoadDirectiveDiagnostics(builder.DiagnosticBag, _syntaxAndDeclarations, syntaxTree);
 
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
@@ -2354,7 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Declare || stage > CompilationStage.Declare && includeEarlierStages)
             {
-                CheckAssemblyName(builder);
+                CheckAssemblyName(builder.DiagnosticBag);
                 builder.AddRange(Options.Errors);
 
                 if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
@@ -2384,9 +2465,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
             {
-                var methodBodyDiagnostics = DiagnosticBag.GetInstance();
+                var methodBodyDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
                 GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
-                builder.AddRangeAndFree(methodBodyDiagnostics);
+                builder.AddRange(methodBodyDiagnostics);
+                methodBodyDiagnostics.DiagnosticBag.Free();
             }
         }
 
@@ -2410,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
         // IL or emit an assembly.
-        private void GetDiagnosticsForAllMethodBodies(DiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
+        private void GetDiagnosticsForAllMethodBodies(BindingDiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
         {
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
@@ -2421,7 +2503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                        sourceLinkStream: null,
                                                                        embeddedTexts: null,
                                                                        testData: null,
-                                                                       diagnostics: diagnostics,
+                                                                       diagnostics: diagnostics.DiagnosticBag,
                                                                        cancellationToken: cancellationToken)
                                                 : null,
                 emittingPdb: false,
@@ -2454,7 +2536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = DiagnosticBag.GetInstance();
+            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
@@ -2463,11 +2546,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
                 emitMethodBodies: false,
-                diagnostics: diagnostics,
+                diagnostics: bindingDiagnostics,
                 filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
                 cancellationToken: cancellationToken);
 
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken, tree, span);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, tree, span);
 
             // Report unused directives only if computing diagnostics for the entire tree.
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
@@ -2479,7 +2562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return diagnostics.ToReadOnlyAndFree();
         }
 
-        private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             GlobalImports.Complete(cancellationToken);
 
@@ -2515,29 +2598,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-            ImmutableArray<Diagnostic> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+            ImmutableBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
 
-            return result.AsImmutable().Concat(clsDiagnostics);
+            return new ImmutableBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
         }
 
-        private ImmutableArray<Diagnostic> GetClsComplianceDiagnostics(SyntaxTree syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
         {
             if (syntaxTree != null)
             {
-                var builder = DiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance();
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree);
                 return builder.ToReadOnlyAndFree();
             }
 
-            if (_lazyClsComplianceDiagnostics.IsDefault)
+            if (_lazyClsComplianceDiagnostics.IsDefault || _lazyClsComplianceDependencies.IsDefault)
             {
-                var builder = DiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance();
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, builder.ToReadOnlyAndFree());
+                var result = builder.ToReadOnlyAndFree();
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDependencies, result.Dependencies);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, result.Diagnostics);
             }
 
+            Debug.Assert(!_lazyClsComplianceDependencies.IsDefault);
             Debug.Assert(!_lazyClsComplianceDiagnostics.IsDefault);
-            return _lazyClsComplianceDiagnostics;
+            return new ImmutableBindingDiagnostic<AssemblySymbol>(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies);
         }
 
         private static IEnumerable<Diagnostic> FilterDiagnosticsByLocation(IEnumerable<Diagnostic> diagnostics, SyntaxTree tree, TextSpan? filterSpanWithinTree)
@@ -2577,7 +2663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
                 // re-enabling/fixing the below assert is tracked by https://github.com/dotnet/roslyn/issues/21020
                 // Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
-                builder.AddRange(declarationDiagnostics);
+                builder.AddRange(declarationDiagnostics.Diagnostics);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -2775,7 +2861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emitTestCoverageData,
                     hasDeclarationErrors,
                     emitMethodBodies: moduleBeingBuilt is object,
-                    diagnostics: methodBodyDiagnosticBag,
+                    diagnostics: new BindingDiagnosticBag(methodBodyDiagnosticBag),
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
@@ -2820,7 +2906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var xmlDiagnostics = DiagnosticBag.GetInstance();
 
             string assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, new BindingDiagnosticBag(xmlDiagnostics), cancellationToken);
 
             return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
         }
@@ -3162,8 +3248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation: this,
                 shouldCheckConstraints: false,
                 includeNullability: false,
-                errorPositions: default(ImmutableArray<bool>),
-                recordUsage: false).GetPublicSymbol();
+                errorPositions: default(ImmutableArray<bool>)).GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
@@ -3360,15 +3445,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// dynamic types.
         /// </summary>
         /// <returns></returns>
-        internal bool HasDynamicEmitAttributes(bool recordUsage)
+        internal bool HasDynamicEmitAttributes(BindingDiagnosticBag diagnostics, Location location)
         {
-            return
-                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor, recordUsage) != null &&
-                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, recordUsage) != null;
+            return (object)Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor, diagnostics, location) != null &&
+                   (object)Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, diagnostics, location) != null;
         }
 
-        internal bool HasTupleNamesAttributes(bool recordUsage) =>
-            (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, recordUsage) != null;
+        internal bool HasTupleNamesAttributes(BindingDiagnosticBag diagnostics, Location location) =>
+            (object)Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, diagnostics, location) != null;
 
         /// <summary>
         /// Returns whether the compilation has the Boolean type and if it's good.
@@ -3379,7 +3463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CanEmitSpecialType(SpecialType type)
         {
             var typeSymbol = GetSpecialType(type);
-            var diagnostic = typeSymbol.GetUseSiteDiagnostic();
+            var diagnostic = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 

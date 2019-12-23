@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
+        internal bool ReportUnsafeIfNotAllowed(SyntaxNode node, BindingDiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == ((object)sizeOfTypeOpt != null), "Should have a type for (only) sizeof expressions.");
             return ReportUnsafeIfNotAllowed(node.Location, diagnostics, sizeOfTypeOpt);
         }
 
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
+        internal bool ReportUnsafeIfNotAllowed(Location location, BindingDiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);
             if (diagnosticInfo == null)

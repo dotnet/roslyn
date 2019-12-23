@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceNamespaceSymbol(
             SourceModuleSymbol module, Symbol container,
             MergedNamespaceDeclaration mergedDeclaration,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(mergedDeclaration != null);
             _module = module;
@@ -200,12 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_nameToMembersMap == null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _nameToMembersMap, MakeNameToMembersMap(diagnostics), null) == null)
                 {
                     // NOTE: the following is not cancellable.  Once we've set the
                     // members, we *must* do the following to make sure we're in a consistent state.
-                    this.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                     RegisterDeclaredCorTypes();
 
                     // We may produce a SymbolDeclaredEvent for the enclosing namespace before events for its contained members
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return dictionary;
         }
 
-        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(DiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> MakeNameToMembersMap(BindingDiagnosticBag diagnostics)
         {
             // NOTE: Even though the resulting map stores ImmutableArray<NamespaceOrTypeSymbol> as 
             // NOTE: values if the name is mapped into an array of named types, which is frequently 
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, DiagnosticBag diagnostics)
+        private static void CheckMembers(NamespaceSymbol @namespace, Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result, BindingDiagnosticBag diagnostics)
         {
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, DiagnosticBag diagnostics)
+        private NamespaceOrTypeSymbol BuildSymbol(MergedNamespaceOrTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
         {
             switch (declaration.Kind)
             {

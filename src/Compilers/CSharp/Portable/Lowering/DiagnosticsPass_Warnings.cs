@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // NOTE: We're only trying to produce a warning, so there's no point in producing an
                 // error if the well-known type we need for the check is missing.
-                NamedTypeSymbol marshalByRefType = compilation.GetWellKnownType(WellKnownType.System_MarshalByRefObject, recordUsage: false);
+                NamedTypeSymbol marshalByRefType = compilation.GetWellKnownType(WellKnownType.System_MarshalByRefObject);
 
                 TypeSymbol baseType = fieldAccess.FieldSymbol.ContainingType;
                 while ((object)baseType != null)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsInterlockedAPI(Symbol method)
         {
-            var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked, recordUsage: false);
+            var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
             if ((object)interlocked != null && TypeSymbol.Equals(interlocked, method.ContainingType, TypeCompareKind.ConsiderEverything2))
                 return true;
 

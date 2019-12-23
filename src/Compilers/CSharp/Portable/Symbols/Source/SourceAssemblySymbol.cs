@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateAttributeSemantics(DiagnosticBag diagnostics)
+        private void ValidateAttributeSemantics(BindingDiagnosticBag diagnostics)
         {
             //diagnostics that come from computing the public key.
             //If building a netmodule, strong name keys need not be validated. Dev11 didn't.
@@ -620,32 +620,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// synthesize anything in that case.  We'll only report diagnostics if the attribute TYPES are present and either they or 
         /// the attribute CONSTRUCTORS have errors.
         /// </remarks>
-        private static void ReportDiagnosticsForSynthesizedAttributes(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static void ReportDiagnosticsForSynthesizedAttributes(CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             ReportDiagnosticsForUnsafeSynthesizedAttributes(compilation, diagnostics);
 
             CSharpCompilationOptions compilationOptions = compilation.Options;
             if (!compilationOptions.OutputKind.IsNetModule())
             {
-                TypeSymbol compilationRelaxationsAttribute = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute, recordUsage: false);
+                TypeSymbol compilationRelaxationsAttribute = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute);
                 Debug.Assert((object)compilationRelaxationsAttribute != null, "GetWellKnownType unexpectedly returned null");
                 if (!(compilationRelaxationsAttribute is MissingMetadataTypeSymbol))
                 {
                     // As in Dev10 (see GlobalAttrBind::EmitCompilerGeneratedAttrs), we only synthesize this attribute if CompilationRelaxationsAttribute is found.
                     Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
-                        WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32, recordUsage: true, diagnostics, NoLocation.Singleton);
+                        WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32, diagnostics, NoLocation.Singleton);
                 }
 
-                TypeSymbol runtimeCompatibilityAttribute = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute, recordUsage: false);
+                TypeSymbol runtimeCompatibilityAttribute = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute);
                 Debug.Assert((object)runtimeCompatibilityAttribute != null, "GetWellKnownType unexpectedly returned null");
                 if (!(runtimeCompatibilityAttribute is MissingMetadataTypeSymbol))
                 {
                     // As in Dev10 (see GlobalAttrBind::EmitCompilerGeneratedAttrs), we only synthesize this attribute if RuntimeCompatibilityAttribute is found.
                     Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
-                        WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor, recordUsage: true, diagnostics, NoLocation.Singleton);
+                        WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor, diagnostics, NoLocation.Singleton);
 
                     Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
-                        WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, recordUsage: true, diagnostics, NoLocation.Singleton);
+                        WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, diagnostics, NoLocation.Singleton);
                 }
             }
         }
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// synthesize anything in that case.  We'll only report diagnostics if the attribute TYPES are present and either they or 
         /// the attribute CONSTRUCTORS have errors.
         /// </remarks>
-        private static void ReportDiagnosticsForUnsafeSynthesizedAttributes(CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static void ReportDiagnosticsForUnsafeSynthesizedAttributes(CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpCompilationOptions compilationOptions = compilation.Options;
             if (!compilationOptions.AllowUnsafe)
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            TypeSymbol unverifiableCodeAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute, recordUsage: false);
+            TypeSymbol unverifiableCodeAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute);
             Debug.Assert((object)unverifiableCodeAttribute != null, "GetWellKnownType unexpectedly returned null");
             if (unverifiableCodeAttribute is MissingMetadataTypeSymbol)
             {
@@ -679,17 +679,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // As in Dev10 (see GlobalAttrBind::EmitCompilerGeneratedAttrs), we only synthesize this attribute if
             // UnverifiableCodeAttribute is found.
             Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
-                WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor, recordUsage: true, diagnostics, NoLocation.Singleton);
+                WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor, diagnostics, NoLocation.Singleton);
 
 
-            TypeSymbol securityPermissionAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute, recordUsage: false);
+            TypeSymbol securityPermissionAttribute = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute);
             Debug.Assert((object)securityPermissionAttribute != null, "GetWellKnownType unexpectedly returned null");
             if (securityPermissionAttribute is MissingMetadataTypeSymbol)
             {
                 return;
             }
 
-            TypeSymbol securityAction = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction, recordUsage: false);
+            TypeSymbol securityAction = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction);
             Debug.Assert((object)securityAction != null, "GetWellKnownType unexpectedly returned null");
             if (securityAction is MissingMetadataTypeSymbol)
             {
@@ -699,14 +699,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // As in Dev10 (see GlobalAttrBind::EmitCompilerGeneratedAttrs), we only synthesize this attribute if
             // UnverifiableCodeAttribute, SecurityAction, and SecurityPermissionAttribute are found.
             Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
-                WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__ctor, recordUsage: true, diagnostics, NoLocation.Singleton);
+                WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__ctor, diagnostics, NoLocation.Singleton);
 
             // Not actually an attribute, but the same logic applies.
             Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(compilation,
-                WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__SkipVerification, recordUsage: true, diagnostics, NoLocation.Singleton);
+                WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__SkipVerification, diagnostics, NoLocation.Singleton);
         }
 
-        private void ValidateIVTPublicKeys(DiagnosticBag diagnostics)
+        private void ValidateIVTPublicKeys(BindingDiagnosticBag diagnostics)
         {
             EnsureAttributesAreBound();
 
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void DetectAttributeAndOptionConflicts(DiagnosticBag diagnostics)
+        private void DetectAttributeAndOptionConflicts(BindingDiagnosticBag diagnostics)
         {
             EnsureAttributesAreBound();
 
@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // We need to synthesize this attribute for .NET module,
                         // touch the constructor in order to generate proper use-site diagnostics
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(_compilation,
-                            WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor, recordUsage: true,
+                            WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor,
                             diagnostics,
                             NoLocation.Singleton);
                     }
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // We need to synthesize this attribute for .NET module,
                         // touch the constructor in order to generate proper use-site diagnostics
                         Binder.ReportUseSiteDiagnosticForSynthesizedAttribute(_compilation,
-                            WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor, recordUsage: true,
+                            WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor,
                             diagnostics,
                             NoLocation.Singleton);
                     }
@@ -897,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishAttributeChecks:
                         if (_state.NotePartComplete(CompletionPart.StartAttributeChecks))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             ValidateAttributeSemantics(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             var thisThreadCompleted = _state.NotePartComplete(CompletionPart.FinishAttributeChecks);
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ReportDiagnosticsForAddedModules()
         {
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
 
             foreach (var pair in _compilation.GetBoundReferenceManager().ReferencedModuleIndexMap)
             {
@@ -1025,12 +1025,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ReportNameCollisionDiagnosticsForAddedModules(this.GlobalNamespace, diagnostics);
-
-            _compilation.DeclarationDiagnostics.AddRange(diagnostics);
+            AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
         }
 
-        private void ReportNameCollisionDiagnosticsForAddedModules(NamespaceSymbol ns, DiagnosticBag diagnostics)
+        private void ReportNameCollisionDiagnosticsForAddedModules(NamespaceSymbol ns, BindingDiagnosticBag diagnostics)
         {
             var mergedNs = ns as MergedNamespaceSymbol;
 
@@ -1198,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return uniqueAttributes.Add(attribute);
         }
 
-        private bool ValidateAttributeUsageForNetModuleAttribute(CSharpAttributeData attribute, string netModuleName, DiagnosticBag diagnostics, ref HashSet<CSharpAttributeData> uniqueAttributes)
+        private bool ValidateAttributeUsageForNetModuleAttribute(CSharpAttributeData attribute, string netModuleName, BindingDiagnosticBag diagnostics, ref HashSet<CSharpAttributeData> uniqueAttributes)
         {
             Debug.Assert(!attribute.HasErrors);
 
@@ -1292,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WellKnownAttributeData ValidateAttributeUsageAndDecodeWellKnownAttributes(
             ImmutableArray<CSharpAttributeData> attributesFromNetModules,
             ImmutableArray<string> netModuleNames,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(attributesFromNetModules.Any());
             Debug.Assert(netModuleNames.Any());
@@ -1346,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
 
                 ImmutableArray<string> netModuleNames;
                 ImmutableArray<CSharpAttributeData> attributesFromNetModules = GetNetModuleAttributes(out netModuleNames);
@@ -1393,11 +1392,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if (forwarded.IsErrorType())
                             {
-                                DiagnosticInfo info = forwarded.GetUseSiteDiagnostic() ?? ((ErrorTypeSymbol)forwarded).ErrorInfo;
-
-                                if ((object)info != null)
+                                if (!diagnostics.ReportUseSite(forwarded, NoLocation.Singleton))
                                 {
-                                    diagnostics.Add(info, NoLocation.Singleton);
+                                    DiagnosticInfo info = ((ErrorTypeSymbol)forwarded).ErrorInfo;
+
+                                    if ((object)info != null)
+                                    {
+                                        diagnostics.Add(info, NoLocation.Singleton);
+                                    }
                                 }
                             }
                         }
@@ -1623,13 +1625,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_compilation.Options.AllowUnsafe)
             {
                 // NOTE: GlobalAttrBind::EmitCompilerGeneratedAttrs skips attribute if the well-known types aren't available.
-                if (!(_compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute, recordUsage: false) is MissingMetadataTypeSymbol) &&
-                    !(_compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute, recordUsage: false) is MissingMetadataTypeSymbol))
+                if (!(_compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute) is MissingMetadataTypeSymbol) &&
+                    !(_compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute) is MissingMetadataTypeSymbol))
                 {
-                    var securityActionType = _compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction, recordUsage: false);
+                    var securityActionType = _compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction);
                     if (!(securityActionType is MissingMetadataTypeSymbol))
                     {
-                        var fieldRequestMinimum = (FieldSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityAction__RequestMinimum, recordUsage: false);
+                        var fieldRequestMinimum = (FieldSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityAction__RequestMinimum);
 
                         // NOTE: Dev10 handles missing enum value.
                         object constantValue = (object)fieldRequestMinimum == null || fieldRequestMinimum.HasUseSiteError ? 0 : fieldRequestMinimum.ConstantValue;
@@ -1765,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Synthesize attribute: [CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
 
                 // NOTE: GlobalAttrBind::EmitCompilerGeneratedAttrs skips attribute if the well-known types aren't available.
-                if (!(_compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute, recordUsage: false) is MissingMetadataTypeSymbol))
+                if (!(_compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute) is MissingMetadataTypeSymbol))
                 {
                     var int32Type = _compilation.GetSpecialType(SpecialType.System_Int32);
                     Debug.Assert(!int32Type.HasUseSiteError,
@@ -1785,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Synthesize attribute: [RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 
                 // NOTE: GlobalAttrBind::EmitCompilerGeneratedAttrs skips attribute if the well-known types aren't available.
-                if (!(_compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute, recordUsage: false) is MissingMetadataTypeSymbol))
+                if (!(_compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute) is MissingMetadataTypeSymbol))
                 {
                     var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
                     Debug.Assert(!boolType.HasUseSiteError, "Use site errors should have been checked ahead of time (type bool).");
@@ -1896,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //Once the computation of the AssemblyIdentity is complete, check whether
         //any of the IVT access grants that were optimistically made during AssemblyIdentity computation
         //are in fact invalid now that the full identity is known.
-        private void CheckOptimisticIVTAccessGrants(DiagnosticBag bag)
+        private void CheckOptimisticIVTAccessGrants(BindingDiagnosticBag bag)
         {
             ConcurrentDictionary<AssemblySymbol, bool> haveGrantedAssemblies = _optimisticallyGrantedInternalsAccess;
 
@@ -2003,10 +2005,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DiagnosticInfo useSiteDiagnostic = forwardedType.GetUseSiteDiagnostic();
-            if (useSiteDiagnostic != null &&
-                useSiteDiagnostic.Code != (int)ErrorCode.ERR_UnexpectedUnboundGenericName &&
-                Symbol.ReportUseSiteDiagnostic(useSiteDiagnostic, arguments.Diagnostics, GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt)))
+            UseSiteInfo<AssemblySymbol> useSiteInfo = forwardedType.GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo?.Code != (int)ErrorCode.ERR_UnexpectedUnboundGenericName &&
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(useSiteInfo, useSiteInfo.DiagnosticInfo is object ? GetAssemblyAttributeLocationForDiagnostic(arguments.AttributeSyntaxOpt) : Location.None))
             {
                 return;
             }
@@ -2155,6 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
             int signature;
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.InternalsVisibleToAttribute))
@@ -2288,19 +2290,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ClassInterfaceAttribute))
             {
-                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                attribute.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TypeLibVersionAttribute))
             {
-                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ComCompatibleVersionAttribute))
             {
-                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateIntegralAttributeNonNegativeArguments(attribute, arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.GuidAttribute))
             {
-                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                attribute.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilationRelaxationsAttribute))
             {
@@ -2361,7 +2363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Checks that the integral arguments for the given well-known attribute are non-negative.
-        private static void ValidateIntegralAttributeNonNegativeArguments(CSharpAttributeData attribute, AttributeSyntax nodeOpt, DiagnosticBag diagnostics)
+        private static void ValidateIntegralAttributeNonNegativeArguments(CSharpAttributeData attribute, AttributeSyntax nodeOpt, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!attribute.HasErrors);
 

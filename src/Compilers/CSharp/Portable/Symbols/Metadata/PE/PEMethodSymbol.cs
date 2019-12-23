@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
             public ImmutableArray<string> _lazyConditionalAttributeSymbols;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
-            public DiagnosticInfo _lazyUseSiteDiagnostic;
+            public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo;
         }
 
         private UncommonFields CreateUncommonFields()
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             Debug.Assert((uint)localflags <= ushort.MaxValue);
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad || isBadParameter)
             {
-                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             var signature = new SignatureData(signatureHeader, @params, returnParam);
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeParams = EnsureTypeParametersAreLoaded(ref diagnosticInfo);
                 if (diagnosticInfo != null)
                 {
-                    InitializeUseSiteDiagnostic(diagnosticInfo);
+                    InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(diagnosticInfo));
                 }
 
                 return typeParams;
@@ -1131,34 +1131,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (!_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                DiagnosticInfo result = null;
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                EnsureTypeParametersAreLoaded(ref result);
-                return InitializeUseSiteDiagnostic(result);
+
+                var diagnosticInfo = result.DiagnosticInfo;
+                EnsureTypeParametersAreLoaded(ref diagnosticInfo);
+                return InitializeUseSiteDiagnostic(result.AdjustDiagnosticInfo(diagnosticInfo));
             }
 
-            return _uncommonFields?._lazyUseSiteDiagnostic;
+            return GetCachedUseSiteInfo();
         }
 
-        private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
+        private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()
+        {
+            if (_uncommonFields is null)
+            {
+                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
+            }
+
+            return _uncommonFields._lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
+        }
+
+        private UseSiteInfo<AssemblySymbol> InitializeUseSiteDiagnostic(UseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                return _uncommonFields?._lazyUseSiteDiagnostic;
+                return GetCachedUseSiteInfo();
             }
 
-            if (diagnostic != null)
+            if (useSiteInfo.DiagnosticInfo is object || useSiteInfo.SecondaryDependencies?.IsEmpty == false)
             {
-                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
-            return diagnostic;
+            return useSiteInfo;
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()

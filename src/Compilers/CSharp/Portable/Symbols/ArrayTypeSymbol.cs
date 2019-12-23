@@ -445,16 +445,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo result = null;
+            UseSiteInfo<AssemblySymbol> result = default;
 
             // check element type
             // check custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ElementTypeWithAnnotations))
-            {
-                return result;
-            }
+            DeriveUseSiteInfoFromType(ref result, this.ElementTypeWithAnnotations);
 
             return result;
         }

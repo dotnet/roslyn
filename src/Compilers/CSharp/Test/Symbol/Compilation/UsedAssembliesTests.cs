@@ -2960,6 +2960,264 @@ interface IA : I3 {}
         }
 
         [Fact]
+        public void NoPia_09()
+        {
+            var source0 =
+@"
+using System;
+using System.Runtime.InteropServices;
+
+[assembly: PrimaryInteropAssemblyAttribute(1,1)]
+[assembly: Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"")]
+
+[ComImport()]
+[Guid(""f9c2d51d-4f44-45f0-9eda-c9d599b58279"")]
+public interface ITest33
+{
+}
+";
+            var comp0 = CreateCompilation(source0);
+            comp0.VerifyDiagnostics();
+
+            var comp0Ref = comp0.ToMetadataReference(embedInteropTypes: true);
+            var comp0ImageRef = comp0.EmitToImageReference(embedInteropTypes: true);
+
+            var source1 =
+@"
+public class C1 : ITest33, I1
+{
+}
+
+public interface I1
+{
+}
+
+public interface I3 : ITest33, I1
+{
+}
+
+public interface I4 : I3
+{
+}
+
+public class C2
+{
+    public static void M1<T>() where T : ITest33 {}
+    public static void M2<T>() where T : I3 {}
+    public static void M3<T>() where T : C1 {}
+    public static void M4<T>() where T : I1 {}
+}
+
+public class C3<T> where T : I1
+{
+}
+
+public static class C4<T> where T : I1
+{
+    public static void M5() {}
+}
+";
+            var comp1 = AssertUsedAssemblyReferences(source1, references: new[] { comp0Ref });
+
+            var comp1Ref = comp1.ToMetadataReference();
+            var comp1ImageRef = comp1.EmitToImageReference();
+
+            var comp3 = CreateCompilation(source0);
+            var comp3Ref = comp3.ToMetadataReference(embedInteropTypes: false);
+            var comp3ImageRef = comp3.EmitToImageReference(embedInteropTypes: false);
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M4<I3>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M4<C1>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M3<C1>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M2<I4>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M2<I3>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M1<I4>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M1<I3>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C
+{
+    static void Main()
+    {
+        C2.M1<C1>();
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C : I3
+{
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+public class C : C1
+{
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+interface IA : I3 {}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+using static C4<I3>;
+
+public class C
+{
+    static void Main()
+    {
+        M5();
+    }
+}
+");
+
+            verifyNotUsed(
+@"
+using static C4<I3>;
+
+public class C
+{
+    static void Main()
+    {
+    }
+}
+");
+
+            verifyNotUsed(
+@"
+using alias = C3<I3>;
+
+public class C
+{
+    static void Main()
+    {
+    }
+}
+");
+
+            compileWithUsedAssemblyReferences(
+@"
+using alias = C3<I3>;
+
+public class C
+{
+    static void Main()
+    {
+        _ = new alias();
+    }
+}
+");
+
+            void compileWithUsedAssemblyReferences(string source2)
+            {
+                CompileWithUsedAssemblyReferences(source2, comp0ImageRef, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp0Ref, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp0Ref, comp1Ref);
+                CompileWithUsedAssemblyReferences(source2, comp0ImageRef, comp1Ref);
+
+                CompileWithUsedAssemblyReferences(source2, comp3ImageRef, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp3Ref, comp1ImageRef);
+                CompileWithUsedAssemblyReferences(source2, comp3Ref, comp1Ref);
+                CompileWithUsedAssemblyReferences(source2, comp3ImageRef, comp1Ref);
+            }
+
+            void verifyNotUsed(string source2)
+            {
+                verifyNotUsed(source2, comp0ImageRef, comp1ImageRef);
+                verifyNotUsed(source2, comp0Ref, comp1ImageRef);
+                verifyNotUsed(source2, comp0Ref, comp1Ref);
+                verifyNotUsed(source2, comp0ImageRef, comp1Ref);
+
+                verifyNotUsed(source2, comp3ImageRef, comp1ImageRef);
+                verifyNotUsed(source2, comp3Ref, comp1ImageRef);
+                verifyNotUsed(source2, comp3Ref, comp1Ref);
+                verifyNotUsed(source2, comp3ImageRef, comp1Ref);
+
+                void verifyNotUsed(string source2, MetadataReference ref0, MetadataReference ref1)
+                {
+                    var used = CreateCompilation(source2, references: new[] { ref0, ref1 }).GetUsedAssemblyReferences();
+                    Assert.DoesNotContain(ref0, used);
+                    Assert.DoesNotContain(ref1, used);
+                }
+            }
+        }
+
+        [Fact]
         public void ArraysAndPointers_01()
         {
             var source0 =
@@ -3338,6 +3596,105 @@ class C2
                 Compilation comp3 = CreateCompilation(source, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse));
                 AssertUsedAssemblyReferences(comp3, references);
             }
+        }
+
+        [Fact]
+        public void TypeReference_04()
+        {
+            var source0 =
+@"
+public class C0
+{
+    public class C1
+    {
+        public static void M1() {}
+    }
+}
+";
+            var comp0 = CreateCompilation(source0);
+            var comp0Ref = comp0.ToMetadataReference();
+
+            var source1 =
+@"
+public class C2 : C0
+{
+}
+";
+            var comp1 = CreateCompilation(source1, references: new[] { comp0Ref });
+            var comp1Ref = comp1.ToMetadataReference();
+
+            CompileWithUsedAssemblyReferences(@"
+public class C3
+{
+    public static void Main()
+    {
+        _ = new C2.C1();
+    }
+}
+", comp0Ref, comp1Ref);
+
+            var used = CompileWithUsedAssemblyReferences(@"
+public class C3 : C0
+{
+    public static void Main()
+    {
+    }
+}
+", comp0Ref, comp1Ref);
+
+            Assert.DoesNotContain(comp1Ref, used);
+
+            used = CreateCompilation(@"
+using static C2.C1;
+
+public class C3
+{
+    public static void Main()
+    {
+    }
+}
+", references: new[] { comp0Ref, comp1Ref }).GetUsedAssemblyReferences();
+
+            Assert.DoesNotContain(comp0Ref, used);
+            Assert.DoesNotContain(comp1Ref, used);
+
+            used = CreateCompilation(@"
+using alias = C2.C1;
+
+public class C3
+{
+    public static void Main()
+    {
+    }
+}
+", references: new[] { comp0Ref, comp1Ref }).GetUsedAssemblyReferences();
+
+            Assert.DoesNotContain(comp0Ref, used);
+            Assert.DoesNotContain(comp1Ref, used);
+
+            CompileWithUsedAssemblyReferences(@"
+using static C2.C1;
+
+public class C3
+{
+    public static void Main()
+    {
+        M1();
+    }
+}
+", comp0Ref, comp1Ref);
+
+            CompileWithUsedAssemblyReferences(@"
+using alias = C2.C1;
+
+public class C3
+{
+    public static void Main()
+    {
+        _ = new alias();
+    }
+}
+", comp0Ref, comp1Ref);
         }
 
         [Fact]
@@ -3984,82 +4341,6 @@ class C2
                 // using alias = global::;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 23)
                 );
-        }
-
-        [Fact]
-        public void ExternAlias_01()
-        {
-            var source1 =
-@"
-namespace N1
-{
-    public static class C1
-    {
-    }
-}
-";
-            var comp1 = CreateCompilation(source1);
-            var comp1Ref = comp1.ToMetadataReference().WithAliases(new[] { "N1C1" });
-
-            var source2 =
-@"
-namespace N1
-{
-    public static class C2
-    {
-    }
-}
-";
-            var comp2 = CreateCompilation(source2);
-            var comp2Ref = comp2.ToMetadataReference();
-
-            var source3 =
-@"
-extern alias N1C1;
-
-public class C2
-{
-}
-";
-            var references = new[] { comp1Ref, comp2Ref };
-            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None)),
-                                         comp1Ref);
-            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse)),
-                                         new MetadataReference[] { },
-                                         new[] {
-                                             // (2,1): hidden CS8020: Unused extern alias.
-                                             // extern alias N1C1;
-                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1)
-                                         },
-                                         new[] {
-                                             // (2,1): hidden CS8020: Unused extern alias.
-                                             // extern alias N1C1;
-                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1),
-                                             // (2,14): error CS0430: The extern alias 'N1C1' was not specified in a /reference option
-                                             // extern alias N1C1;
-                                             Diagnostic(ErrorCode.ERR_BadExternAlias, "N1C1").WithArguments("N1C1").WithLocation(2, 14)
-                                         });
-
-            comp2Ref = comp2.ToMetadataReference().WithAliases(new[] { "N1C1" });
-            references = new[] { comp1Ref, comp2Ref };
-
-            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None)),
-                                         references);
-            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse)),
-                                         new MetadataReference[] { },
-                                         new[] {
-                                             // (2,1): hidden CS8020: Unused extern alias.
-                                             // extern alias N1C1;
-                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1)
-                                         },
-                                         new[] {
-                                             // (2,1): hidden CS8020: Unused extern alias.
-                                             // extern alias N1C1;
-                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1),
-                                             // (2,14): error CS0430: The extern alias 'N1C1' was not specified in a /reference option
-                                             // extern alias N1C1;
-                                             Diagnostic(ErrorCode.ERR_BadExternAlias, "N1C1").WithArguments("N1C1").WithLocation(2, 14)
-                                         });
         }
 
         [Fact]
@@ -4819,6 +5100,21 @@ public class Test
         }
 
         [Fact]
+        public void WellKnownTypeReference_06()
+        {
+            var source2 =
+@"
+public static class Test
+{
+    public static void M(this string x)
+    {
+    }
+}
+";
+            CompileWithUsedAssemblyReferences(source2, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
+        }
+
+        [Fact]
         public void Deconstruction_01()
         {
             var source0 =
@@ -5051,6 +5347,132 @@ public class C2
 
             CompileWithUsedAssemblyReferences(source2, comp0RefWithAlias, comp0Ref);
             CompileWithUsedAssemblyReferences(source2, comp0Ref, comp0RefWithAlias);
+        }
+
+        [Fact]
+        public void ExternAliases_05()
+        {
+            var source1 =
+@"
+namespace N1
+{
+    public static class C1
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.ToMetadataReference().WithAliases(new[] { "N1C1" });
+
+            var source2 =
+@"
+namespace N1
+{
+    public static class C2
+    {
+    }
+}
+";
+            var comp2 = CreateCompilation(source2);
+            var comp2Ref = comp2.ToMetadataReference();
+
+            var source3 =
+@"
+extern alias N1C1;
+
+public class C2
+{
+}
+";
+            var references = new[] { comp1Ref, comp2Ref };
+            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None)),
+                                         comp1Ref);
+            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse)),
+                                         new MetadataReference[] { },
+                                         new[] {
+                                             // (2,1): hidden CS8020: Unused extern alias.
+                                             // extern alias N1C1;
+                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1)
+                                         },
+                                         new[] {
+                                             // (2,1): hidden CS8020: Unused extern alias.
+                                             // extern alias N1C1;
+                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1),
+                                             // (2,14): error CS0430: The extern alias 'N1C1' was not specified in a /reference option
+                                             // extern alias N1C1;
+                                             Diagnostic(ErrorCode.ERR_BadExternAlias, "N1C1").WithArguments("N1C1").WithLocation(2, 14)
+                                         });
+
+            comp2Ref = comp2.ToMetadataReference().WithAliases(new[] { "N1C1" });
+            references = new[] { comp1Ref, comp2Ref };
+
+            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.None)),
+                                         references);
+            AssertUsedAssemblyReferences(CreateCompilation(source3, references: references, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Parse)),
+                                         new MetadataReference[] { },
+                                         new[] {
+                                             // (2,1): hidden CS8020: Unused extern alias.
+                                             // extern alias N1C1;
+                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1)
+                                         },
+                                         new[] {
+                                             // (2,1): hidden CS8020: Unused extern alias.
+                                             // extern alias N1C1;
+                                             Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias N1C1;").WithLocation(2, 1),
+                                             // (2,14): error CS0430: The extern alias 'N1C1' was not specified in a /reference option
+                                             // extern alias N1C1;
+                                             Diagnostic(ErrorCode.ERR_BadExternAlias, "N1C1").WithArguments("N1C1").WithLocation(2, 14)
+                                         });
+
+            var source4 =
+@"
+extern alias N1C1;
+
+public class C2
+{
+    static void Main()
+    {
+        _ = nameof(N1C1);
+    }
+}
+";
+
+            CompileWithUsedAssemblyReferences(source4, references);
+        }
+
+        [Fact]
+        public void ExternAliases_06()
+        {
+            var source1 =
+@"
+namespace N1
+{
+    public static class C1
+    {
+    }
+}
+";
+            var comp1 = CreateCompilation(source1);
+            var comp1Ref = comp1.ToMetadataReference().WithAliases(new[] { "N1C1" });
+
+            var source4 =
+@"
+extern alias N1C1;
+
+public class C2
+{
+
+#pragma warning disable CS1574 //: XML comment has cref attribute 'N1C1::BadType' that could not be resolved
+    /// <summary>
+    /// See <see cref=""N1C1::BadType""/>.
+    /// </summary>
+    static void Main()
+    {
+    }
+}
+";
+
+            CompileWithUsedAssemblyReferences(source4, comp1Ref);
         }
     }
 }

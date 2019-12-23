@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BoundStatement _methodEntryInstrumentation;
         private readonly ArrayTypeSymbol _payloadType;
         private readonly LocalSymbol _methodPayload;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
         private readonly SyntheticBoundNodeFactory _methodBodyFactory;
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             BoundStatement methodBody,
             SyntheticBoundNodeFactory methodBodyFactory,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             Instrumenter previous)
         {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory methodBodyFactory,
             MethodSymbol createPayloadForMethodsSpanningSingleFile,
             MethodSymbol createPayloadForMethodsSpanningMultipleFiles,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             Instrumenter previous) : base(previous)
         {
@@ -565,9 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxForSpan;
         }
 
-        private static MethodSymbol GetCreatePayloadOverload(CSharpCompilation compilation, WellKnownMember overload, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private static MethodSymbol GetCreatePayloadOverload(CSharpCompilation compilation, WellKnownMember overload, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, overload, recordUsage: true, diagnostics, syntax: syntax);
+            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, overload, diagnostics, syntax: syntax);
         }
 
         private static SyntaxNode MethodDeclarationIfAvailable(SyntaxNode body)

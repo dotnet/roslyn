@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly NamedTypeSymbol _IEnumerableType;
 
-        private DiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
+        private BindingDiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
 
-        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
+        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, SyntaxNode node, int recursionDepth, BindingDiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _recursionDepth = recursionDepth;
         }
 
-        internal static BoundNode RewriteLambda(BoundLambda node, TypeCompilationState compilationState, TypeMap typeMap, int recursionDepth, DiagnosticBag diagnostics)
+        internal static BoundNode RewriteLambda(BoundLambda node, TypeCompilationState compilationState, TypeMap typeMap, int recursionDepth, BindingDiagnosticBag diagnostics)
         {
             try
             {
@@ -537,9 +537,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression ConvertIndex(BoundExpression expr, TypeSymbol oldType, TypeSymbol newType)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteDiagnostics).Kind;
-            Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            var kind = _bound.Compilation.Conversions.ClassifyConversionFromType(oldType, newType, ref useSiteInfo).Kind;
+            Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
+            Diagnostics.AddDependencies(useSiteInfo);
+
             switch (kind)
             {
                 case ConversionKind.Identity:

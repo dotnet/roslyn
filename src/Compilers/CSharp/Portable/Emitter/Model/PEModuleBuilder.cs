@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
@@ -636,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType);
 
-            DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
+            DiagnosticInfo info = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             if (info != null)
             {
                 Symbol.ReportUseSiteDiagnostic(info,
@@ -657,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()
         {
-            return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle, recordUsage: false);
+            return (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
         }
 
         public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
@@ -667,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 if (platformType == Cci.PlatformType.SystemType)
                 {
-                    return (object)namedType == (object)Compilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false);
+                    return (object)namedType == (object)Compilation.GetWellKnownType(WellKnownType.System_Type);
                 }
 
                 return namedType.SpecialType == (SpecialType)platformType;
@@ -798,12 +799,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (namedTypeSymbol.OriginalDefinition.Kind == SymbolKind.ErrorType)
             {
                 ErrorTypeSymbol errorType = (ErrorTypeSymbol)namedTypeSymbol.OriginalDefinition;
-                DiagnosticInfo diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                DiagnosticInfo diagInfo = errorType.GetUseSiteInfo().DiagnosticInfo ?? errorType.ErrorInfo;
 
                 if (diagInfo == null && namedTypeSymbol.Kind == SymbolKind.ErrorType)
                 {
                     errorType = (ErrorTypeSymbol)namedTypeSymbol;
-                    diagInfo = errorType.GetUseSiteDiagnostic() ?? errorType.ErrorInfo;
+                    diagInfo = errorType.GetUseSiteInfo().DiagnosticInfo ?? errorType.ErrorInfo;
                 }
 
                 // Try to decrease noise by not complaining about the same type over and over again.
@@ -912,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var location = syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location;
             if ((object)declaredBase != null)
             {
-                var diagnosticInfo = declaredBase.GetUseSiteDiagnostic();
+                var diagnosticInfo = declaredBase.GetUseSiteInfo().DiagnosticInfo;
                 if (diagnosticInfo != null && diagnosticInfo.Severity == DiagnosticSeverity.Error)
                 {
                     diagnostics.Add(diagnosticInfo, location);
@@ -1534,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
-        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute, bool recordUsage)
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute)
         {
             Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
 
@@ -1544,25 +1545,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
 
             // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, recordUsage, diagnosticsOpt: null, locationOpt: null))
+            if (Compilation.CheckIfAttributeShouldBeEmbedded(attribute, diagnosticsOpt: null, locationOpt: null))
             {
                 SetNeedsGeneratedAttributes(attribute);
             }
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(bool recordUsage)
+        internal void EnsureIsReadOnlyAttributeExists()
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, recordUsage);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute);
         }
 
-        internal void EnsureIsUnmanagedAttributeExists(bool recordUsage)
+        internal void EnsureIsUnmanagedAttributeExists()
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute, recordUsage);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute);
         }
 
-        internal void EnsureNullableAttributeExists(bool recordUsage)
+        internal void EnsureNullableAttributeExists()
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, recordUsage);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
+        }
+
+        public sealed override ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(DiagnosticBag diagnostics)
+        {
+            return GetEmbeddedTypes(new BindingDiagnosticBag(diagnostics));
+        }
+
+        internal virtual ImmutableArray<NamedTypeSymbol> GetEmbeddedTypes(BindingDiagnosticBag diagnostics)
+        {
+            return base.GetEmbeddedTypes(diagnostics.DiagnosticBag);
         }
     }
 }

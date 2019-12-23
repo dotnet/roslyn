@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var m in methods)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition, syntaxNode, _diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition, syntaxNode, _diagnostics.DiagnosticBag);
                     }
                 }
             }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var p in properties)
                     {
-                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition, syntaxNode, _diagnostics);
+                        module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition, syntaxNode, _diagnostics.DiagnosticBag);
                     }
                 }
             }
@@ -912,9 +912,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if ((object)ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
                 {
-                    MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty, recordUsage: true) as MethodSymbol;
+                    MethodSymbol arrayEmpty = _compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol;
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                     {
+                        _diagnostics.ReportUseSite(arrayEmpty, syntax);
                         // return an invocation of "Array.Empty<T>()"
                         arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
                         return new BoundCall(
@@ -1153,17 +1154,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(parameterOfOptionalParametersMethod.IsOptional);
 
-                    var unusedDiagnostics = DiagnosticBag.GetInstance();
-
                     argument = GetDefaultParameterValue(syntax,
                         parameterOfOptionalParametersMethod,
                         enableCallerInfo: ThreeState.Unknown,
                         localRewriter: null,
                         binder: binder,
-                        diagnostics: unusedDiagnostics);
+                        diagnostics: BindingDiagnosticBag.Discarded);
                     kind = ArgumentKind.DefaultValue;
-
-                    unusedDiagnostics.Free();
                 }
 
                 argumentsBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
@@ -1246,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ThreeState enableCallerInfo,
             LocalRewriter localRewriter,
             Binder binder,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(localRewriter == null ^ binder == null);
             Debug.Assert(diagnostics != null);
@@ -1461,17 +1458,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GetDefaultParameterSpecial(SyntaxNode syntax, ParameterSymbol parameter)
         {
-            BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, this._compilation);
+            BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, this._compilation, _diagnostics);
             return MakeConversionNode(defaultValue, parameter.Type, @checked: false);
         }
 
-        private static BoundExpression GetDefaultParameterSpecialForIOperation(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static BoundExpression GetDefaultParameterSpecialForIOperation(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
-            BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, compilation);
+            BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, compilation, diagnostics);
             return MakeConversionForIOperation(defaultValue, parameter.Type, syntax, compilation, diagnostics, @checked: false);
         }
 
-        private static BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation)
+        private static BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             // We have a call to a method M([Optional] object x) which omits the argument. The value we generate
             // for the argument depends on the presence or absence of other attributes. The rules are:
@@ -1494,21 +1491,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (parameter.IsIUnknownConstant)
             {
                 // new UnknownWrapper(default(object))
-                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, recordUsage: true);
+                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
+                diagnostics.ReportUseSite(methodSymbol, syntax);
                 var argument = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument) { WasCompilerGenerated = true };
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
-                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, recordUsage: true);
+                var methodSymbol = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
+                diagnostics.ReportUseSite(methodSymbol, syntax);
                 var argument = new BoundDefaultExpression(syntax, parameter.Type) { WasCompilerGenerated = true };
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, null, argument) { WasCompilerGenerated = true };
             }
             else
             {
                 // Type.Missing
-                var fieldSymbol = (FieldSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing, recordUsage: true);
+                var fieldSymbol = (FieldSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing);
+                diagnostics.ReportUseSite(fieldSymbol, syntax);
                 defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             }
 

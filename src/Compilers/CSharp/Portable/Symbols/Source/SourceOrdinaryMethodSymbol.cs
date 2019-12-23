@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol containingType,
             Binder bodyBinder,
             MethodDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             var nameToken = syntax.Identifier;
@@ -72,11 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             MethodDeclarationSyntax syntax,
             MethodKind methodKind,
-            DiagnosticBag diagnostics) :
+            BindingDiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
                  location)
         {
+            Debug.Assert(diagnostics.DiagnosticBag is object);
+
             _name = name;
             _explicitInterfaceType = explicitInterfaceType;
 
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (syntax.Arity == 0)
             {
                 _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
-                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics);
+                ReportErrorIfHasConstraints(syntax.ConstraintClauses, diagnostics.DiagnosticBag);
             }
             else
             {
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, DiagnosticBag diagnostics)
+        private void MethodChecks(MethodDeclarationSyntax syntax, Binder withTypeParamsBinder, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.MethodKind != MethodKind.UserDefinedOperator, "SourceUserDefinedOperatorSymbolBase overrides this");
 
@@ -185,12 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.Locations[0];
             if (IsAsync)
             {
-                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T, recordUsage: false);
+                var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
                 var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
                     (Bodies.blockBody != null || Bodies.arrowBody != null))
                 {
-                    var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken, recordUsage: false);
+                    var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
 
                     if (enumeratorCancellationCount == 0 &&
                         ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
@@ -297,15 +299,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Verify ExtensionAttribute is available.
-                    var attributeConstructor = withTypeParamsBinder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, recordUsage: true);
+                    var attributeConstructor = Binder.GetWellKnownTypeMember(withTypeParamsBinder.Compilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
+                    Location thisLocation = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation();
                     if ((object)attributeConstructor == null)
                     {
                         var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
                         // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
                         diagnostics.Add(
                             ErrorCode.ERR_ExtensionAttrNotFound,
-                            syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(),
+                            thisLocation,
                             memberDescriptor.DeclaringTypeMetadataName);
+                    }
+                    else
+                    {
+                        diagnostics.Add(useSiteInfo, thisLocation);
                     }
                 }
             }
@@ -474,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
+        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, Location location)
         {
             foreach (var parameter in parameters)
             {
@@ -506,12 +513,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
             if (this.RefKind != RefKind.None)
             {
-                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
+                ReportBadRefToken(GetSyntax().ReturnType, diagnostics.DiagnosticBag);
             }
             else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
             {
@@ -542,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Free();
         }
 
-        private void CompleteAsyncMethodChecks(DiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+        private void CompleteAsyncMethodChecks(BindingDiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
         {
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
@@ -562,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
             var withTypeParametersBinder = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax.ReturnType, syntax, this);
@@ -584,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeParameterConstraints.IsDefault)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 var syntax = GetSyntax();
                 var withTypeParametersBinder =
                     this.DeclaringCompilation
@@ -829,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
@@ -909,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        private ImmutableArray<TypeParameterSymbol> MakeTypeParameters(MethodDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.TypeParameterList != null);
 
@@ -978,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, DiagnosticBag diagnostics)
+        private void CheckModifiers(bool isExplicitInterfaceImplementation, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
             const DeclarationModifiers partialMethodInvalidModifierMask = (DeclarationModifiers.AccessibilityMask & ~DeclarationModifiers.Private) |
                      DeclarationModifiers.Virtual |
@@ -1128,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -1181,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parts of a partial method. Diagnostics are reported on the
         /// implementing part, matching Dev10 behavior.
         /// </summary>
-        private static void PartialMethodChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
+        private static void PartialMethodChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
@@ -1225,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 extraArgument: (object)null);
         }
 
-        private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
+        private static void PartialMethodConstraintsChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
             Debug.Assert(definition.Arity == implementation.Arity);

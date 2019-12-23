@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntax = syntax;
         }
 
-        internal override BoundWhileStatement BindWhileParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundWhileStatement BindWhileParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (WhileStatementSyntax)_syntax;
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
 
-        internal override BoundDoStatement BindDoParts(DiagnosticBag diagnostics, Binder originalBinder)
+        internal override BoundDoStatement BindDoParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
         {
             var node = (DoStatementSyntax)_syntax;
 

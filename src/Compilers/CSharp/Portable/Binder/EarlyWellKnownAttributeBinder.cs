@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, out bool generatedDiagnostics)
         {
-            var dummyDiagnosticBag = DiagnosticBag.GetInstance();
+            var dummyDiagnosticBag = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
             var boundAttribute = base.GetAttribute(node, boundAttributeType, dummyDiagnosticBag);
-            generatedDiagnostics = !dummyDiagnosticBag.IsEmptyWithoutResolution;
+            generatedDiagnostics = !dummyDiagnosticBag.DiagnosticBag.IsEmptyWithoutResolution;
             dummyDiagnosticBag.Free();
             return boundAttribute;
         }
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Hide the GetAttribute overload which takes a diagnostic bag.
         // This ensures that diagnostics from the early bound attributes are never preserved.
         [Obsolete("EarlyWellKnownAttributeBinder has a better overload - GetAttribute(AttributeSyntax, NamedTypeSymbol, out bool)", true)]
-        internal new CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
+        internal new CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(false, "Don't call this overload.");
             diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectCreation = (ObjectCreationExpressionSyntax)node;
                         if (objectCreation.Initializer == null)
                         {
-                            var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics).Type;
-                            unusedDiagnostics.Free();
+                            var type = typeBinder.BindType(objectCreation.Type, BindingDiagnosticBag.Discarded).Type;
 
                             var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);
                             switch (kind)

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             Location location,
             SyntaxNode nodeOpt,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             string name,
             BoundExpression receiver,
             SyntaxNode invokedExpression,
@@ -528,9 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ReportUnsupportedMetadata(Location location, DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, MemberResolutionResult<TMember> firstUnsupported)
+        private static void ReportUnsupportedMetadata(Location location, BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, MemberResolutionResult<TMember> firstUnsupported)
         {
-            DiagnosticInfo diagInfo = firstUnsupported.Member.GetUseSiteDiagnostic();
+            DiagnosticInfo diagInfo = firstUnsupported.Member.GetUseSiteInfo().DiagnosticInfo;
             Debug.Assert(diagInfo != null);
             Debug.Assert(diagInfo.Severity == DiagnosticSeverity.Error);
 
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(bad.Member.GetUseSiteDiagnostic().Severity == DiagnosticSeverity.Error,
+            Debug.Assert(bad.Member.GetUseSiteInfo().DiagnosticInfo.Severity == DiagnosticSeverity.Error,
                 "Why did we use MemberResolutionKind.UseSiteError if we didn't have a use site error?");
 
             // Use site errors are reported unconditionally in PerformMemberOverloadResolution/PerformObjectCreationOverloadResolution.
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool InaccessibleTypeArgument(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ImmutableArray<Symbol> symbols,
             Location location)
         {
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool HadStaticInstanceMismatch(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ImmutableArray<Symbol> symbols,
             Location location,
             Binder binder,
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool HadReturnMismatch(Location location, DiagnosticBag diagnostics, RefKind refKind, TypeSymbol delegateType)
+        private bool HadReturnMismatch(Location location, BindingDiagnosticBag diagnostics, RefKind refKind, TypeSymbol delegateType)
         {
             var mismatch = GetFirstMemberKind(MemberResolutionKind.WrongRefKind);
             if (!mismatch.IsNull)
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HadConstraintFailure(Location location, DiagnosticBag diagnostics)
+        private bool HadConstraintFailure(Location location, BindingDiagnosticBag diagnostics)
         {
             var constraintFailure = GetFirstMemberKind(MemberResolutionKind.ConstraintFailure);
             if (constraintFailure.IsNull)
@@ -658,7 +658,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var pair in constraintFailure.Result.ConstraintFailureDiagnostics)
             {
-                diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
+                if (pair.UseSiteInfo.DiagnosticInfo is object)
+                {
+                    diagnostics.Add(new CSDiagnostic(pair.UseSiteInfo.DiagnosticInfo, location));
+                }
             }
 
             return true;
@@ -666,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TypeInferenceFailed(
             Binder binder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ImmutableArray<Symbol> symbols,
             BoundExpression receiver,
             AnalyzedArguments arguments,
@@ -718,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportNameUsedForPositional(
             MemberResolutionResult<TMember> bad,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols)
         {
@@ -739,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBadNonTrailingNamedArgument(
             MemberResolutionResult<TMember> bad,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols)
         {
@@ -758,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbols), location);
         }
 
-        private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, DiagnosticBag diagnostics, AnalyzedArguments arguments)
+        private void ReportDuplicateNamedArgument(MemberResolutionResult<TMember> result, BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             Debug.Assert(result.Result.BadArgumentsOpt.Length == 1);
             IdentifierNameSyntax name = arguments.Names[result.Result.BadArgumentsOpt[0]];
@@ -771,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportNoCorrespondingNamedParameter(
             MemberResolutionResult<TMember> bad,
             string methodName,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             AnalyzedArguments arguments,
             NamedTypeSymbol delegateTypeBeingInvoked,
             ImmutableArray<Symbol> symbols)
@@ -808,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportMissingRequiredParameter(
             MemberResolutionResult<TMember> bad,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             NamedTypeSymbol delegateTypeBeingInvoked,
             ImmutableArray<Symbol> symbols,
             Location location)
@@ -852,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void ReportBadParameterCount(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             string name,
             AnalyzedArguments arguments,
             ImmutableArray<Symbol> symbols,
@@ -887,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool HadConstructedParameterFailedConstraintCheck(
             ConversionsBase conversions,
             CSharpCompilation compilation,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Location location)
         {
             // We know that there is at least one method that had a number of arguments
@@ -984,7 +987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool HadLambdaConversionError(DiagnosticBag diagnostics, AnalyzedArguments arguments)
+        private static bool HadLambdaConversionError(BindingDiagnosticBag diagnostics, AnalyzedArguments arguments)
         {
             bool hadError = false;
             foreach (var argument in arguments.Arguments)
@@ -999,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool HadBadArguments(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Binder binder,
             string name,
             AnalyzedArguments arguments,
@@ -1058,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void ReportBadArgumentError(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Binder binder,
             string name,
             AnalyzedArguments arguments,
@@ -1252,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter;
         }
 
-        private bool HadAmbiguousWorseMethods(DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)
+        private bool HadAmbiguousWorseMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location, bool isQuery, BoundExpression receiver, string name)
         {
             MemberResolutionResult<TMember> worseResult1;
             MemberResolutionResult<TMember> worseResult2;
@@ -1316,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return count;
         }
 
-        private bool HadAmbiguousBestMethods(DiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
+        private bool HadAmbiguousBestMethods(BindingDiagnosticBag diagnostics, ImmutableArray<Symbol> symbols, Location location)
         {
             MemberResolutionResult<TMember> validResult1;
             MemberResolutionResult<TMember> validResult2;

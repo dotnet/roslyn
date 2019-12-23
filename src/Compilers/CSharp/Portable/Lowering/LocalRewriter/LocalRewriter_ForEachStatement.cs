@@ -64,13 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lengthGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
                 indexerGet = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T, recordUsage: false))
+            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
                 lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
                 indexerGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item, isOptional: true)?.SymbolAsMember(spanType);
             }
-            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, recordUsage: false))
+            else if ((object)origDefinition == this._compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T))
             {
                 var spanType = (NamedTypeSymbol)nodeExpressionType;
                 lengthGet = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__get_Length, isOptional: true)?.SymbolAsMember(spanType);
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (enumeratorInfo.IsAsync)
             {
-                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, recordUsage: true, _diagnostics, syntax: forEachSyntax);
+                disposeMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_IAsyncDisposable__DisposeAsync, _diagnostics, syntax: forEachSyntax);
                 return (object)disposeMethod != null;
             }
 
@@ -250,9 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
-                _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
+                _diagnostics.Add(forEachSyntax, useSiteInfo);
             }
 
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,

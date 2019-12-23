@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncStateMachine stateMachineType,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
         {
             _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out AsyncStateMachine stateMachineType)
         {
             if (!method.IsAsync)
@@ -92,29 +92,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         protected bool VerifyPresenceOfRequiredAPIs()
         {
-            DiagnosticBag bag = DiagnosticBag.GetInstance();
+            var bag = BindingDiagnosticBag.GetInstance();
 
             VerifyPresenceOfRequiredAPIs(bag);
 
             bool hasErrors = bag.HasAnyErrors();
-            if (hasErrors)
+            if (!hasErrors)
             {
-                diagnostics.AddRange(bag);
+                bag.DiagnosticBag.Clear();
             }
 
-            bag.Free();
+            diagnostics.AddRangeAndFree(bag);
             return !hasErrors && _constructedSuccessfully;
         }
 
-        protected virtual void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+        protected virtual void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
         {
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
             EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
         }
 
-        private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)
+        private Symbol EnsureWellKnownMember(WellKnownMember member, BindingDiagnosticBag bag)
         {
-            return Binder.GetWellKnownTypeMember(F.Compilation, member, recordUsage: true, bag, body.Syntax.Location);
+            return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
         protected override bool PreserveInitialParameterValuesAndThreadId

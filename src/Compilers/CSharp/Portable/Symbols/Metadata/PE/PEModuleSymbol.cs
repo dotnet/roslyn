@@ -199,11 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool MightContainNoPiaLocalTypes()
-        {
-            return _module.ContainsNoPiaLocalTypes();
-        }
-
         public override ImmutableArray<Location> Locations
         {
             get

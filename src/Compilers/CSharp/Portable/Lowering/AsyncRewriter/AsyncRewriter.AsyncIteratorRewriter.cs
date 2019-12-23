@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine stateMachineType,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                DiagnosticBag diagnostics)
+                BindingDiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement result;
                 if (_combinedTokensField is object &&
                     parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true } &&
-                    parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken, recordUsage: false), TypeCompareKind.ConsiderEverything))
+                    parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
                 {
                     // For a parameter of type CancellationToken with [EnumeratorCancellation]
                     // if (this.parameterProxy.Equals(default))

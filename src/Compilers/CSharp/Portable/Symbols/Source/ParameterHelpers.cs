@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol owner,
             BaseParameterListSyntax syntax,
             out SyntaxToken arglistToken,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool allowRefOrOut,
             bool allowThis,
             bool addRefReadOnlyModifier)
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureIsReadOnlyAttributeExists(CSharpCompilation compilation, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, bool modifyCompilation)
+        internal static void EnsureNullableAttributeExists(CSharpCompilation compilation, Symbol container, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, bool modifyCompilation)
         {
             // These parameters might not come from a compilation (example: lambdas evaluated in EE).
             // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void CheckParameterModifiers(
-            ParameterSyntax parameter, DiagnosticBag diagnostics)
+            ParameterSyntax parameter, BindingDiagnosticBag diagnostics)
         {
             var seenThis = false;
             var seenRef = false;
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
             int firstDefault,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax.Default != null;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
             BoundExpression defaultExpression,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
 
@@ -376,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IntelliSense purposes.
 
             TypeSymbol parameterType = parameter.Type;
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
-            diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+            Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteInfo);
+            diagnostics.Add(defaultExpression.Syntax, useSiteInfo);
 
             var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
 

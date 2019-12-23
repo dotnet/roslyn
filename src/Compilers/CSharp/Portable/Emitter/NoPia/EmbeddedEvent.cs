@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                         }
                         else
                         {
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                            sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-                            diagnostics.Add(syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location, useSiteDiagnostics);
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
+                            sourceInterface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+                            diagnostics.Add(syntaxNodeOpt == null ? NoLocation.Singleton : syntaxNodeOpt.Location, useSiteInfo.Diagnostics);
 
                             // ERRID_EventNoPIANoBackingMember/ERR_MissingMethodOnSourceInterface
                             EmbeddedTypesManager.Error(diagnostics, ErrorCode.ERR_MissingMethodOnSourceInterface, syntaxNodeOpt, sourceInterface, UnderlyingEvent.MetadataName, UnderlyingEvent);

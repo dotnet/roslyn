@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // then the modifiers array is non-null and not empty.
 
         private UnboundLambda AnalyzeAnonymousFunction(
-            CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+            CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void CheckParenthesizedLambdaParameters(
-            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
+            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
             {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());

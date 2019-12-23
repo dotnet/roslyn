@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             var isPatternRewriter = new IsPatternExpressionLocalRewriter(node.Syntax, this);
-            BoundExpression result = isPatternRewriter.LowerIsPattern(node, node.Pattern, this._compilation, this._diagnostics);
+            BoundExpression result = isPatternRewriter.LowerIsPattern(node);
             isPatternRewriter.Free();
             return result;
         }
@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public BoundExpression LowerIsPattern(
-                BoundIsPatternExpression isPatternExpression, BoundPattern pattern, CSharpCompilation compilation, DiagnosticBag diagnostics)
+            public BoundExpression LowerIsPattern(BoundIsPatternExpression isPatternExpression)
             {
                 BoundDecisionDag decisionDag = isPatternExpression.DecisionDag;
                 LabelSymbol whenTrueLabel = isPatternExpression.WhenTrueLabel;

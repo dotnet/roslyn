@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         private readonly SyntheticBoundNodeFactory _F;
-        private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
 
         private AwaitCatchFrame _currentAwaitCatchFrame;
@@ -28,13 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
-            DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
             _F = factory;
             _F.CurrentFunction = containingMethod;
             Debug.Assert(TypeSymbol.Equals(factory.CurrentType, (containingType ?? containingMethod.ContainingType), TypeCompareKind.ConsiderEverything2));
-            _diagnostics = diagnostics;
             _analysis = analysis;
         }
 
@@ -108,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             BoundStatement statement,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(containingSymbol != null);
             Debug.Assert((object)containingType != null);
@@ -123,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;
