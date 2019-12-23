@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithAlias(node, identifier, inDeclaration: false, nameMustMatch: false, ref symbol))
                 return true;
 
-            var parts = GetPartsOfQualifiedName(node);
+            var parts = TryGetPartsOfQualifiedName(node);
             if (parts != null &&
                 TryReplaceExprWithRightSide(node, identifier,
                     parts.Value.left, parts.Value.right,
@@ -221,24 +221,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private bool IsSimplifiableMemberAccess(MemberAccessExpressionSyntax node)
         {
-            var current = node;
-            while (true)
+            var current = node.Expression;
+            while (current.Kind() == SyntaxKind.SimpleMemberAccessExpression)
             {
-                if (current.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-                {
-                    current = (MemberAccessExpressionSyntax)current.Expression;
-                    continue;
-                }
-
-                if (current.Kind() == SyntaxKind.AliasQualifiedName ||
-                    current.Kind() == SyntaxKind.IdentifierName ||
-                    current.Kind() == SyntaxKind.GenericName)
-                {
-                    return true;
-                }
-
-                return false;
+                current = ((MemberAccessExpressionSyntax)current).Expression;
+                continue;
             }
+
+            return current.Kind() == SyntaxKind.AliasQualifiedName ||
+                   current.Kind() == SyntaxKind.IdentifierName ||
+                   current.Kind() == SyntaxKind.GenericName;
         }
 
         private bool IsNameOfUsingDirective(QualifiedNameSyntax node, out UsingDirectiveSyntax usingDirective)
@@ -273,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // If we're replacing a qualified name with an alias that is the same as
             // the RHS, then don't mark the entire type-syntax as being simplified.
             // Only mark the LHS.
-            var parts = GetPartsOfQualifiedName(typeOrExprSyntax);
+            var parts = TryGetPartsOfQualifiedName(typeOrExprSyntax);
             if (parts != null &&
                 parts.Value.right is IdentifierNameSyntax identifier2 &&
                 alias == identifier2.Identifier.ValueText)
@@ -368,13 +360,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return false;
         }
 
-        private (ExpressionSyntax left, SimpleNameSyntax right)? GetPartsOfQualifiedName(ExpressionSyntax expression)
+        private (ExpressionSyntax left, SimpleNameSyntax right)? TryGetPartsOfQualifiedName(ExpressionSyntax expression)
             => expression switch
             {
                 QualifiedNameSyntax qualifiedName => (qualifiedName.Left, qualifiedName.Right),
                 AliasQualifiedNameSyntax aliasName => (aliasName.Alias, aliasName.Name),
                 MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression, memberAccess.Name),
-                _ => null,
+                _ => default((ExpressionSyntax, SimpleNameSyntax)?),
             };
 
         private bool TryReplaceExprWithRightSide(
