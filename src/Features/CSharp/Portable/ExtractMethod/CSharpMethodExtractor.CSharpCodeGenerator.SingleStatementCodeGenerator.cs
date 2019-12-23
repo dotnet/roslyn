@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -19,8 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
+                    OptionSet options,
                     bool localFunction)
-                    : base(insertionPoint, selectionResult, analyzerResult, localFunction)
+                    : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {
                 }
 
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return firstStatement == lastStatement || firstStatement.Span.Contains(lastStatement.Span);
                 }
 
-                protected override SyntaxToken CreateMethodName(bool localFunction) => CreateMethodNameForStatementGenerators(localFunction);
+                protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
 
                 protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
