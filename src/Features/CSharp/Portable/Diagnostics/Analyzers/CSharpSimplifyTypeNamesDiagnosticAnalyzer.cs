@@ -41,11 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var syntaxTree = semanticModel.SyntaxTree;
             var options = context.Options;
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            var preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            using var simplifier = new TypeSyntaxSimplifierWalker(
-                semanticModel, optionSet, preferPredefinedTypeInDecl, cancellationToken);
+            using var simplifier = new TypeSyntaxSimplifierWalker(semanticModel, optionSet, cancellationToken);
             simplifier.Visit(root);
 
             foreach (var diagnostic in simplifier.Diagnostics)
