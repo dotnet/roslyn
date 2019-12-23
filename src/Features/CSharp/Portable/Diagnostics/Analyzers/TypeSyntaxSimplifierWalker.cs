@@ -64,10 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             HashSet<string> aliasedSymbolNames,
             SyntaxList<UsingDirectiveSyntax> usings)
         {
-            if (_aliasStack.Count > 0)
+            if (_aliasedSymbolNamesStack.Count > 0)
             {
                 // Include the members of the top of the stack in the new indices we're making.
-                aliasMap.AddRange(Peek(_aliasStack));
                 aliasedSymbolNames.UnionWith(Peek(_aliasedSymbolNamesStack));
             }
 
@@ -355,15 +354,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             // Next, see if there's an alias in scope we can bind to.
-            var symbolToAlias = Peek(_aliasStack);
-            if (symbolToAlias.TryGetValue(symbol, out var alias))
+            for (var i = _aliasStack.Count - 1; i >= 0; i--)
             {
-                var foundSymbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
-                foreach (var found in foundSymbols)
+                var symbolToAlias = _aliasStack[i];
+                if (symbolToAlias.TryGetValue(symbol, out var alias))
                 {
-                    if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
+                    var foundSymbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
+                    foreach (var found in foundSymbols)
                     {
-                        return AddAliasDiagnostic(typeSyntax, alias);
+                        if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
+                        {
+                            return AddAliasDiagnostic(typeSyntax, alias);
+                        }
                     }
                 }
             }
