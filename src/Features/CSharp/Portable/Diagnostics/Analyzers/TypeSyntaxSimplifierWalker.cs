@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             Pop(_namesInScopeStack);
         }
- 
+
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             // Don't bother looking at the right side of A.B or A::B.  We will process those in
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     return;
 
                 // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-                if (TryReplaceQualifiedNameWithRightSide(node, node.Left, node.Right, ref symbol))
+                if (TryReplaceQualifiedNameWithRightSide(node, identifier, node.Left, node.Right, ref symbol))
                     return;
             }
 
@@ -279,13 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             if (SyntaxFacts.IsInNamespaceOrTypeContext(node))
             {
-                // We have a name like A::B.  This could never be a predefined name (since those are
-                // all in the System namespace).  But there might be an alias we can find for it.
+                var identifier = node.Name.Identifier.ValueText;
                 INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, node.Name.Identifier.ValueText, ref symbol))
+                if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                     return;
 
-                if (TryReplaceQualifiedNameWithRightSide(node, node.Alias, node.Name, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, ref symbol))
+                    return;
+
+                if (TryReplaceQualifiedNameWithRightSide(node, identifier, node.Alias, node.Name, ref symbol))
                     return;
             }
 
@@ -408,15 +410,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         }
 
         private bool TryReplaceQualifiedNameWithRightSide(
-            NameSyntax aliasedOrQualifiedName, NameSyntax left, SimpleNameSyntax right,
+            NameSyntax aliasedOrQualifiedName, string identifier,
+            NameSyntax left, SimpleNameSyntax right,
             ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
 
-            // First see if we even have a type/namespcae in scope called 'B'.  If not,
+            // First see if we even have a type/namespace in scope called 'B'.  If not,
             // there's nothing we need to do further.
-            var rightName = right.Identifier.ValueText;
-            if (!Peek(_namesInScopeStack).Contains(rightName))
+            if (!Peek(_namesInScopeStack).Contains(identifier))
                 return false;
 
             symbol ??= GetNamespaceOrTypeSymbol(aliasedOrQualifiedName);
