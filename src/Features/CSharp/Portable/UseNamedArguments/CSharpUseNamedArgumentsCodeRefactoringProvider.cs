@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
             where TSyntax : SyntaxNode
             where TSyntaxList : SyntaxNode
         {
+            protected abstract ExpressionSyntax GetArgumentExpression(TSyntax argumentSyntax);
+
             protected sealed override SyntaxNode GetReceiver(SyntaxNode argument)
                 => argument.Parent.Parent;
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
             protected override bool IsImplicitIndexOrRangeIndexer(ImmutableArray<IParameterSymbol> parameters, TSyntax argument, SemanticModel semanticModel)
             {
                 var argType = semanticModel.GetTypeInfo(GetArgumentExpression(argument)).Type;
-                if (argType?.ContainingNamespace is { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } } &&
+                if (argType?.ContainingNamespace is { Name: nameof(System), ContainingNamespace: { IsGlobalNamespace: true } } &&
                     (argType.Name == "Range" || argType.Name == "Index"))
                 {
                     var conversion = semanticModel.Compilation.ClassifyConversion(argType, parameters[0].Type);
@@ -44,10 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                         return true;
                     }
                 }
+
                 return false;
             }
-
-            protected abstract ExpressionSyntax GetArgumentExpression(TSyntax argumentSyntax);
         }
 
         private class ArgumentAnalyzer :
