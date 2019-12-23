@@ -94,14 +94,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // comments so we can simplify types there as well.
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
-                foreach (var trivia in memberDeclaration.GetLeadingTrivia())
-                {
-                    if (trivia.HasStructure)
-                        this.Visit(trivia.GetStructure());
-                }
+                VisitMemberDeclaration(memberDeclaration);
             }
 
             base.DefaultVisit(node);
+        }
+
+        private void VisitMemberDeclaration(MemberDeclarationSyntax memberDeclaration)
+        {
+            foreach (var trivia in memberDeclaration.GetLeadingTrivia())
+            {
+                if (trivia.HasStructure)
+                    this.Visit(trivia.GetStructure());
+            }
         }
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
@@ -158,6 +163,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             Pop(_namesInScopeStack);
         }
 
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            using var namesInScope = SharedPools.StringHashSet.GetPooledObject();
+
+            AddNamesInScope(namesInScope.Object, node.OpenBraceToken.Span.End);
+            _namesInScopeStack.Add(namesInScope.Object);
+
+            base.VisitClassDeclaration(node);
+
+            Pop(_namesInScopeStack);
+        }
+
+        public override void VisitStructDeclaration(StructDeclarationSyntax node)
+        {
+            using var namesInScope = SharedPools.StringHashSet.GetPooledObject();
+
+            AddNamesInScope(namesInScope.Object, node.OpenBraceToken.Span.End);
+            _namesInScopeStack.Add(namesInScope.Object);
+
+            base.VisitStructDeclaration(node);
+
+            Pop(_namesInScopeStack);
+        }
+
+        public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+        {
+            using var namesInScope = SharedPools.StringHashSet.GetPooledObject();
+
+            AddNamesInScope(namesInScope.Object, node.OpenBraceToken.Span.End);
+            _namesInScopeStack.Add(namesInScope.Object);
+
+            base.VisitInterfaceDeclaration(node);
+
+            Pop(_namesInScopeStack);
+        }
+ 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             // Don't bother looking at the right side of A.B or A::B.  We will process those in
@@ -359,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (symbol is ITypeSymbol typeSymbol &&
                     typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
-                    return true;
+                    return AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                 }
             }
 
@@ -409,7 +450,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             foreach (var found in foundSymbols)
             {
                 if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
+                {
                     return AddDiagnostic(left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                }
             }
 
             return false;
