@@ -213,8 +213,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             TypeSyntax typeSyntax, string typeName,
             bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
         {
-            if (_preferPredefinedTypeInDecl &&
-                s_predefinedTypeNames.Contains(typeName) &&
+            if (inDeclaration && !_preferPredefinedTypeInDecl)
+                return false;
+
+            if (!inDeclaration && !_preferPredefinedTypeInMemberAccess)
+                return false;
+
+            if (s_predefinedTypeNames.Contains(typeName) &&
                 !typeSyntax.IsParentKind(SyntaxKind.UsingDirective))
             {
                 symbol ??= GetNamespaceOrTypeSymbol(typeSyntax);

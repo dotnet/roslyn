@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private readonly SemanticModel _semanticModel;
         private readonly OptionSet _optionSet;
         private readonly bool _preferPredefinedTypeInDecl;
+        private readonly bool _preferPredefinedTypeInMemberAccess;
         private readonly CancellationToken _cancellationToken;
 
         private readonly List<Dictionary<INamespaceOrTypeSymbol, string>> _aliasStack;
@@ -28,17 +30,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         public readonly List<Diagnostic> Diagnostics = new List<Diagnostic>();
 
         public TypeSyntaxSimplifierWalker(
-            SemanticModel semanticModel, OptionSet optionSet,
-            bool preferPredefinedTypeInDecl, CancellationToken cancellationToken)
+            SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _optionSet = optionSet;
-            _preferPredefinedTypeInDecl = preferPredefinedTypeInDecl;
             _cancellationToken = cancellationToken;
 
             _aliasStack = SharedPools.Default<List<Dictionary<INamespaceOrTypeSymbol, string>>>().Allocate();
             _aliasedSymbolNamesStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _namesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
+
+            _preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
+            _preferPredefinedTypeInMemberAccess = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, semanticModel.Language).Value;
+
         }
 
         public void Dispose()
