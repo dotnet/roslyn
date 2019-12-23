@@ -9754,5 +9754,421 @@ switch (e)
             }
             EOF();
         }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void OneElementPositional_01()
+        {
+            UsingStatement(@"_ = e is (3);",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void OneElementPositional_02()
+        {
+            UsingStatement(@"_ = e is (A);",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void OneElementPositional_03()
+        {
+            UsingStatement(@"_ = e is (int);",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.TypePattern);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void OneElementPositional_04()
+        {
+            UsingStatement(@"_ = e is (Item1: int);",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.NameColon);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Item1");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.TypePattern);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void OneElementPositional_05()
+        {
+            UsingStatement(@"_ = e is (A) x;",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.CastExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void OneElementPositional_06()
+        {
+            UsingStatement(@"_ = e is ((A, A)) x;",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Subpattern);
+                                {
+                                    N(SyntaxKind.RecursivePattern);
+                                    {
+                                        N(SyntaxKind.PositionalPatternClause);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Subpattern);
+                                            {
+                                                N(SyntaxKind.ConstantPattern);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "A");
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CommaToken);
+                                            N(SyntaxKind.Subpattern);
+                                            {
+                                                N(SyntaxKind.ConstantPattern);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "A");
+                                                    }
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void ZeroElementPositional_01()
+        {
+            UsingStatement(@"_ = e is ();",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void ZeroElementPositional_02()
+        {
+            UsingStatement(@"_ = e is () x;",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(36515, "https://github.com/dotnet/roslyn/issues/36515")]
+        public void ZeroElementPositional_03()
+        {
+            UsingStatement(@"_ = e is () {};",
+                TestOptions.RegularWithPatternCombinators
+                );
+            N(SyntaxKind.ExpressionStatement);
+            {
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "_");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IsPatternExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "e");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.RecursivePattern);
+                        {
+                            N(SyntaxKind.PositionalPatternClause);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.PropertyPatternClause);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
     }
 }
