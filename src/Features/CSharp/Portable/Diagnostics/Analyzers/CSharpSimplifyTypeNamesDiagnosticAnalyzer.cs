@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            var simplifier = new TypeSyntaxSimplifierWalker(
+            using var simplifier = new TypeSyntaxSimplifierWalker(
                 semanticModel, optionSet, preferPredefinedTypeInDecl, cancellationToken);
             simplifier.Visit(root);
 

@@ -19,18 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     /// only allows types/namespaces only (i.e. declarations, casts, etc.).  It does
     /// not check general expression contexts.
     /// </summary>
-    internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
+    internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
-        private static readonly ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>> s_aliasMapPool
-            = new ObjectPool<Dictionary<INamespaceOrTypeSymbol, string>>(() => new Dictionary<INamespaceOrTypeSymbol, string>());
-
         private readonly SemanticModel _semanticModel;
         private readonly OptionSet _optionSet;
         private readonly bool _preferPredefinedTypeInDecl;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly List<Dictionary<INamespaceOrTypeSymbol, string>> _aliasStack
-            = new List<Dictionary<INamespaceOrTypeSymbol, string>>();
+        private readonly List<Dictionary<INamespaceOrTypeSymbol, string>> _aliasStack;
+        private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
+        private readonly List<HashSet<string>> _namesInScope;
 
         public readonly List<Diagnostic> Diagnostics = new List<Diagnostic>();
 
@@ -42,10 +40,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             _optionSet = optionSet;
             _preferPredefinedTypeInDecl = preferPredefinedTypeInDecl;
             _cancellationToken = cancellationToken;
+
+            _aliasStack = SharedPools.Default<List<Dictionary<INamespaceOrTypeSymbol, string>>>().Allocate();
+            _aliasedSymbolNamesStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
+            _namesInScope = SharedPools.Default<List<HashSet<string>>>().Allocate();
         }
+
+        public void Dispose()
+        {
+            SharedPools.Default<List<Dictionary<INamespaceOrTypeSymbol, string>>>().ClearAndFree(_aliasStack);
+            SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_aliasedSymbolNamesStack);
+            SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_namesInScope);
+        }
+
+        private static void Pop<T>(List<T> stack)
+            => stack.RemoveAt(stack.Count - 1);
 
         private void AddAliases(
             Dictionary<INamespaceOrTypeSymbol, string> aliasMap,
+            HashSet<string> aliasedSymbolNames,
             SyntaxList<UsingDirectiveSyntax> usings)
         {
             foreach (var @using in usings)
@@ -57,7 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                         continue;
 
                     if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
+                    {
                         aliasMap[symbol] = @using.Alias.Name.Identifier.ValueText;
+                        aliasedSymbolNames.Add(symbol.Name);
+                    }
                 }
             }
         }
@@ -65,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         public override void DefaultVisit(SyntaxNode node)
         {
             // For any member-decl (which includes named-types), descend into any leading doc
-            // comments so we can fixup types there as well.
+            // comments so we can simplify types there as well.
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
                 foreach (var trivia in memberDeclaration.GetLeadingTrivia())
@@ -80,22 +96,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
-            using var aliases = s_aliasMapPool.GetPooledObject();
-            AddAliases(aliases.Object, node.Usings);
+            using var aliases = SharedPools.Default<Dictionary<INamespaceOrTypeSymbol, string>>().GetPooledObject();
+            using var aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject();
+
+            AddAliases(aliases.Object, aliasedSymbolNames.Object, node.Usings);
 
             _aliasStack.Add(aliases.Object);
+            _aliasedSymbolNamesStack.Add(aliasedSymbolNames.Object);
+
             base.VisitCompilationUnit(node);
-            _aliasStack.RemoveAt(_aliasStack.Count - 1);
+
+            Pop(_aliasStack);
+            Pop(_aliasedSymbolNamesStack);
         }
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
-            using var aliases = s_aliasMapPool.GetPooledObject();
-            AddAliases(aliases.Object, node.Usings);
+            using var aliases = SharedPools.Default<Dictionary<INamespaceOrTypeSymbol, string>>().GetPooledObject();
+            using var aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject();
+            AddAliases(aliases.Object, aliasedSymbolNames.Object, node.Usings);
 
             _aliasStack.Add(aliases.Object);
+            _aliasedSymbolNamesStack.Add(aliasedSymbolNames.Object);
+
             base.VisitNamespaceDeclaration(node);
-            _aliasStack.RemoveAt(_aliasStack.Count - 1);
+
+            Pop(_aliasStack);
+            Pop(_aliasedSymbolNamesStack);
         }
 
         public override void VisitGenericName(GenericNameSyntax node)
