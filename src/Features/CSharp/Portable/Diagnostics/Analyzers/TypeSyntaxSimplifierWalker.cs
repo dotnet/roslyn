@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 {
@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             HashSet<string> aliasedSymbolNames,
             SyntaxList<UsingDirectiveSyntax> usings)
         {
+            if (_aliasStack.Count > 0)
+            {
+                // Include the members of the top of the stack in the new indices we're making.
+                aliasMap.AddRange(Peek(_aliasStack));
+                aliasedSymbolNames.UnionWith(Peek(_aliasedSymbolNamesStack));
+            }
+
             foreach (var @using in usings)
             {
                 if (@using.Alias != null)
@@ -180,21 +187,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             // Don't bother looking at the right side of A.G<...> or A::G<...>.  We will process
             // those in VisitQualifiedName and VisitAliasQualifiedName.
-            if (node.IsRightSideOfDotOrColonColon())
-                return;
+            if (!node.IsRightSideOfDotOrColonColon())
+            {
+                if (!SyntaxFacts.IsInNamespaceOrTypeContext(node))
+                    return;
 
-            if (!SyntaxFacts.IsInNamespaceOrTypeContext(node))
-                return;
+                // A generic name is never a predefined type. So we don't need to check for that.
+                var identifier = node.Identifier.ValueText;
+                INamespaceOrTypeSymbol symbol = null;
+                if (TryReplaceWithAlias(node, identifier, ref symbol))
+                    return;
 
-            // A generic name is never a predefined type. So we don't need to check for that.
-            var identifier = node.Identifier.ValueText;
-            INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithAlias(node, identifier, ref symbol))
-                return;
-
-            // Might be a reference to `Nullable<T>` that we can replace with `T?`
-            if (TryReplaceWithNullable(node, identifier, ref symbol))
-                return;
+                // Might be a reference to `Nullable<T>` that we can replace with `T?`
+                if (TryReplaceWithNullable(node, identifier, ref symbol))
+                    return;
+            }
 
             // Try to simplify the type arguments if we can't simplify anything else.
             this.Visit(node.TypeArgumentList);
@@ -266,25 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return symbolInfo.Symbol as INamespaceOrTypeSymbol;
         }
 
-        /// <summary>
-        /// Returns <see langword="true"/> if this is a type-syntax that can be
-        /// simplified. <see langword="false"/> otherwise.
-        /// </summary>
-        //private bool TryReplaceWithPredefinedTypeOrAliasOrNullable(TypeSyntax typeSyntax)
-        //{
-        //    var symbol = GetNamespaceOrTypeSymbol(typeSyntax);
-        //    if (symbol == null)
-        //        return false;
-
-        //    if (TryReplaceWithPredefinedTypeOrNullable(typeSyntax, symbol))
-        //        return true;
-
-        //    if (TryReplaceWithAlias(typeSyntax, symbol))
-        //        return true;
-
-        //    return false;
-        //}
-
         private bool AddAliasDiagnostic(TypeSyntax typeSyntax, string alias)
         {
             if (typeSyntax is IdentifierNameSyntax identifier &&
@@ -324,18 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             // Next, see if there's an alias in scope we can bind to.
-            for (var i = _aliasStack.Count - 1; i >= 0; i--)
+            var symbolToAlias = Peek(_aliasStack);
+            if (symbolToAlias.TryGetValue(symbol, out var alias))
             {
-                var symbolToAlias = _aliasStack[i];
-                if (symbolToAlias.TryGetValue(symbol, out var alias))
+                var foundSymbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
+                foreach (var found in foundSymbols)
                 {
-                    var foundSymbols = _semanticModel.LookupNamespacesAndTypes(typeSyntax.SpanStart, name: alias);
-                    foreach (var found in foundSymbols)
+                    if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
                     {
-                        if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
-                        {
-                            return AddAliasDiagnostic(typeSyntax, alias);
-                        }
+                        return AddAliasDiagnostic(typeSyntax, alias);
                     }
                 }
             }
@@ -347,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             TypeSyntax typeSyntax, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
             if (_preferPredefinedTypeInDecl &&
-                _predefinedTypeNames.Contains(typeName) &&
+                s_predefinedTypeNames.Contains(typeName) &&
                 !typeSyntax.IsParentKind(SyntaxKind.UsingDirective))
             {
                 symbol ??= GetNamespaceOrTypeSymbol(typeSyntax);
@@ -367,7 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private bool TryReplaceWithNullable(
             TypeSyntax typeSyntax, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
-            if (typeName == nameof(Nullable))
+            if (typeName == nameof(Nullable) &&
+                !typeSyntax.IsParentKind(SyntaxKind.UsingDirective))
             {
                 symbol ??= GetNamespaceOrTypeSymbol(typeSyntax);
                 if (symbol is ITypeSymbol typeSymbol &&
@@ -379,26 +365,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             return false;
         }
-
-        //private bool TryReplaceWithPredefinedTypeOrNullable(TypeSyntax typeSyntax, INamespaceOrTypeSymbol symbol)
-        //{
-        //    // First, see if we can replace this type with a built-in type.
-        //    if (!typeSyntax.IsParentKind(SyntaxKind.UsingDirective) &&
-        //        symbol is ITypeSymbol typeSymbol)
-        //    {
-        //        if (_preferPredefinedTypeInDecl)
-        //        {
-        //            var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
-        //            if (specialTypeKind != SyntaxKind.None)
-        //                return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
-        //        }
-
-        //        if (typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-        //            return this.AddDiagnostic(typeSyntax.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
-        //    }
-
-        //    return false;
-        //}
 
         private bool TryReplaceQualifiedNameWithRightSide(
             NameSyntax aliasedOrQualifiedName, NameSyntax left, SimpleNameSyntax right,
@@ -456,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return true;
         }
 
-        private static readonly HashSet<string> _predefinedTypeNames = new HashSet<string>
+        private static readonly HashSet<string> s_predefinedTypeNames = new HashSet<string>
         {
             nameof(Boolean),
             nameof(Byte),
