@@ -26,11 +26,11 @@ steps:
     workingDirectory: src
 
 - task: DotNetCoreCLI@2
-  displayName: dotnet test -f netcoreapp2.2
+  displayName: dotnet test -f netcoreapp3.1
   inputs:
     command: test
-    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp2.2 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
-    testRunTitle: netcoreapp2.2-$(Agent.JobName)
+    arguments: --no-build -c $(BuildConfiguration) -f netcoreapp3.1 --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true
+    testRunTitle: netcoreapp3.1-$(Agent.JobName)
     workingDirectory: src
 
 - task: PowerShell@2
