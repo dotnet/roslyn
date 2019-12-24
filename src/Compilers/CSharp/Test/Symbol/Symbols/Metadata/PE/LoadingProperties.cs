@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -364,8 +365,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 }
             }
         }
-        [Flags]
 
+        [Fact]
+        public void BackingFieldSymbolIsPresentInDeclaringType()
+        {
+            var source = @"
+class C
+{
+    public int P { get; }
+}";
+            var peAssembly = GetAssemblySymbolForReference(CompileToPEReference(source));
+            var declaringType = peAssembly.GlobalNamespace.GetMember<ITypeSymbol>("C");
+
+            var fieldSymbol = Assert.Single(declaringType.GetMembers().OfType<IFieldSymbol>());
+        }
+
+        private static MetadataReference CompileToPEReference(string source)
+        {
+            using var peStream = new MemoryStream();
+
+            Assert.True(CreateCompilation(source).Emit(peStream).Success);
+
+            peStream.Position = 0;
+
+            return MetadataReference.CreateFromStream(peStream);
+        }
+
+        private static IAssemblySymbol GetAssemblySymbolForReference(MetadataReference reference)
+        {
+            var compilation = (Compilation)CSharpCompilation.Create(
+                assemblyName: null,
+                references: new[] { reference },
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    metadataImportOptions: MetadataImportOptions.All));
+
+            return (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(reference);
+        }
+
+        [Flags]
         private enum VirtualnessModifiers
         {
             None = 0,

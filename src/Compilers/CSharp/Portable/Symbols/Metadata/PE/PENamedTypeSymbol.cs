@@ -869,72 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             else
             {
-                // If there are any non-event fields, they are at the very beginning.
-                IEnumerable<FieldSymbol> nonEventFields = GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0);
-
-                // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
-                ArrayBuilder<FieldSymbol> eventFields = null;
-
-                foreach (var eventSymbol in GetEventsToEmit())
-                {
-                    FieldSymbol associatedField = eventSymbol.AssociatedField;
-                    if ((object)associatedField != null)
-                    {
-                        Debug.Assert((object)associatedField.AssociatedSymbol != null);
-                        Debug.Assert(!nonEventFields.Contains(associatedField));
-
-                        if (eventFields == null)
-                        {
-                            eventFields = ArrayBuilder<FieldSymbol>.GetInstance();
-                        }
-
-                        eventFields.Add(associatedField);
-                    }
-                }
-
-                if (eventFields == null)
-                {
-                    // Simple case
-                    return nonEventFields;
-                }
-
-                // We need to merge non-event fields with event fields while preserving their relative declaration order
-                var handleToFieldMap = new SmallDictionary<FieldDefinitionHandle, FieldSymbol>();
-                int count = 0;
-
-                foreach (PEFieldSymbol field in nonEventFields)
-                {
-                    handleToFieldMap.Add(field.Handle, field);
-                    count++;
-                }
-
-                foreach (PEFieldSymbol field in eventFields)
-                {
-                    handleToFieldMap.Add(field.Handle, field);
-                }
-
-                count += eventFields.Count;
-                eventFields.Free();
-
-                var result = ArrayBuilder<FieldSymbol>.GetInstance(count);
-
-                try
-                {
-                    foreach (var handle in this.ContainingPEModule.Module.GetFieldsOfTypeOrThrow(_handle))
-                    {
-                        FieldSymbol field;
-                        if (handleToFieldMap.TryGetValue(handle, out field))
-                        {
-                            result.Add(field);
-                        }
-                    }
-                }
-                catch (BadImageFormatException)
-                { }
-
-                Debug.Assert(result.Count == count);
-
-                return result.ToImmutableAndFree();
+                return GetMembers<FieldSymbol>(this.GetMembers(), SymbolKind.Field, offset: 0);
             }
         }
 
@@ -1244,22 +1179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     this.CreateProperties(methodHandleToSymbol, nonFieldMembers);
                     this.CreateEvents(privateFieldNameToSymbols, methodHandleToSymbol, nonFieldMembers);
 
-                    foreach (PEFieldSymbol field in fieldMembers)
-                    {
-                        if ((object)field.AssociatedSymbol == null)
-                        {
-                            members.Add(field);
-                        }
-                        else
-                        {
-                            // As for source symbols, our public API presents the fiction that all
-                            // operations are performed on the event, rather than on the backing field.  
-                            // The backing field is not accessible through the API.  As an additional 
-                            // bonus, lookup is easier when the names don't collide.
-                            Debug.Assert(field.AssociatedSymbol.Kind == SymbolKind.Event);
-                        }
-                    }
-
+                    members.AddRange(fieldMembers);
                     members.AddRange(nonFieldMembers);
 
                     nonFieldMembers.Free();

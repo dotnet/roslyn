@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -588,8 +589,61 @@ public class C
 
             Assert.Contains(field.AssociatedSymbol, events);
         }
-        [Flags]
 
+        [Fact, WorkItem(36259, "https://github.com/dotnet/roslyn/issues/36259")]
+        public void BackingFieldSymbolIsPresentInDeclaringTypeForFieldLikeEvent()
+        {
+            var source = @"
+class C
+{
+    public event System.EventHandler E;
+}";
+            var peAssembly = GetAssemblySymbolForReference(CompileToPEReference(source));
+            var declaringType = peAssembly.GlobalNamespace.GetMember<ITypeSymbol>("C");
+
+            var fieldSymbol = Assert.Single(declaringType.GetMembers().OfType<IFieldSymbol>());
+
+            Assert.Same(declaringType.GetMembers().OfType<IEventSymbol>().Single(), fieldSymbol.AssociatedSymbol);
+        }
+
+        [Fact]
+        public void BackingFieldSymbolIsNotPresentInDeclaringTypeForCustomEvent()
+        {
+            var source = @"
+class C
+{
+    public event System.EventHandler E { add { } remove { } }
+}";
+            var peAssembly = GetAssemblySymbolForReference(CompileToPEReference(source));
+            var declaringType = peAssembly.GlobalNamespace.GetMember<ITypeSymbol>("C");
+
+            Assert.Empty(declaringType.GetMembers().OfType<IFieldSymbol>());
+        }
+
+        private static MetadataReference CompileToPEReference(string source)
+        {
+            using var peStream = new MemoryStream();
+
+            Assert.True(CreateCompilation(source).Emit(peStream).Success);
+
+            peStream.Position = 0;
+
+            return MetadataReference.CreateFromStream(peStream);
+        }
+
+        private static IAssemblySymbol GetAssemblySymbolForReference(MetadataReference reference)
+        {
+            var compilation = (Compilation)CSharpCompilation.Create(
+                assemblyName: null,
+                references: new[] { reference },
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    metadataImportOptions: MetadataImportOptions.All));
+
+            return (IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(reference);
+        }
+
+        [Flags]
         private enum VirtualnessModifiers
         {
             None = 0,
