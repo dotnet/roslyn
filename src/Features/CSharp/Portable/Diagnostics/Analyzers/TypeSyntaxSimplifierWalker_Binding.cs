@@ -40,13 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 ? _semanticModel.LookupNamespacesAndTypes(location.SpanStart, name: name)
                 : _semanticModel.LookupSymbols(location.SpanStart, name: name);
 
+        // For back-compat, we treat everything in a cref as if it's not a declaration context.
+        private bool InDeclarationContext(SyntaxNode node)
+            => !_inCref && node is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
+
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             // Don't bother looking at the right side of A.B or A::B.  We will process those in
             // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
             if (!node.IsRightSideOfDotOrArrowOrColonColon())
             {
-                var inDeclaration = SyntaxFacts.IsInNamespaceOrTypeContext(node);
+                var inDeclaration = InDeclarationContext(node);
 
                 // If we have an identifier, we would only ever replace it with an alias or a
                 // predefined-type name.  Do a very quick syntactic check to even see if either of those
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
             if (!node.IsRightSideOfDotOrColonColon())
             {
-                var inDeclaration = SyntaxFacts.IsInNamespaceOrTypeContext(node);
+                var inDeclaration = InDeclarationContext(node);
 
                 // A generic name is never a predefined type. So we don't need to check for that.
                 var identifier = node.Identifier.ValueText;
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private bool VisitAnyQualifiedName(SyntaxNode node)
         {
-            var inDeclaration = node is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
+            var inDeclaration = InDeclarationContext(node);
 
             var (left, right) = TryGetPartsOfQualifiedName(node).Value;
 

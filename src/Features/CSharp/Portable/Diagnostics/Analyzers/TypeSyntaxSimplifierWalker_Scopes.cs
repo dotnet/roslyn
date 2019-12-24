@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
         private readonly List<HashSet<string>> _namesInScopeStack;
 
+        private bool _inCref;
+
         public readonly List<Diagnostic> Diagnostics = new List<Diagnostic>();
 
         public TypeSyntaxSimplifierWalker(
@@ -195,6 +197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             base.VisitInterfaceDeclaration(node);
 
             Pop(_namesInScopeStack);
+        }
+
+        public override void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
+        {
+            var savedInCref = _inCref;
+            _inCref = true;
+            base.VisitXmlCrefAttribute(node);
+            _inCref = savedInCref;
         }
     }
 }

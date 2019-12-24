@@ -1076,9 +1076,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
         {
+            if (!SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language))
+                return false;
+
             return (IsInMemberAccessContext(expression) || InsideCrefReference(expression)) &&
-                   !InsideNameOfExpression(expression, semanticModel) &&
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language);
+                   !InsideNameOfExpression(expression, semanticModel);
         }
 
         public static bool IsInMemberAccessContext(this ExpressionSyntax expression) =>

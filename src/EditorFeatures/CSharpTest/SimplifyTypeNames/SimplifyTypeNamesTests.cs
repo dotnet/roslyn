@@ -3509,20 +3509,6 @@ options: PreferIntrinsicTypeInMemberAccess);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferMemberAccess()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
-{
-    /// <see cref=""System.Collections.Generic.List{T}.CopyTo([|System.Int32|], T[], int, int)""/>
-    public void z()
-    {
-    }
-}", new TestParameters(options: PreferIntrinsicTypeInMemberAccess));
-        }
-
-        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
-        {
             await TestInRegularAndScriptAsync(
 @"class C
 {
@@ -3537,8 +3523,21 @@ options: PreferIntrinsicTypeInMemberAccess);
     public void z()
     {
     }
-}",
-options: PreferIntrinsicTypeInDeclaration);
+}", options: PreferIntrinsicTypeInMemberAccess);
+        }
+
+        [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestIntrinsicTypesInsideCref_NonDefault_6_PreferDeclaration()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    /// <see cref=""System.Collections.Generic.List{T}.CopyTo([|System.Int32|], T[], int, int)""/>
+    public void z()
+    {
+    }
+}", new TestParameters(options: PreferIntrinsicTypeInDeclaration));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
