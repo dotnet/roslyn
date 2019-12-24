@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return symbolInfo.Symbol as INamespaceOrTypeSymbol;
         }
 
-        private bool AddAliasDiagnostic(SyntaxNode node, string alias, bool inDeclaration)
+        private bool AddAliasDiagnostic(SyntaxNode node, string alias)
         {
             if (node is IdentifierNameSyntax identifier &&
                 alias == identifier.Identifier.ValueText)
@@ -272,10 +272,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 parts.Value.right is IdentifierNameSyntax identifier2 &&
                 alias == identifier2.Identifier.ValueText)
             {
-                return this.AddDiagnostic(parts.Value.left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+                return this.AddDiagnostic(parts.Value.left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
             }
 
-            return this.AddDiagnostic(node.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+            return this.AddDiagnostic(node, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
         }
 
         private bool TryReplaceWithAlias(
@@ -304,9 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     foreach (var found in foundSymbols)
                     {
                         if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
-                        {
-                            return AddAliasDiagnostic(node, alias, InDeclarationContext(node));
-                        }
+                            return AddAliasDiagnostic(node, alias);
                     }
                 }
             }
@@ -333,8 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
                     if (specialTypeKind != SyntaxKind.None)
                     {
-                        return this.AddDiagnostic(
-                            node.Span, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, inDeclaration);
+                        return this.AddDiagnostic(node, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
                     }
                 }
             }
@@ -355,8 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (symbol is ITypeSymbol typeSymbol &&
                     typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
-                    return AddDiagnostic(
-                        node.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, InDeclarationContext(node));
+                    return AddDiagnostic(node, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                 }
             }
 
@@ -419,9 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             {
                 if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
                 {
-                    return AddDiagnostic(
-                        left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId,
-                        InDeclarationContext(rootExpression));
+                    return AddDiagnostic(left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                 }
             }
 
@@ -435,8 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 {
                     if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
                     {
-                        return AddDiagnostic(
-                            left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+                        return AddDiagnostic(left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                     }
                 }
             }
@@ -459,10 +452,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return false;
         }
 
-        private bool AddDiagnostic(TextSpan issueSpan, string diagnosticId, bool inDeclaration)
+        private bool AddDiagnostic(SyntaxNode node, string diagnosticId)
         {
             this.Diagnostics.Add(CSharpSimplifyTypeNamesDiagnosticAnalyzer.CreateDiagnostic(
-                _semanticModel, _optionSet, issueSpan, diagnosticId, inDeclaration));
+                _semanticModel, _optionSet, node.Span, diagnosticId, InDeclarationContext(node)));
             return true;
         }
 
