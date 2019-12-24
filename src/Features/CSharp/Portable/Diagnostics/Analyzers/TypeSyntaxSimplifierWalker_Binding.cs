@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // see if we can simplify to that.
             if (!isNamespaceOrTypeContext && IsColorColorCase(foundSymbols))
             {
-                foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext: false, identifier);
+                foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext: true, identifier);
                 foreach (var found in foundSymbols)
                 {
                     if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
