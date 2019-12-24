@@ -1605,6 +1605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1738,7 +1740,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InternalError = 8751,
 
         ERR_ExternEventInitializer = 8760,
-        ERR_ImplicitIndexerWithName = 8761,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

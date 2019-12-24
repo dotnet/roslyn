@@ -7721,9 +7721,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Names.Count > 0)
             {
                 diagnostics.Add(
-                    ErrorCode.ERR_ImplicitIndexerWithName,
-                    arguments.Names[0].GetLocation(),
-                    argIsRange ? nameof(Range) : nameof(Index));
+                    argIsRange
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName 
+                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
+                    arguments.Names[0].GetLocation());
             }
             return true;
 

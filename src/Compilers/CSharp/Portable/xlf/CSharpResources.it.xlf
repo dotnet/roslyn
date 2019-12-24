@@ -227,9 +227,14 @@
         <target state="translated">L'operatore di eliminazione non è consentito in questo contesto</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ImplicitIndexerWithName">
-        <source>Implicit {0} indexer cannot have a named argument.</source>
-        <target state="new">Implicit {0} indexer cannot have a named argument.</target>
+      <trans-unit id="ERR_ImplicitIndexIndexerWithName">
+        <source>Invocation of implicit Index Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitRangeIndexerWithName">
+        <source>Invocation of implicit Range Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">

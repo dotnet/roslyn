@@ -5596,11 +5596,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Implicit {0} indexer cannot have a named argument..
+        ///   Looks up a localized string similar to Invocation of implicit Index Indexer cannot name the argument..
         /// </summary>
-        internal static string ERR_ImplicitIndexerWithName {
+        internal static string ERR_ImplicitIndexIndexerWithName {
             get {
-                return ResourceManager.GetString("ERR_ImplicitIndexerWithName", resourceCulture);
+                return ResourceManager.GetString("ERR_ImplicitIndexIndexerWithName", resourceCulture);
             }
         }
         
@@ -5673,6 +5673,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplicitlyTypedVariableWithNoInitializer {
             get {
                 return ResourceManager.GetString("ERR_ImplicitlyTypedVariableWithNoInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invocation of implicit Range Indexer cannot name the argument..
+        /// </summary>
+        internal static string ERR_ImplicitRangeIndexerWithName {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitRangeIndexerWithName", resourceCulture);
             }
         }
         
