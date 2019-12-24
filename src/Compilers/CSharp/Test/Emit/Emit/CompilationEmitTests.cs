@@ -1754,7 +1754,8 @@ public class PublicClass
                 compWithReal.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
 
             AssertEx.Equal(
-                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                new[] { "System.Action PublicClass.PublicEvent", "System.Action PublicClass.InternalEvent",
+                    "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
                     "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
@@ -1785,7 +1786,8 @@ public class PublicClass
                 compWithReal2.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
 
             AssertEx.Equal(
-                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                new[] { "System.Action PublicClass.PublicEvent", "System.Action PublicClass.InternalEvent",
+                    "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
                     "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
@@ -1813,7 +1815,8 @@ public class PublicClass
                 compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
 
             AssertEx.Equal(
-                new[] { "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
+                new[] { "System.Action PublicClass.PublicEvent", "System.Action PublicClass.InternalEvent",
+                    "void PublicClass.PublicMethod()", "void PublicClass.PrivateMethod()",
                     "void PublicClass.ProtectedMethod()", "void PublicClass.InternalMethod()",
                     "void PublicClass.ProtectedInternalMethod()", "void PublicClass.PrivateProtectedMethod()",
                     "void PublicClass.PublicEvent.add", "void PublicClass.PublicEvent.remove",
