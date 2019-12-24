@@ -35,14 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     /// </summary>
     internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
+        private static bool IsInNamespaceOrTypeContext(SyntaxNode location)
+            => location is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
+
         private ImmutableArray<ISymbol> LookupName(SyntaxNode location, bool inDeclaration, string name)
-            => inDeclaration
+            => IsInNamespaceOrTypeContext(location)
                 ? _semanticModel.LookupNamespacesAndTypes(location.SpanStart, name: name)
                 : _semanticModel.LookupSymbols(location.SpanStart, name: name);
 
         // For back-compat, we treat everything in a cref as if it's not a declaration context.
         private bool InDeclarationContext(SyntaxNode node)
-            => !_inCref && node is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
+            => !_inCref && IsInNamespaceOrTypeContext(node);
 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
@@ -357,9 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         {
             // `int?` can only be used in a type-decl context.  i.e. it can't be used like 
             // `int?.Equals()`
-            if (inDeclaration &&
-                typeName == nameof(Nullable) &&
-                !node.IsParentKind(SyntaxKind.UsingDirective))
+            if (typeName == nameof(Nullable) &&
+                !node.IsParentKind(SyntaxKind.UsingDirective) &&
+                IsInNamespaceOrTypeContext(node))
             {
                 symbol ??= GetNamespaceOrTypeSymbol(node);
                 if (symbol is ITypeSymbol typeSymbol &&
