@@ -295,13 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var statementsInBlock = GetStatements(innermostCommonBlock);
 
             // Check if our earliest call is before all local function declarations and all matches, and if so, place our new declaration there.
-            var statement = statementsInBlock.Where(s => s.Span.Contains(earliestLocalFunctionCall)).Single();
-            if (firstStatementAffectedIndex > statementsInBlock.IndexOf(statement))
-            {
-                return statementsInBlock.IndexOf(statement);
-            }
-
-            return firstStatementAffectedIndex;
+            var earliestLocalFunctionCallIndex = statementsInBlock.IndexOf(s => s.Span.Contains(earliestLocalFunctionCall));
+            return Math.Min(earliestLocalFunctionCallIndex, firstStatementAffectedIndex);
         }
 
         private static SyntaxList<StatementSyntax> InsertWithinTriviaOfNext(
