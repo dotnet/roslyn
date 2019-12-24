@@ -860,6 +860,25 @@ class C
         }
 
         [Fact]
+        public void TestConditionalAccess()
+        {
+            var source = @"
+using System;
+class C
+{
+    public static void Main()
+    {
+       Console.Write(((int?)new())?.ToString());
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0");
+        }
+
+        [Fact]
         public void TestInaccessibleConstructor()
         {
             var source = @"

@@ -166,13 +166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if the destination is nullable, in which case we
                 // target the underlying type e.g. `S? x = new();`
                 // is actually identical to `S? x = new S();`.
+                var conversion = new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
                 expr = new BoundConversion(
                     node.Syntax,
                     operand: expr,
-                    conversion: new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying),
+                    conversion: conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
-                    conversionGroupOpt: null,
+                    conversionGroupOpt: new ConversionGroup(conversion),
                     constantValueOpt: expr.ConstantValue,
                     type: destination);
             }
