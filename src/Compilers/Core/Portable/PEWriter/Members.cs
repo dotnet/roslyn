@@ -329,7 +329,12 @@ namespace Microsoft.Cci
         /// <summary>
         /// True if the locals are initialized by zeroing the stack upon method entry.
         /// </summary>
-        bool LocalsAreZeroed { get; }
+        bool AreLocalsZeroed { get; }
+
+        /// <summary>
+        /// True if there's a stackalloc somewhere in the method.
+        /// </summary>
+        bool HasStackalloc { get; }
 
         /// <summary>
         /// The local variables of the method.

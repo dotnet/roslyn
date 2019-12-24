@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             _container = container;
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw new NotImplementedException();
+
         public override int Arity
         {
             get
@@ -210,6 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get
             {
                 return false;
+            }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

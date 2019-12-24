@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     {
         public async static Task<UnitTestingRemoteHostClientWrapper> TryGetUnitTestingRemoteHostClientWrapperAsync(this Workspace workspace, CancellationToken cancellationToken)
         {
-            var remoteHostClient = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-            return new UnitTestingRemoteHostClientWrapper(remoteHostClient);
+            var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return new UnitTestingRemoteHostClientWrapper(client);
         }
     }
 }
