@@ -2071,10 +2071,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (WillConflictWithExistingLocal(memberAccess, reducedName))
-            {
-                return false;
-            }
+            //if (WillConflictWithExistingLocal(memberAccess, reducedName))
+            //{
+            //    return false;
+            //}
 
             if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
             {
