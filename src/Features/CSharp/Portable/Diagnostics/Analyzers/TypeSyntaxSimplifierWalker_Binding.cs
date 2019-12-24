@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // Now try to bind just 'B' in our current location.  If it binds to 'A.B' then we can
             // reduce to just that name.
-            var foundSymbols = LookupName(rootExpression, inDeclaration, right.Identifier.ValueText);
+            var foundSymbols = LookupName(rootExpression, inDeclaration, identifier);
             foreach (var found in foundSymbols)
             {
                 if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
@@ -426,6 +426,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     return AddDiagnostic(
                         left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
                 }
+            }
+
+            // See if we're in the `Color Color` case.  i.e user may have written
+            // `X.Color.Red`.  We need to retry binding `Color` as a decl here to 
+            // see if we can simplify to that.
+            if (!inDeclaration && IsColorColorCase(foundSymbols))
+            {
+                foundSymbols = LookupName(rootExpression, inDeclaration: true, identifier);
+                foreach (var found in foundSymbols)
+                {
+                    if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
+                    {
+                        return AddDiagnostic(
+                            left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsColorColorCase(ImmutableArray<ISymbol> foundSymbols)
+        {
+            if (foundSymbols.Length == 1)
+            {
+                var found = foundSymbols[0];
+                if (found is IPropertySymbol property && found.Name == property.Type.Name)
+                    return true;
+
+                if (found is IFieldSymbol field && found.Name == field.Type.Name)
+                    return true;
             }
 
             return false;
