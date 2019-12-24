@@ -465,7 +465,7 @@ public class C
             var comp = CreateCompilation("", new[] { reference }, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var @event = type.GetMember<PEEventSymbol>("E");
+            var @event = type.GetEvent("E");
             Assert.True(@event.HasAssociatedField);
 
             var field = @event.AssociatedField;

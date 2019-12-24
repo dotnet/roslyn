@@ -176,7 +176,7 @@ class Test
                 var property = type.GetMember<PEFieldSymbol>(GeneratedNames.MakeBackingFieldName("MyProp"));
                 Verify(property.Handle);
 
-                var eventField = (PEFieldSymbol)type.GetMember<PEEventSymbol>("MyEvent").AssociatedField;
+                var eventField = (PEFieldSymbol)type.GetEvent("MyEvent").AssociatedField;
                 Verify(eventField.Handle);
 
                 void Verify(EntityHandle token)

@@ -2754,7 +2754,7 @@ public class abcdef{
             wns1 = wns1.GetMember<NamespaceSymbol>("UI");
             wns1 = wns1.GetMember<NamespaceSymbol>("Xaml");
             var itextrange = wns1.GetMember<PENamedTypeSymbol>("Application");
-            var @event = itextrange.GetMember<PEEventSymbol>("Suspending");
+            var @event = itextrange.GetEvent("Suspending");
 
             Assert.True(@event.IsWindowsRuntimeEvent, "Failed to detect winrt type event");
             Assert.True(!@event.MustCallMethodsDirectly, "Failed to override call methods directly");
@@ -3556,7 +3556,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             comp.VerifyDiagnostics();
 
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var @event = type.GetMember<PEEventSymbol>("E");
+            var @event = type.GetEvent("E");
             Assert.True(@event.HasAssociatedField);
 
             var field = @event.AssociatedField;
