@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private static bool IsInNamespaceOrTypeContext(SyntaxNode location)
             => location is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
 
-        private ImmutableArray<ISymbol> LookupName(SyntaxNode location, bool inDeclaration, string name)
-            => IsInNamespaceOrTypeContext(location)
+        private ImmutableArray<ISymbol> LookupName(SyntaxNode location, bool isNamespaceOrTypeContext, string name)
+            => isNamespaceOrTypeContext
                 ? _semanticModel.LookupNamespacesAndTypes(location.SpanStart, name: name)
                 : _semanticModel.LookupSymbols(location.SpanStart, name: name);
 
@@ -53,17 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
             if (!node.IsRightSideOfDotOrArrowOrColonColon())
             {
-                var inDeclaration = InDeclarationContext(node);
-
                 // If we have an identifier, we would only ever replace it with an alias or a
                 // predefined-type name.  Do a very quick syntactic check to even see if either of those
                 // are possible.
                 var identifier = node.Identifier.ValueText;
                 INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithPredefinedType(node, identifier, inDeclaration, ref symbol))
+                if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                     return;
 
-                if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                     return;
             }
 
@@ -77,16 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
             if (!node.IsRightSideOfDotOrColonColon())
             {
-                var inDeclaration = InDeclarationContext(node);
-
                 // A generic name is never a predefined type. So we don't need to check for that.
                 var identifier = node.Identifier.ValueText;
                 INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                     return;
 
                 // Might be a reference to `Nullable<T>` that we can replace with `T?`
-                if (TryReplaceWithNullable(node, identifier, inDeclaration, ref symbol))
+                if (TryReplaceWithNullable(node, identifier, ref symbol))
                     return;
             }
 
@@ -96,25 +92,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private bool VisitAnyQualifiedName(SyntaxNode node)
         {
-            var inDeclaration = InDeclarationContext(node);
-
             var (left, right) = TryGetPartsOfQualifiedName(node).Value;
 
             // We have a qualified name (like A.B).  Check and see if 'B' is the name of
             // predefined type, or if there's something aliased to the name B.
             var identifier = right.Identifier.ValueText;
             INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithPredefinedType(node, identifier, inDeclaration, ref symbol))
+            if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                 return true;
 
-            if (TryReplaceWithAlias(node, identifier, inDeclaration, nameMustMatch: false, ref symbol))
+            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                 return true;
 
-            if (TryReplaceWithNullable(node, identifier, inDeclaration, ref symbol))
+            if (TryReplaceWithNullable(node, identifier, ref symbol))
                 return true;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-            if (TryReplaceExprWithRightSide(node, identifier, left, right, inDeclaration, ref symbol))
+            if (TryReplaceExprWithRightSide(node, identifier, left, right, ref symbol))
                 return true;
 
             return false;
@@ -195,17 +189,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // to nullable as `A?.B` is not a legal member access for `Nullable<A>.B`
             var identifier = node.GetRightmostName().Identifier.ValueText;
             INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithPredefinedType(node, identifier, inDeclaration: false, ref symbol))
+            if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                 return true;
 
-            if (TryReplaceWithAlias(node, identifier, inDeclaration: false, nameMustMatch: false, ref symbol))
+            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                 return true;
 
             var parts = TryGetPartsOfQualifiedName(node);
             if (parts != null &&
                 TryReplaceExprWithRightSide(node, identifier,
-                    parts.Value.left, parts.Value.right,
-                    inDeclaration: false, ref symbol))
+                    parts.Value.left, parts.Value.right, ref symbol))
             {
                 return true;
             }
@@ -219,17 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // simplify to an alias if it has the same name as us.
             INamespaceOrTypeSymbol symbol = null;
             var memberName = node.Name.Identifier.ValueText;
-            if (TryReplaceWithAlias(node, memberName,
-                    inDeclaration: false, nameMustMatch: true, ref symbol))
-            {
+            if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, ref symbol))
                 return true;
-            }
 
-            if (TryReplaceExprWithRightSide(node, memberName,
-                    node.Expression, node.Name, inDeclaration: false, ref symbol))
-            {
+            if (TryReplaceExprWithRightSide(node, memberName, node.Expression, node.Name, ref symbol))
                 return true;
-            }
 
             return false;
         }
@@ -293,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private bool TryReplaceWithAlias(
             SyntaxNode node, string typeName,
-            bool inDeclaration, bool nameMustMatch, ref INamespaceOrTypeSymbol symbol)
+            bool nameMustMatch, ref INamespaceOrTypeSymbol symbol)
         {
             // See if we actually have an alias to something with our name.
             if (!Peek(_aliasedSymbolNamesStack).Contains(typeName))
@@ -304,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             // Next, see if there's an alias in scope we can bind to.
+            var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(node);
             for (var i = _aliasStack.Count - 1; i >= 0; i--)
             {
                 var symbolToAlias = _aliasStack[i];
@@ -312,12 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     if (nameMustMatch && alias != typeName)
                         continue;
 
-                    var foundSymbols = LookupName(node, inDeclaration, alias);
+                    var foundSymbols = LookupName(node, isNamespaceOrTypeContext, alias);
                     foreach (var found in foundSymbols)
                     {
                         if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
                         {
-                            return AddAliasDiagnostic(node, alias, inDeclaration);
+                            return AddAliasDiagnostic(node, alias, InDeclarationContext(node));
                         }
                     }
                 }
@@ -327,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         }
 
         private bool TryReplaceWithPredefinedType(
-            SyntaxNode node, string typeName,
-            bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
+            SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
+            var inDeclaration = InDeclarationContext(node);
             if (inDeclaration && !_preferPredefinedTypeInDecl)
                 return false;
 
@@ -355,8 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         }
 
         private bool TryReplaceWithNullable(
-            SyntaxNode node, string typeName,
-            bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
+            SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
             // `int?` can only be used in a type-decl context.  i.e. it can't be used like 
             // `int?.Equals()`
@@ -368,7 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (symbol is ITypeSymbol typeSymbol &&
                     typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
-                    return AddDiagnostic(node.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+                    return AddDiagnostic(
+                        node.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, InDeclarationContext(node));
                 }
             }
 
@@ -389,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private bool TryReplaceExprWithRightSide(
             SyntaxNode rootExpression, string identifier,
             ExpressionSyntax left, SimpleNameSyntax right,
-            bool inDeclaration, ref INamespaceOrTypeSymbol symbol)
+            ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
 
@@ -425,22 +413,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // Now try to bind just 'B' in our current location.  If it binds to 'A.B' then we can
             // reduce to just that name.
-            var foundSymbols = LookupName(rootExpression, inDeclaration, identifier);
+            var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(rootExpression);
+            var foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext, identifier);
             foreach (var found in foundSymbols)
             {
                 if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
                 {
                     return AddDiagnostic(
-                        left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId, inDeclaration);
+                        left.Span, IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+                        InDeclarationContext(rootExpression));
                 }
             }
 
             // See if we're in the `Color Color` case.  i.e user may have written
             // `X.Color.Red`.  We need to retry binding `Color` as a decl here to 
             // see if we can simplify to that.
-            if (!inDeclaration && IsColorColorCase(foundSymbols))
+            if (!isNamespaceOrTypeContext && IsColorColorCase(foundSymbols))
             {
-                foundSymbols = LookupName(rootExpression, inDeclaration: true, identifier);
+                foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext: false, identifier);
                 foreach (var found in foundSymbols)
                 {
                     if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
