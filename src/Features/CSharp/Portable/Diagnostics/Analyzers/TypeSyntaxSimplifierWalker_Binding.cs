@@ -159,11 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             {
                 // If we have `nameof(A.B.C)` then we can potentially simplify this just to
                 // 'C'.
-                if (node.IsNameOfArgumentExpression() &&
-                    SimplifyMemberAccessInNameofExpression(node))
-                {
+                if (SimplifyMemberAccessInNameofExpression(node))
                     return;
-                }
 
                 if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
                     return;
@@ -196,17 +193,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
             return true;
-            //// Ensure that if we simplify to the containing type name that it will bind to the right symbol.
-            //var foundSymbols = this.LookupName(node, isNamespaceOrTypeContext: false, nameSymbol.ContainingType.Name);
-            //foreach (var found in foundSymbols)
-            //{
-            //    if (IsMatch(nameSymbol.ContainingType, found, arity: 0))
-            //    {
-            //        return true;
-            //    }
-            //}
-
-            //return false;
         }
 
         private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
@@ -240,6 +226,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private bool SimplifyMemberAccessInNameofExpression(MemberAccessExpressionSyntax node)
         {
+            if (!node.IsNameOfArgumentExpression())
+                return false;
+
             // in a nameof(...) expr, we cannot simplify to predefined types, or nullable. We can
             // simplify to an alias if it has the same name as us.
             INamespaceOrTypeSymbol symbol = null;
