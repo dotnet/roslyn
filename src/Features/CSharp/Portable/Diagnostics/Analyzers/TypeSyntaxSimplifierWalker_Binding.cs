@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
                 // If we have  `...A<T>.B` look to see if we can simplify `A<T>` to a base type that
                 // is non-generic.
-                if (nameSymbol.ContainingType.Arity != 0)
+                if (nameSymbol.ContainingType.Arity == 0)
                     return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
             }
 
