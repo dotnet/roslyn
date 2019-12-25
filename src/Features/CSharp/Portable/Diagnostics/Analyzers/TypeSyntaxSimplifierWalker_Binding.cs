@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return true;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-            if (TryReplaceExprWithRightSide(node, identifier, left, right, ref symbol))
+            if (TryReplaceExprWithRightSide(node, left, right, ref symbol))
                 return true;
 
             return false;
@@ -197,8 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             var parts = TryGetPartsOfQualifiedName(node);
             if (parts != null &&
-                TryReplaceExprWithRightSide(node, identifier,
-                    parts.Value.left, parts.Value.right, ref symbol))
+                TryReplaceExprWithRightSide(node, parts.Value.left, parts.Value.right, ref symbol))
             {
                 return true;
             }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, ref symbol))
                 return true;
 
-            if (TryReplaceExprWithRightSide(node, memberName, node.Expression, node.Name, ref symbol))
+            if (TryReplaceExprWithRightSide(node, node.Expression, node.Name, ref symbol))
                 return true;
 
             return false;
@@ -371,15 +371,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             };
 
         private bool TryReplaceExprWithRightSide(
-            SyntaxNode rootExpression, string identifier,
-            ExpressionSyntax left, SimpleNameSyntax right,
+            SyntaxNode rootExpression, ExpressionSyntax left, SimpleNameSyntax right,
             ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
 
+            var rightIdentifier = right.Identifier.ValueText;
+
             // First see if we even have a type/namespace in scope called 'B'.  If not,
             // there's nothing we need to do further.
-            if (!Peek(_namesInScopeStack).Contains(identifier))
+            if (!Peek(_namesInScopeStack).Contains(rightIdentifier))
                 return false;
 
             symbol ??= GetNamespaceOrTypeSymbol(rootExpression);
@@ -410,10 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // Now try to bind just 'B' in our current location.  If it binds to 'A.B' then we can
             // reduce to just that name.
             var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(rootExpression);
-            var foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext, identifier);
+            var foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext, rightIdentifier);
+            var rightArity = right.Arity;
             foreach (var found in foundSymbols)
             {
-                if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
+                if (IsMatch(symbol, found, rightArity))
                 {
                     return AddDiagnostic(left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                 }
@@ -424,10 +426,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // see if we can simplify to that.
             if (!isNamespaceOrTypeContext && IsColorColorCase(foundSymbols))
             {
-                foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext: true, identifier);
+                foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext: false, rightIdentifier);
                 foreach (var found in foundSymbols)
                 {
-                    if (symbol.OriginalDefinition.Equals(found.OriginalDefinition))
+                    if (IsMatch(symbol, found, rightArity))
                     {
                         return AddDiagnostic(left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                     }
@@ -435,6 +437,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             return false;
+        }
+
+        private static bool IsMatch(INamespaceOrTypeSymbol symbol, ISymbol found, int arity)
+        {
+            if (arity > 0 && found.GetArity() != arity)
+                return false;
+
+
+            return Equals(symbol.OriginalDefinition, found.OriginalDefinition) &&
+                   Equals(symbol.ContainingSymbol, found.ContainingSymbol);
         }
 
         private bool IsColorColorCase(ImmutableArray<ISymbol> foundSymbols)
