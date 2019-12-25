@@ -165,34 +165,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
                     return;
 
-                if (SimplifyStaticAccessOffOfGenericName(node))
+                if (SimplifyStaticMemberAccess(node))
                     return;
             }
 
             base.VisitMemberAccessExpression(node);
         }
 
-        private bool SimplifyStaticAccessOffOfGenericName(MemberAccessExpressionSyntax node)
+        private bool SimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
         {
             Debug.Assert(IsSimplifiableMemberAccess(node));
 
-            // If we have  `...A<T>.B` look to see if we can simplify `A<T>` to a base type that
-            // is non-generic.
-            if (!(node.Expression.GetRightmostName() is GenericNameSyntax genericName))
+            ISymbol nameSymbol = null;
+            var memberNameNode = node.Name;
+            if (node.Expression.GetRightmostName() is GenericNameSyntax)
+            {
+                // Member on the right of the dot needs to be a static member or another named type.
+                nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
+                var isValidName = nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
+                if (!isValidName)
+                    return false;
+
+                // If we have  `...A<T>.B` look to see if we can simplify `A<T>` to a base type that
+                // is non-generic.
+                if (nameSymbol.ContainingType.Arity != 0)
+                    return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+            }
+
+            // see if we can just access this member using it's name alone here.
+            var memberName = memberNameNode.Identifier.ValueText;
+            if (!Peek(_staticNamesInScopeStack).Contains(memberName))
                 return false;
 
-            // Member on the right of the dot needs to be a static member or another named type.
-            var nameSymbol = _semanticModel.GetSymbolInfo(node.Name).Symbol;
-            var isValidName = nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
-            if (!isValidName)
+            nameSymbol ??= _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
+            if (nameSymbol == null)
                 return false;
 
-            // If the type the member belongs to is generic as well, don't bother simplifying.
-            if (nameSymbol.ContainingType.Arity != 0)
-                return false;
+            var foundSymbols = LookupName(node, isNamespaceOrTypeContext: false, memberName);
+            foreach (var found in foundSymbols)
+            {
+                if (IsMatch(nameSymbol, found, memberNameNode.Arity))
+                {
+                    return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+                }
+            }
 
-            this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
-            return true;
+            return false;
         }
 
         private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
@@ -401,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // First see if we even have a type/namespace in scope called 'B'.  If not,
             // there's nothing we need to do further.
-            if (!Peek(_namesInScopeStack).Contains(rightIdentifier))
+            if (!Peek(_declarationNamesInScopeStack).Contains(rightIdentifier))
                 return false;
 
             symbol ??= GetNamespaceOrTypeSymbol(rootExpression);
@@ -460,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return false;
         }
 
-        private static bool IsMatch(INamespaceOrTypeSymbol symbol, ISymbol found, int arity)
+        private static bool IsMatch(ISymbol symbol, ISymbol found, int arity)
         {
             if (arity > 0 && found.GetArity() != arity)
                 return false;
