@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return true;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-            if (TryReplaceExprWithRightSide(node, left, right, ref symbol))
+            if (TryReplaceExprWithRightSide(node, left, right, IDEDiagnosticIds.SimplifyNamesDiagnosticId, ref symbol))
                 return true;
 
             return false;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             var parts = TryGetPartsOfQualifiedName(node);
             if (parts != null &&
-                TryReplaceExprWithRightSide(node, parts.Value.left, parts.Value.right, ref symbol))
+                TryReplaceExprWithRightSide(node, parts.Value.left, parts.Value.right, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
             {
                 return true;
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, ref symbol))
                 return true;
 
-            if (TryReplaceExprWithRightSide(node, node.Expression, node.Name, ref symbol))
+            if (TryReplaceExprWithRightSide(node, node.Expression, node.Name, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
                 return true;
 
             return false;
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private bool TryReplaceExprWithRightSide(
             SyntaxNode rootExpression, ExpressionSyntax left, SimpleNameSyntax right,
-            ref INamespaceOrTypeSymbol symbol)
+            string diagnosticId, ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
 
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             {
                 if (IsMatch(symbol, found, rightArity))
                 {
-                    return AddDiagnostic(left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                    return AddDiagnostic(left, diagnosticId);
                 }
             }
 
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 {
                     if (IsMatch(symbol, found, rightArity))
                     {
-                        return AddDiagnostic(left, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+                        return AddDiagnostic(left, diagnosticId);
                     }
                 }
             }
