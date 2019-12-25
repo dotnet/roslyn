@@ -4,14 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq.Expressions;
-using Humanizer;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 {
@@ -197,17 +194,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (nameSymbol.ContainingType.Arity != 0)
                 return false;
 
-            // Ensure that if we simplify to the containing type name that it will bind to the right symbol.
-            var foundSymbols = this.LookupName(node, isNamespaceOrTypeContext: false, nameSymbol.ContainingType.Name);
-            foreach (var found in foundSymbols)
-            {
-                if (IsMatch(nameSymbol.ContainingType, found, arity: 0))
-                {
-                    return true;
-                }
-            }
+            this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+            return true;
+            //// Ensure that if we simplify to the containing type name that it will bind to the right symbol.
+            //var foundSymbols = this.LookupName(node, isNamespaceOrTypeContext: false, nameSymbol.ContainingType.Name);
+            //foreach (var found in foundSymbols)
+            //{
+            //    if (IsMatch(nameSymbol.ContainingType, found, arity: 0))
+            //    {
+            //        return true;
+            //    }
+            //}
 
-            return false;
+            //return false;
         }
 
         private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
