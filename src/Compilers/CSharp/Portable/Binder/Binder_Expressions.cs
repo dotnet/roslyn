@@ -7722,7 +7722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(
                     argIsRange
-                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName 
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
                         : ErrorCode.ERR_ImplicitIndexIndexerWithName,
                     arguments.Names[0].GetLocation());
             }
