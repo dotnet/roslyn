@@ -935,6 +935,11 @@
         <target state="translated">&lt;expresión switch&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>&lt;conditional expression&gt;</source>
+        <target state="new">&lt;conditional expression&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">igualdad de tupla</target>

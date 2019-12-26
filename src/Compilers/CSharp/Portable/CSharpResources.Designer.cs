@@ -7423,7 +7423,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;..
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {
@@ -7432,7 +7432,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
         /// </summary>
         internal static string ERR_NoConvToIDispWrongAsync {
             get {
@@ -11848,6 +11848,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureSwitchOnBool {
             get {
                 return ResourceManager.GetString("IDS_FeatureSwitchOnBool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;conditional expression&gt;.
+        /// </summary>
+        internal static string IDS_FeatureTargetTypedConditional {
+            get {
+                return ResourceManager.GetString("IDS_FeatureTargetTypedConditional", resourceCulture);
             }
         }
         

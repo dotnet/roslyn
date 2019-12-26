@@ -2153,7 +2153,7 @@ Block[B4] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void ThrowFlow_32()
+        public void ThrowFlow_32_Regular8()
         {
             var source = @"
 class C
@@ -2164,7 +2164,7 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics(
                 // (6,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<throw expression>' and '<throw expression>'
@@ -2172,54 +2172,36 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidQM, "y ? throw ex1 : throw ex2").WithArguments("<throw expression>", "<throw expression>").WithLocation(6, 13)
                 );
 
+            // PROTOTYPE(ngafter): Investigate the tree in block B4 (syntax for the operand of the conversion)
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
-    CaptureIds: [0] [1]
+    CaptureIds: [0]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
-
-        Jump if False (Regular) to Block[B4]
+        Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'y')
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
             IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex1')
-    Block[B3] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex1')
-              Value: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex1')
-
-        Next (Regular) Block[B6]
-    Block[B4] - Block
+    Block[B3] - Block
         Predecessors: [B1]
         Statements (0)
         Next (Throw) Block[null]
             IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex2')
-    Block[B5] - Block [UnReachable]
+    Block[B4] - Block [UnReachable]
         Predecessors (0)
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
-              Value: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
-
-        Next (Regular) Block[B6]
-    Block[B6] - Block [UnReachable]
-        Predecessors: [B3] [B5]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = y ? thr ...  throw ex2;')
               Expression: 
@@ -2231,14 +2213,84 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
                       Operand: 
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'y ? throw e ... : throw ex2')
-
-        Next (Regular) Block[B7]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitThrow)
+                          Operand: 
+                            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+        Next (Regular) Block[B5]
             Leaving: {R1}
 }
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B4]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-Block[B7] - Exit [UnReachable]
-    Predecessors: [B6]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ThrowFlow_32_TargetTypedConditoinal()
+        {
+            var source = @"
+class C
+{
+    void F(bool x, bool y, System.Exception ex1, System.Exception ex2)
+    /*<bind>*/{
+        x = y ? throw ex1 : throw ex2;
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
+            compilation.VerifyDiagnostics();
+
+            // PROTOTYPE(ngafter): Investigate the tree in block B4.  The conversion should be an identity conversion on the whole conditional.
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Throw) Block[null]
+            IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
+    Block[B4] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = y ? thr ...  throw ex2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'x = y ? thr ... : throw ex2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex2')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitThrow)
+                      Operand: 
+                        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'throw ex2')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit [UnReachable]
+    Predecessors: [B4]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);

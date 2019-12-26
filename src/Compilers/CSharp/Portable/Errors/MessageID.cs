@@ -185,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
         IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
+        IDS_FeatureTargetTypedConditional = MessageBase + 12766,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -293,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Preview features.
                 case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
+                case MessageID.IDS_FeatureTargetTypedConditional:  // changes semantics
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

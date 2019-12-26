@@ -854,9 +854,9 @@ class C
                 // (7,9): error CS8716: There is no target type for the default literal.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 9),
-                // (8,37): error CS8081: Expression does not have a name.
+                // (8,37): error CS8716: There is no target type for the default literal.
                 //         System.Console.Write(nameof(default));
-                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "default").WithLocation(8, 37),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 37),
                 // (9,15): error CS8716: There is no target type for the default literal.
                 //         throw default;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 15),
@@ -1471,7 +1471,7 @@ struct S
 
             var defaultLiteral = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("s += default", defaultLiteral.Parent.ToString());
-            Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
+            Assert.Equal("?", model.GetTypeInfo(defaultLiteral).Type.ToTestDisplayString());
         }
 
         [Fact]

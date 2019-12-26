@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DeconstructionAssignmentOperator,
         NullCoalescingOperator,
         NullCoalescingAssignmentOperator,
+        UnconvertedConditionalOperator,
         ConditionalOperator,
         ArrayAccess,
         ArrayLength,
@@ -209,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ConstructorMethodBody,
         ExpressionWithNullability,
     }
+
 
 
 
@@ -1559,6 +1561,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, leftOperand, rightOperand, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundUnconvertedConditionalOperator : BoundExpression
+    {
+        public BoundUnconvertedConditionalOperator(SyntaxNode syntax, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ErrorCode noCommonTypeError, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
+        {
+
+            Debug.Assert(condition is object, "Field 'condition' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(consequence is object, "Field 'consequence' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(alternative is object, "Field 'alternative' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Condition = condition;
+            this.Consequence = consequence;
+            this.Alternative = alternative;
+            this.NoCommonTypeError = noCommonTypeError;
+        }
+
+
+        public BoundExpression Condition { get; }
+
+        public BoundExpression Consequence { get; }
+
+        public BoundExpression Alternative { get; }
+
+        public ErrorCode NoCommonTypeError { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedConditionalOperator(this);
+
+        public BoundUnconvertedConditionalOperator Update(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ErrorCode noCommonTypeError, TypeSymbol? type)
+        {
+            if (condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || noCommonTypeError != this.NoCommonTypeError || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundUnconvertedConditionalOperator(this.Syntax, condition, consequence, alternative, noCommonTypeError, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7464,6 +7505,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitNullCoalescingOperator((BoundNullCoalescingOperator)node, arg);
                 case BoundKind.NullCoalescingAssignmentOperator: 
                     return VisitNullCoalescingAssignmentOperator((BoundNullCoalescingAssignmentOperator)node, arg);
+                case BoundKind.UnconvertedConditionalOperator: 
+                    return VisitUnconvertedConditionalOperator((BoundUnconvertedConditionalOperator)node, arg);
                 case BoundKind.ConditionalOperator: 
                     return VisitConditionalOperator((BoundConditionalOperator)node, arg);
                 case BoundKind.ArrayAccess: 
@@ -7811,6 +7854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitNullCoalescingOperator(BoundNullCoalescingOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalOperator(BoundConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayAccess(BoundArrayAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayLength(BoundArrayLength node, A arg) => this.DefaultVisit(node, arg);
@@ -8002,6 +8046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitNullCoalescingOperator(BoundNullCoalescingOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalOperator(BoundConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayAccess(BoundArrayAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayLength(BoundArrayLength node) => this.DefaultVisit(node);
@@ -8310,6 +8355,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.LeftOperand);
             this.Visit(node.RightOperand);
+            return null;
+        }
+        public override BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            this.Visit(node.Condition);
+            this.Visit(node.Consequence);
+            this.Visit(node.Alternative);
             return null;
         }
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
@@ -9218,6 +9270,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightOperand = (BoundExpression)this.Visit(node.RightOperand);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(leftOperand, rightOperand, type);
+        }
+        public override BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
+            BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(condition, consequence, alternative, node.NoCommonTypeError, type);
         }
         public override BoundNode? VisitConditionalOperator(BoundConditionalOperator node)
         {
@@ -10588,6 +10648,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(leftOperand, rightOperand, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
+            BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
+            BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
+            BoundUnconvertedConditionalOperator updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
+            {
+                updatedNode = node.Update(condition, consequence, alternative, node.NoCommonTypeError, infoAndType.Type);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(condition, consequence, alternative, node.NoCommonTypeError, node.Type);
             }
             return updatedNode;
         }
@@ -12674,6 +12753,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("leftOperand", null, new TreeDumperNode[] { Visit(node.LeftOperand, null) }),
             new TreeDumperNode("rightOperand", null, new TreeDumperNode[] { Visit(node.RightOperand, null) }),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node, object? arg) => new TreeDumperNode("unconvertedConditionalOperator", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("condition", null, new TreeDumperNode[] { Visit(node.Condition, null) }),
+            new TreeDumperNode("consequence", null, new TreeDumperNode[] { Visit(node.Consequence, null) }),
+            new TreeDumperNode("alternative", null, new TreeDumperNode[] { Visit(node.Alternative, null) }),
+            new TreeDumperNode("noCommonTypeError", node.NoCommonTypeError, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

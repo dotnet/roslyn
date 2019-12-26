@@ -5927,4 +5927,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExternEventInitializer" xml:space="preserve">
     <value>'{0}': extern event cannot have initializer</value>
   </data>
+  <data name="IDS_FeatureTargetTypedConditional" xml:space="preserve">
+    <!-- This is only used to display a typeless bound node in diagnostics. -->
+    <value>&lt;conditional expression&gt;</value>
+  </data>
 </root>

@@ -934,6 +934,11 @@
         <target state="translated">&lt;switch 式&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTargetTypedConditional">
+        <source>&lt;conditional expression&gt;</source>
+        <target state="new">&lt;conditional expression&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
         <target state="translated">タプルの等値性</target>

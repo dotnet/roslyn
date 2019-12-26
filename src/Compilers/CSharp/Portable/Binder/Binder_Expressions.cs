@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                ImmutableArray.Create(childNode),
+                ImmutableArray.Create(BindToTypeForErrorRecovery(childNode)),
                 CreateErrorType());
         }
 
@@ -256,6 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundExpression BindToNaturalType(BoundExpression expression, DiagnosticBag diagnostics, bool reportDefaultMissingType = true)
         {
+            if (!expression.NeedsToBeConverted())
+                return expression;
+
             BoundExpression result;
             switch (expression)
             {
@@ -271,6 +274,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                         result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    }
+                    break;
+                case BoundUnconvertedConditionalOperator op:
+                    {
+                        TypeSymbol type = op.Type;
+                        bool hasErrors = op.HasErrors;
+                        if (type is null)
+                        {
+                            Debug.Assert(op.NoCommonTypeError != 0);
+                            type = CreateErrorType();
+                            hasErrors = true;
+                            object trueArg = op.Consequence.Display;
+                            object falseArg = op.Alternative.Display;
+                            if (op.NoCommonTypeError == ErrorCode.ERR_InvalidQM)
+                            {
+                                if (trueArg is Symbol trueSymbol && falseArg is Symbol falseSymbol)
+                                {
+                                    SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, trueSymbol, falseSymbol);
+                                    trueArg = distinguisher.First;
+                                    falseArg = distinguisher.Second;
+                                }
+
+                                diagnostics.Add(ErrorCode.ERR_InvalidQM, op.Syntax.Location, trueArg, falseArg);
+                            }
+                            else
+                            {
+                                Debug.Assert(op.NoCommonTypeError == ErrorCode.ERR_AmbigQM);
+                                diagnostics.Add(ErrorCode.ERR_AmbigQM, op.Syntax.Location, trueArg, falseArg);
+                            }
+                        }
+
+                        result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
@@ -2292,6 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_StackAllocConversionNotPossible, syntax, stackAllocExpression.ElementType, targetType);
                         return;
                     }
+                case BoundKind.UnconvertedConditionalOperator when operand.Type is null:
                 case BoundKind.UnconvertedSwitchExpression when operand.Type is null:
                     {
                         GenerateImplicitConversionError(diagnostics, operand.Syntax, conversion, operand, targetType);

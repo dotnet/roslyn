@@ -2894,23 +2894,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node)
+        {
+            return VisitConditionalOperatorCore(node, node.Condition, isRef: false, node.Consequence, node.Alternative);
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            VisitCondition(node.Condition);
+            return VisitConditionalOperatorCore(node, node.Condition, node.IsRef, node.Consequence, node.Alternative);
+        }
+
+        private BoundNode VisitConditionalOperatorCore(
+            BoundExpression node,
+            BoundExpression condition,
+            bool isRef,
+            BoundExpression originalConsequence,
+            BoundExpression originalAlternative)
+        {
+            VisitCondition(condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
 
             TypeWithState consequenceRValue;
             TypeWithState alternativeRValue;
 
-            if (node.IsRef)
+            if (isRef)
             {
                 TypeWithAnnotations consequenceLValue;
                 TypeWithAnnotations alternativeLValue;
 
-                (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
+                (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, originalConsequence);
                 consequenceState = this.State;
-                (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
+                (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
                 TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
@@ -2941,26 +2956,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In cases where one branch is unreachable, we don't need to Unsplit the state
             if (!alternativeState.Reachable)
             {
-                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
-                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
+                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
                 alternativeEndReachable = false;
                 consequenceEndReachable = IsReachable();
             }
             else if (!consequenceState.Reachable)
             {
-                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
-                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
+                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
                 consequenceEndReachable = false;
                 alternativeEndReachable = IsReachable();
             }
             else
             {
-                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
+                (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, originalConsequence);
                 Unsplit();
                 consequenceState = this.State;
                 consequenceEndReachable = consequenceState.Reachable;
 
-                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
+                (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, originalAlternative);
                 Unsplit();
                 alternativeEndReachable = this.State.Reachable;
                 Join(ref this.State, ref consequenceState);
@@ -2995,14 +3010,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var resultTypeWithState = TypeWithState.Create(resultType, resultState);
 
-                if (consequence != node.Consequence)
+                if (consequence != originalConsequence)
                 {
-                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)node.Consequence, consequence);
+                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)originalConsequence, consequence);
                 }
 
-                if (alternative != node.Alternative)
+                if (alternative != originalAlternative)
                 {
-                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)node.Alternative, alternative);
+                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)originalAlternative, alternative);
                 }
             }
             else
@@ -3010,7 +3025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
 
                 TypeWithState convertedConsequenceResult = convertResult(
-                    node.Consequence,
+                    originalConsequence,
                     consequence,
                     consequenceConversion,
                     resultTypeWithAnnotations,
@@ -3018,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     consequenceEndReachable);
 
                 TypeWithState convertedAlternativeResult = convertResult(
-                    node.Alternative,
+                    originalAlternative,
                     alternative,
                     alternativeConversion,
                     resultTypeWithAnnotations,
@@ -3035,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Conversion conversion;
                 SetState(state);
-                Debug.Assert(!node.IsRef);
+                Debug.Assert(!isRef);
 
                 BoundExpression operandNoConversion;
                 (operandNoConversion, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
@@ -3047,7 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (TypeWithAnnotations LValueType, TypeWithState RValueType) visitConditionalRefOperand(LocalState state, BoundExpression operand)
             {
                 SetState(state);
-                Debug.Assert(node.IsRef);
+                Debug.Assert(isRef);
                 TypeWithAnnotations lValueType = VisitLvalueWithAnnotations(operand);
                 return (lValueType, ResultType);
             }
@@ -5113,7 +5128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.SwitchExpression:
-                    // The switch expression conversion is not represented as a separate conversion in the bound tree.
+                case ConversionKind.ConditionalExpression:
+                    // These are not represented as a separate conversion in the bound tree.
+                    // Instead they are folded into the operand.
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
 
                 case ConversionKind.ExplicitUserDefined:

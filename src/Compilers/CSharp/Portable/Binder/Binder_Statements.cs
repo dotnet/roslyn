@@ -2169,17 +2169,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         bool reportedError = false;
                         foreach (var arm in switchExpression.SwitchArms)
-                        {
-                            var armConversion = this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, targetType, ref useSiteDiagnostics);
-                            if (!armConversion.IsImplicit)
-                            {
-                                GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, conversion, arm.Value, targetType);
-                                reportedError = true;
-                            }
-                        }
+                            tryConversion(arm.Value, ref reportedError, ref useSiteDiagnostics);
 
                         Debug.Assert(reportedError);
                         return;
+                    }
+                case BoundKind.UnconvertedConditionalOperator:
+                    {
+                        var conditionalOperator = (BoundUnconvertedConditionalOperator)operand;
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        bool reportedError = false;
+                        foreach (var side in new[] { conditionalOperator.Consequence, conditionalOperator.Alternative })
+                            tryConversion(side, ref reportedError, ref useSiteDiagnostics);
+
+                        Debug.Assert(reportedError);
+                        return;
+                    }
+
+                    void tryConversion(BoundExpression expr, ref bool reportedError, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+                    {
+                        var conversion = this.Conversions.ClassifyImplicitConversionFromExpression(expr, targetType, ref useSiteDiagnostics);
+                        if (!conversion.IsImplicit)
+                        {
+                            GenerateImplicitConversionError(diagnostics, expr.Syntax, conversion, expr, targetType);
+                            reportedError = true;
+                        }
                     }
             }
 
@@ -2331,10 +2345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // It was not. Does it implement operator true?
-
-            LookupResultKind resultKind;
-            ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            expr = BindToNaturalType(expr, diagnostics);
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
@@ -3061,6 +3073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // This can happen if we are binding an async anonymous method to a delegate type.
                 Error(diagnostics, ErrorCode.ERR_MustNotHaveRefReturn, syntax);
+                expression = BindToTypeForErrorRecovery(expression);
                 statement = new BoundReturnStatement(syntax, refKind, expression) { WasCompilerGenerated = true };
             }
             else if ((object)returnType != null)
@@ -3088,6 +3101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
                     }
+                    else
+                    {
+                        expression = BindToNaturalType(expression, diagnostics);
+                    }
 
                     // Don't mark compiler generated so that the rewriter generates sequence points
                     var expressionStatement = new BoundExpressionStatement(syntax, expression, errors);
@@ -3111,6 +3128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (expression.Type?.SpecialType == SpecialType.System_Void)
             {
+                expression = BindToNaturalType(expression, diagnostics);
                 statement = new BoundExpressionStatement(syntax, expression) { WasCompilerGenerated = true };
             }
             else

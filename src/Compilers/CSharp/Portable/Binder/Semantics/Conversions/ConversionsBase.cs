@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -118,8 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The switch expression conversion is "lowest priority", so that if there is a conversion from the expression's
             // type it will be preferred over the switch expression conversion.  Technically, we would want the language
             // specification to say that the switch expression conversion only "exists" if there is no implicit conversion
-            // from the type, and we accomplish that by making it lowest priority.
-            return GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            // from the type, and we accomplish that by making it lowest priority.  The same for the conditional expression
+            // conversion.
+            conversion = GetSwitchExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
+            if (conversion.Exists)
+            {
+                return conversion;
+            }
+            return GetConditionalExpressionConversion(sourceExpression, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -956,6 +963,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return Conversion.NoConversion;
             }
+        }
+
+        private Conversion GetConditionalExpressionConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (!(source is BoundUnconvertedConditionalOperator conditionalOperator))
+                return Conversion.NoConversion;
+
+            var trueConversion = this.ClassifyImplicitConversionFromExpression(conditionalOperator.Consequence, destination, ref useSiteDiagnostics);
+            if (!trueConversion.Exists)
+                return Conversion.NoConversion;
+
+            var falseConversion = this.ClassifyImplicitConversionFromExpression(conditionalOperator.Alternative, destination, ref useSiteDiagnostics);
+            if (!falseConversion.Exists)
+                return Conversion.NoConversion;
+
+            return Conversion.MakeConditionalExpression(ImmutableArray.Create(trueConversion, falseConversion));
         }
 
         private static Conversion ClassifyNullLiteralConversion(BoundExpression source, TypeSymbol destination)

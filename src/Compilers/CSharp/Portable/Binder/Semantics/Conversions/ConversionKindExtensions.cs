@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case NullToPointer:
                 case InterpolatedString:
                 case SwitchExpression:
+                case ConditionalExpression:
                 case Deconstruction:
                 case StackAllocToPointerType:
                 case StackAllocToSpanType:
