@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                 return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia);
             }
 
-            protected int CommentTokenLength() => "//".Length;
-
             public int? TrySplit()
             {
                 var nodeToReplace = GetNodeToReplace();

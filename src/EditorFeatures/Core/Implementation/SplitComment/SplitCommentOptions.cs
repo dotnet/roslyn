@@ -5,9 +5,9 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 {
-    internal class SplitCommentOptions
+    public class SplitCommentOptions
     {
         public static PerLanguageOption<bool> Enabled =
            new PerLanguageOption<bool>(nameof(SplitCommentOptions), nameof(Enabled), defaultValue: true,
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
     }
 
     [ExportOptionProvider, Shared]
-    internal class SplitStringLiteralOptionsProvider : IOptionProvider
+    internal class SplitCommentOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
-        public SplitStringLiteralOptionsProvider()
+        public SplitCommentOptionsProvider()
         {
         }
 

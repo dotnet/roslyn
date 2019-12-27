@@ -1801,6 +1801,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split Comment.
+        /// </summary>
+        internal static string Split_comment {
+            get {
+                return ResourceManager.GetString("Split_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Start Rename.
         /// </summary>
         internal static string Start_Rename {

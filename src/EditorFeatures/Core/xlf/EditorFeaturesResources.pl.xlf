@@ -127,6 +127,11 @@
         <target state="translated">Zmień nazwę _pliku (niedozwolone dla typów częściowych)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split Comment</source>
+        <target state="new">Split Comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="translated">Ciąg — znak ucieczki</target>

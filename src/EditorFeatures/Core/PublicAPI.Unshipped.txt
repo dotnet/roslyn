@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.Editor.Implementation.SplitComment.SplitCommentOptions
+Microsoft.CodeAnalysis.Editor.Implementation.SplitComment.SplitCommentOptions.SplitCommentOptions() -> void
+static Microsoft.CodeAnalysis.Editor.Implementation.SplitComment.SplitCommentOptions.Enabled -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>

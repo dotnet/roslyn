@@ -932,4 +932,7 @@ Do you want to proceed?</value>
   <data name="Removal_of_document_not_supported" xml:space="preserve">
     <value>Removal of document not supported</value>
   </data>
+  <data name="Split_comment" xml:space="preserve">
+    <value>Split Comment</value>
+  </data>
 </root>
