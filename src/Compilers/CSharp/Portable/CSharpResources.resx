@@ -5933,4 +5933,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExternEventInitializer" xml:space="preserve">
     <value>'{0}': extern event cannot have initializer</value>
   </data>
+  <data name="ERR_ImplicitIndexIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Index Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Range Indexer cannot name the argument.</value>
+  </data>
 </root>
