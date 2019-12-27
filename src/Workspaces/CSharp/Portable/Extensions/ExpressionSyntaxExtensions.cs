@@ -214,10 +214,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
+            return IsLeftSideOfQualifiedName(expression) ||
+                   IsLeftSideOfSimpleMemberAccessExpression(expression);
         }
+
+        public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
+            => expression != null && expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression;
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
         {
@@ -2071,10 +2073,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            //if (WillConflictWithExistingLocal(memberAccess, reducedName))
-            //{
-            //    return false;
-            //}
+            if (WillConflictWithExistingLocal(memberAccess, reducedName))
+            {
+                return false;
+            }
 
             if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
             {

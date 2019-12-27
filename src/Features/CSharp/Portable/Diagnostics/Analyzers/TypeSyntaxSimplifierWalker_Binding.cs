@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             };
 
         private bool TryReplaceExprWithRightSide(
-            SyntaxNode rootExpression, ExpressionSyntax left, SimpleNameSyntax right,
+            SyntaxNode root, ExpressionSyntax left, SimpleNameSyntax right,
             string diagnosticId, ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
@@ -422,11 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (!Peek(_declarationNamesInScopeStack).Contains(rightIdentifier))
                 return false;
 
-            symbol ??= GetNamespaceOrTypeSymbol(rootExpression);
+            symbol ??= GetNamespaceOrTypeSymbol(root);
             if (symbol == null)
                 return false;
 
-            if (rootExpression is QualifiedNameSyntax qualifiedName &&
+            if (root is QualifiedNameSyntax qualifiedName &&
                 IsNameOfUsingDirective(qualifiedName, out var usingDirective))
             {
                 // Check for a couple of cases where it is legal to simplify, but where users prefer
@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // Now try to bind just 'B' in our current location.  If it binds to 'A.B' then we can
             // reduce to just that name.
-            var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(rootExpression);
-            var foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext, rightIdentifier);
+            var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(root);
+            var foundSymbols = LookupName(root, isNamespaceOrTypeContext, rightIdentifier);
             var rightArity = right.Arity;
             foreach (var found in foundSymbols)
             {
@@ -463,9 +463,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // See if we're in the `Color Color` case.  i.e user may have written
             // `X.Color.Red`.  We need to retry binding `Color` as a decl here to 
             // see if we can simplify to that.
-            if (!isNamespaceOrTypeContext && IsColorColorCase(foundSymbols))
+            if (!isNamespaceOrTypeContext &&
+                rightArity == 0 &&
+                IsColorColorCase(foundSymbols) &&
+                root.Parent is MemberAccessExpressionSyntax)
             {
-                foundSymbols = LookupName(rootExpression, isNamespaceOrTypeContext: true, rightIdentifier);
+                foundSymbols = LookupName(root, isNamespaceOrTypeContext: true, rightIdentifier);
                 foreach (var found in foundSymbols)
                 {
                     if (IsMatch(symbol, found, rightArity))
@@ -493,11 +496,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (foundSymbols.Length == 1)
             {
                 var found = foundSymbols[0];
-                if (found is IPropertySymbol property && found.Name == property.Type.Name)
-                    return true;
-
-                if (found is IFieldSymbol field && found.Name == field.Type.Name)
-                    return true;
+                return found switch
+                {
+                    IPropertySymbol property => found.Name == property.Type.Name,
+                    IFieldSymbol field => found.Name == field.Type.Name,
+                    ILocalSymbol local => found.Name == local.Type.Name,
+                    IParameterSymbol parameter => found.Name == parameter.Type.Name,
+                    _ => false,
+                };
             }
 
             return false;
