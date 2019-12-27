@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
 Imports Microsoft.CodeAnalysis.Lsif.Generator.Writing
 Imports Xunit
@@ -51,7 +52,8 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
         ''' <summary>
         ''' Returns all the vertices linked to the given vertex by the edge type.
         ''' </summary>
-        Public Iterator Function GetLinkedVertices(Of T As Vertex)(vertex As LsifGraph.Vertex, edgeLabel As String) As IEnumerable(Of T)
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As LsifGraph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
+            Dim builder = ImmutableArray.CreateBuilder(Of T)
 
             Dim edges As List(Of Edge) = Nothing
             If _edgesByOutVertex.TryGetValue(vertex, edges) Then
@@ -60,9 +62,11 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
                 For Each inVertexId In inVerticesId
                     ' This is an unsafe "cast" if you will converting the ID to the expected type;
                     ' GetElementById checks the real vertex type so thta will stay safe in the end.
-                    Yield GetElementById(Of T)(New Id(Of T)(inVertexId.NumericId))
+                    builder.Add(GetElementById(Of T)(New Id(Of T)(inVertexId.NumericId)))
                 Next
             End If
+
+            Return builder.ToImmutable()
         End Function
 
         Public ReadOnly Property Vertices As IEnumerable(Of Vertex)

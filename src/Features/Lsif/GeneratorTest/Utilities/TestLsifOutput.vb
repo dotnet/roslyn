@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Lsif.Generator.LsifGraph
 
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
         ''' <summary>
         ''' Returns all the vertices linked to the given vertex by the edge type.
         ''' </summary>
-        Public Function GetLinkedVertices(Of T As Vertex)(vertex As LsifGraph.Vertex, edgeLabel As String) As IEnumerable(Of T)
+        Public Function GetLinkedVertices(Of T As Vertex)(vertex As LsifGraph.Vertex, edgeLabel As String) As ImmutableArray(Of T)
             Return _testLsifJsonWriter.GetLinkedVertices(Of T)(vertex, edgeLabel)
         End Function
 
