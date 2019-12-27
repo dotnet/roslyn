@@ -2172,6 +2172,35 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidQM, "y ? throw ex1 : throw ex2").WithArguments("<throw expression>", "<throw expression>").WithLocation(6, 13)
                 );
 
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = y ? thr ...  throw ex2;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsInvalid) (Syntax: 'x = y ? thr ... : throw ex2')
+        Left: 
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
+        Right: 
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'y ? throw e ... : throw ex2')
+            Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'y ? throw e ... : throw ex2')
+                Condition: 
+                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'y')
+                WhenTrue: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'throw ex1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex1')
+                        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex1')
+                WhenFalse: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex2')
+                        IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex2')
+";
+            VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
+
             // PROTOTYPE(ngafter): Investigate the tree in block B4 (syntax for the operand of the conversion)
             string expectedGraph = @"
 Block[B0] - Entry
@@ -2230,7 +2259,7 @@ Block[B5] - Exit [UnReachable]
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        public void ThrowFlow_32_TargetTypedConditoinal()
+        public void ThrowFlow_32_TargetTypedConditional()
         {
             var source = @"
 class C
@@ -2243,6 +2272,31 @@ class C
 
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
             compilation.VerifyDiagnostics();
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = y ? thr ...  throw ex2;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'x = y ? thr ... : throw ex2')
+        Left: 
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
+        Right: 
+          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean) (Syntax: 'y ? throw e ... : throw ex2')
+            Condition: 
+              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+            WhenTrue: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex1')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex1')
+                    IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+            WhenFalse: 
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex2')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand: 
+                  IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex2')
+                    IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
+";
+            VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
             // PROTOTYPE(ngafter): Investigate the tree in block B4.  The conversion should be an identity conversion on the whole conditional.
             string expectedGraph = @"

@@ -145,7 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
         {
-            // PROTOTYPE(ngafter): Can this occur?
             return this.VisitSwitchExpression(node);
         }
 

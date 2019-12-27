@@ -284,7 +284,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
                 case BoundKind.UnconvertedConditionalOperator:
                     throw ExceptionUtilities.Unreachable;
-                case BoundKind.UnconvertedSwitchExpression: // PROTOTYPE(ngafter): can this occur?
+                case BoundKind.UnconvertedSwitchExpression:
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.ConvertedSwitchExpression:
                     return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:

@@ -4028,7 +4028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                BoundExpression argument = BindToNaturalType(analyzedArguments.Arguments.Count >= 1 ? analyzedArguments.Arguments[0] : null, diagnostics);
+                BoundExpression argument = analyzedArguments.Arguments.Count >= 1 ? BindToNaturalType(analyzedArguments.Arguments[0], diagnostics) : null;
 
                 if (hasErrors)
                 {
