@@ -2091,7 +2091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (WillConflictWithExistingLocal(memberAccess, reducedName))
+            if (WillConflictWithExistingLocal(memberAccess, reducedName, semanticModel))
             {
                 return false;
             }
@@ -2231,7 +2231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // not allowed in the C# grammar.
 
             if (IsNonNameSyntaxInUsingDirective(name, reducedName) ||
-                WillConflictWithExistingLocal(name, reducedName) ||
+                WillConflictWithExistingLocal(name, reducedName, semanticModel) ||
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(reducedName) ||
                 name.IsNotNullableReplaceable(reducedName) ||
@@ -2414,24 +2414,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 !(simplifiedNode is NameSyntax);
         }
 
-        private static bool WillConflictWithExistingLocal(ExpressionSyntax expression, ExpressionSyntax simplifiedNode)
+        private static bool WillConflictWithExistingLocal(
+            ExpressionSyntax expression, ExpressionSyntax simplifiedNode, SemanticModel semanticModel)
         {
-            if (simplifiedNode.Kind() == SyntaxKind.IdentifierName && !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
+            if (simplifiedNode is IdentifierNameSyntax identifierName &&
+                !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
             {
-                var identifierName = (IdentifierNameSyntax)simplifiedNode;
-                var enclosingDeclarationSpace = FindImmediatelyEnclosingLocalVariableDeclarationSpace(expression);
-                var enclosingMemberDeclaration = expression.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-                if (enclosingDeclarationSpace != null && enclosingMemberDeclaration != null)
-                {
-                    var locals = enclosingMemberDeclaration.GetLocalDeclarationMap()[identifierName.Identifier.ValueText];
-                    foreach (var token in locals)
-                    {
-                        if (token.GetAncestors<SyntaxNode>().Contains(enclosingDeclarationSpace))
-                        {
-                            return true;
-                        }
-                    }
-                }
+                var symbols = semanticModel.LookupSymbols(expression.SpanStart, name: identifierName.Identifier.ValueText);
+                return symbols.Any(s => s is ILocalSymbol);
             }
 
             return false;
