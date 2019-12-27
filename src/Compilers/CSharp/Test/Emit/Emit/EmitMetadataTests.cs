@@ -83,10 +83,38 @@ public class N : D.K<M>
 
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var baseLine = System.Xml.Linq.XElement.Load(new StringReader(Resources.EmitSimpleBaseLine1));
-                System.Xml.Linq.XElement dumpXML = DumpTypeInfo(module);
+                var dump = DumpTypeInfo(module).ToString();
 
-                Assert.Equal(baseLine.ToString(), dumpXML.ToString());
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+<Global>
+<type name=""&amp;lt;Module&amp;gt;"" />
+<type name=""A"" Of=""T"" base=""System.Object"">
+  <field name=""x1"" type=""A(Of T)"" />
+  <field name=""x2"" type=""A(Of D)"" />
+  <type name=""B"" base=""A(Of T)"">
+  <field name=""y1"" type=""A(Of T).B"" />
+  <field name=""y2"" type=""A(Of D).B"" />
+  <type name=""C"" base=""A(Of T).B"" />
+  </type>
+  <type name=""H"" Of=""S"" base=""System.Object"">
+  <type name=""I"" base=""A(Of T).H(Of S)"" />
+  </type>
+</type>
+<type name=""D"" base=""System.Object"">
+  <type name=""K"" Of=""T"" base=""System.Object"">
+  <type name=""L"" base=""D.K(Of T)"" />
+  </type>
+</type>
+<type name=""F"" base=""A(Of D)"" />
+<type name=""G"" base=""A(Of NS1.E).B"" />
+<type name=""J"" base=""A(Of D).H(Of D)"" />
+<type name=""M"" base=""System.Object"" />
+<type name=""N"" base=""D.K(Of M)"" />
+<NS1>
+  <type name=""E"" base=""D"" />
+</NS1>
+</Global>
+", dump);
             }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
 

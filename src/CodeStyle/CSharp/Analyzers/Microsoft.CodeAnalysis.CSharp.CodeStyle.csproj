@@ -59,18 +59,7 @@
     <Compile Include="..\..\..\Workspaces\CSharp\Portable\Utilities\FormattingRangeHelper.cs" Link="Formatting\FormattingRangeHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="CSharpCodeStyleResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CSharpCodeStyleResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="CSharpCodeStyleResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>CSharpCodeStyleResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="CSharpCodeStyleResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
