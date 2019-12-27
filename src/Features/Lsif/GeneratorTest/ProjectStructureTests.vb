@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
     Public NotInheritable Class ProjectStructureTests
         <Fact>
         Public Async Sub ProjectContainsDocuments()
-            Dim lsif = Await GenerateForWorkspaceAsync(
+            Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
