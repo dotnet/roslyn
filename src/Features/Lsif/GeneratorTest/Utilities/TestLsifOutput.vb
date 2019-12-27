@@ -42,5 +42,25 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
                 Return _testLsifJsonWriter.Vertices
             End Get
         End Property
+
+        ''' <summary>
+        ''' Returns the <see cref="Range" /> vertex in the output that corresponds to the selected range in the <see cref="TestWorkspace" />.
+        ''' </summary>
+        Public Async Function GetSelectedRangeAsync() As Task(Of LsifGraph.Range)
+            Dim selectedTestDocument = _workspace.Documents.Single(Function(d) d.SelectedSpans.Any())
+            Dim selectedDocument = _workspace.CurrentSolution.GetDocument(selectedTestDocument.Id)
+            Dim selectionTextSpan = selectedTestDocument.SelectedSpans.Single()
+            Dim selectionRange = Range.FromTextSpan(selectionTextSpan, Await selectedDocument.GetTextAsync())
+
+            Dim documentVertex = _testLsifJsonWriter.Vertices _
+                                                    .OfType(Of LsifGraph.Document) _
+                                                    .Where(Function(d) d.Uri.LocalPath = selectedDocument.FilePath) _
+                                                    .Single()
+
+            Return _testLsifJsonWriter.GetLinkedVertices(Of Range)(documentVertex, "contains") _
+                                      .Where(Function(r) r.Start = selectionRange.Start AndAlso
+                                                         r.End = selectionRange.End) _
+                                      .Single()
+        End Function
     End Class
 End Namespace
