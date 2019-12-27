@@ -1885,6 +1885,53 @@ index: 1);
 }");
         }
 
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationToNameInNestedScope1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+
+namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int[] args)
+        {
+            [|N.Program.Goo.Bar|]();
+            var q = from Goo in args select Goo;
+        }
+    }
+}",
+@"using System.Linq;
+
+namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int[] args)
+        {
+            Goo.Bar();
+            var q = from Goo in args select Goo;
+        }
+    }
+}");
+        }
+
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType1()
