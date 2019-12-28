@@ -700,6 +700,12 @@ Do you want to continue?</value>
   <data name="no_value" xml:space="preserve">
     <value>no value.</value>
   </data>
+  <data name="Awaited_task_returns_0" xml:space="preserve">
+    <value>Awaited task returns {0}.</value>
+  </data>
+  <data name="Awaited_task_returns_no_value" xml:space="preserve">
+    <value>Awaited task returns no value.</value>
+  </data>
   <data name="Note_colon_Tab_twice_to_insert_the_0_snippet" xml:space="preserve">
     <value>Note: Tab twice to insert the '{0}' snippet.</value>
   </data>

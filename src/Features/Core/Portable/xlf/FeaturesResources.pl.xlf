@@ -82,6 +82,16 @@
         <target state="translated">Unikaj nieużywanych parametrów w kodzie. Jeśli nie można usunąć parametru, zmień jego nazwę, tak aby rozpoczynała się od znaku podkreślenia, a opcjonalnie następowała po niej liczba całkowita, na przykład „_”, „_1”, „_2” itp. Są one traktowane jako specjalne nazwy symboli odrzucenia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns {0}.</source>
+        <target state="new">Awaited task returns {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value.</source>
+        <target state="new">Awaited task returns no value.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Nie można zastosować zmian — nieoczekiwany błąd: „{0}”</target>

@@ -751,6 +751,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Awaited task returns {0}..
+        /// </summary>
+        internal static string Awaited_task_returns_0 {
+            get {
+                return ResourceManager.GetString("Awaited_task_returns_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Awaited task returns no value..
+        /// </summary>
+        internal static string Awaited_task_returns_no_value {
+            get {
+                return ResourceManager.GetString("Awaited_task_returns_no_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to can&apos;t not construct final tree.
         /// </summary>
         internal static string can_t_not_construct_final_tree {
