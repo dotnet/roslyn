@@ -1771,7 +1771,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // We may be looking at a name `X.Y` seeing if we can replace it with `Y`.  However, in
+            // order to know for sure, we actually have to look slightly higher at `X.Y.Z` to see if
+            // it can simplify to `Y.Z`.  This is because in the `Color Color` case we can only tell
+            // if we can reduce by looking by also looking at what comes next to see if it will
+            // cause the simplified name to bind to the instance or static side.
+            if (TryReduceCrefColorColor(name, replacementNode, semanticModel, cancellationToken))
+            {
+                return true;
+            }
+
             return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool TryReduceCrefColorColor(
+            NameSyntax name, TypeSyntax replacement,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (name.Parent is QualifiedCrefSyntax qualifiedCrefParent && qualifiedCrefParent.Container == name)
+            {
+                var qualifiedReplacement = SyntaxFactory.QualifiedCref(replacement, qualifiedCrefParent.Member);
+                if (qualifiedCrefParent.TryReduceOrSimplifyQualifiedCref(
+                        semanticModel, qualifiedReplacement, out _, out _, cancellationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name, SemanticModel semanticModel)

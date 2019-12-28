@@ -66,6 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            return TryReduceOrSimplifyQualifiedCref(
+                qualifiedCrefSyntax, semanticModel, memberCref,
+                out replacementNode, out issueSpan, cancellationToken);
+        }
+
+        public static bool TryReduceOrSimplifyQualifiedCref(
+            this QualifiedCrefSyntax crefSyntax, SemanticModel semanticModel,
+            CrefSyntax replacement, out CrefSyntax replacementNode, out TextSpan issueSpan,
+            CancellationToken cancellationToken)
+        {
             var oldSymbol = semanticModel.GetSymbolInfo(crefSyntax, cancellationToken).Symbol;
             if (oldSymbol != null)
             {
@@ -75,19 +85,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     speculativeBindingOption = SpeculativeBindingOption.BindAsTypeOrNamespace;
                 }
 
-                var newSymbol = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, memberCref, speculativeBindingOption).Symbol;
+                var newSymbol = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, replacement, speculativeBindingOption).Symbol;
 
                 if (Equals(newSymbol, oldSymbol))
                 {
                     // Copy Trivia and Annotations
-                    memberCref = memberCref.WithLeadingTrivia(crefSyntax.GetLeadingTrivia());
-                    memberCref = crefSyntax.CopyAnnotationsTo(memberCref);
-                    issueSpan = qualifiedCrefSyntax.Container.Span;
-                    replacementNode = memberCref;
+                    replacement = replacement.WithLeadingTrivia(crefSyntax.GetLeadingTrivia());
+                    replacement = crefSyntax.CopyAnnotationsTo(replacement);
+                    issueSpan = crefSyntax.Container.Span;
+                    replacementNode = replacement;
                     return true;
                 }
             }
 
+            replacementNode = default;
+            issueSpan = default;
             return false;
         }
     }
