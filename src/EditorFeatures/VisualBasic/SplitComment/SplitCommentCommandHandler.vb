@@ -54,7 +54,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
             Dim sourceText = root.SyntaxTree.GetText(cancellationToken)
 
+            Dim splitter = CommentSplitter.Create(
+                document, position, root, sourceText,
+                useTabs, tabSize, indentStyle, cancellationToken)
 
+            If splitter Is Nothing Then
+                Return Nothing
+            End If
+
+            Return splitter.TrySplit()
         End Function
     End Class
 End Namespace

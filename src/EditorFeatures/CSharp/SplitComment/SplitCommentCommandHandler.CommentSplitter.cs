@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
             private int SplitWorker()
             {
                 var (newDocument, finalCaretPosition) = SplitComment();
-
                 var workspace = Document.Project.Solution.Workspace;
+
                 workspace.TryApplyChanges(newDocument.Project.Solution);
 
                 return finalCaretPosition;
@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
 
                 var indent = baseOffsetInLine + desiredIndentation.Offset;
                 var indentString = indent.CreateIndentationString(UseTabs, TabSize);
+
                 return indentString;
             }
         }
