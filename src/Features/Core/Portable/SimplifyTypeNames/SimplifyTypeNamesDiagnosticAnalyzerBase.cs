@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
 #if LOG
-        private static string _logFile = @"c:\temp\simplify-" + DateTime.Now + ".txt";
+        private static string _logFile = @"c:\temp\simplifytypenames.txt";
         private static object _gate = new object();
         private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
 #endif
