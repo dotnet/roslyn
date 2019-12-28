@@ -1788,14 +1788,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             NameSyntax name, TypeSyntax replacement,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            if (!InsideCrefReference(name))
+                return false;
+
             if (name.Parent is QualifiedCrefSyntax qualifiedCrefParent && qualifiedCrefParent.Container == name)
             {
+                // we have <see cref="A.B.C.D"/> and we're trying to see if we can replace 
+                // A.B.C with C.  In this case the parent of A.B.C is A.B.C.D which is a 
+                // QualifiedCrefSyntax
+
                 var qualifiedReplacement = SyntaxFactory.QualifiedCref(replacement, qualifiedCrefParent.Member);
                 if (qualifiedCrefParent.TryReduceOrSimplifyQualifiedCref(
                         semanticModel, qualifiedReplacement, out _, out _, cancellationToken))
                 {
                     return true;
                 }
+            }
+            else if (name.Parent is QualifiedNameSyntax qualifiedParent && qualifiedParent.Left == name &&
+                     replacement is NameSyntax replacementName)
+            {
+                // we have <see cref="A.B.C.D"/> and we're trying to see if we can replace 
+                // A.B with B.  In this case the parent of A.B is A.B.C which is a 
+                // QualifiedNameSyntax
+
+                var qualifiedReplacement = SyntaxFactory.QualifiedName(replacementName, qualifiedParent.Right);
+                return qualifiedParent.CanReplaceWithReducedName(qualifiedReplacement, semanticModel, cancellationToken);
             }
 
             return false;
