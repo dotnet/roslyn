@@ -60,14 +60,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             End Function
 
             Protected Function GetNodeToReplace() As SyntaxNode
-                If _trivia.Token.Parent.IsKind(SyntaxKind.EndStatement) Then
-                    ' Return the Parent of the Parent to get the containing statement instead of the end statement
+                ' Return the Parent of the Parent to get the containing statement instead and not any ending statement if it exists
+                If _trivia.Token.Parent.Parent IsNot Nothing Then
                     Return _trivia.Token.Parent.Parent
                 Else
-                    ' We are not at an end statement so just get the parent
                     Return _trivia.Token.Parent
                 End If
-
             End Function
 
             Protected Function CreateSplitComment(indentString As String) As SyntaxTriviaList
