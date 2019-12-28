@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Partial Class Binder
 
-        Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindConditionalAccessExpression(node As ConditionalAccessExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim placeholder As BoundRValuePlaceholder = Nothing
             Dim boundExpression As BoundExpression = BindConditionalAccessReceiver(node, diagnostics, placeholder)
 
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundConditionalAccess(node, boundExpression, placeholder, whenNotNull, Nothing)
         End Function
 
-        Private Function BindConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax, diagnostics As DiagnosticBag, <Out> ByRef placeholder As BoundRValuePlaceholder) As BoundExpression
+        Private Function BindConditionalAccessReceiver(node As ConditionalAccessExpressionSyntax, diagnostics As BindingDiagnosticBag, <Out> ByRef placeholder As BoundRValuePlaceholder) As BoundExpression
             Dim boundExpression As BoundExpression
 
             If node.Expression Is Nothing Then
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overridable Function TryBindOmittedLeftForConditionalAccess(node As ConditionalAccessExpressionSyntax,
                                                                              accessingBinder As Binder,
-                                                                             diagnostics As DiagnosticBag) As BoundExpression
+                                                                             diagnostics As BindingDiagnosticBag) As BoundExpression
             Debug.Assert(Me.ContainingBinder IsNot Nothing)
             Return Me.ContainingBinder.TryBindOmittedLeftForConditionalAccess(node, accessingBinder, diagnostics)
         End Function
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If result Is Nothing Then
                 Dim placeholder As BoundRValuePlaceholder = Nothing
-                BindConditionalAccessReceiver(node, New DiagnosticBag(), placeholder)
+                BindConditionalAccessReceiver(node, BindingDiagnosticBag.Discarded, placeholder)
                 Return placeholder
             End If
 

@@ -210,11 +210,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For i As Integer = 0 To numElements - 1
                 Dim field = srcElementFields(i)
 
-                Dim useSiteInfo As DiagnosticInfo = field.CalculateUseSiteErrorInfo()
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = field.CalculateUseSiteInfo()
 
-                If useSiteInfo IsNot Nothing AndAlso useSiteInfo.Severity = DiagnosticSeverity.Error Then
-                    ReportDiagnostic(rewrittenOperand, useSiteInfo, _diagnostics)
-                End If
+                ReportUseSite(rewrittenOperand, useSiteInfo, _diagnostics)
 
                 Dim fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, constantValueOpt:=Nothing, isLValue:=False)
 
@@ -423,10 +421,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf operandType.IsStringType Then
                     ' CType(string, T?) ---> new T?(CType(string, T))
                     Dim innerTargetType = resultType.GetNullableUnderlyingType
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim convKind = Conversions.ClassifyConversion(rewrittenOperand.Type, innerTargetType, useSiteDiagnostics).Key
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim convKind = Conversions.ClassifyConversion(rewrittenOperand.Type, innerTargetType, useSiteInfo).Key
                     Debug.Assert(Conversions.ConversionExists(convKind))
-                    _diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteInfo)
                     Return WrapInNullable(
                                     TransformRewrittenConversion(
                                         node.Update(rewrittenOperand,
@@ -450,10 +448,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If HasValue(rewrittenOperand) Then
                         ' DirectCast(operand.GetValueOrDefault, operatorType)
                         Dim unwrappedOperand = NullableValueOrDefault(rewrittenOperand)
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteDiagnostics)
+                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteInfo)
                         Debug.Assert(Conversions.ConversionExists(convKind))
-                        _diagnostics.Add(node, useSiteDiagnostics)
+                        _diagnostics.Add(node, useSiteInfo)
                         Return New BoundDirectCast(node.Syntax,
                                                    unwrappedOperand,
                                                    convKind,
@@ -529,8 +527,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' apply unlifted conversion
             If Not operand.Type.IsSameTypeIgnoringAll(unwrappedResultType) Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteDiagnostics).Key
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteInfo).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
                 Debug.Assert((convKind And ConversionKind.Tuple) = (node.ConversionKind And ConversionKind.Tuple))
 
@@ -546,7 +544,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     operand = RewriteConstant(New BoundLiteral(node.Syntax, constantResult, unwrappedResultType), constantResult)
 
                 Else
-                    _diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteInfo)
 
                     If (convKind And ConversionKind.Tuple) <> 0 Then
                         operand = MakeTupleConversion(node.Syntax, operand, unwrappedResultType, DirectCast(node.ExtendedInfoOpt, BoundConvertedTupleElements))
@@ -598,10 +596,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If operandType.IsStringType Then
                 ' CType(string, T?) ---> new T?(CType(string, T))
                 Dim innerTargetType = resultType.GetNullableUnderlyingType
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind = Conversions.ClassifyConversion(operandType, innerTargetType, useSiteDiagnostics).Key
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim convKind = Conversions.ClassifyConversion(operandType, innerTargetType, useSiteInfo).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                _diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteInfo)
                 Return WrapInNullable(
                             TransformRewrittenConversion(
                                 node.Update(rewrittenOperand,
@@ -621,10 +619,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' is not null-propagating
 
                 rewrittenOperand = NullableValue(rewrittenOperand)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteDiagnostics)
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteInfo)
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                _diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteInfo)
                 Return TransformRewrittenConversion(
                             node.Update(rewrittenOperand,
                                         node.ConversionKind And (Not ConversionKind.Nullable),
@@ -648,10 +646,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If HasValue(rewrittenOperand) Then
                     ' DirectCast(operand.GetValueOrDefault, operatorType)
                     Dim unwrappedOperand = NullableValueOrDefault(rewrittenOperand)
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteDiagnostics)
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim convKind = Conversions.ClassifyDirectCastConversion(unwrappedOperand.Type, resultType, useSiteInfo)
                     Debug.Assert(Conversions.ConversionExists(convKind))
-                    _diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteInfo)
                     Return New BoundDirectCast(node.Syntax,
                                                unwrappedOperand,
                                                convKind,
@@ -662,10 +660,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If resultType.IsNullableType Then
                 ' RefType --> T? , this is just an unboxing conversion.
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteDiagnostics)
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim convKind = Conversions.ClassifyDirectCastConversion(rewrittenOperand.Type, resultType, useSiteInfo)
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                _diagnostics.Add(node, useSiteDiagnostics)
+                _diagnostics.Add(node, useSiteInfo)
                 Return New BoundDirectCast(node.Syntax,
                                            rewrittenOperand,
                                            convKind,
@@ -887,12 +885,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not operand.Type.IsObjectType() Then
                     Dim objectType As TypeSymbol = memberSymbol.Parameters(0).Type
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                     operand = New BoundDirectCast(operand.Syntax,
                                                   operand,
-                                                  Conversions.ClassifyDirectCastConversion(operand.Type, objectType, useSiteDiagnostics),
+                                                  Conversions.ClassifyDirectCastConversion(operand.Type, objectType, useSiteInfo),
                                                   objectType)
-                    _diagnostics.Add(node, useSiteDiagnostics)
+                    _diagnostics.Add(node, useSiteInfo)
                 End If
 
                 result = New BoundCall(node.Syntax, memberSymbol, Nothing, Nothing,
@@ -906,10 +904,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function RewriteAsDirectCast(node As BoundConversion) As BoundExpression
 #If DEBUG Then
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
             Debug.Assert(node.Operand.IsNothingLiteral() OrElse
                          (node.ConversionKind And (Not ConversionKind.DelegateRelaxationLevelMask)) =
-                            Conversions.ClassifyDirectCastConversion(node.Operand.Type, node.Type, useSiteDiagnostics))
+                            Conversions.ClassifyDirectCastConversion(node.Operand.Type, node.Type, useSiteInfo))
 #End If
 
             ' TODO: A chain of widening reference conversions that starts from NOTHING literal can be collapsed to a single node.
@@ -965,12 +963,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(operand.Type.IsReferenceType)
                         Debug.Assert(underlyingTypeTo.IsIntrinsicValueType())
 
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                         operand = New BoundDirectCast(operand.Syntax,
                                                       operand,
-                                                      Conversions.ClassifyDirectCastConversion(operand.Type, typeFrom, useSiteDiagnostics),
+                                                      Conversions.ClassifyDirectCastConversion(operand.Type, typeFrom, useSiteInfo),
                                                       typeFrom)
-                        _diagnostics.Add(node, useSiteDiagnostics)
+                        _diagnostics.Add(node, useSiteInfo)
                     End If
 
                     Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringAll(underlyingTypeTo))
@@ -987,8 +985,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim conv = ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions
 #If DEBUG Then
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Debug.Assert(conv = Conversions.ClassifyConversion(memberSymbol.ReturnType, targetResultType, useSiteDiagnostics).Key)
+                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Debug.Assert(conv = Conversions.ClassifyConversion(memberSymbol.ReturnType, targetResultType, useSiteInfo).Key)
 #End If
 
                         result = New BoundConversion(node.Syntax, DirectCast(result, BoundExpression),
@@ -1063,8 +1061,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
 #If DEBUG Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Debug.Assert(conv = Conversions.ClassifyConversion(operandType, memberSymbol.Parameters(0).Type, useSiteDiagnostics).Key)
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Debug.Assert(conv = Conversions.ClassifyConversion(operandType, memberSymbol.Parameters(0).Type, useSiteInfo).Key)
 #End If
 
                     operand = New BoundConversion(node.Syntax, operand, conv, node.Checked, node.ExplicitCastInCode,
@@ -1138,8 +1136,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim conv = ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions
 
 #If DEBUG Then
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Debug.Assert(conv = Conversions.ClassifyConversion(memberSymbol.ReturnType, targetResultType, useSiteDiagnostics).Key)
+                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Debug.Assert(conv = Conversions.ClassifyConversion(memberSymbol.ReturnType, targetResultType, useSiteInfo).Key)
 #End If
 
                         result = New BoundConversion(node.Syntax, DirectCast(result, BoundExpression),
@@ -1208,8 +1206,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
 #If DEBUG Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Debug.Assert(conv = Conversions.ClassifyConversion(operandType, memberSymbol.Parameters(0).Type, useSiteDiagnostics).Key)
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Debug.Assert(conv = Conversions.ClassifyConversion(operandType, memberSymbol.Parameters(0).Type, useSiteInfo).Key)
 #End If
 
                     operand = New BoundConversion(node.Syntax, operand, conv, node.Checked, node.ExplicitCastInCode,
@@ -1281,8 +1279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim conv = ConversionKind.NarrowingNumeric Or ConversionKind.InvolvesEnumTypeConversions
 
 #If DEBUG Then
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Debug.Assert(conv = Conversions.ClassifyConversion(memberSymbol.ReturnType, targetResultType, useSiteDiagnostics).Key)
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Debug.Assert(conv = Conversions.ClassifyConversion(memberSymbol.ReturnType, targetResultType, useSiteInfo).Key)
 #End If
 
                     result = New BoundConversion(node.Syntax, DirectCast(result, BoundExpression),
@@ -1319,12 +1317,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' a "good" symbol for Double type
 
 #If DEBUG Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
 #End If
                 If typeFrom IsNot mathRound.Parameters(0).Type Then
                     ' Converting from Single
 #If DEBUG Then
-                    Debug.Assert(ConversionKind.WideningNumeric = Conversions.ClassifyConversion(typeFrom, mathRound.Parameters(0).Type, useSiteDiagnostics).Key)
+                    Debug.Assert(ConversionKind.WideningNumeric = Conversions.ClassifyConversion(typeFrom, mathRound.Parameters(0).Type, useSiteInfo).Key)
 #End If
                     operand = New BoundConversion(node.Syntax, operand, ConversionKind.WideningNumeric, node.Checked, node.ExplicitCastInCode,
                                                   mathRound.Parameters(0).Type, Nothing)
@@ -1334,7 +1332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   ImmutableArray.Create(operand), Nothing, mathRound.ReturnType)
 
 #If DEBUG Then
-                Debug.Assert(node.ConversionKind = Conversions.ClassifyConversion(mathRound.ReturnType, node.Type, useSiteDiagnostics).Key)
+                Debug.Assert(node.ConversionKind = Conversions.ClassifyConversion(mathRound.ReturnType, node.Type, useSiteInfo).Key)
 #End If
 
                 result = New BoundConversion(node.Syntax, callMathRound, node.ConversionKind,
@@ -1446,8 +1444,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If (Not typeTo.IsTypeParameter()) AndAlso typeTo.IsReferenceType AndAlso
                            (Not typeFrom.IsTypeParameter()) AndAlso typeFrom.IsReferenceType Then
 #If DEBUG Then
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            Debug.Assert(node.ConversionKind = Conversions.ClassifyDirectCastConversion(operand.Type, node.Type, useSiteDiagnostics))
+                            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                            Debug.Assert(node.ConversionKind = Conversions.ClassifyDirectCastConversion(operand.Type, node.Type, useSiteInfo))
 #End If
                             returnValue = New BoundDirectCast(node.Syntax, DirectCast(Visit(operand), BoundExpression), node.ConversionKind, typeTo, Nothing)
                         End If

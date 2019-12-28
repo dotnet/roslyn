@@ -955,15 +955,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return retVal;
             }
 
-            var secondaryDependencies = (result.SecondaryDependencies ?? ImmutableHashSet<AssemblySymbol>.Empty).Union(info.SecondaryDependencies ?? ImmutableHashSet<AssemblySymbol>.Empty);
-            var resultPrimaryDependency = result.PrimaryDependency ?? info.PrimaryDependency;
+            var secondaryDependencies = result.SecondaryDependencies;
+            var primaryDependency = result.PrimaryDependency;
 
-            if (resultPrimaryDependency != info.PrimaryDependency && info.PrimaryDependency is object)
-            {
-                secondaryDependencies = secondaryDependencies.Add(info.PrimaryDependency);
-            }
+            info.MergeDependencies(ref primaryDependency, ref secondaryDependencies);
 
-            result = new UseSiteInfo<AssemblySymbol>(diagnosticInfo, resultPrimaryDependency, secondaryDependencies);
+            result = new UseSiteInfo<AssemblySymbol>(diagnosticInfo, primaryDependency, secondaryDependencies);
             Debug.Assert(!retVal);
             return retVal;
         }

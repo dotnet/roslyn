@@ -45,15 +45,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
                 If _lazyParameters.IsDefault Then
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
 
                     Dim parameterType As TypeSymbol
                     If Me.MethodKind = MethodKind.EventRemove AndAlso m_propertyOrEvent.IsWindowsRuntimeEvent Then
                         parameterType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
-                        Dim useSite = Binder.GetUseSiteErrorForWellKnownType(parameterType)
-                        If useSite IsNot Nothing Then
-                            diagnostics.Add(useSite, Me.Locations(0))
-                        End If
+                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(parameterType), Me.Locations(0))
                     Else
                         parameterType = SourceEvent.Type
                     End If
@@ -73,22 +70,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
                 If _lazyReturnType Is Nothing Then
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
 
                     Dim compilation = Me.DeclaringCompilation
                     Dim type As TypeSymbol
-                    Dim useSite As DiagnosticInfo
+                    Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
                     If Me.IsSub Then
                         type = compilation.GetSpecialType(SpecialType.System_Void)
                         ' Don't report on add, because it will be the same for remove.
-                        useSite = If(Me.MethodKind = MethodKind.EventRemove, Binder.GetUseSiteErrorForSpecialType(type), Nothing)
+                        useSiteInfo = If(Me.MethodKind = MethodKind.EventRemove, Binder.GetUseSiteInfoForSpecialType(type), Nothing)
                     Else
                         type = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken)
-                        useSite = Binder.GetUseSiteErrorForWellKnownType(type)
+                        useSiteInfo = Binder.GetUseSiteInfoForWellKnownType(type)
                     End If
-                    If useSite IsNot Nothing Then
-                        diagnostics.Add(useSite, Me.Locations(0))
-                    End If
+
+                    diagnostics.Add(useSiteInfo, Me.Locations(0))
 
                     DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyReturnType, type, diagnostics, CompilationStage.Declare)
 
@@ -106,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim compilation = Me.DeclaringCompilation
             Return ConstructFieldLikeEventAccessorBody(Me.m_propertyOrEvent, Me.MethodKind = MethodKind.EventAdd, compilation, diagnostics)
         End Function
@@ -114,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Protected Shared Function ConstructFieldLikeEventAccessorBody(eventSymbol As SourceEventSymbol,
                                                            isAddMethod As Boolean,
                                                            compilation As VisualBasicCompilation,
-                                                           diagnostics As DiagnosticBag) As BoundBlock
+                                                           diagnostics As BindingDiagnosticBag) As BoundBlock
             Debug.Assert(eventSymbol.HasAssociatedField)
             Dim result As BoundBlock = If(eventSymbol.IsWindowsRuntimeEvent,
                        ConstructFieldLikeEventAccessorBody_WinRT(eventSymbol, isAddMethod, compilation, diagnostics),
@@ -133,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function ConstructFieldLikeEventAccessorBody_WinRT(eventSymbol As SourceEventSymbol,
                                                            isAddMethod As Boolean,
                                                            compilation As VisualBasicCompilation,
-                                                           diagnostics As DiagnosticBag) As BoundBlock
+                                                           diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim syntax = eventSymbol.SyntaxReference.GetVisualBasicSyntax()
 
             Dim accessor As MethodSymbol = If(isAddMethod, eventSymbol.AddMethod, eventSymbol.RemoveMethod)
@@ -150,18 +146,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            Dim useSiteErrorInfo As DiagnosticInfo = Nothing
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
 
             Dim getOrCreateMethod As MethodSymbol = DirectCast(Binder.GetWellKnownTypeMember(
                 compilation,
                 WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable,
-                useSiteErrorInfo), MethodSymbol)
+                useSiteInfo), MethodSymbol)
 
-            If useSiteErrorInfo IsNot Nothing Then
-                diagnostics.Add(useSiteErrorInfo, syntax.GetLocation())
-            Else
-                Debug.Assert(getOrCreateMethod IsNot Nothing)
-            End If
+            diagnostics.Add(useSiteInfo, syntax.GetLocation())
+            Debug.Assert(getOrCreateMethod IsNot Nothing OrElse useSiteInfo.DiagnosticInfo IsNot Nothing)
 
             If getOrCreateMethod Is Nothing Then
                 Return Nothing
@@ -173,16 +166,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__AddEventHandler,
                 WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__RemoveEventHandler)
 
+            useSiteInfo = Nothing
             Dim processHandlerMethod As MethodSymbol = DirectCast(Binder.GetWellKnownTypeMember(
                 compilation,
                 processHandlerMember,
-                useSiteErrorInfo), MethodSymbol)
+                useSiteInfo), MethodSymbol)
 
-            If useSiteErrorInfo IsNot Nothing Then
-                diagnostics.Add(useSiteErrorInfo, syntax.GetLocation())
-            Else
-                Debug.Assert(processHandlerMethod IsNot Nothing)
-            End If
+            diagnostics.Add(useSiteInfo, syntax.GetLocation())
+            Debug.Assert(processHandlerMethod IsNot Nothing OrElse useSiteInfo.DiagnosticInfo IsNot Nothing)
 
             If processHandlerMethod Is Nothing Then
                 Return Nothing
@@ -274,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function ConstructFieldLikeEventAccessorBody_Regular(eventSymbol As SourceEventSymbol,
                                                                    isAddMethod As Boolean,
                                                                    compilation As VisualBasicCompilation,
-                                                                   diagnostics As DiagnosticBag) As BoundBlock
+                                                                   diagnostics As BindingDiagnosticBag) As BoundBlock
 
 
             If Not eventSymbol.Type.IsDelegateType() Then
@@ -289,12 +280,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim updateMethodId As SpecialMember = If(isAddMethod, SpecialMember.System_Delegate__Combine, SpecialMember.System_Delegate__Remove)
 
-            Dim useSiteError As DiagnosticInfo = Nothing
-            Dim updateMethod As MethodSymbol = DirectCast(Binder.GetSpecialTypeMember(compilation.Assembly, updateMethodId, useSiteError), MethodSymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim updateMethod As MethodSymbol = DirectCast(Binder.GetSpecialTypeMember(compilation.Assembly, updateMethodId, useSiteInfo), MethodSymbol)
 
-            If useSiteError IsNot Nothing Then
-                diagnostics.Add(useSiteError, syntax.GetLocation())
-            End If
+            diagnostics.Add(useSiteInfo, syntax.GetLocation())
 
             Dim [return] As BoundStatement = New BoundReturnStatement(syntax,
                                                                       Nothing,
@@ -309,8 +298,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                   ).MakeCompilerGenerated
             End If
 
-            useSiteError = Nothing
-            Dim compareExchangeMethod As MethodSymbol = DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Threading_Interlocked__CompareExchange_T, useSiteError), MethodSymbol)
+            useSiteInfo = Nothing
+            Dim compareExchangeMethod As MethodSymbol = DirectCast(Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Threading_Interlocked__CompareExchange_T, useSiteInfo), MethodSymbol)
 
             Dim fieldReceiver As BoundMeReference = If(eventSymbol.IsShared,
                                                        Nothing,
@@ -334,8 +323,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If compareExchangeMethod Is Nothing Then
 
                 ' (DelegateType)Delegate.Combine(_event, value)
-                Debug.Assert(Conversions.ClassifyDirectCastConversion(fieldSymbol.Type, updateMethod.Parameters(0).Type, Nothing) = ConversionKind.WideningReference)
-                Debug.Assert(Conversions.ClassifyDirectCastConversion(boundParameter.Type, updateMethod.Parameters(1).Type, Nothing) = ConversionKind.WideningReference)
+                Dim conversionsUseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim conversionKind1 As ConversionKind = Conversions.ClassifyDirectCastConversion(fieldSymbol.Type, updateMethod.Parameters(0).Type, conversionsUseSiteInfo)
+                Dim conversionKind2 As ConversionKind = Conversions.ClassifyDirectCastConversion(boundParameter.Type, updateMethod.Parameters(1).Type, conversionsUseSiteInfo)
+                Debug.Assert(conversionKind1 = ConversionKind.WideningReference)
+                Debug.Assert(conversionKind2 = ConversionKind.WideningReference)
+
+                diagnostics.Add(syntax.GetLocation(), conversionsUseSiteInfo)
+
                 delegateUpdate = New BoundDirectCast(syntax,
                                                      New BoundCall(syntax,
                                                                    updateMethod,
@@ -368,9 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                   ).MakeCompilerGenerated
             End If
 
-            If useSiteError IsNot Nothing Then
-                diagnostics.Add(useSiteError, syntax.GetLocation())
-            End If
+            diagnostics.Add(useSiteInfo, syntax.GetLocation())
 
             compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create(Of TypeSymbol)(delegateType))
 

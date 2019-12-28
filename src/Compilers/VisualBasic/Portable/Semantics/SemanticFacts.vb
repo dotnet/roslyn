@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(within))
             End If
 
-            Return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, useSiteDiagnostics:=Nothing)
+            Return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
 
         ''' <summary>
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(within))
             End If
 
-            Return AccessCheck.IsSymbolAccessible(symbol, within, useSiteDiagnostics:=Nothing)
+            Return AccessCheck.IsSymbolAccessible(symbol, within, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
 
     End Class

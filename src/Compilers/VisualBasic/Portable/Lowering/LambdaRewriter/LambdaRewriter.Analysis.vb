@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend NotInheritable Class Analysis
             Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
-            Private ReadOnly _diagnostics As DiagnosticBag
+            Private ReadOnly _diagnostics As BindingDiagnosticBag
             Private ReadOnly _method As MethodSymbol
 
             Private _currentParent As MethodSymbol
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Friend ReadOnly symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
-            Private Sub New(method As MethodSymbol, symbolsCapturedWithoutCopyCtor As ISet(Of Symbol), diagnostics As DiagnosticBag)
+            Private Sub New(method As MethodSymbol, symbolsCapturedWithoutCopyCtor As ISet(Of Symbol), diagnostics As BindingDiagnosticBag)
                 Me._currentParent = method
                 Me._method = method
                 Me.symbolsCapturedWithoutCopyCtor = symbolsCapturedWithoutCopyCtor
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Analyzes method body that belongs to the given method symbol.
             ''' </summary>
-            Public Shared Function AnalyzeMethodBody(node As BoundBlock, method As MethodSymbol, symbolsCapturedWithoutCtor As ISet(Of Symbol), diagnostics As DiagnosticBag) As Analysis
+            Public Shared Function AnalyzeMethodBody(node As BoundBlock, method As MethodSymbol, symbolsCapturedWithoutCtor As ISet(Of Symbol), diagnostics As BindingDiagnosticBag) As Analysis
                 Debug.Assert(Not node.HasErrors)
 
                 Dim analysis = New Analysis(method, symbolsCapturedWithoutCtor, diagnostics)

@@ -25,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Lazily filled once the value is requested.
-        Public Function AdditionalExtensionMethods(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of MethodSymbol)
+        Public Function AdditionalExtensionMethods(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of MethodSymbol)
             If _PendingExtensionMethodsOpt Is Nothing Then
                 Return ImmutableArray(Of MethodSymbol).Empty
             End If
 
-            Return _PendingExtensionMethodsOpt.LazyLookupAdditionalExtensionMethods(Me, useSiteDiagnostics)
+            Return _PendingExtensionMethodsOpt.LazyLookupAdditionalExtensionMethods(Me, useSiteInfo)
         End Function
 
     End Class
@@ -40,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _lookupOptions As LookupOptions
         Private _lazyMethods As ImmutableArray(Of MethodSymbol)
         Private _lazyUseSiteDiagnostics As HashSet(Of DiagnosticInfo)
+        Private _lazyUseSiteDependencies As HashSet(Of AssemblySymbol)
 
         Public Sub New(lookupBinder As Binder, lookupOptions As LookupOptions)
             Debug.Assert(lookupBinder IsNot Nothing)
@@ -47,13 +48,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _lookupOptions = lookupOptions
         End Sub
 
-        Public Function LazyLookupAdditionalExtensionMethods(group As BoundMethodGroup, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of MethodSymbol)
+        Public Function LazyLookupAdditionalExtensionMethods(group As BoundMethodGroup, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of MethodSymbol)
             Debug.Assert(group.PendingExtensionMethodsOpt Is Me)
 
             If _lazyMethods.IsDefault Then
                 Dim receiverOpt As BoundExpression = group.ReceiverOpt
                 Dim methods As ImmutableArray(Of MethodSymbol) = ImmutableArray(Of MethodSymbol).Empty
-                Dim localUseSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim localUseSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
 
                 If receiverOpt IsNot Nothing AndAlso receiverOpt.Type IsNot Nothing Then
                     Dim lookup = LookupResult.GetInstance()
@@ -63,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     group.Methods(0).Name,
                                                     If(group.TypeArgumentsOpt Is Nothing, 0, group.TypeArgumentsOpt.Arguments.Length),
                                                     _lookupOptions,
-                                                    localUseSiteDiagnostics)
+                                                    localUseSiteInfo)
 
                     If lookup.IsGood Then
                         methods = lookup.Symbols.ToDowncastedImmutable(Of MethodSymbol)()
@@ -72,19 +73,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     lookup.Free()
                 End If
 
-                Interlocked.CompareExchange(_lazyUseSiteDiagnostics, localUseSiteDiagnostics, Nothing)
+                Interlocked.CompareExchange(_lazyUseSiteDiagnostics, localUseSiteInfo.Diagnostics, Nothing)
+                Interlocked.CompareExchange(_lazyUseSiteDependencies, localUseSiteInfo.Dependencies, Nothing)
                 ImmutableInterlocked.InterlockedCompareExchange(_lazyMethods, methods, Nothing)
             End If
 
-            If Not _lazyUseSiteDiagnostics.IsNullOrEmpty Then
-                If useSiteDiagnostics Is Nothing Then
-                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                End If
+            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = System.Threading.Volatile.Read(_lazyUseSiteDiagnostics)
+            Dim useSiteDependencies As HashSet(Of AssemblySymbol) = System.Threading.Volatile.Read(_lazyUseSiteDependencies)
 
-                For Each info In _lazyUseSiteDiagnostics
-                    useSiteDiagnostics.Add(info)
-                Next
-            End If
+            useSiteInfo.AddDiagnostics(System.Threading.Volatile.Read(_lazyUseSiteDiagnostics))
+            useSiteInfo.AddDependencies(System.Threading.Volatile.Read(_lazyUseSiteDependencies))
 
             Return _lazyMethods
         End Function

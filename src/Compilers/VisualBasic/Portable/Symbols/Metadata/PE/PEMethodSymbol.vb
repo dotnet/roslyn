@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
             Public _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
             Public _lazyObsoleteAttributeData As ObsoleteAttributeData
-            Public _lazyUseSiteErrorInfo As DiagnosticInfo
+            Public _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol)
         End Class
 
         Private Function CreateUncommonFields() As UncommonFields
@@ -176,12 +176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             '
-            ' Do not set _lazyUseSiteErrorInfo !!!!
+            ' Do not set _lazyCachedUseSiteInfo !!!!
             '
             ' "null" Indicates "no errors" or "unknown state",
             ' and we know which one of the states we have from IsUseSiteDiagnosticPopulated
             '
-            ' Setting _lazyUseSiteErrorInfo to a sentinel value here would introduce
+            ' Setting _lazyCachedUseSiteInfo to a sentinel value here would introduce
             ' a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
             ' Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
             '
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _name = String.Empty
                 End If
 
-                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                InitializeUseSiteErrorInfo(New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))))
             End Try
         End Sub
 
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Return MethodKind.Ordinary
 
-                ElseIf IsShared AndAlso DeclaredAccessibility = Accessibility.Public AndAlso Not IsSub AndAlso Arity = 0 Then
+                ElseIf IsShared AndAlso DeclaredAccessibility = Global.Microsoft.CodeAnalysis.Accessibility.Public AndAlso Not IsSub AndAlso Arity = 0 Then
                     Dim opInfo As OverloadResolution.OperatorInfo = OverloadResolution.GetOperatorInfo(name)
 
                     If opInfo.ParamCount <> 0 Then
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
             End If
 
-            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TypeKind.Delegate Then
+            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = Global.Microsoft.CodeAnalysis.TypeKind.Delegate Then
                 Return MethodKind.DelegateInvoke
             End If
 
@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function IsParameterlessConstructor() As Boolean
             If _packedFlags.MethodKindIsPopulated Then
-                Return _packedFlags.MethodKind = MethodKind.Constructor AndAlso ParameterCount = 0
+                Return _packedFlags.MethodKind = Global.Microsoft.CodeAnalysis.MethodKind.Constructor AndAlso ParameterCount = 0
             End If
 
             ' 10.5.1 Instance constructor
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function IsPotentialOperatorOrConversion(opInfo As OverloadResolution.OperatorInfo) As Boolean
             Return HasSpecialName AndAlso
-                   IsShared AndAlso DeclaredAccessibility = Accessibility.Public AndAlso
+                   IsShared AndAlso DeclaredAccessibility = Global.Microsoft.CodeAnalysis.Accessibility.Public AndAlso
                    Not IsSub AndAlso Arity = 0 AndAlso
                    ParameterCount = opInfo.ParamCount
         End Function
@@ -472,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             additionalNameOpt As String,
             adjustContendersOfAdditionalName As Boolean
         ) As MethodKind
-            Debug.Assert(potentialMethodKind = MethodKind.Conversion OrElse potentialMethodKind = MethodKind.UserDefinedOperator)
+            Debug.Assert(potentialMethodKind = Global.Microsoft.CodeAnalysis.MethodKind.Conversion OrElse potentialMethodKind = Global.Microsoft.CodeAnalysis.MethodKind.UserDefinedOperator)
 
             Dim result As MethodKind = potentialMethodKind
             Dim inputParams As ImmutableArray(Of ParameterSymbol) = Parameters
@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         End Select
                     End If
 
-                    If potentialMethodKind = MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringAll(contender.ReturnType) Then
+                    If potentialMethodKind = Global.Microsoft.CodeAnalysis.MethodKind.Conversion AndAlso Not outputType.IsSameTypeIgnoringAll(contender.ReturnType) Then
                         Continue For
                     End If
 
@@ -613,7 +613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     If Me.IsShared AndAlso
                        Me.ParameterCount > 0 AndAlso
-                       Me.MethodKind = MethodKind.Ordinary AndAlso
+                       Me.MethodKind = Global.Microsoft.CodeAnalysis.MethodKind.Ordinary AndAlso
                        _containingType.MightContainExtensionMethods AndAlso
                        _containingType.ContainingPEModule.Module.HasExtensionAttribute(Me.Handle, ignoreCase:=True) AndAlso
                        ValidateGenericConstraintsOnExtensionMethodDefinition() Then
@@ -813,7 +813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsSub As Boolean
             Get
-                Return Me.ReturnType.SpecialType = SpecialType.System_Void
+                Return Me.ReturnType.SpecialType = Global.Microsoft.CodeAnalysis.SpecialType.System_Void
             End Get
         End Property
 
@@ -903,7 +903,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
+            Debug.Assert((methodKind = Global.Microsoft.CodeAnalysis.MethodKind.PropertyGet) OrElse (methodKind = Global.Microsoft.CodeAnalysis.MethodKind.PropertySet))
             Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
@@ -912,7 +912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
+            Debug.Assert((methodKind = Global.Microsoft.CodeAnalysis.MethodKind.EventAdd) OrElse (methodKind = Global.Microsoft.CodeAnalysis.MethodKind.EventRemove) OrElse (methodKind = Global.Microsoft.CodeAnalysis.MethodKind.EventRaise))
             Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
@@ -967,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim returnParam = PEParameterSymbol.Create(moduleSymbol, Me, 0, paramInfo(0), isBad)
 
             If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then
-                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                InitializeUseSiteErrorInfo(New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))))
             End If
 
             Dim signature As New SignatureData(signatureHeader, params, returnParam)
@@ -981,7 +981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 EnsureTypeParametersAreLoaded(errorInfo)
                 Dim typeParams = EnsureTypeParametersAreLoaded(errorInfo)
                 If errorInfo IsNot Nothing Then
-                    InitializeUseSiteErrorInfo(errorInfo)
+                    InitializeUseSiteErrorInfo(New UseSiteInfo(Of AssemblySymbol)(errorInfo))
                 End If
                 Return typeParams
             End Get
@@ -1093,28 +1093,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
-                Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
-                Return InitializeUseSiteErrorInfo(errorInfo)
+                Return InitializeUseSiteErrorInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
-            Return _uncommonFields?._lazyUseSiteErrorInfo
+            Return GetCachedUseSiteInfo()
         End Function
 
-        Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
+        Private Function GetCachedUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return If(_uncommonFields?._lazyCachedUseSiteInfo, New CachedUseSiteInfo(Of AssemblySymbol)()).ToUseSiteInfo(PrimaryDependency)
+        End Function
+
+        Private Function InitializeUseSiteErrorInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
             If _packedFlags.IsUseSiteDiagnosticPopulated Then
-                Return _uncommonFields?._lazyUseSiteErrorInfo
+                Return GetCachedUseSiteInfo()
             End If
 
-            If errorInfo IsNot Nothing Then
-                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
-                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo)
+            Dim secondaryDependencies As ImmutableHashSet(Of AssemblySymbol) = useSiteInfo.SecondaryDependencies
+
+            If useSiteInfo.DiagnosticInfo IsNot Nothing OrElse (secondaryDependencies IsNot Nothing AndAlso Not secondaryDependencies.IsEmpty) Then
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()
-            Return errorInfo
+            Return useSiteInfo
         End Function
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData

@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -562,7 +563,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </remarks>
         Friend ReadOnly Property CanBeReferencedByNameIgnoringIllegalCharacters As Boolean
             Get
-                If Me.Kind = SymbolKind.Method Then
+                If Me.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Method Then
                     Select Case (DirectCast(Me, MethodSymbol)).MethodKind
                         Case MethodKind.Ordinary, MethodKind.DeclareMethod, MethodKind.ReducedExtension, MethodKind.DelegateInvoke, MethodKind.UserDefinedOperator, MethodKind.Conversion
                             Return True
@@ -640,12 +641,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 End If
 
-                If Me.Kind = SymbolKind.Assembly Then
+                If Me.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.Assembly Then
                     Dim retargetingAssembly = TryCast(Me, Retargeting.RetargetingAssemblySymbol)
                     Return retargetingAssembly IsNot Nothing AndAlso retargetingAssembly.UnderlyingAssembly.DeclaringCompilation IsNot Nothing
                 End If
 
-                Dim [module] = If(Me.Kind = SymbolKind.NetModule, Me, Me.ContainingModule)
+                Dim [module] = If(Me.Kind = Global.Microsoft.CodeAnalysis.SymbolKind.NetModule, Me, Me.ContainingModule)
                 Dim retargetingModule = TryCast([module], Retargeting.RetargetingModuleSymbol)
                 Return retargetingModule IsNot Nothing AndAlso retargetingModule.UnderlyingModule.DeclaringCompilation IsNot Nothing
             End Get
@@ -857,12 +858,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #Region "Use-Site Diagnostic"
 
         ''' <summary>
-        ''' Returns error info for an error, if any, that should be reported at the use site of the symbol.
+        ''' Returns dependencies and an error info for an error, if any, that should be reported at the use site of the symbol.
         ''' </summary>
-        Friend Overridable Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overridable Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Return Nothing
         End Function
 
+        Friend ReadOnly Property PrimaryDependency As AssemblySymbol
+            Get
+                Dim dependency As AssemblySymbol = Me.ContainingAssembly
+                If dependency IsNot Nothing AndAlso dependency.CorLibrary = dependency Then
+                    Return Nothing
+                End If
+
+                Return dependency
+            End Get
+        End Property
 
         ''' <summary>
         ''' Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -890,24 +901,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Derive error info from a type symbol.
+        ''' Derive dependencies and error info from a type symbol.
         ''' </summary>
-        Friend Function DeriveUseSiteErrorInfoFromType(type As TypeSymbol) As DiagnosticInfo
-            Dim errorInfo As DiagnosticInfo = type.GetUseSiteErrorInfo()
+        Friend Function DeriveUseSiteInfoFromType(type As TypeSymbol) As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = type.GetUseSiteInfo()
 
-            If errorInfo IsNot Nothing Then
-                Select Case errorInfo.Code
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                Select Case useSiteInfo.DiagnosticInfo.Code
                     Case ERRID.ERR_UnsupportedType1
 
                         Select Case Me.Kind
                             Case SymbolKind.Field
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedField1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
 
                             Case SymbolKind.Method
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
 
                             Case SymbolKind.Property
-                                errorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+                                useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
                         End Select
 
                     Case Else
@@ -915,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End If
 
-            Return errorInfo
+            Return useSiteInfo
         End Function
 
         ''' <summary>
@@ -927,6 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        ' TODO: Remove?
         Friend Function MergeUseSiteErrorInfo(first As DiagnosticInfo, second As DiagnosticInfo) As DiagnosticInfo
             If first Is Nothing Then
                 Return second
@@ -939,70 +951,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return second
         End Function
 
-        Friend Function DeriveUseSiteErrorInfoFromParameter(param As ParameterSymbol, highestPriorityUseSiteError As Integer) As DiagnosticInfo
-            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(param.Type)
+        Friend Function DeriveUseSiteInfoFromParameter(param As ParameterSymbol, highestPriorityUseSiteError As Integer) As UseSiteInfo(Of AssemblySymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(param.Type)
 
-            If errorInfo IsNot Nothing AndAlso errorInfo.Code = highestPriorityUseSiteError Then
-                Return errorInfo
+            If useSiteInfo.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+                Return useSiteInfo
             End If
 
-            Dim refModifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.RefCustomModifiers)
+            Dim refModifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(param.RefCustomModifiers)
 
-            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = highestPriorityUseSiteError Then
-                Return refModifiersErrorInfo
+            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+                Return refModifiersUseSiteInfo
             End If
 
-            Dim modifiersErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromCustomModifiers(param.CustomModifiers)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromCustomModifiers(param.CustomModifiers)
 
-            If modifiersErrorInfo IsNot Nothing AndAlso modifiersErrorInfo.Code = highestPriorityUseSiteError Then
-                Return modifiersErrorInfo
+            If modifiersUseSiteInfo.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+                Return modifiersUseSiteInfo
             End If
 
-            Return If(errorInfo, If(refModifiersErrorInfo, modifiersErrorInfo))
+
+            Dim errorInfo = If(useSiteInfo.DiagnosticInfo, If(refModifiersUseSiteInfo.DiagnosticInfo, modifiersUseSiteInfo.DiagnosticInfo))
+
+            If errorInfo IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+            End If
+
+            Dim primaryDependency = useSiteInfo.PrimaryDependency
+            Dim secondaryDependency = useSiteInfo.SecondaryDependencies
+
+            refModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            modifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+
+            Return New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
         End Function
 
-        Friend Function DeriveUseSiteErrorInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As DiagnosticInfo
-            Dim paramsErrorInfo As DiagnosticInfo = Nothing
+        Friend Function DeriveUseSiteInfoFromParameters(parameters As ImmutableArray(Of ParameterSymbol)) As UseSiteInfo(Of AssemblySymbol)
+            Dim paramsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
 
             For Each param As ParameterSymbol In parameters
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromParameter(param, highestPriorityUseSiteError)
-
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = highestPriorityUseSiteError Then
-                        Return errorInfo
-                    End If
-
-                    If paramsErrorInfo Is Nothing Then
-                        paramsErrorInfo = errorInfo
-                    End If
+                If MergeUseSiteInfo(paramsUseSiteInfo, DeriveUseSiteInfoFromParameter(param, highestPriorityUseSiteError), highestPriorityUseSiteError) Then
+                    Exit For
                 End If
             Next
 
-            Return paramsErrorInfo
+            Return paramsUseSiteInfo
         End Function
 
-        Friend Function DeriveUseSiteErrorInfoFromCustomModifiers(
+        Friend Shared Function MergeUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), other As UseSiteInfo(Of AssemblySymbol), highestPriorityUseSiteError As Integer) As Boolean
+            If other.DiagnosticInfo?.Code = highestPriorityUseSiteError Then
+                result = other
+                Return True
+            End If
+
+            If result.DiagnosticInfo Is Nothing Then
+                If other.DiagnosticInfo IsNot Nothing Then
+                    result = other
+                Else
+                    Dim primaryDependency = result.PrimaryDependency
+                    Dim secondaryDependency = result.SecondaryDependencies
+
+                    other.MergeDependencies(primaryDependency, secondaryDependency)
+                    result = New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
+                End If
+
+                Return False
+            Else
+                Return result.DiagnosticInfo.Code = highestPriorityUseSiteError
+            End If
+        End Function
+
+        Friend Function MergeUseSiteInfo(first As UseSiteInfo(Of AssemblySymbol), second As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
+            MergeUseSiteInfo(first, second, HighestPriorityUseSiteError)
+            Return first
+        End Function
+
+        Friend Function DeriveUseSiteInfoFromCustomModifiers(
             customModifiers As ImmutableArray(Of CustomModifier)
-        ) As DiagnosticInfo
-            Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+        ) As UseSiteInfo(Of AssemblySymbol)
+            Dim modifiersUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim highestPriorityUseSiteError As Integer = Me.HighestPriorityUseSiteError
 
             For Each modifier As CustomModifier In customModifiers
-                Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(DirectCast(modifier.Modifier, TypeSymbol))
-
-                If errorInfo IsNot Nothing Then
-                    If errorInfo.Code = highestPriorityUseSiteError Then
-                        Return errorInfo
-                    End If
-
-                    If modifiersErrorInfo Is Nothing Then
-                        modifiersErrorInfo = errorInfo
-                    End If
+                If MergeUseSiteInfo(modifiersUseSiteInfo, DeriveUseSiteInfoFromType(DirectCast(modifier.Modifier, TypeSymbol)), highestPriorityUseSiteError) Then
+                    Exit For
                 End If
             Next
 
-            Return modifiersErrorInfo
+            Return modifiersUseSiteInfo
         End Function
 
         Friend Overloads Shared Function GetUnificationUseSiteDiagnosticRecursive(Of T As TypeSymbol)(types As ImmutableArray(Of T), owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo

@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim retType = _lazyReturnType
                 If retType Is Nothing Then
 
-                    Dim diagBag = DiagnosticBag.GetInstance()
+                    Dim diagBag = BindingDiagnosticBag.GetInstance()
                     Dim sourceModule = ContainingSourceModule
                     Dim errorLocation As SyntaxNodeOrToken = Nothing
                     retType = GetReturnType(sourceModule, errorLocation, diagBag)
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         For Each diag In diagnosticsBuilder
-                            diagBag.Add(diag.DiagnosticInfo, errorLocation.GetLocation())
+                            diagBag.Add(diag.UseSiteInfo, errorLocation.GetLocation())
                         Next
                         diagnosticsBuilder.Free()
                     End If
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetReturnType(sourceModule As SourceModuleSymbol,
                                        ByRef errorLocation As SyntaxNodeOrToken,
-                                       diagBag As DiagnosticBag) As TypeSymbol
+                                       diagBag As BindingDiagnosticBag) As TypeSymbol
             Select Case MethodKind
                 Case MethodKind.PropertyGet
                     Dim accessorSym = DirectCast(Me, SourcePropertyAccessorSymbol)
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim params = _lazyParameters
                 If params.IsDefault Then
 
-                    Dim diagBag = DiagnosticBag.GetInstance()
+                    Dim diagBag = BindingDiagnosticBag.GetInstance()
                     Dim sourceModule = ContainingSourceModule
 
                     params = GetParameters(sourceModule, diagBag)
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function GetParameters(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+        Private Function GetParameters(sourceModule As SourceModuleSymbol, diagBag As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             If m_property.IsCustomProperty Then
                 Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
                 binder = New LocationSpecificBinder(BindingLocation.PropertyAccessorSignature, Me, binder)
@@ -385,7 +385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                location As Location,
                                                binder As Binder,
                                                parameterListOpt As ParameterListSyntax,
-                                               diagnostics As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+                                               diagnostics As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             Dim propertyParameters = propertySymbol.Parameters
             Dim nPropertyParameters = propertyParameters.Length
             Dim isSetter As Boolean = (method.MethodKind = MethodKind.PropertySet)
@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared ReadOnly s_checkParameterModifierCallback As Binder.CheckParameterModifierDelegate = AddressOf CheckParameterModifier
 
-        Private Shared Function CheckParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
+        Private Shared Function CheckParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As BindingDiagnosticBag) As SourceParameterFlags
             If flag <> SourceParameterFlags.ByVal Then
                 Dim location = token.GetLocation()
                 diagnostics.Add(ERRID.ERR_SetHasToBeByVal1, location, token.ToString())
@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SourceParameterFlags.ByVal
         End Function
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Debug.Assert(Not m_property.IsMustOverride)
 
             If m_property.IsAutoProperty Then

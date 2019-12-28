@@ -210,15 +210,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
-    Friend MustInherit Partial Class BoundExpression
+
+    Partial Friend MustInherit Class BoundExpression
         Inherits BoundNode
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
             Me._Type = type
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax)
             Me._Type = type
         End Sub
@@ -232,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeArguments
+    Partial Friend NotInheritable Class BoundTypeArguments
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol), hasErrors As Boolean)
@@ -260,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeArguments(Me)
         End Function
 
@@ -274,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundOmittedArgument
+    Partial Friend NotInheritable Class BoundOmittedArgument
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -287,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitOmittedArgument(Me)
         End Function
 
@@ -301,17 +302,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundValuePlaceholderBase
+    Partial Friend MustInherit Class BoundValuePlaceholderBase
         Inherits BoundExpression
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -320,7 +321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundLValueToRValueWrapper
+    Partial Friend NotInheritable Class BoundLValueToRValueWrapper
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, underlyingLValue As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -334,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -346,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLValueToRValueWrapper(Me)
         End Function
 
@@ -360,17 +361,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundLValuePlaceholderBase
+    Partial Friend MustInherit Class BoundLValuePlaceholderBase
         Inherits BoundValuePlaceholderBase
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -379,17 +380,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend MustInherit Partial Class BoundRValuePlaceholderBase
+    Partial Friend MustInherit Class BoundRValuePlaceholderBase
         Inherits BoundValuePlaceholderBase
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -398,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundWithLValueExpressionPlaceholder
+    Partial Friend NotInheritable Class BoundWithLValueExpressionPlaceholder
         Inherits BoundLValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -417,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithLValueExpressionPlaceholder(Me)
         End Function
 
@@ -431,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundWithRValueExpressionPlaceholder
+    Partial Friend NotInheritable Class BoundWithRValueExpressionPlaceholder
         Inherits BoundRValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -450,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithRValueExpressionPlaceholder(Me)
         End Function
 
@@ -464,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRValuePlaceholder
+    Partial Friend NotInheritable Class BoundRValuePlaceholder
         Inherits BoundRValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -476,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
@@ -490,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitRValuePlaceholder(Me)
         End Function
 
@@ -504,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLValuePlaceholder
+    Partial Friend NotInheritable Class BoundLValuePlaceholder
         Inherits BoundLValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -516,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
@@ -530,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLValuePlaceholder(Me)
         End Function
 
@@ -544,7 +545,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDup
+    Partial Friend NotInheritable Class BoundDup
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, isReference As Boolean, type As TypeSymbol, hasErrors As Boolean)
@@ -566,7 +567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitDup(Me)
         End Function
 
@@ -580,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBadExpression
+    Partial Friend NotInheritable Class BoundBadExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -596,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -622,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadExpression(Me)
         End Function
 
@@ -636,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBadStatement
+    Partial Friend NotInheritable Class BoundBadStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, childBoundNodes As ImmutableArray(Of BoundNode), Optional hasErrors As Boolean = False)
@@ -656,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadStatement(Me)
         End Function
 
@@ -670,7 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundParenthesized
+    Partial Friend NotInheritable Class BoundParenthesized
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -683,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -695,7 +696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitParenthesized(Me)
         End Function
 
@@ -709,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBadVariable
+    Partial Friend NotInheritable Class BoundBadVariable
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -737,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitBadVariable(Me)
         End Function
 
@@ -751,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayAccess
+    Partial Friend NotInheritable Class BoundArrayAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, indices As ImmutableArray(Of BoundExpression), isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -768,7 +769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -794,7 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayAccess(Me)
         End Function
 
@@ -808,7 +809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayLength
+    Partial Friend NotInheritable Class BoundArrayLength
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -829,7 +830,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayLength(Me)
         End Function
 
@@ -843,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGetType
+    Partial Friend NotInheritable Class BoundGetType
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -864,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitGetType(Me)
         End Function
 
@@ -878,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundFieldInfo
+    Partial Friend NotInheritable Class BoundFieldInfo
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol, hasErrors As Boolean)
@@ -908,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldInfo(Me)
         End Function
 
@@ -922,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMethodInfo
+    Partial Friend NotInheritable Class BoundMethodInfo
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
@@ -952,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodInfo(Me)
         End Function
 
@@ -966,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeExpression
+    Partial Friend NotInheritable Class BoundTypeExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -994,7 +995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeExpression(Me)
         End Function
 
@@ -1008,7 +1009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeOrValueExpression
+    Partial Friend NotInheritable Class BoundTypeOrValueExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol, hasErrors As Boolean)
@@ -1036,7 +1037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeOrValueExpression(Me)
         End Function
 
@@ -1050,7 +1051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNamespaceExpression
+    Partial Friend NotInheritable Class BoundNamespaceExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, namespaceSymbol As NamespaceSymbol, Optional hasErrors As Boolean = False)
@@ -1065,7 +1066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1091,7 +1092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitNamespaceExpression(Me)
         End Function
 
@@ -1105,7 +1106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMethodDefIndex
+    Partial Friend NotInheritable Class BoundMethodDefIndex
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
@@ -1135,7 +1136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodDefIndex(Me)
         End Function
 
@@ -1149,7 +1150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMaximumMethodDefIndex
+    Partial Friend NotInheritable Class BoundMaximumMethodDefIndex
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -1168,7 +1169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMaximumMethodDefIndex(Me)
         End Function
 
@@ -1182,7 +1183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundInstrumentationPayloadRoot
+    Partial Friend NotInheritable Class BoundInstrumentationPayloadRoot
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
@@ -1219,7 +1220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitInstrumentationPayloadRoot(Me)
         End Function
 
@@ -1233,7 +1234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundModuleVersionId
+    Partial Friend NotInheritable Class BoundModuleVersionId
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
@@ -1261,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitModuleVersionId(Me)
         End Function
 
@@ -1275,7 +1276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundModuleVersionIdString
+    Partial Friend NotInheritable Class BoundModuleVersionIdString
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -1294,7 +1295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitModuleVersionIdString(Me)
         End Function
 
@@ -1308,7 +1309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSourceDocumentIndex
+    Partial Friend NotInheritable Class BoundSourceDocumentIndex
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol, hasErrors As Boolean)
@@ -1338,7 +1339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSourceDocumentIndex(Me)
         End Function
 
@@ -1352,7 +1353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUnaryOperator
+    Partial Friend NotInheritable Class BoundUnaryOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As UnaryOperatorKind, operand As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1369,7 +1370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1402,7 +1403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnaryOperator(Me)
         End Function
 
@@ -1416,7 +1417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedUnaryOperator
+    Partial Friend NotInheritable Class BoundUserDefinedUnaryOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As UnaryOperatorKind, underlyingExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1431,7 +1432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1450,7 +1451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedUnaryOperator(Me)
         End Function
 
@@ -1464,7 +1465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNullableIsTrueOperator
+    Partial Friend NotInheritable Class BoundNullableIsTrueOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1478,7 +1479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1490,7 +1491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitNullableIsTrueOperator(Me)
         End Function
 
@@ -1504,7 +1505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBinaryOperator
+    Partial Friend NotInheritable Class BoundBinaryOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, left As BoundExpression, right As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1523,7 +1524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1563,7 +1564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitBinaryOperator(Me)
         End Function
 
@@ -1577,7 +1578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedBinaryOperator
+    Partial Friend NotInheritable Class BoundUserDefinedBinaryOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, underlyingExpression As BoundExpression, checked As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1593,7 +1594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1619,7 +1620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedBinaryOperator(Me)
         End Function
 
@@ -1633,7 +1634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedShortCircuitingOperator
+    Partial Friend NotInheritable Class BoundUserDefinedShortCircuitingOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, leftOperand As BoundExpression, leftOperandPlaceholder As BoundRValuePlaceholder, leftTest As BoundExpression, bitwiseOperator As BoundUserDefinedBinaryOperator, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1650,7 +1651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1683,7 +1684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedShortCircuitingOperator(Me)
         End Function
 
@@ -1697,7 +1698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCompoundAssignmentTargetPlaceholder
+    Partial Friend NotInheritable Class BoundCompoundAssignmentTargetPlaceholder
         Inherits BoundValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -1716,7 +1717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitCompoundAssignmentTargetPlaceholder(Me)
         End Function
 
@@ -1730,7 +1731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAssignmentOperator
+    Partial Friend NotInheritable Class BoundAssignmentOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, left As BoundExpression, leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1748,7 +1749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1781,7 +1782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAssignmentOperator(Me)
         End Function
 
@@ -1795,7 +1796,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundReferenceAssignment
+    Partial Friend NotInheritable Class BoundReferenceAssignment
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, byRefLocal As BoundLocal, lValue As BoundExpression, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1811,7 +1812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1837,7 +1838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitReferenceAssignment(Me)
         End Function
 
@@ -1851,7 +1852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAddressOfOperator
+    Partial Friend NotInheritable Class BoundAddressOfOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, methodGroup As BoundMethodGroup, Optional hasErrors As Boolean = False)
@@ -1880,7 +1881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAddressOfOperator(Me)
         End Function
 
@@ -1894,7 +1895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTernaryConditionalExpression
+    Partial Friend NotInheritable Class BoundTernaryConditionalExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, whenTrue As BoundExpression, whenFalse As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1913,7 +1914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -1946,7 +1947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTernaryConditionalExpression(Me)
         End Function
 
@@ -1960,7 +1961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBinaryConditionalExpression
+    Partial Friend NotInheritable Class BoundBinaryConditionalExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, testExpression As BoundExpression, convertedTestExpression As BoundExpression, testExpressionPlaceholder As BoundRValuePlaceholder, elseExpression As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -1979,7 +1980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2019,7 +2020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitBinaryConditionalExpression(Me)
         End Function
 
@@ -2033,17 +2034,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundConversionOrCast
+    Partial Friend MustInherit Class BoundConversionOrCast
         Inherits BoundExpression
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -2052,7 +2053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     End Class
 
-    Friend NotInheritable Partial Class BoundConversion
+    Partial Friend NotInheritable Class BoundConversion
         Inherits BoundConversionOrCast
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, extendedInfoOpt As BoundExtendedConversionInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -2071,7 +2072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2118,7 +2119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitConversion(Me)
         End Function
 
@@ -2132,20 +2133,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundExtendedConversionInfo
+    Partial Friend MustInherit Class BoundExtendedConversionInfo
         Inherits BoundNode
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundRelaxationLambda
+    Partial Friend NotInheritable Class BoundRelaxationLambda
         Inherits BoundExtendedConversionInfo
 
         Public Sub New(syntax As SyntaxNode, lambda As BoundLambda, receiverPlaceholderOpt As BoundRValuePlaceholder, Optional hasErrors As Boolean = False)
@@ -2173,7 +2174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelaxationLambda(Me)
         End Function
 
@@ -2187,7 +2188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConvertedTupleElements
+    Partial Friend NotInheritable Class BoundConvertedTupleElements
         Inherits BoundExtendedConversionInfo
 
         Public Sub New(syntax As SyntaxNode, elementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder), convertedElements As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
@@ -2202,7 +2203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2221,7 +2222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitConvertedTupleElements(Me)
         End Function
 
@@ -2235,7 +2236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundUserDefinedConversion
+    Partial Friend NotInheritable Class BoundUserDefinedConversion
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, inOutConversionFlags As Byte, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -2250,7 +2251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2269,7 +2270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitUserDefinedConversion(Me)
         End Function
 
@@ -2283,7 +2284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDirectCast
+    Partial Friend NotInheritable Class BoundDirectCast
         Inherits BoundConversionOrCast
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, suppressVirtualCalls As Boolean, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -2301,7 +2302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2341,7 +2342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitDirectCast(Me)
         End Function
 
@@ -2355,7 +2356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTryCast
+    Partial Friend NotInheritable Class BoundTryCast
         Inherits BoundConversionOrCast
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -2372,7 +2373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2405,7 +2406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTryCast(Me)
         End Function
 
@@ -2419,7 +2420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTypeOf
+    Partial Friend NotInheritable Class BoundTypeOf
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, isTypeOfIsNotExpression As Boolean, targetType As TypeSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -2457,7 +2458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTypeOf(Me)
         End Function
 
@@ -2471,20 +2472,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundStatement
+    Partial Friend MustInherit Class BoundStatement
         Inherits BoundNode
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundSequencePoint
+    Partial Friend NotInheritable Class BoundSequencePoint
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statementOpt As BoundStatement, Optional hasErrors As Boolean = False)
@@ -2501,7 +2502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePoint(Me)
         End Function
 
@@ -2515,7 +2516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSequencePointExpression
+    Partial Friend NotInheritable Class BoundSequencePointExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -2535,7 +2536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePointExpression(Me)
         End Function
 
@@ -2549,7 +2550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSequencePointWithSpan
+    Partial Friend NotInheritable Class BoundSequencePointWithSpan
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statementOpt As BoundStatement, span As TextSpan, Optional hasErrors As Boolean = False)
@@ -2574,7 +2575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequencePointWithSpan(Me)
         End Function
 
@@ -2588,7 +2589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNoOpStatement
+    Partial Friend NotInheritable Class BoundNoOpStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, flavor As NoOpStatementFlavor, hasErrors As Boolean)
@@ -2610,7 +2611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitNoOpStatement(Me)
         End Function
 
@@ -2624,10 +2625,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundMethodOrPropertyGroup
+    Partial Friend MustInherit Class BoundMethodOrPropertyGroup
         Inherits BoundExpression
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, Nothing, hasErrors)
             Me._ReceiverOpt = receiverOpt
             Me._QualificationKind = qualificationKind
@@ -2649,7 +2650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundMethodGroup
+    Partial Friend NotInheritable Class BoundMethodGroup
         Inherits BoundMethodOrPropertyGroup
 
         Public Sub New(syntax As SyntaxNode, typeArgumentsOpt As BoundTypeArguments, methods As ImmutableArray(Of MethodSymbol), pendingExtensionMethodsOpt As ExtensionMethodGroup, resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
@@ -2693,7 +2694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMethodGroup(Me)
         End Function
 
@@ -2707,7 +2708,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPropertyGroup
+    Partial Friend NotInheritable Class BoundPropertyGroup
         Inherits BoundMethodOrPropertyGroup
 
         Public Sub New(syntax As SyntaxNode, properties As ImmutableArray(Of PropertySymbol), resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
@@ -2735,7 +2736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyGroup(Me)
         End Function
 
@@ -2749,7 +2750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundReturnStatement
+    Partial Friend NotInheritable Class BoundReturnStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expressionOpt As BoundExpression, functionLocalOpt As LocalSymbol, exitLabelOpt As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -2761,7 +2762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2787,7 +2788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitReturnStatement(Me)
         End Function
 
@@ -2801,7 +2802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundYieldStatement
+    Partial Friend NotInheritable Class BoundYieldStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, Optional hasErrors As Boolean = False)
@@ -2814,7 +2815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2826,7 +2827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitYieldStatement(Me)
         End Function
 
@@ -2840,7 +2841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundThrowStatement
+    Partial Friend NotInheritable Class BoundThrowStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expressionOpt As BoundExpression, Optional hasErrors As Boolean = False)
@@ -2857,7 +2858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitThrowStatement(Me)
         End Function
 
@@ -2871,7 +2872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRedimStatement
+    Partial Friend NotInheritable Class BoundRedimStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundRedimClause), Optional hasErrors As Boolean = False)
@@ -2891,7 +2892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitRedimStatement(Me)
         End Function
 
@@ -2905,7 +2906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRedimClause
+    Partial Friend NotInheritable Class BoundRedimClause
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, indices As ImmutableArray(Of BoundExpression), arrayTypeOpt As ArrayTypeSymbol, preserve As Boolean, Optional hasErrors As Boolean = False)
@@ -2922,7 +2923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -2955,7 +2956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitRedimClause(Me)
         End Function
 
@@ -2969,7 +2970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundEraseStatement
+    Partial Friend NotInheritable Class BoundEraseStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundAssignmentOperator), Optional hasErrors As Boolean = False)
@@ -2989,7 +2990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitEraseStatement(Me)
         End Function
 
@@ -3003,7 +3004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCall
+    Partial Friend NotInheritable Class BoundCall
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3025,7 +3026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3086,7 +3087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitCall(Me)
         End Function
 
@@ -3100,7 +3101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAttribute
+    Partial Friend NotInheritable Class BoundAttribute
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3146,7 +3147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAttribute(Me)
         End Function
 
@@ -3160,7 +3161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateMemberAccess
+    Partial Friend NotInheritable Class BoundLateMemberAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, nameOpt As String, containerTypeOpt As TypeSymbol, receiverOpt As BoundExpression, typeArgumentsOpt As BoundTypeArguments, accessKind As LateBoundAccessKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3177,7 +3178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3217,7 +3218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateMemberAccess(Me)
         End Function
 
@@ -3231,10 +3232,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateInvocation
+    Partial Friend NotInheritable Class BoundLateInvocation
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of string), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of String), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateInvocation, syntax, type, hasErrors OrElse member.NonNullAndHasErrors() OrElse argumentsOpt.NonNullAndHasErrors() OrElse methodOrPropertyGroupOpt.NonNullAndHasErrors())
 
             Debug.Assert(member IsNot Nothing, "Field 'member' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3249,7 +3250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3267,8 +3268,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _ArgumentNamesOpt As ImmutableArray(Of string)
-        Public ReadOnly Property ArgumentNamesOpt As ImmutableArray(Of string)
+        Private ReadOnly _ArgumentNamesOpt As ImmutableArray(Of String)
+        Public ReadOnly Property ArgumentNamesOpt As ImmutableArray(Of String)
             Get
                 Return _ArgumentNamesOpt
             End Get
@@ -3289,11 +3290,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateInvocation(Me)
         End Function
 
-        Public Function Update(member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of string), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol) As BoundLateInvocation
+        Public Function Update(member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of String), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol) As BoundLateInvocation
             If member IsNot Me.Member OrElse argumentsOpt <> Me.ArgumentsOpt OrElse argumentNamesOpt <> Me.ArgumentNamesOpt OrElse accessKind <> Me.AccessKind OrElse methodOrPropertyGroupOpt IsNot Me.MethodOrPropertyGroupOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundLateInvocation(Me.Syntax, member, argumentsOpt, argumentNamesOpt, accessKind, methodOrPropertyGroupOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)
@@ -3303,7 +3304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateAddressOfOperator
+    Partial Friend NotInheritable Class BoundLateAddressOfOperator
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, memberAccess As BoundLateMemberAccess, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3332,7 +3333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateAddressOfOperator(Me)
         End Function
 
@@ -3346,10 +3347,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundTupleExpression
+    Partial Friend MustInherit Class BoundTupleExpression
         Inherits BoundExpression
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3366,7 +3367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundTupleLiteral
+    Partial Friend NotInheritable Class BoundTupleLiteral
         Inherits BoundTupleExpression
 
         Public Sub New(syntax As SyntaxNode, inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3402,7 +3403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTupleLiteral(Me)
         End Function
 
@@ -3416,7 +3417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConvertedTupleLiteral
+    Partial Friend NotInheritable Class BoundConvertedTupleLiteral
         Inherits BoundTupleExpression
 
         Public Sub New(syntax As SyntaxNode, naturalTypeOpt As TypeSymbol, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3437,7 +3438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitConvertedTupleLiteral(Me)
         End Function
 
@@ -3451,10 +3452,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundObjectCreationExpressionBase
+    Partial Friend MustInherit Class BoundObjectCreationExpressionBase
         Inherits BoundExpression
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3464,7 +3465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3476,7 +3477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundObjectCreationExpression
+    Partial Friend NotInheritable Class BoundObjectCreationExpression
         Inherits BoundObjectCreationExpressionBase
 
         Public Sub New(syntax As SyntaxNode, constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3493,7 +3494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3526,7 +3527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectCreationExpression(Me)
         End Function
 
@@ -3540,10 +3541,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNoPiaObjectCreationExpression
+    Partial Friend NotInheritable Class BoundNoPiaObjectCreationExpression
         Inherits BoundObjectCreationExpressionBase
 
-        Public Sub New(syntax As SyntaxNode, guidString As string, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, guidString As String, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NoPiaObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse initializerOpt.NonNullAndHasErrors())
 
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3552,19 +3553,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _GuidString As string
-        Public ReadOnly Property GuidString As string
+        Private ReadOnly _GuidString As String
+        Public ReadOnly Property GuidString As String
             Get
                 Return _GuidString
             End Get
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitNoPiaObjectCreationExpression(Me)
         End Function
 
-        Public Function Update(guidString As string, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundNoPiaObjectCreationExpression
+        Public Function Update(guidString As String, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundNoPiaObjectCreationExpression
             If guidString IsNot Me.GuidString OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
                 Dim result = New BoundNoPiaObjectCreationExpression(Me.Syntax, guidString, initializerOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)
@@ -3574,7 +3575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAnonymousTypeCreationExpression
+    Partial Friend NotInheritable Class BoundAnonymousTypeCreationExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binderOpt As Binder.AnonymousTypeCreationBinder, declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3611,7 +3612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypeCreationExpression(Me)
         End Function
 
@@ -3625,7 +3626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAnonymousTypePropertyAccess
+    Partial Friend NotInheritable Class BoundAnonymousTypePropertyAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol, hasErrors As Boolean)
@@ -3662,7 +3663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypePropertyAccess(Me)
         End Function
 
@@ -3676,7 +3677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAnonymousTypeFieldInitializer
+    Partial Friend NotInheritable Class BoundAnonymousTypeFieldInitializer
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeFieldInitializerBinder, value As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3705,7 +3706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAnonymousTypeFieldInitializer(Me)
         End Function
 
@@ -3719,10 +3720,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundObjectInitializerExpressionBase
+    Partial Friend MustInherit Class BoundObjectInitializerExpressionBase
         Inherits BoundExpression
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
             Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3747,7 +3748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundObjectInitializerExpression
+    Partial Friend NotInheritable Class BoundObjectInitializerExpression
         Inherits BoundObjectInitializerExpressionBase
 
         Public Sub New(syntax As SyntaxNode, createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3762,7 +3763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3781,7 +3782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectInitializerExpression(Me)
         End Function
 
@@ -3795,7 +3796,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCollectionInitializerExpression
+    Partial Friend NotInheritable Class BoundCollectionInitializerExpression
         Inherits BoundObjectInitializerExpressionBase
 
         Public Sub New(syntax As SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3807,12 +3808,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitCollectionInitializerExpression(Me)
         End Function
 
@@ -3826,7 +3827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundNewT
+    Partial Friend NotInheritable Class BoundNewT
         Inherits BoundObjectCreationExpressionBase
 
         Public Sub New(syntax As SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3838,12 +3839,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitNewT(Me)
         End Function
 
@@ -3857,7 +3858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDelegateCreationExpression
+    Partial Friend NotInheritable Class BoundDelegateCreationExpression
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, method As MethodSymbol, relaxationLambdaOpt As BoundLambda, relaxationReceiverPlaceholderOpt As BoundRValuePlaceholder, methodGroupOpt As BoundMethodGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3910,7 +3911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitDelegateCreationExpression(Me)
         End Function
 
@@ -3924,7 +3925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayCreation
+    Partial Friend NotInheritable Class BoundArrayCreation
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, isParamArrayArgument As Boolean, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -3942,7 +3943,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -3982,7 +3983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayCreation(Me)
         End Function
 
@@ -3996,7 +3997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayLiteral
+    Partial Friend NotInheritable Class BoundArrayLiteral
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, hasDominantType As Boolean, numberOfCandidates As Integer, inferredType As ArrayTypeSymbol, bounds As ImmutableArray(Of BoundExpression), initializer As BoundArrayInitialization, binder As Binder, Optional hasErrors As Boolean = False)
@@ -4059,7 +4060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayLiteral(Me)
         End Function
 
@@ -4073,7 +4074,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundArrayInitialization
+    Partial Friend NotInheritable Class BoundArrayInitialization
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -4093,7 +4094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitArrayInitialization(Me)
         End Function
 
@@ -4107,7 +4108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundFieldAccess
+    Partial Friend NotInheritable Class BoundFieldAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -4125,7 +4126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -4165,7 +4166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldAccess(Me)
         End Function
 
@@ -4179,7 +4180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPropertyAccess
+    Partial Friend NotInheritable Class BoundPropertyAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -4201,7 +4202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -4262,7 +4263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyAccess(Me)
         End Function
 
@@ -4276,7 +4277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundEventAccess
+    Partial Friend NotInheritable Class BoundEventAccess
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, eventSymbol As EventSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -4305,7 +4306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitEventAccess(Me)
         End Function
 
@@ -4319,7 +4320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundBlock
+    Partial Friend NotInheritable Class BoundBlock
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statementListSyntax As SyntaxList(Of StatementSyntax), locals As ImmutableArray(Of LocalSymbol), statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
@@ -4356,7 +4357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitBlock(Me)
         End Function
 
@@ -4370,7 +4371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundStateMachineScope
+    Partial Friend NotInheritable Class BoundStateMachineScope
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, fields As ImmutableArray(Of FieldSymbol), statement As BoundStatement, Optional hasErrors As Boolean = False)
@@ -4399,7 +4400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitStateMachineScope(Me)
         End Function
 
@@ -4413,20 +4414,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundLocalDeclarationBase
+    Partial Friend MustInherit Class BoundLocalDeclarationBase
         Inherits BoundStatement
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend NotInheritable Partial Class BoundLocalDeclaration
+    Partial Friend NotInheritable Class BoundLocalDeclaration
         Inherits BoundLocalDeclarationBase
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, declarationInitializerOpt As BoundExpression, identifierInitializerOpt As BoundArrayCreation, initializedByAsNew As Boolean, Optional hasErrors As Boolean = False)
@@ -4442,7 +4443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -4475,7 +4476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLocalDeclaration(Me)
         End Function
 
@@ -4489,7 +4490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundAsNewLocalDeclarations
+    Partial Friend NotInheritable Class BoundAsNewLocalDeclarations
         Inherits BoundLocalDeclarationBase
 
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, Optional hasErrors As Boolean = False)
@@ -4518,7 +4519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitAsNewLocalDeclarations(Me)
         End Function
 
@@ -4532,7 +4533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundDimStatement
+    Partial Friend NotInheritable Class BoundDimStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclarationBase), initializerOpt As BoundExpression, Optional hasErrors As Boolean = False)
@@ -4560,7 +4561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitDimStatement(Me)
         End Function
 
@@ -4574,14 +4575,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundInitializer
+    Partial Friend Class BoundInitializer
         Inherits BoundStatement
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
@@ -4595,15 +4596,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitInitializer(Me)
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundFieldOrPropertyInitializer
+    Partial Friend MustInherit Class BoundFieldOrPropertyInitializer
         Inherits BoundInitializer
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
 
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -4628,7 +4629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundFieldInitializer
+    Partial Friend NotInheritable Class BoundFieldInitializer
         Inherits BoundFieldOrPropertyInitializer
 
         Public Sub New(syntax As SyntaxNode, initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
@@ -4649,7 +4650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitFieldInitializer(Me)
         End Function
 
@@ -4663,7 +4664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPropertyInitializer
+    Partial Friend NotInheritable Class BoundPropertyInitializer
         Inherits BoundFieldOrPropertyInitializer
 
         Public Sub New(syntax As SyntaxNode, initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
@@ -4684,7 +4685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyInitializer(Me)
         End Function
 
@@ -4698,7 +4699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundParameterEqualsValue
+    Partial Friend NotInheritable Class BoundParameterEqualsValue
         Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, parameter As ParameterSymbol, value As BoundExpression, Optional hasErrors As Boolean = False)
@@ -4727,7 +4728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitParameterEqualsValue(Me)
         End Function
 
@@ -4741,7 +4742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGlobalStatementInitializer
+    Partial Friend NotInheritable Class BoundGlobalStatementInitializer
         Inherits BoundInitializer
 
         Public Sub New(syntax As SyntaxNode, statement As BoundStatement, Optional hasErrors As Boolean = False)
@@ -4761,7 +4762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitGlobalStatementInitializer(Me)
         End Function
 
@@ -4775,7 +4776,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSequence
+    Partial Friend NotInheritable Class BoundSequence
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), sideEffects As ImmutableArray(Of BoundExpression), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -4792,7 +4793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -4818,7 +4819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSequence(Me)
         End Function
 
@@ -4832,7 +4833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundExpressionStatement
+    Partial Friend NotInheritable Class BoundExpressionStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, Optional hasErrors As Boolean = False)
@@ -4852,7 +4853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitExpressionStatement(Me)
         End Function
 
@@ -4866,7 +4867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundIfStatement
+    Partial Friend NotInheritable Class BoundIfStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, consequence As BoundStatement, alternativeOpt As BoundStatement, Optional hasErrors As Boolean = False)
@@ -4903,7 +4904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitIfStatement(Me)
         End Function
 
@@ -4917,7 +4918,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundSelectStatement
+    Partial Friend NotInheritable Class BoundSelectStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, expressionStatement As BoundExpressionStatement, exprPlaceholderOpt As BoundRValuePlaceholder, caseBlocks As ImmutableArray(Of BoundCaseBlock), recommendSwitchTable As Boolean, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -4971,7 +4972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSelectStatement(Me)
         End Function
 
@@ -4985,7 +4986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCaseBlock
+    Partial Friend NotInheritable Class BoundCaseBlock
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, caseStatement As BoundCaseStatement, body As BoundBlock, Optional hasErrors As Boolean = False)
@@ -5014,7 +5015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitCaseBlock(Me)
         End Function
 
@@ -5028,7 +5029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCaseStatement
+    Partial Friend NotInheritable Class BoundCaseStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, caseClauses As ImmutableArray(Of BoundCaseClause), conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
@@ -5056,7 +5057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitCaseStatement(Me)
         End Function
 
@@ -5070,23 +5071,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundCaseClause
+    Partial Friend MustInherit Class BoundCaseClause
         Inherits BoundNode
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode)
             MyBase.New(kind, syntax)
         End Sub
 
     End Class
 
-    Friend MustInherit Partial Class BoundSingleValueCaseClause
+    Partial Friend MustInherit Class BoundSingleValueCaseClause
         Inherits BoundCaseClause
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
             Me._ValueOpt = valueOpt
             Me._ConditionOpt = conditionOpt
@@ -5108,7 +5109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundSimpleCaseClause
+    Partial Friend NotInheritable Class BoundSimpleCaseClause
         Inherits BoundSingleValueCaseClause
 
         Public Sub New(syntax As SyntaxNode, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
@@ -5117,12 +5118,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitSimpleCaseClause(Me)
         End Function
 
@@ -5136,7 +5137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRangeCaseClause
+    Partial Friend NotInheritable Class BoundRangeCaseClause
         Inherits BoundCaseClause
 
         Public Sub New(syntax As SyntaxNode, lowerBoundOpt As BoundExpression, upperBoundOpt As BoundExpression, lowerBoundConditionOpt As BoundExpression, upperBoundConditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
@@ -5149,7 +5150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -5182,7 +5183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitRangeCaseClause(Me)
         End Function
 
@@ -5196,7 +5197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundRelationalCaseClause
+    Partial Friend NotInheritable Class BoundRelationalCaseClause
         Inherits BoundSingleValueCaseClause
 
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, valueOpt As BoundExpression, conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
@@ -5206,7 +5207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -5218,7 +5219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitRelationalCaseClause(Me)
         End Function
 
@@ -5232,10 +5233,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundLoopStatement
+    Partial Friend MustInherit Class BoundLoopStatement
         Inherits BoundStatement
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol, hasErrors As Boolean)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
 
             Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5245,7 +5246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ExitLabel = exitLabel
         End Sub
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
             MyBase.New(kind, syntax)
 
             Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5271,7 +5272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundDoLoopStatement
+    Partial Friend NotInheritable Class BoundDoLoopStatement
         Inherits BoundLoopStatement
 
         Public Sub New(syntax As SyntaxNode, topConditionOpt As BoundExpression, bottomConditionOpt As BoundExpression, topConditionIsUntil As Boolean, bottomConditionIsUntil As Boolean, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -5325,7 +5326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitDoLoopStatement(Me)
         End Function
 
@@ -5339,7 +5340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundWhileStatement
+    Partial Friend NotInheritable Class BoundWhileStatement
         Inherits BoundLoopStatement
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -5370,7 +5371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitWhileStatement(Me)
         End Function
 
@@ -5384,10 +5385,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend MustInherit Partial Class BoundForStatement
+    Partial Friend MustInherit Class BoundForStatement
         Inherits BoundLoopStatement
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax As SyntaxNode, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, continueLabel, exitLabel, hasErrors)
 
             Debug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -5431,7 +5432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend NotInheritable Partial Class BoundForToUserDefinedOperators
+    Partial Friend NotInheritable Class BoundForToUserDefinedOperators
         Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, leftOperandPlaceholder As BoundRValuePlaceholder, rightOperandPlaceholder As BoundRValuePlaceholder, addition As BoundUserDefinedBinaryOperator, subtraction As BoundUserDefinedBinaryOperator, lessThanOrEqual As BoundExpression, greaterThanOrEqual As BoundExpression, Optional hasErrors As Boolean = False)
@@ -5454,7 +5455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -5501,7 +5502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitForToUserDefinedOperators(Me)
         End Function
 
@@ -5515,7 +5516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundForToStatement
+    Partial Friend NotInheritable Class BoundForToStatement
         Inherits BoundForStatement
 
         Public Sub New(syntax As SyntaxNode, initialValue As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression, checked As Boolean, operatorsOpt As BoundForToUserDefinedOperators, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -5573,7 +5574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitForToStatement(Me)
         End Function
 
@@ -5587,7 +5588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundForEachStatement
+    Partial Friend NotInheritable Class BoundForEachStatement
         Inherits BoundForStatement
 
         Public Sub New(syntax As SyntaxNode, collection As BoundExpression, enumeratorInfo As ForEachEnumeratorInfo, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -5620,7 +5621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitForEachStatement(Me)
         End Function
 
@@ -5634,7 +5635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundExitStatement
+    Partial Friend NotInheritable Class BoundExitStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
@@ -5662,7 +5663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitExitStatement(Me)
         End Function
 
@@ -5676,7 +5677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundContinueStatement
+    Partial Friend NotInheritable Class BoundContinueStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
@@ -5704,7 +5705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitContinueStatement(Me)
         End Function
 
@@ -5718,7 +5719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundTryStatement
+    Partial Friend NotInheritable Class BoundTryStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, tryBlock As BoundBlock, catchBlocks As ImmutableArray(Of BoundCatchBlock), finallyBlockOpt As BoundBlock, exitLabelOpt As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -5763,7 +5764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitTryStatement(Me)
         End Function
 
@@ -5777,7 +5778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundCatchBlock
+    Partial Friend NotInheritable Class BoundCatchBlock
         Inherits BoundNode
 
         Public Sub New(syntax As SyntaxNode, localOpt As LocalSymbol, exceptionSourceOpt As BoundExpression, errorLineNumberOpt As BoundExpression, exceptionFilterOpt As BoundExpression, body As BoundBlock, isSynthesizedAsyncCatchAll As Boolean, Optional hasErrors As Boolean = False)
@@ -5837,7 +5838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitCatchBlock(Me)
         End Function
 
@@ -5851,7 +5852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLiteral
+    Partial Friend NotInheritable Class BoundLiteral
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol, hasErrors As Boolean)
@@ -5864,7 +5865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol)
@@ -5886,7 +5887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLiteral(Me)
         End Function
 
@@ -5900,7 +5901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMeReference
+    Partial Friend NotInheritable Class BoundMeReference
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -5919,7 +5920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMeReference(Me)
         End Function
 
@@ -5933,7 +5934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundValueTypeMeReference
+    Partial Friend NotInheritable Class BoundValueTypeMeReference
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -5945,7 +5946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
@@ -5959,7 +5960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitValueTypeMeReference(Me)
         End Function
 
@@ -5973,7 +5974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMyBaseReference
+    Partial Friend NotInheritable Class BoundMyBaseReference
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -5992,7 +5993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMyBaseReference(Me)
         End Function
 
@@ -6006,7 +6007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundMyClassReference
+    Partial Friend NotInheritable Class BoundMyClassReference
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -6025,7 +6026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitMyClassReference(Me)
         End Function
 
@@ -6039,7 +6040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPreviousSubmissionReference
+    Partial Friend NotInheritable Class BoundPreviousSubmissionReference
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol, hasErrors As Boolean)
@@ -6069,7 +6070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitPreviousSubmissionReference(Me)
         End Function
 
@@ -6083,7 +6084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundHostObjectMemberReference
+    Partial Friend NotInheritable Class BoundHostObjectMemberReference
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
@@ -6102,7 +6103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitHostObjectMemberReference(Me)
         End Function
 
@@ -6116,7 +6117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLocal
+    Partial Friend NotInheritable Class BoundLocal
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
@@ -6131,7 +6132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol)
@@ -6162,7 +6163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLocal(Me)
         End Function
 
@@ -6176,7 +6177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundPseudoVariable
+    Partial Friend NotInheritable Class BoundPseudoVariable
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol, hasErrors As Boolean)
@@ -6226,7 +6227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitPseudoVariable(Me)
         End Function
 
@@ -6240,7 +6241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundParameter
+    Partial Friend NotInheritable Class BoundParameter
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol, hasErrors As Boolean)
@@ -6288,7 +6289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitParameter(Me)
         End Function
 
@@ -6302,7 +6303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundByRefArgumentPlaceholder
+    Partial Friend NotInheritable Class BoundByRefArgumentPlaceholder
         Inherits BoundValuePlaceholderBase
 
         Public Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol, hasErrors As Boolean)
@@ -6330,7 +6331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitByRefArgumentPlaceholder(Me)
         End Function
 
@@ -6344,7 +6345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundByRefArgumentWithCopyBack
+    Partial Friend NotInheritable Class BoundByRefArgumentWithCopyBack
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, originalArgument As BoundExpression, inConversion As BoundExpression, inPlaceholder As BoundByRefArgumentPlaceholder, outConversion As BoundExpression, outPlaceholder As BoundRValuePlaceholder, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -6365,7 +6366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -6405,7 +6406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitByRefArgumentWithCopyBack(Me)
         End Function
 
@@ -6419,7 +6420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture
+    Partial Friend NotInheritable Class BoundLateBoundArgumentSupportingAssignmentWithCapture
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, originalArgument As BoundExpression, localSymbol As SynthesizedLocal, type As TypeSymbol, Optional hasErrors As Boolean = False)
@@ -6434,7 +6435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -6453,7 +6454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLateBoundArgumentSupportingAssignmentWithCapture(Me)
         End Function
 
@@ -6467,7 +6468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLabelStatement
+    Partial Friend NotInheritable Class BoundLabelStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
@@ -6495,7 +6496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLabelStatement(Me)
         End Function
 
@@ -6509,7 +6510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLabel
+    Partial Friend NotInheritable Class BoundLabel
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol, hasErrors As Boolean)
@@ -6537,7 +6538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLabel(Me)
         End Function
 
@@ -6551,7 +6552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundGotoStatement
+    Partial Friend NotInheritable Class BoundGotoStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundLabel, Optional hasErrors As Boolean = False)
@@ -6579,7 +6580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitGotoStatement(Me)
         End Function
 
@@ -6593,7 +6594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundStatementList
+    Partial Friend NotInheritable Class BoundStatementList
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
@@ -6613,7 +6614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitStatementList(Me)
         End Function
 
@@ -6627,7 +6628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundConditionalGoto
+    Partial Friend NotInheritable Class BoundConditionalGoto
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, jumpIfTrue As Boolean, label As LabelSymbol, Optional hasErrors As Boolean = False)
@@ -6664,7 +6665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitConditionalGoto(Me)
         End Function
 
@@ -6678,7 +6679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundWithStatement
+    Partial Friend NotInheritable Class BoundWithStatement
         Inherits BoundStatement
 
         Public Sub New(syntax As SyntaxNode, originalExpression As BoundExpression, body As BoundBlock, binder As WithBlockBinder, Optional hasErrors As Boolean = False)
@@ -6716,7 +6717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitWithStatement(Me)
         End Function
 
@@ -6730,7 +6731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class UnboundLambda
+    Partial Friend NotInheritable Class UnboundLambda
         Inherits BoundExpression
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache, hasErrors As Boolean)
@@ -6749,7 +6750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
         Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache)
@@ -6805,7 +6806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitUnboundLambda(Me)
         End Function
 
@@ -6819,15 +6820,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend NotInheritable Partial Class BoundLambda
+    Partial Friend NotInheritable Class BoundLambda
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Lambda, syntax, Nothing, hasErrors OrElse body.NonNullAndHasErrors())
 
             Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(Not (diagnostics.IsDefault), "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
             Me._Body = body
@@ -6839,7 +6839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Validate()
         End Sub
 
-        Private Partial Sub Validate()
+        Partial Private Sub Validate()
         End Sub
 
 
@@ -6857,8 +6857,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
-        Public ReadOnly Property Diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic)
+        Private ReadOnly _Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return _Diagnostics
             End Get
@@ -6886,11 +6886,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         <DebuggerStepThrough>
-        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+        Public Overrides Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Return visitor.VisitLambda(Me)
         End Function
 
-        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
+        Public Function Update(lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind) As BoundLambda
             If lambdaSymbol IsNot Me.LambdaSymbol OrElse body IsNot Me.Body OrElse diagnostics <> Me.Diagnostics OrElse lambdaBinderOpt IsNot Me.LambdaBinderOpt OrElse delegateRelaxation <> Me.DelegateRelaxation OrElse methodConversionKind <> Me.MethodConversionKind Then
                 Dim result = New BoundLambda(Me.Syntax, lambdaSymbol, body, diagnostics, lambdaBinderOpt, delegateRelaxation, methodConversionKind, Me.HasErrors)
                 result.CopyAttributes(Me)

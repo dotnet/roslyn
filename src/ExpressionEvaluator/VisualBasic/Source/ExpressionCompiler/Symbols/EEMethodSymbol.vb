@@ -447,8 +447,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         ''' In VB, the caller (of this method) does that.
         ''' </remarks>
 #Enable Warning CA1200 ' Avoid using cref tags with a prefix
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
-            Dim body = _generateMethodBody(Me, diagnostics, _lazyResultProperties)
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, <Out> ByRef Optional methodBodyBinder As Binder = Nothing) As BoundBlock
+            Dim body = _generateMethodBody(Me, diagnostics.DiagnosticBag, _lazyResultProperties)
             Debug.Assert(body IsNot Nothing)
 
             _lazyReturnType = CalculateReturnType(body)
@@ -484,14 +484,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return newBody
             End If
 
-            DiagnosticsPass.IssueDiagnostics(newBody, diagnostics, Me)
+            DiagnosticsPass.IssueDiagnostics(newBody, diagnostics.DiagnosticBag, Me)
             If diagnostics.HasAnyErrors() Then
                 Return newBody
             End If
 
             ' Check for use-site errors (e.g. missing types in the signature).
-            Dim useSiteInfo As DiagnosticInfo = Me.CalculateUseSiteErrorInfo()
-            If useSiteInfo IsNot Nothing Then
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Me.CalculateUseSiteInfo()
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                 diagnostics.Add(useSiteInfo, _locations(0))
                 Return newBody
             End If
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 newBody = LocalDeclarationRewriter.Rewrite(_compilation, _container, newBody)
 
                 ' Rewrite pseudo-variable references to helper method calls.
-                newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics), BoundBlock)
+                newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics.DiagnosticBag), BoundBlock)
                 If diagnostics.HasAnyErrors() Then
                     Return newBody
                 End If
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
                     displayClassVariables,
                     newBody,
-                    diagnostics), BoundBlock)
+                    diagnostics.DiagnosticBag), BoundBlock)
 
                 If diagnostics.HasAnyErrors() Then
                     Return newBody

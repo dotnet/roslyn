@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As BindingDiagnosticBag,
                                                                        syntax As VisualBasicSyntaxNode,
                                                                        id As ERRID) As BoundExpression
             Return ReportDiagnosticAndProduceBadExpression(diagBag, syntax, ErrorFactory.ErrorInfo(id))
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As BoundExpression
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceBadExpression(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo,
                                                                   ParamArray nodes As BoundExpression()) As BoundExpression
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   id As ERRID,
                                                                   ParamArray args As Object()) As ErrorTypeSymbol
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Report a diagnostic, and also produce an error expression with error type.
         ''' </summary>
-        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As DiagnosticBag,
+        Public Shared Function ReportDiagnosticAndProduceErrorTypeSymbol(diagBag As BindingDiagnosticBag,
                                                                   syntax As VisualBasicSyntaxNode,
                                                                   info As DiagnosticInfo) As ErrorTypeSymbol
             ReportDiagnostic(diagBag, syntax, info)

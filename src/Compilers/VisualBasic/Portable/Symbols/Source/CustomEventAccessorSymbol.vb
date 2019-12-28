@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Protected Overrides Function GetParameters(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+        Protected Overrides Function GetParameters(sourceModule As SourceModuleSymbol, diagBag As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             Dim type = DirectCast(Me.ContainingType, SourceMemberContainerTypeSymbol)
             Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, type)
             binder = New LocationSpecificBinder(BindingLocation.EventAccessorSignature, Me, binder)
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function BindParameters(location As Location,
                                         binder As Binder,
                                         parameterListOpt As ParameterListSyntax,
-                                        diagnostics As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+                                        diagnostics As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
 
             Dim parameterListSyntax = If(parameterListOpt Is Nothing, Nothing, parameterListOpt.Parameters)
             Dim nParameters = parameterListSyntax.Count
@@ -185,13 +185,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' If delegate is a function method we should already have diagnostics about that
                     If delInvoke IsNot Nothing AndAlso delInvoke.IsSub Then
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                         Dim conversion = Conversions.ClassifyMethodConversionForEventRaise(
                                                             delInvoke,
                                                             parameters,
-                                                            useSiteDiagnostics)
+                                                            useSiteInfo)
 
-                        If Not diagnostics.Add(location, useSiteDiagnostics) AndAlso
+                        If Not diagnostics.Add(location, useSiteInfo) AndAlso
                             (Not Conversions.IsDelegateRelaxationSupportedFor(conversion) OrElse
                              (binder.OptionStrict = OptionStrict.On AndAlso Conversions.IsNarrowingMethodConversion(conversion, False))) Then
 
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared ReadOnly s_checkRaiseParameterModifierCallback As Binder.CheckParameterModifierDelegate = AddressOf CheckEventMethodParameterModifier
 
         ' applicable to all event methods
-        Private Shared Function CheckEventMethodParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
+        Private Shared Function CheckEventMethodParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As BindingDiagnosticBag) As SourceParameterFlags
             If (flag And SourceParameterFlags.Optional) <> 0 Then
                 Dim location = token.GetLocation()
                 diagnostics.Add(ERRID.ERR_EventMethodOptionalParamIllegal1, location, token.ToString())
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ' additional rules for Add and Remove
-        Private Shared Function CheckAddRemoveParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
+        Private Shared Function CheckAddRemoveParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As BindingDiagnosticBag) As SourceParameterFlags
             If (flag And SourceParameterFlags.ByRef) <> 0 Then
                 Dim location = token.GetLocation()
                 diagnostics.Add(ERRID.ERR_EventAddRemoveByrefParamIllegal, location, token.ToString())

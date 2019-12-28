@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCastExpression(
              node As CastExpressionSyntax,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
             Dim result As BoundExpression
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindCTypeExpression(
              node As CastExpressionSyntax,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
             Debug.Assert(node.Keyword.Kind = SyntaxKind.CTypeKeyword)
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindDirectCastExpression(
              node As CastExpressionSyntax,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
             Debug.Assert(node.Keyword.Kind = SyntaxKind.DirectCastKeyword)
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              node As SyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Debug.Assert(argument.IsValue)
 
@@ -81,12 +81,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Classify conversion
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(argument, targetType, Me, useSiteDiagnostics)
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(argument, targetType, Me, useSiteInfo)
 
-            If diagnostics.Add(node, useSiteDiagnostics) Then
+            If diagnostics.Add(node, useSiteInfo) Then
                 ' Suppress any additional diagnostics
-                diagnostics = New DiagnosticBag()
+                diagnostics = BindingDiagnosticBag.Discarded
             End If
 
             If ReclassifyExpression(argument, SyntaxKind.DirectCastKeyword, node, conv, True, targetType, diagnostics) Then
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindTryCastExpression(
              node As CastExpressionSyntax,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
             Debug.Assert(node.Keyword.Kind = SyntaxKind.TryCastKeyword)
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              node As SyntaxNode,
              argument As BoundExpression,
              targetType As TypeSymbol,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Debug.Assert(argument.IsValue)
 
@@ -191,12 +191,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim conv As ConversionKind
 
             If targetType.IsReferenceType Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                conv = Conversions.ClassifyTryCastConversion(argument, targetType, Me, useSiteDiagnostics)
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                conv = Conversions.ClassifyTryCastConversion(argument, targetType, Me, useSiteInfo)
 
-                If diagnostics.Add(node, useSiteDiagnostics) Then
+                If diagnostics.Add(node, useSiteInfo) Then
                     ' Suppress any additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
             Else
                 conv = Nothing
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindPredefinedCastExpression(
              node As PredefinedCastExpressionSyntax,
-             diagnostics As DiagnosticBag
+             diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
             Dim targetType As SpecialType
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             node As SyntaxNode,
             targetType As TypeSymbol,
             expression As BoundExpression,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional isOperandOfConditionalBranch As Boolean = False
         ) As BoundExpression
             Return ApplyConversion(node, targetType, expression, False, diagnostics, isOperandOfConditionalBranch:=isOperandOfConditionalBranch)
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             targetType As TypeSymbol,
             argument As BoundExpression,
             isExplicit As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional isOperandOfConditionalBranch As Boolean = False,
             Optional explicitSemanticForConcatArgument As Boolean = False
         ) As BoundExpression
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If argument.HasErrors Then
                 ' Suppress any additional diagnostics produced by this function
-                diagnostics = New DiagnosticBag()
+                diagnostics = BindingDiagnosticBag.Discarded
             End If
 
             ' Classify conversion
@@ -350,18 +350,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not isOperandOfConditionalBranch OrElse targetType.IsBooleanType())
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
 
             If isOperandOfConditionalBranch AndAlso targetType.IsBooleanType() Then
                 Debug.Assert(Not isExplicit)
                 conv = Conversions.ClassifyConversionOfOperandOfConditionalBranch(argument, targetType, Me,
                                                                                   applyNullableIsTrueOperator,
                                                                                   isTrueOperator,
-                                                                                  useSiteDiagnostics)
+                                                                                  useSiteInfo)
 
-                If diagnostics.Add(node, useSiteDiagnostics) Then
+                If diagnostics.Add(node, useSiteInfo) Then
                     ' Suppress any additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 If isTrueOperator.BestResult.HasValue Then
@@ -390,11 +390,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = Binder.ApplyNullableIsTrueOperator(result, targetType)
                 End If
             Else
-                conv = Conversions.ClassifyConversion(argument, targetType, Me, useSiteDiagnostics)
+                conv = Conversions.ClassifyConversion(argument, targetType, Me, useSiteInfo)
 
-                If diagnostics.Add(node, useSiteDiagnostics) Then
+                If diagnostics.Add(node, useSiteInfo) Then
                     ' Suppress any additional diagnostics
-                    diagnostics = New DiagnosticBag()
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 result = CreateConversionAndReportDiagnostic(node, argument, conv, isExplicit, targetType, diagnostics,
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             convKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             isExplicit As Boolean,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional copybackConversionParamName As String = Nothing,
             Optional explicitSemanticForConcatArgument As Boolean = False
         ) As BoundExpression
@@ -647,7 +647,7 @@ DoneWithDiagnostics:
             location As SyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             justWarn As Boolean
         ) As Boolean
 
@@ -692,7 +692,7 @@ DoneWithDiagnostics:
                 If targetGenericDefinition.IsInterfaceType() Then
                     Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
 
-                    If IsOrInheritsFromOrImplementsInterface(sourceType, targetGenericDefinition, useSiteDiagnostics:=Nothing, matchingInterfaces:=matchingInterfaces) AndAlso
+                    If IsOrInheritsFromOrImplementsInterface(sourceType, targetGenericDefinition, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded, matchingInterfaces:=matchingInterfaces) AndAlso
                         matchingInterfaces.Count = 1 Then
                         sourceTypeArgument = matchingInterfaces(0).TypeArgumentsNoUseSiteDiagnostics(0)
                     End If
@@ -713,7 +713,7 @@ DoneWithDiagnostics:
                    Conversions.IsWideningConversion(Conversions.Classify_Reference_Array_TypeParameterConversion(sourceTypeArgument,
                                                                                                                  targetNamedType.TypeArgumentsNoUseSiteDiagnostics(0),
                                                                                                                  varianceCompatibilityClassificationDepth:=0,
-                                                                                                                 useSiteDiagnostics:=Nothing)) Then
+                                                                                                                 useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)) Then
                     Dim iEnumerable_T As NamedTypeSymbol = Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T)
 
                     If Not iEnumerable_T.IsErrorType() Then
@@ -769,7 +769,7 @@ DoneWithDiagnostics:
                 Case TypeKind.Interface
                     Dim matchingInterfaces As New HashSet(Of NamedTypeSymbol)()
 
-                    If IsOrInheritsFromOrImplementsInterface(sourceType, targetGenericDefinition, useSiteDiagnostics:=Nothing, matchingInterfaces:=matchingInterfaces) AndAlso
+                    If IsOrInheritsFromOrImplementsInterface(sourceType, targetGenericDefinition, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded, matchingInterfaces:=matchingInterfaces) AndAlso
                         matchingInterfaces.Count = 1 Then
                         matchingGenericInstantiation = matchingInterfaces(0)
                     Else
@@ -816,7 +816,7 @@ DoneWithDiagnostics:
                             Else
                                 conv = Conversions.Classify_Reference_Array_TypeParameterConversion(sourceArg, destinationArg,
                                                                                                     varianceCompatibilityClassificationDepth:=0,
-                                                                                                    useSiteDiagnostics:=Nothing)
+                                                                                                    useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                                 If Not Conversions.IsWideningConversion(conv) Then
                                     If Not Conversions.IsNarrowingConversion(conv) OrElse (conv And ConversionKind.VarianceConversionAmbiguity) = 0 Then
@@ -830,7 +830,7 @@ DoneWithDiagnostics:
                             Else
                                 conv = Conversions.Classify_Reference_Array_TypeParameterConversion(destinationArg, sourceArg,
                                                                                                     varianceCompatibilityClassificationDepth:=0,
-                                                                                                    useSiteDiagnostics:=Nothing)
+                                                                                                    useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                                 If Not Conversions.IsWideningConversion(conv) Then
                                     If (targetNamedType.IsDelegateType AndAlso destinationArg.IsReferenceType AndAlso sourceArg.IsReferenceType) OrElse
@@ -953,7 +953,7 @@ DoneWithDiagnostics:
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundConversion
             Debug.Assert(Conversions.ConversionExists(convKind) AndAlso (convKind And ConversionKind.UserDefined) = 0)
 
@@ -1002,7 +1002,7 @@ DoneWithDiagnostics:
                                                   New BoundRelaxationLambda(tree, boundLambdaOpt, relaxationReceiverPlaceholderOpt).MakeCompilerGenerated()),
                                                targetType)
                 Else
-                    Debug.Assert(diagnostics.HasAnyErrors())
+                    Debug.Assert(diagnostics.DiagnosticBag Is Nothing OrElse diagnostics.HasAnyErrors())
                 End If
             End If
 
@@ -1035,7 +1035,6 @@ DoneWithDiagnostics:
         ) As BoundConvertedTupleElements
 
             If (convKind And ConversionKind.Tuple) <> 0 Then
-                Dim ignore = DiagnosticBag.GetInstance()
                 Dim sourceElementTypes = sourceType.GetNullableUnderlyingTypeOrSelf().GetElementTypesOfTupleOrCompatible()
                 Dim targetElementTypes = targetType.GetNullableUnderlyingTypeOrSelf().GetElementTypesOfTupleOrCompatible()
 
@@ -1045,10 +1044,8 @@ DoneWithDiagnostics:
                 For i As Integer = 0 To sourceElementTypes.Length - 1
                     Dim placeholder = New BoundRValuePlaceholder(tree, sourceElementTypes(i)).MakeCompilerGenerated()
                     placeholders.Add(placeholder)
-                    converted.Add(ApplyConversion(tree, targetElementTypes(i), placeholder, isExplicit, ignore))
+                    converted.Add(ApplyConversion(tree, targetElementTypes(i), placeholder, isExplicit, BindingDiagnosticBag.Discarded))
                 Next
-
-                ignore.Free()
 
                 Return New BoundConvertedTupleElements(tree, placeholders.ToImmutableAndFree(), converted.ToImmutableAndFree()).MakeCompilerGenerated()
             End If
@@ -1063,7 +1060,7 @@ DoneWithDiagnostics:
             isExplicit As Boolean,
             targetType As TypeSymbol,
             reportArrayLiteralElementNarrowingConversion As Boolean,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundConversion
             Debug.Assert((convKind.Key And ConversionKind.UserDefined) <> 0 AndAlso convKind.Value IsNot Nothing AndAlso
                          convKind.Value.ParameterCount = 1 AndAlso Not convKind.Value.IsSub AndAlso
@@ -1108,7 +1105,7 @@ DoneWithDiagnostics:
                 End If
             End If
 
-            ReportUseSiteError(diagnostics, tree, convKind.Value)
+            ReportUseSite(diagnostics, tree, convKind.Value)
 
             ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, convKind.Value, tree)
 
@@ -1166,7 +1163,7 @@ DoneWithDiagnostics:
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As Boolean
             Debug.Assert(argument.Kind <> BoundKind.GroupTypeInferenceLambda)
 
@@ -1275,7 +1272,7 @@ DoneWithDiagnostics:
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
             Dim targetDelegateType As NamedTypeSymbol ' the target delegate type; if targetType is Expression(Of D), then this is D, otherwise targetType or Nothing.
@@ -1286,12 +1283,12 @@ DoneWithDiagnostics:
                 Dim anonymousDelegate As BoundExpression = ReclassifyUnboundLambdaExpression(unboundLambda, diagnostics)
 
 #If DEBUG Then
-                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableArray(Of Diagnostic)) = unboundLambda.InferredAnonymousDelegate
+                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferredAnonymousDelegate
 
                 Debug.Assert(anonymousDelegate.Type Is anonymousDelegateInfo.Key)
 
                 ' If we have errors for the inference, we know that there is no conversion.
-                If Not anonymousDelegateInfo.Value.IsDefault AndAlso anonymousDelegateInfo.Value.HasAnyErrors() Then
+                If Not anonymousDelegateInfo.Value.Diagnostics.IsDefault AndAlso anonymousDelegateInfo.Value.Diagnostics.HasAnyErrors() Then
                     Debug.Assert(Conversions.NoConversion(convKind) AndAlso (convKind And ConversionKind.DelegateRelaxationLevelMask) = 0)
                 Else
                     Debug.Assert(Conversions.NoConversion(convKind) OrElse
@@ -1325,14 +1322,12 @@ DoneWithDiagnostics:
                         delegateInvoke = Nothing ' No conversion
 
                     ElseIf unboundLambda.IsInferredDelegateForThisLambda(delegateInvoke.ContainingType) Then
-                        Dim inferenceDiagnostics As ImmutableArray(Of Diagnostic) = unboundLambda.InferredAnonymousDelegate.Value
+                        Dim inferenceDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = unboundLambda.InferredAnonymousDelegate.Value
 
-                        If Not inferenceDiagnostics.IsEmpty Then
-                            diagnostics.AddRange(inferenceDiagnostics)
+                        diagnostics.AddRange(inferenceDiagnostics)
 
-                            If inferenceDiagnostics.HasAnyErrors() Then
-                                delegateInvoke = Nothing ' No conversion
-                            End If
+                        If Not inferenceDiagnostics.Diagnostics.IsDefaultOrEmpty AndAlso inferenceDiagnostics.Diagnostics.HasAnyErrors() Then
+                            delegateInvoke = Nothing ' No conversion
                         End If
                     End If
 
@@ -1381,12 +1376,8 @@ DoneWithDiagnostics:
                          ((convKind And ConversionKind.DelegateRelaxationLevelMask) <> ConversionKind.DelegateRelaxationLevelNone AndAlso
                           boundLambda.MethodConversionKind <> MethodConversionKind.Identity))
 
-            Dim reportedAnError As Boolean = False
-
-            If boundLambdaDiagnostics.Any() Then
-                diagnostics.AddRange(boundLambdaDiagnostics)
-                reportedAnError = boundLambdaDiagnostics.HasAnyErrors()
-            End If
+            diagnostics.AddRange(boundLambdaDiagnostics)
+            Dim reportedAnError As Boolean = boundLambdaDiagnostics.Diagnostics.HasAnyErrors()
 
             Dim relaxationLambdaOpt As BoundLambda = Nothing
 
@@ -1482,7 +1473,7 @@ DoneWithDiagnostics:
             convKind As ConversionKind,
             isExplicit As Boolean,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Debug.Assert(lambda.Type Is Nothing)
 
@@ -1589,7 +1580,7 @@ DoneWithDiagnostics:
             Throw ExceptionUtilities.UnexpectedValue(conversionSemantics)
         End Function
 
-        Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As SyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As SyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As BindingDiagnosticBag) As BoundExpression
 
             If (convKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
@@ -1606,7 +1597,7 @@ DoneWithDiagnostics:
                        isExplicit As Boolean,
                        sourceTuple As BoundTupleLiteral,
                        destination As TypeSymbol,
-                       diagnostics As DiagnosticBag) As BoundExpression
+                       diagnostics As BindingDiagnosticBag) As BoundExpression
 
             ' We have a successful tuple conversion rather than producing a separate conversion node 
             ' which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
@@ -1676,7 +1667,7 @@ DoneWithDiagnostics:
             location As SyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             If Conversions.IsNarrowingConversion(convKind) Then
                 Dim interfaceType As TypeSymbol = Nothing
@@ -1707,15 +1698,15 @@ DoneWithDiagnostics:
             End If
         End Sub
 
-        Private Function IsIEnumerableOfXElement(type As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
-            Return type.IsOrImplementsIEnumerableOfXElement(Compilation, useSiteDiagnostics)
+        Private Function IsIEnumerableOfXElement(type As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
+            Return type.IsOrImplementsIEnumerableOfXElement(Compilation, useSiteInfo)
         End Function
 
         Private Sub ReportNoConversionError(
             location As SyntaxNode,
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional copybackConversionParamName As String = Nothing
         )
             If sourceType.IsArrayType() AndAlso targetType.IsArrayType() Then

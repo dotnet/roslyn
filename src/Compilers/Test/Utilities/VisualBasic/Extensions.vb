@@ -4,8 +4,10 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Xunit
 
 Friend Module Extensions
@@ -344,4 +346,81 @@ Friend Module Extensions
     Friend Function RefKind(this As ParameterSymbol) As RefKind
         Return DirectCast(this, IParameterSymbol).RefKind
     End Function
+
+    <Extension>
+    Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol) As MethodSymbol
+        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+    End Function
+
+    <Extension>
+    Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol, proximity As Integer) As MethodSymbol
+        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+    End Function
+
+    <Extension>
+    Friend Function GetUseSiteErrorInfo(this As Symbol) As DiagnosticInfo
+        Return this.GetUseSiteInfo().DiagnosticInfo
+    End Function
+
+    <Extension>
+    Friend Sub Verify(this As ImmutableBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
+        this.Diagnostics.Verify(expected)
+    End Sub
+
+    <Extension>
+    Friend Sub LookupMember(this As Binder,
+                            lookupResult As LookupResult,
+                            container As NamespaceOrTypeSymbol,
+                            name As String,
+                            arity As Integer,
+                            options As LookupOptions,
+                            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+
+        useSiteInfo.Diagnostics = useSiteDiagnostics
+        this.LookupMember(lookupResult, container, name, arity, options, useSiteInfo)
+        useSiteDiagnostics = useSiteInfo.Diagnostics
+    End Sub
+
+    <Extension()>
+    Public Function IsBaseTypeOf(this As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+
+        useSiteInfo.Diagnostics = useSiteDiagnostics
+        Dim result = this.IsBaseTypeOf(subType, useSiteInfo)
+        useSiteDiagnostics = useSiteInfo.Diagnostics
+
+        Return result
+    End Function
+
+    <Extension()>
+    Public Function IsOrDerivedFrom(this As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+
+        useSiteInfo.Diagnostics = useSiteDiagnostics
+        Dim result = this.IsOrDerivedFrom(baseType, useSiteInfo)
+        useSiteDiagnostics = useSiteInfo.Diagnostics
+
+        Return result
+    End Function
+
+    <Extension>
+    Friend Sub Lookup(this As Binder,
+                      lookupResult As LookupResult,
+                      name As String,
+                      arity As Integer,
+                      options As LookupOptions,
+                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+
+        useSiteInfo.Diagnostics = useSiteDiagnostics
+        this.Lookup(lookupResult, name, arity, options, useSiteInfo)
+        useSiteDiagnostics = useSiteInfo.Diagnostics
+    End Sub
+
+    <Extension>
+    Friend Function GetBoundMethodBody(this As MethodSymbol, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Return this.GetBoundMethodBody(compilationState, New BindingDiagnosticBag(diagnostics), methodBodyBinder)
+    End Function
+
 End Module

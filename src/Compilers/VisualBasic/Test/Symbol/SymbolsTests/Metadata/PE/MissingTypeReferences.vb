@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal("C1(Of TC7_T1)[missing].C3[missing].C4(Of TC7_T2)[missing]", genericBase.ToTestDisplayString())
             Assert.True(genericBase.ContainingAssembly.IsMissing)
             Assert.False(genericBase.CanConstruct)
-            Assert.Equal(base.GetUseSiteErrorInfo().ToString(), genericBase.GetUseSiteErrorInfo().ToString())
+            Assert.Equal(base.GetUseSiteInfo().ToString(), genericBase.GetUseSiteInfo().ToString())
             Assert.Equal(base.ErrorInfo.ToString(), genericBase.ErrorInfo.ToString())
 
             Dim constructedFrom = DirectCast(genericBase.ConstructedFrom, SubstitutedErrorType)

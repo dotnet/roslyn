@@ -1162,7 +1162,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                                                     getEnumeratorArguments, getEnumeratorDefaultArguments,
                                                                                                     moveNextArguments, moveNextDefaultArguments,
                                                                                                     currentArguments, currentDefaultArguments)
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
             Return New ForEachLoopOperationInfo(statementInfo.ElementType,
                                                      statementInfo.GetEnumeratorMethod,
                                                      statementInfo.CurrentProperty,

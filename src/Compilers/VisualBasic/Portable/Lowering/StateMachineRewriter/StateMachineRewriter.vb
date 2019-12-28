@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected ReadOnly Body As BoundStatement
         Protected ReadOnly Method As MethodSymbol
-        Protected ReadOnly Diagnostics As DiagnosticBag
+        Protected ReadOnly Diagnostics As BindingDiagnosticBag
         Protected ReadOnly F As SyntheticBoundNodeFactory
         Protected ReadOnly StateMachineType As SynthesizedContainer
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
@@ -38,12 +38,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           stateMachineType As StateMachineTypeSymbol,
                           slotAllocatorOpt As VariableSlotAllocator,
                           compilationState As TypeCompilationState,
-                          diagnostics As DiagnosticBag)
+                          diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(body IsNot Nothing)
             Debug.Assert(method IsNot Nothing)
             Debug.Assert(compilationState IsNot Nothing)
             Debug.Assert(diagnostics IsNot Nothing)
+            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
             Debug.Assert(stateMachineType IsNot Nothing)
 
             Me.Body = body
@@ -297,10 +298,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim previousSlotIndex = -1
                 If SlotAllocatorOpt IsNot Nothing AndAlso SlotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax,
-                                                                                                               F.CompilationState.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, Diagnostics),
+                                                                                                               F.CompilationState.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, Diagnostics.DiagnosticBag),
                                                                                                                local.SynthesizedKind,
                                                                                                                id,
-                                                                                                               Diagnostics,
+                                                                                                               Diagnostics.DiagnosticBag,
                                                                                                                previousSlotIndex) Then
                     slotIndex = previousSlotIndex
                 End If
@@ -369,26 +370,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Function EnsureSpecialType(type As SpecialType, bag As DiagnosticBag) As Symbol
-            Return Binder.GetSpecialType(F.Compilation.Assembly, type, Me.Body.Syntax, bag)
+        Friend Function EnsureSpecialType(type As SpecialType, bag As BindingDiagnosticBag) As Symbol
+            Return Binder.GetSpecialType(F.Compilation, type, Me.Body.Syntax, bag)
         End Function
 
-        Friend Function EnsureWellKnownType(type As WellKnownType, bag As DiagnosticBag) As Symbol
+        Friend Function EnsureWellKnownType(type As WellKnownType, bag As BindingDiagnosticBag) As Symbol
             Return Binder.GetWellKnownType(F.Compilation, type, Me.Body.Syntax, bag)
         End Function
 
-        Friend Function EnsureSpecialMember(member As SpecialMember, bag As DiagnosticBag) As Symbol
+        Friend Function EnsureSpecialMember(member As SpecialMember, bag As BindingDiagnosticBag) As Symbol
             Return Binder.GetSpecialTypeMember(F.Compilation.Assembly, member, Me.Body.Syntax, bag)
         End Function
 
-        Friend Function EnsureWellKnownMember(member As WellKnownMember, bag As DiagnosticBag) As Symbol
+        Friend Function EnsureWellKnownMember(member As WellKnownMember, bag As BindingDiagnosticBag) As Symbol
             Return Binder.GetWellKnownTypeMember(F.Compilation, member, Me.Body.Syntax, bag)
         End Function
 
         ''' <summary>
         ''' Check that the property and its getter exist and collect any use-site errors.
         ''' </summary>
-        Friend Sub EnsureSpecialPropertyGetter(member As SpecialMember, bag As DiagnosticBag)
+        Friend Sub EnsureSpecialPropertyGetter(member As SpecialMember, bag As BindingDiagnosticBag)
             Dim symbol = DirectCast(EnsureSpecialMember(member, bag), PropertySymbol)
 
             If symbol IsNot Nothing Then
@@ -399,10 +400,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                Dim useSiteError = getter.GetUseSiteErrorInfo()
-                If useSiteError IsNot Nothing Then
-                    Binder.ReportDiagnostic(bag, Body.Syntax, useSiteError)
-                End If
+                Dim useSiteError = getter.GetUseSiteInfo()
+                Binder.ReportUseSite(bag, Body.Syntax, useSiteError)
             End If
         End Sub
 
@@ -431,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
 
             ' Errors must be reported before and if any this point should not be reachable
-            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
+            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Dim result As New SynthesizedStateMachineDebuggerNonUserCodeMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
                                                                                methodName,
@@ -498,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OpenMoveNextMethodImplementation(methodToImplement As MethodSymbol, accessibility As Accessibility) As SynthesizedMethod
 
             ' Errors must be reported before and if any this point should not be reachable
-            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
+            Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Dim result As New SynthesizedStateMachineMoveNextMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
                                                                     methodToImplement,

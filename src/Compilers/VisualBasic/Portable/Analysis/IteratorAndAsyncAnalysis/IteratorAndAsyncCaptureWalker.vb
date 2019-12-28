@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Returns deterministically ordered list of variables that ought to be hoisted.
-        Public Overloads Shared Function Analyze(info As FlowAnalysisInfo, diagnostics As DiagnosticBag) As Result
+        Public Overloads Shared Function Analyze(info As FlowAnalysisInfo, diagnostics As BindingDiagnosticBag) As Result
             Debug.Assert(info.Symbol IsNot Nothing)
             Debug.Assert(info.Symbol.Kind = SymbolKind.Method)
 

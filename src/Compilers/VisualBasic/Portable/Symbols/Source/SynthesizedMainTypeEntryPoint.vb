@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             methodBodyBinder = Nothing
 
             Dim syntaxNode As SyntaxNode = Me.Syntax
@@ -59,17 +59,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Call System.Windows.Forms.Application.Run(<instance>)
-            Dim useSiteError As DiagnosticInfo = Nothing
-            Dim runMethod = DirectCast(Binder.GetWellKnownTypeMember(container.DeclaringCompilation, WellKnownMember.System_Windows_Forms_Application__RunForm, useSiteError), MethodSymbol)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim runMethod = DirectCast(Binder.GetWellKnownTypeMember(container.DeclaringCompilation, WellKnownMember.System_Windows_Forms_Application__RunForm, useSiteInfo), MethodSymbol)
             Dim statement As BoundStatement
 
-            If useSiteError Is Nothing Then
+            If Not Binder.ReportUseSite(diagnostics, syntaxNode, useSiteInfo) Then
                 statement = binder.BindInvocationExpression(syntaxNode, syntaxNode, TypeCharacter.None,
                                                             New BoundMethodGroup(syntaxNode, Nothing, ImmutableArray.Create(runMethod), LookupResultKind.Good, Nothing, QualificationKind.QualifiedViaTypeName),
                                                             ImmutableArray.Create(instance), Nothing, diagnostics,
                                                             callerInfoOpt:=Nothing).ToStatement()
             Else
-                Binder.ReportDiagnostic(diagnostics, syntaxNode, useSiteError)
                 statement = New BoundBadStatement(syntaxNode, ImmutableArray(Of BoundNode).Empty, hasErrors:=True)
             End If
 

@@ -615,22 +615,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool inherited = (_containingSymbol.Kind == SymbolKind.Method) && ((MethodSymbol)_containingSymbol).IsOverride;
                 var bounds = this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, inherited, currentCompilation: null,
                                                 diagnosticsBuilder: diagnostics, useSiteDiagnosticsBuilder: ref useSiteDiagnosticsBuilder);
+
+                if (useSiteDiagnosticsBuilder != null)
+                {
+                    diagnostics.AddRange(useSiteDiagnosticsBuilder);
+                }
+
                 AssemblySymbol primaryDependency = PrimaryDependency;
                 var useSiteInfo = new UseSiteInfo<AssemblySymbol>(primaryDependency);
 
-                if (diagnostics.Count > 0)
+                foreach (var diag in diagnostics)
                 {
-                    MergeUseSiteInfo(ref useSiteInfo, diagnostics[0].UseSiteInfo);
-                }
-                else if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
-                {
-                    foreach (var diag in useSiteDiagnosticsBuilder)
+                    MergeUseSiteInfo(ref useSiteInfo, diag.UseSiteInfo);
+                    if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
                     {
-                        MergeUseSiteInfo(ref useSiteInfo, diag.UseSiteInfo);
-                        if (useSiteInfo.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
 

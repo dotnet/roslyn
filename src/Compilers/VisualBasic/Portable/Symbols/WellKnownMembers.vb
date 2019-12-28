@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _lazyWellKnownTypeMembers() As Symbol
 
         Private _lazyExtensionAttributeConstructor As Symbol = ErrorTypeSymbol.UnknownResultType ' Not yet known.
-        Private _lazyExtensionAttributeConstructorErrorInfo As Object 'Actually, DiagnosticInfo
+        Private _lazyExtensionAttributeConstructorUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized
 
 #Region "Synthesized Attributes"
-        Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
-            If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
+        Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As MethodSymbol
+            If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType OrElse Not _lazyExtensionAttributeConstructorUseSiteInfo.IsInitialized Then
 
                 Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create(MetadataHelpers.SystemString, "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim ambiguity As Boolean = False
 
                     For Each candidate As NamedTypeSymbol In candidates
-                        If Not sourceModuleBinder.IsAccessible(candidate, useSiteDiagnostics:=Nothing) Then
+                        If Not sourceModuleBinder.IsAccessible(candidate, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                             Continue For
                         End If
 
@@ -84,11 +84,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Not attributeType.IsStructureType AndAlso
                    Not attributeType.IsMustInherit AndAlso
                    GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(attributeType, Nothing) AndAlso
-                   sourceModuleBinder.IsAccessible(attributeType, useSiteDiagnostics:=Nothing) Then
+                   sourceModuleBinder.IsAccessible(attributeType, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
 
                     For Each ctor In attributeType.InstanceConstructors
                         If ctor.ParameterCount = 0 Then
-                            If sourceModuleBinder.IsAccessible(ctor, useSiteDiagnostics:=Nothing) Then
+                            If sourceModuleBinder.IsAccessible(ctor, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                                 attributeCtor = ctor
                             End If
 
@@ -97,32 +97,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
                 End If
 
-                Dim ctorError As DiagnosticInfo = Nothing
+                Dim ctorUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
 
                 If attributeCtor Is Nothing Then
                     ' TODO (tomat): It is not clear under what circumstances is this error reported since the binder already reports errors when the conditions above are not satisfied.
-                    ctorError = ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper,
-                                                       AttributeDescription.CaseInsensitiveExtensionAttribute.FullName & "." & WellKnownMemberNames.InstanceConstructorName)
+                    ctorUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper,
+                                                       AttributeDescription.CaseInsensitiveExtensionAttribute.FullName & "." & WellKnownMemberNames.InstanceConstructorName))
                 Else
                     Dim attributeUsage As AttributeUsageInfo = attributeCtor.ContainingType.GetAttributeUsageInfo()
                     Debug.Assert(Not attributeUsage.IsNull)
 
                     Const requiredTargets As AttributeTargets = AttributeTargets.Assembly Or AttributeTargets.Class Or AttributeTargets.Method
                     If (attributeUsage.ValidTargets And requiredTargets) <> requiredTargets Then
-                        ctorError = ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionAttributeInvalid)
+                        ctorUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionAttributeInvalid))
                     Else
-                        ctorError = If(attributeCtor.GetUseSiteErrorInfo(), attributeCtor.ContainingType.GetUseSiteErrorInfo())
+                        ctorUseSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(attributeCtor)
                     End If
                 End If
 
-                ' Storing m_LazyExtensionAttributeConstructorErrorInfo first.
-                _lazyExtensionAttributeConstructorErrorInfo = ctorError
+                ' Storing m_LazyExtensionAttributeConstructorUseSiteInfo first.
+                _lazyExtensionAttributeConstructorUseSiteInfo.Initialize(attributeCtor?.PrimaryDependency, ctorUseSiteInfo)
                 Interlocked.CompareExchange(_lazyExtensionAttributeConstructor,
                                             DirectCast(attributeCtor, Symbol),
                                             DirectCast(ErrorTypeSymbol.UnknownResultType, Symbol))
             End If
 
-            useSiteError = DirectCast(Volatile.Read(_lazyExtensionAttributeConstructorErrorInfo), DiagnosticInfo)
+            Debug.Assert(_lazyExtensionAttributeConstructorUseSiteInfo.IsInitialized)
+            useSiteInfo = _lazyExtensionAttributeConstructorUseSiteInfo.ToUseSiteInfo(_lazyExtensionAttributeConstructor?.PrimaryDependency)
             Return DirectCast(_lazyExtensionAttributeConstructor, MethodSymbol)
         End Function
 
@@ -150,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim constructorSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
             If constructorSymbol Is Nothing OrElse
-               Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
+               Binder.GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, constructor, False).DiagnosticInfo IsNot Nothing Then
                 Return ReturnNothingOrThrowIfAttributeNonOptional(constructor, isOptionalUse)
             End If
 
@@ -167,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim wellKnownMember = GetWellKnownTypeMember(arg.Key)
                     If wellKnownMember Is Nothing OrElse
                        TypeOf wellKnownMember Is ErrorTypeSymbol OrElse
-                       Binder.GetUseSiteErrorForWellKnownTypeMember(wellKnownMember, arg.Key, False) IsNot Nothing Then
+                       Binder.GetUseSiteInfoForWellKnownTypeMember(wellKnownMember, arg.Key, False).DiagnosticInfo IsNot Nothing Then
                         Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
                     Else
                         builder.Add(New KeyValuePair(Of String, TypedConstant)(wellKnownMember.Name, arg.Value))
@@ -188,11 +189,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function SynthesizeExtensionAttribute() As SynthesizedAttributeData
-            Dim constructor As MethodSymbol = GetExtensionAttributeConstructor(useSiteError:=Nothing)
+            Dim constructor As MethodSymbol = GetExtensionAttributeConstructor(useSiteInfo:=Nothing)
 
             Debug.Assert(constructor IsNot Nothing AndAlso
-                         constructor.GetUseSiteErrorInfo() Is Nothing AndAlso
-                         constructor.ContainingType.GetUseSiteErrorInfo() Is Nothing)
+                         constructor.GetUseSiteInfo().DiagnosticInfo Is Nothing AndAlso
+                         constructor.ContainingType.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Return SynthesizedAttributeData.Create(constructor, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor)
         End Function
@@ -226,10 +227,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             value.GetBits(isNegative, scale, low, mid, high)
 
             Dim specialTypeByte = GetSpecialType(SpecialType.System_Byte)
-            Debug.Assert(specialTypeByte.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(specialTypeByte.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Dim specialTypeUInt32 = GetSpecialType(SpecialType.System_UInt32)
-            Debug.Assert(specialTypeUInt32.GetUseSiteErrorInfo() Is Nothing)
+            Debug.Assert(specialTypeUInt32.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
             Return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
@@ -348,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteDiagnostics:=Nothing)
+            Return DirectCast(type, NamedTypeSymbol).IsOrDerivedFromWellKnownClass(WellKnownType.System_Attribute, Me, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
         End Function
 
         ''' <summary>

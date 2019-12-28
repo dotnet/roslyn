@@ -414,12 +414,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        ERRID.ERR_None)
 
                         If nameAttribute IsNot Nothing Then
-                            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(nameAttribute.Reference, useSiteDiagnostics)
+                            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                            Dim bindResult As ImmutableArray(Of Symbol) = binder.BindXmlNameAttributeValue(nameAttribute.Reference, useSiteInfo)
 
-                            If node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
-                                Me._diagnostics.Add(node, useSiteDiagnostics)
+                            If Not node.SyntaxTree.ReportDocumentationCommentDiagnostics() Then
+                                useSiteInfo.Diagnostics?.Clear()
                             End If
+
+                            Me._diagnostics.Add(node, useSiteInfo)
 
                             Dim needDiagnostic As Boolean = True
 

@@ -2059,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeOneInternalsVisibleToAttribute(
             AttributeSyntax nodeOpt,
             CSharpAttributeData attrData,
-            DiagnosticBag diagnostics,
+            CodeAnalysis.BindingDiagnosticBag diagnostics,
             int index,
             ref ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, string>>> lazyInternalsVisibleToMap)
         {

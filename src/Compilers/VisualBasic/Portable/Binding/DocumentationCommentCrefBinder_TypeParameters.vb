@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          arity As Integer,
                                                          options As LookupOptions,
                                                          originalBinder As Binder,
-                                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                         <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
                 Debug.Assert(lookupResult.IsClear)
 
                 Dim typeParameter As CrefTypeParameterSymbol = Nothing
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         arity,
                                                         options Or LookupOptions.IgnoreAccessibility,
                                                         Nothing,
-                                                        useSiteDiagnostics))
+                                                        useSiteInfo))
                 End If
             End Sub
 

@@ -92,12 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BindingDiagnosticBag(usePool: true);
         }
 
-        // PROTOTYPE(UsedAssemblyReferences): Remove this overload once conversion operators are removed from the base type.
-        internal void AddRange(BindingDiagnosticBag other)
-        {
-            AddRange((BindingDiagnosticBag<AssemblySymbol>)other);
-        }
-
         internal void AddDependencies(Symbol? symbol)
         {
             if (symbol is object && DependenciesBag is object)

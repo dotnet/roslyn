@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Conversions.ClassifyDirectCastConversion(
                                     awaiterType,
                                     ICriticalNotifyCompletion,
-                                    useSiteDiagnostics:=Nothing))
+                                    useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
 
                         blockBuilder.Add(
                             Me.F.ExpressionStatement(

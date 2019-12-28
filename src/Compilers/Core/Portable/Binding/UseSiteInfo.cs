@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis
             SecondaryDependencies = secondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty;
         }
 
+        public bool IsEmpty => DiagnosticInfo is null && PrimaryDependency is null && SecondaryDependencies?.IsEmpty != false;
+
         public UseSiteInfo<TAssemblySymbol> AdjustDiagnosticInfo(DiagnosticInfo? diagnosticInfo)
         {
             if ((object?)DiagnosticInfo != diagnosticInfo)
@@ -81,6 +83,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this;
+        }
+
+        public void MergeDependencies(ref TAssemblySymbol? primaryDependency, ref ImmutableHashSet<TAssemblySymbol>? secondaryDependencies)
+        {
+            secondaryDependencies = (secondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty).Union(SecondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty);
+            primaryDependency ??= PrimaryDependency;
+
+            if (!object.Equals(primaryDependency, PrimaryDependency) && PrimaryDependency is object)
+            {
+                secondaryDependencies = secondaryDependencies.Add(PrimaryDependency);
+            }
         }
     }
 
@@ -105,6 +118,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsDiscarded => _discarded;
 
+        public bool DefinitelyKnownToHaveErrors => _haveErrors;
+
         public void AddDiagnostics(UseSiteInfo<TAssemblySymbol> info)
         {
             if (_discarded)
@@ -120,6 +135,27 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public void AddDiagnostics(ICollection<DiagnosticInfo>? diagnostics)
+        {
+            if (_discarded)
+            {
+                return;
+            }
+
+            if (diagnostics?.Count > 0)
+            {
+                Diagnostics ??= new HashSet<DiagnosticInfo>();
+
+                foreach (var diagnosticInfo in diagnostics)
+                {
+                    if (Diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+                    {
+                        _haveErrors = true;
+                    }
+                }
+            }
+        }
+
         public void AddDependencies(UseSiteInfo<TAssemblySymbol> info)
         {
             if (!_haveErrors && !_discarded)
@@ -130,6 +166,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     (Dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(info.SecondaryDependencies);
                 }
+            }
+        }
+
+        public void AddDependencies(ICollection<TAssemblySymbol>? dependencies)
+        {
+            if (!_haveErrors && !_discarded && dependencies?.Count > 0)
+            {
+                (Dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
             }
         }
 

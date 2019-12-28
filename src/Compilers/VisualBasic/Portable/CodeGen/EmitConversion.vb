@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             EmitInitObj(typeTo, used:=True, syntaxNode:=conversion.Syntax)
                         Else
                             ' before we use constructor symbol we need to report use site error if any
-                            Binder.ReportUseSiteError(_diagnostics, conversion.Syntax, constructor)
+                            Binder.ReportUseSite(New BindingDiagnosticBag(_diagnostics), conversion.Syntax, constructor)
 
                             EmitNewObj(constructor, ImmutableArray(Of BoundExpression).Empty, used:=True, syntaxNode:=conversion.Syntax)
                         End If
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 '       optional parameters; this matches Dev10 behavior
                 If constr.ParameterCount = 0 Then
                     '  check 'constr' 
-                    If AccessCheck.IsSymbolAccessible(constr, _method.ContainingType, typeTo, useSiteDiagnostics:=Nothing) Then
+                    If AccessCheck.IsSymbolAccessible(constr, _method.ContainingType, typeTo, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                         Return constr
                     End If
 

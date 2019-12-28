@@ -1148,12 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()
         {
-            if (_uncommonFields is null)
-            {
-                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
-            }
-
-            return _uncommonFields._lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
+            return (_uncommonFields?._lazyCachedUseSiteInfo ?? default).ToUseSiteInfo(PrimaryDependency);
         }
 
         private UseSiteInfo<AssemblySymbol> InitializeUseSiteDiagnostic(UseSiteInfo<AssemblySymbol> useSiteInfo)

@@ -573,9 +573,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Private Function GetUntranslatedSpecialType(specialType As SpecialType, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim typeSymbol = SourceModule.ContainingAssembly.GetSpecialType(specialType)
 
-            Dim info = Binder.GetUseSiteErrorForSpecialType(typeSymbol)
-            If info IsNot Nothing Then
-                Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info)
+            Dim info = Binder.GetUseSiteInfoForSpecialType(typeSymbol)
+            If info.DiagnosticInfo IsNot Nothing Then
+                Binder.ReportDiagnostic(diagnostics, If(syntaxNodeOpt IsNot Nothing, syntaxNodeOpt.GetLocation(), NoLocation.Singleton), info.DiagnosticInfo)
             End If
 
             Return typeSymbol
