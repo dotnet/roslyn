@@ -2706,6 +2706,88 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase3()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""[|N|].Goo.Bar""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}",
+@"namespace N
+{
+    class Goo
+    {
+        public static void Bar()
+        {
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""Goo.Bar""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase4()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Goo
+    {
+        public class Bar
+        {
+            public class Baz { }
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""[|N|].Goo.Bar.Baz""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}",
+@"namespace N
+{
+    class Goo
+    {
+        public class Bar
+        {
+            public class Baz { }
+        }
+    }
+
+    /// <summary>
+    /// <see cref=""Goo.Bar.Baz""/>
+    /// </summary>
+    class Program
+    {
+        public Goo Goo;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAliasQualifiedType()
         {
             var source =
