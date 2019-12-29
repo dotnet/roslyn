@@ -1905,7 +1905,7 @@ index: 1);
             }
         }
 
-        static void Main()
+        static void Main(int[] args)
         {
             [|Program|].Goo.Bar();
             int Goo;
@@ -2887,6 +2887,7 @@ namespace N
         {
         }
     }
+
     /// <summary>
     /// <see cref=""[|N|].Goo.Bar""/>
     /// </summary>
@@ -2903,6 +2904,7 @@ namespace N
         {
         }
     }
+
     /// <summary>
     /// <see cref=""Goo.Bar""/>
     /// </summary>
@@ -2926,6 +2928,7 @@ namespace N
             public class Baz { }
         }
     }
+
     /// <summary>
     /// <see cref=""[|N|].Goo.Bar.Baz""/>
     /// </summary>
@@ -2943,6 +2946,7 @@ namespace N
             public class Baz { }
         }
     }
+
     /// <summary>
     /// <see cref=""Goo.Bar.Baz""/>
     /// </summary>

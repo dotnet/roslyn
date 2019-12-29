@@ -1760,7 +1760,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // We may be looking at a name `X.Y` seeing if we can replace it with `Y`.  However, in
+            // order to know for sure, we actually have to look slightly higher at `X.Y.Z` to see if
+            // it can simplify to `Y.Z`.  This is because in the `Color Color` case we can only tell
+            // if we can reduce by looking by also looking at what comes next to see if it will
+            // cause the simplified name to bind to the instance or static side.
+            if (TryReduceCrefColorColor(name, replacementNode, semanticModel, cancellationToken))
+            {
+                return true;
+            }
+
             return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static bool TryReduceCrefColorColor(
+            NameSyntax name, TypeSyntax replacement,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!InsideCrefReference(name))
+                return false;
+
+            if (name.Parent is QualifiedCrefSyntax qualifiedCrefParent && qualifiedCrefParent.Container == name)
+            {
+                // we have <see cref="A.B.C.D"/> and we're trying to see if we can replace 
+                // A.B.C with C.  In this case the parent of A.B.C is A.B.C.D which is a 
+                // QualifiedCrefSyntax
+
+                var qualifiedReplacement = SyntaxFactory.QualifiedCref(replacement, qualifiedCrefParent.Member);
+                if (qualifiedCrefParent.TryReduceOrSimplifyQualifiedCref(
+                        semanticModel, qualifiedReplacement, out _, out _, cancellationToken))
+                {
+                    return true;
+                }
+            }
+            else if (name.Parent is QualifiedNameSyntax qualifiedParent && qualifiedParent.Left == name &&
+                     replacement is NameSyntax replacementName)
+            {
+                // we have <see cref="A.B.C.D"/> and we're trying to see if we can replace 
+                // A.B with B.  In this case the parent of A.B is A.B.C which is a 
+                // QualifiedNameSyntax
+
+                var qualifiedReplacement = SyntaxFactory.QualifiedName(replacementName, qualifiedParent.Right);
+                return qualifiedParent.CanReplaceWithReducedName(qualifiedReplacement, semanticModel, cancellationToken);
+            }
+
+            return false;
         }
 
         private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name, SemanticModel semanticModel)
@@ -2073,7 +2117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (WillConflictWithExistingLocal(memberAccess, reducedName))
+            if (WillConflictWithExistingLocal(memberAccess, reducedName, semanticModel))
             {
                 return false;
             }
@@ -2213,7 +2257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // not allowed in the C# grammar.
 
             if (IsNonNameSyntaxInUsingDirective(name, reducedName) ||
-                WillConflictWithExistingLocal(name, reducedName) ||
+                WillConflictWithExistingLocal(name, reducedName, semanticModel) ||
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(reducedName) ||
                 name.IsNotNullableReplaceable(reducedName) ||
@@ -2371,24 +2415,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 !(simplifiedNode is NameSyntax);
         }
 
-        private static bool WillConflictWithExistingLocal(ExpressionSyntax expression, ExpressionSyntax simplifiedNode)
+        private static bool WillConflictWithExistingLocal(
+            ExpressionSyntax expression, ExpressionSyntax simplifiedNode, SemanticModel semanticModel)
         {
-            if (simplifiedNode.Kind() == SyntaxKind.IdentifierName && !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
+            if (simplifiedNode is IdentifierNameSyntax identifierName &&
+                !SyntaxFacts.IsInNamespaceOrTypeContext(expression))
             {
-                var identifierName = (IdentifierNameSyntax)simplifiedNode;
-                var enclosingDeclarationSpace = FindImmediatelyEnclosingLocalVariableDeclarationSpace(expression);
-                var enclosingMemberDeclaration = expression.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-                if (enclosingDeclarationSpace != null && enclosingMemberDeclaration != null)
-                {
-                    var locals = enclosingMemberDeclaration.GetLocalDeclarationMap()[identifierName.Identifier.ValueText];
-                    foreach (var token in locals)
-                    {
-                        if (token.GetAncestors<SyntaxNode>().Contains(enclosingDeclarationSpace))
-                        {
-                            return true;
-                        }
-                    }
-                }
+                var symbols = semanticModel.LookupSymbols(expression.SpanStart, name: identifierName.Identifier.ValueText);
+                return symbols.Any(s => s is ILocalSymbol);
             }
 
             return false;

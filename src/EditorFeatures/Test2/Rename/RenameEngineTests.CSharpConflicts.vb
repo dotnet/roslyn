@@ -1540,7 +1540,7 @@ class B
         End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSymbolConflictWithLocals()
+        Public Sub RenameSymbolDoesNotConflictWithNestedLocals()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1551,6 +1551,32 @@ class C
     void Foo()
     {
         { int x; }
+        {|Stmt1:Bar|}();
+    }
+ 
+    void [|$$Bar|]() { }
+}
+                            </Document>
+                    </Project>
+                </Workspace>, renameTo:="x")
+
+
+                result.AssertLabeledSpansAre("Stmt1", "x();", RelatedLocationType.ResolvedReferenceConflict)
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSymbolConflictWithLocals()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs">
+using System;
+class C
+{
+    void Foo()
+    {
+        int x;
         {|Stmt1:Bar|}();
     }
  
