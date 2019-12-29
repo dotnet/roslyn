@@ -165,39 +165,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
                     return;
 
-                if (SimplifyStaticMemberAccess(node))
+                if (SimplifyStaticMemberAccessInScope(node))
+                    return;
+
+                if (SimplifyStaticMemberAccessThroughDerivedType(node))
                     return;
             }
 
             base.VisitMemberAccessExpression(node);
         }
 
-        private bool SimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
+        private bool SimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)
         {
             Debug.Assert(IsSimplifiableMemberAccess(node));
-
-            ISymbol nameSymbol = null;
             var memberNameNode = node.Name;
-            if (node.Expression.GetRightmostName() is GenericNameSyntax)
-            {
-                // Member on the right of the dot needs to be a static member or another named type.
-                nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
-                var isValidName = nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
-                if (!isValidName)
-                    return false;
-
-                // If we have  `...A<T>.B` look to see if we can simplify `A<T>` to a base type that
-                // is non-generic.
-                if (nameSymbol.ContainingType.Arity == 0)
-                    return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
-            }
 
             // see if we can just access this member using it's name alone here.
             var memberName = memberNameNode.Identifier.ValueText;
             if (!Peek(_staticNamesInScopeStack).Contains(memberName))
                 return false;
 
-            nameSymbol ??= _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
+            var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
             if (nameSymbol == null)
                 return false;
 
@@ -211,6 +199,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             return false;
+        }
+
+        private bool SimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
+        {
+            Debug.Assert(IsSimplifiableMemberAccess(node));
+            var memberNameNode = node.Name;
+
+            // Member on the right of the dot needs to be a static member or another named type.
+            var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
+            var isValidName = nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
+            if (!isValidName)
+                return false;
+
+            if (nameSymbol.ContainingType == null)
+                return false;
+
+            // Don't simplify a container into a generic type.  Users do not consider it to actually
+            // be simpler to go from D.P to B<X>.P
+            if (nameSymbol.ContainingType.Arity > 0)
+                return false;
+
+            // If the user is already accessing the static through its containing type, there's
+            // nothing we need to simplify to.
+            var containerSymbol = _semanticModel.GetSymbolInfo(node.Expression).Symbol;
+            if (Equals(containerSymbol, nameSymbol.ContainingType))
+                return false;
+
+            return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
         private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)

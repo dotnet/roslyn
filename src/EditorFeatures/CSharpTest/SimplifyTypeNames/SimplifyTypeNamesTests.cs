@@ -3098,6 +3098,45 @@ static class M
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
+        {
+            var source =
+@"class Base
+{
+    public static int Y;
+}
+
+class Derived : Base
+{
+}
+
+static class M
+{
+    public static void Main()
+    {
+        int k = [|Derived|].Y;
+    }
+}";
+            await TestInRegularAndScriptAsync(source,
+@"class Base
+{
+    public static int Y;
+}
+
+class Derived : Base
+{
+}
+
+static class M
+{
+    public static void Main()
+    {
+        int k = Base.Y;
+    }
+}");
+        }
+
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyNestedType()
