@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
-            if (nameSymbol == null)
+            if (!IsNamedTypeOrStaticSymbol(nameSymbol))
                 return false;
 
             var foundSymbols = LookupName(node, isNamespaceOrTypeContext: false, memberName);
@@ -208,8 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // Member on the right of the dot needs to be a static member or another named type.
             var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
-            var isValidName = nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
-            if (!isValidName)
+            if (!IsNamedTypeOrStaticSymbol(nameSymbol))
                 return false;
 
             if (nameSymbol.ContainingType == null)
@@ -228,6 +228,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
+
+        private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
+            => nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
 
         private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
         {
