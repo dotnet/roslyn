@@ -1273,6 +1273,33 @@ class Program
 }", options: PreferIntrinsicTypeEverywhere);
         }
 
+        [WorkItem(995168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995168")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyCrefAliasPredefinedType_OnClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N1
+{
+    /// <see cref=""[|System.Int32|]""/>
+    public class C1
+    {
+        public C1()
+        {
+        }
+    }
+}",
+@"namespace N1
+{
+    /// <see cref=""int""/>
+    public class C1
+    {
+        public C1()
+        {
+        }
+    }
+}", options: PreferIntrinsicTypeEverywhere);
+        }
+
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias1()
