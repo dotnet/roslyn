@@ -480,15 +480,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // see if we can simplify to that.
             if (!isNamespaceOrTypeContext &&
                 rightArity == 0 &&
-                IsColorColorCase(foundSymbols) &&
-                root.Parent is MemberAccessExpressionSyntax)
+                IsColorColorCase(foundSymbols))
             {
-                foundSymbols = LookupName(root, isNamespaceOrTypeContext: true, rightIdentifier);
-                foreach (var found in foundSymbols)
+                if (root.Parent is MemberAccessExpressionSyntax ||
+                    root.Parent is QualifiedCrefSyntax)
                 {
-                    if (IsMatch(symbol, found, rightArity))
+                    foundSymbols = LookupName(root, isNamespaceOrTypeContext: true, rightIdentifier);
+                    foreach (var found in foundSymbols)
                     {
-                        return AddDiagnostic(left, diagnosticId);
+                        if (IsMatch(symbol, found, rightArity))
+                        {
+                            return AddDiagnostic(left, diagnosticId);
+                        }
                     }
                 }
             }
