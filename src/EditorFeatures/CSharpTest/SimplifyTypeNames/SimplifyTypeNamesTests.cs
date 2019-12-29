@@ -4303,6 +4303,30 @@ class C
 }", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyMemberAccessOffOfObjectKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    bool Goo()
+    {
+        return [|object|].Equals(null, null);
+    }
+}",
+@"using System;
+
+class C
+{
+    bool Goo()
+    {
+        return Equals(null, null);
+    }
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]

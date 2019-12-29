@@ -224,7 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // We could end up simplifying to a predefined type or alias.  We can't simplify
             // to nullable as `A?.B` is not a legal member access for `Nullable<A>.B`
-            var identifier = node.GetRightmostName().Identifier.ValueText;
+            var rightmostName = node.GetRightmostName();
+            if (rightmostName == null)
+                return false;
+
+            var identifier = rightmostName.Identifier.ValueText;
             INamespaceOrTypeSymbol symbol = null;
             if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                 return true;
@@ -269,9 +273,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 continue;
             }
 
-            return current.Kind() == SyntaxKind.AliasQualifiedName ||
-                   current.Kind() == SyntaxKind.IdentifierName ||
-                   current.Kind() == SyntaxKind.GenericName;
+            if (current.Kind() == SyntaxKind.AliasQualifiedName ||
+                current.Kind() == SyntaxKind.IdentifierName ||
+                current.Kind() == SyntaxKind.GenericName)
+            {
+                return true;
+            }
+
+            if (current.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) &&
+                predefinedType.Keyword.Kind() == SyntaxKind.ObjectKeyword)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsNameOfUsingDirective(QualifiedNameSyntax node, out UsingDirectiveSyntax usingDirective)
