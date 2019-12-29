@@ -191,15 +191,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             var foundSymbols = LookupName(node, isNamespaceOrTypeContext: false, memberName);
+            return AddMatches(nameSymbol, foundSymbols, memberNameNode.Arity,
+                node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+        }
+
+        private bool AddMatches(
+            ISymbol nameSymbol, ImmutableArray<ISymbol> foundSymbols, int arity,
+            SyntaxNode diagnosticLocation, string diagnoticId)
+        {
+            using var matches = SharedPools.Default<List<ISymbol>>().GetPooledObject();
+
             foreach (var found in foundSymbols)
             {
-                if (IsMatch(nameSymbol, found, memberNameNode.Arity))
+                if (IsMatch(nameSymbol, found, arity))
                 {
-                    return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+                    matches.Object.Add(found);
                 }
             }
 
-            return false;
+            if (matches.Object.Count == 0)
+                return false;
+
+            // It's only ok to get multiple results if we're getting method overloads.
+            if (matches.Object.Count >= 2 && !(matches.Object[0] is IMethodSymbol))
+                return false;
+
+            return this.AddDiagnostic(diagnosticLocation, diagnoticId);
         }
 
         private bool SimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
@@ -486,13 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(root);
             var foundSymbols = LookupName(root, isNamespaceOrTypeContext, rightIdentifier);
             var rightArity = right.Arity;
-            foreach (var found in foundSymbols)
-            {
-                if (IsMatch(symbol, found, rightArity))
-                {
-                    return AddDiagnostic(left, diagnosticId);
-                }
-            }
+            if (AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
+                return true;
 
             // See if we're in the `Color Color` case.  i.e user may have written
             // `X.Color.Red`.  We need to retry binding `Color` as a decl here to 
@@ -505,13 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     root.Parent is QualifiedCrefSyntax)
                 {
                     foundSymbols = LookupName(root, isNamespaceOrTypeContext: true, rightIdentifier);
-                    foreach (var found in foundSymbols)
-                    {
-                        if (IsMatch(symbol, found, rightArity))
-                        {
-                            return AddDiagnostic(left, diagnosticId);
-                        }
-                    }
+                    if (AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
+                        return true;
                 }
             }
 
@@ -520,13 +527,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         private static bool IsMatch(ISymbol symbol, ISymbol found, int arity)
         {
-            if (arity > 0 && found.GetArity() != arity)
+            if (!SkipArityCheck(found, arity) &&
+                found.GetArity() != arity)
+            {
                 return false;
-
+            }
 
             return Equals(symbol.OriginalDefinition, found.OriginalDefinition) &&
                    Equals(symbol.ContainingSymbol, found.ContainingSymbol);
         }
+
+        private static bool SkipArityCheck(ISymbol found, int arity)
+            => found is IMethodSymbol && arity == 0;
 
         private bool IsColorColorCase(ImmutableArray<ISymbol> foundSymbols)
         {
