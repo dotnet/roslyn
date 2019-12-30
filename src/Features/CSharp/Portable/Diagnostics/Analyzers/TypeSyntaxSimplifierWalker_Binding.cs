@@ -143,6 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
         {
+            if (TrySimplifyBaseAccessExpression(node))
+                return;
+
             // Look for one of the following:
             //
             //      A.B.C
@@ -174,6 +177,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             }
 
             base.VisitMemberAccessExpression(node);
+        }
+
+        private bool TrySimplifyBaseAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            if (node.Expression.Kind() != SyntaxKind.BaseExpression)
+                return false;
+
+            // We have `base.SomeMember(...)`.  This is potentially simplifiable to `SomeMember` if
+            // certain conditions hold. First, `SomeMember` has to at least bind to the exact same
+            // member as before.  However, that's still not sufficient as the runtime behavior might
+            // be different (since base.SomeMember is a non-virtual call, and .SomeMember might not
+            // be).  To ensure we'll have the same runtime behavior either the member must be
+            // non-virtual, or we must be in a sealed type.  In the latter case, there can't be any
+            // derivations of us that are overriding the virtual member.
+
+            // Also, because we are making an instance call (and not a static), we have to use the
+            // more complex validation system that ensures no changed semantics.  That's because
+            // looking up through an instance may involve far more complex overload resolution (i.e.
+            // because of different instance members in scope, or extension methods).
+            if (!node.CanReplaceWithReducedName(node.Name, _semanticModel, _cancellationToken))
+                return false;
+
+            return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
         private bool SimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)

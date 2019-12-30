@@ -4817,6 +4817,142 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyBaseCallToVirtualInNonSealedClass()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyBaseCallToVirtualInSealedClass()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+sealed class C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+}",
+@"using System;
+
+sealed class C
+{
+    void Goo()
+    {
+        var v = GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyBaseCallToVirtualInStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+struct C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+}",
+@"using System;
+
+struct C
+{
+    void Goo()
+    {
+        var v = GetHashCode();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyBaseCallToVirtualWithOverride()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = [|base|].GetHashCode();
+    }
+
+    public override int GetHashCode() => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyBaseCallToNonVirtual()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Base
+{
+    public int Baz() => 0;
+}
+
+class C : Base
+{
+    void Goo()
+    {
+        var v = [|base|].Baz();
+    }
+}",
+@"using System;
+
+class Base
+{
+    public int Baz() => 0;
+}
+
+class C : Base
+{
+    void Goo()
+    {
+        var v = Baz();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyBaseCallIfOverloadChanges()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Base
+{
+    public int Baz(object o) => 0;
+}
+
+class C : Base
+{
+    void Goo()
+    {
+        var v = [|base|].Baz(0);
+    }
+
+    public int Baz(int o) => 0;
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
