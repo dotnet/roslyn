@@ -178,5 +178,87 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitComment
     }
 }");
         }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitCommentOutsideOfMethod()
+        {
+            TestHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        
+    }
+    // Test [||]Comment
+}",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        
+    }
+    // Test 
+    //Comment
+}");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitCommentOutsideOfClass()
+        {
+            TestHandled(
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        
+    }
+}
+// Test [||]Comment
+",
+@"public class Program
+{
+    public static void Main(string[] args) 
+    { 
+        
+    }
+}
+// Test 
+//Comment
+");
+        }
+
+        [WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)]
+        public void TestSplitCommentOutsideOfNamespace()
+        {
+            TestHandled(
+@"namespace TestNamespace
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            
+        }
+    }
+}
+// Test [||]Comment
+",
+@"namespace TestNamespace
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            
+        }
+    }
+}
+// Test 
+//Comment
+");
+        }
     }
 }
