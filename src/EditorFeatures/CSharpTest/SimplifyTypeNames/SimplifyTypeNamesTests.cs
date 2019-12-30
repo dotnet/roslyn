@@ -4953,6 +4953,22 @@ class C : Base
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyInsideNameof()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Base
+{
+    public int Baz(string type)
+        => type switch
+        {
+            nameof([|Int32|]) => 0,
+        };
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]

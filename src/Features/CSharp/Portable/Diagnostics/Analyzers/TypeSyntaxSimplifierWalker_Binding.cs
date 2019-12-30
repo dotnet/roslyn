@@ -439,7 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
 
             if (s_predefinedTypeNames.Contains(typeName) &&
-                !node.IsParentKind(SyntaxKind.UsingDirective))
+                !node.IsParentKind(SyntaxKind.UsingDirective) &&
+                !IsNameOfArgumentExpression(node))
             {
                 symbol ??= GetNamespaceOrTypeSymbol(node);
                 if (symbol is ITypeSymbol typeSymbol)
@@ -454,6 +455,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             return false;
         }
+
+        private bool IsNameOfArgumentExpression(SyntaxNode node)
+            => node is ExpressionSyntax expr && expr.IsNameOfArgumentExpression();
 
         private bool TryReplaceWithNullable(
             SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
