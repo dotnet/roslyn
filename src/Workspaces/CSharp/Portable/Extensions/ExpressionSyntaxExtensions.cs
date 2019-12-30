@@ -1094,11 +1094,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
-                return memberAccess.Expression != null && memberAccess.Expression.IsAliasReplaceableExpression();
-            }
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+                return memberAccess.Expression.IsAliasReplaceableExpression();
 
             return false;
         }
