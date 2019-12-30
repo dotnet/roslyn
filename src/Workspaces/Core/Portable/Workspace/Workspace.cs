@@ -75,7 +75,9 @@ namespace Microsoft.CodeAnalysis
             _taskQueue = workspaceTaskSchedulerFactory.CreateEventingTaskQueue();
 
             // initialize with empty solution
-            _latestSolution = CreateSolution(SolutionId.CreateNewId());
+            var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService, serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty);
+            _latestSolution = CreateSolution(info, emptyOptions);
         }
 
         internal void LogTestMessage(string message)
@@ -121,10 +123,15 @@ namespace Microsoft.CodeAnalysis
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
             var options = _optionService?.GetForceComputedOptions(solutionInfo.GetProjectLanguages())
-                ?? (SerializableOptionSet?)this.CurrentSolution?.Options
-                ?? new SerializableOptionSet(ImmutableHashSet<string>.Empty, optionService: null, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object?>.Empty);
-            return new Solution(this, solutionInfo.Attributes, options);
+                ?? (SerializableOptionSet)this.CurrentSolution.Options;
+            return CreateSolution(solutionInfo, options);
         }
+
+        /// <summary>
+        /// Create a new empty solution instance associated with this workspace, and with the given options.
+        /// </summary>
+        private Solution CreateSolution(SolutionInfo solutionInfo, SerializableOptionSet options)
+            => new Solution(this, solutionInfo.Attributes, options);
 
         /// <summary>
         /// Create a new empty solution instance associated with this workspace.
