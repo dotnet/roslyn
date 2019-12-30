@@ -5020,6 +5020,7 @@ class Base
 ");
         }
 
+        [WorkItem(40647, "https://github.com/dotnet/roslyn/issues/40647")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOverPredefinedType()
         {
