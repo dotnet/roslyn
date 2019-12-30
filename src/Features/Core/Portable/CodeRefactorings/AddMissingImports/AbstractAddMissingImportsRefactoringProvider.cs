@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private readonly IPasteTrackingService _pasteTrackingService;
         protected abstract string CodeActionTitle { get; }
 
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
+        protected AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
         {
             _pasteTrackingService = pasteTrackingService;
         }
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             }
 
             // Check pasted text span for missing imports
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
             var hasMissingImports = await addMissingImportsService.HasMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (!hasMissingImports)
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             // Add missing imports for the pasted text span.
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
+            var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
             var newProject = await addMissingImportsService.AddMissingImportsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             return newProject.Solution;
         }
