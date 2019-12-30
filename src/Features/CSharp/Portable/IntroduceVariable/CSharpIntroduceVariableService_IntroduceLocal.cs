@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // If a local function is involved, we have to make sure the new declaration is placed:
             //     1. Before all calls to local functions that use the variable.
             //     2. Before the local function(s) themselves.
-            //     3. Before all matches.
+            //     3. Before all matches, i.e. places in the code where the new declaration will replace existing code.
             // Cases (2) and (3) are already covered by the 'firstStatementAffectedIndex' parameter. Thus, all we have to do is ensure we consider (1) when
             // determining where to place our new declaration.
 
