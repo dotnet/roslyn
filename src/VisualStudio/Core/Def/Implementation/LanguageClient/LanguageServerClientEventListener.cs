@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         private readonly LanguageServerClient _languageServerClient;
         private readonly Lazy<ILanguageClientBroker> _languageClientBroker;
-        private readonly TaskCompletionSource<object> _taskCompletionSource;
 
         private readonly IAsynchronousOperationListener _asynchronousOperationListener;
 
@@ -33,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             this._languageServerClient = languageServerClient;
             this._languageClientBroker = languageClientBroker;
-            this._taskCompletionSource = new TaskCompletionSource<object>();
             this._asynchronousOperationListener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
         }
 
@@ -44,9 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </summary>
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            // mark that roslyn solution is added
-            this._taskCompletionSource.SetResult(null);
-
             var token = this._asynchronousOperationListener.BeginAsyncOperation("LoadAsync");
             // Trigger a fire and forget request to the VS LSP client to load our ILanguageClient.
             // This needs to be done with .Forget() as the LoadAsync (VS LSP client) synchronously stores the result task of OnLoadedAsync.
