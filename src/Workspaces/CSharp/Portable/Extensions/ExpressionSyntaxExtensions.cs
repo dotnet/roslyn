@@ -1088,7 +1088,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (expression.Kind() == SyntaxKind.IdentifierName ||
                 expression.Kind() == SyntaxKind.QualifiedName ||
-                expression.Kind() == SyntaxKind.AliasQualifiedName)
+                expression.Kind() == SyntaxKind.AliasQualifiedName ||
+                expression.Kind() == SyntaxKind.GenericName)
             {
                 return true;
             }
