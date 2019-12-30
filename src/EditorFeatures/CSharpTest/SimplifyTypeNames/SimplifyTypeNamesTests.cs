@@ -1916,6 +1916,7 @@ new TestParameters(Options.Script));
 index: 1);
         }
 
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
@@ -2120,6 +2121,7 @@ index: 1);
 }");
         }
 
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestPreventSimplificationToNameInCurrentScope2()
@@ -2160,6 +2162,7 @@ index: 1);
 }");
         }
 
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationToNameInNestedScope()
@@ -2205,6 +2208,7 @@ index: 1);
 }");
         }
 
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationToNameInNestedScope1()
@@ -3017,6 +3021,7 @@ class Program
 }");
         }
 
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase3()
         {
@@ -3079,6 +3084,7 @@ namespace N
 }");
         }
 
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase5()
         {
@@ -4659,6 +4665,33 @@ namespace N
 {
     using System.IO;
 }");
+        }
+
+        [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestCrefIdAtTopLevel()
+        {
+            await TestDiagnosticInfoAsync(
+@"/// <summary>
+/// <see cref=""[|System.String|]""/>
+/// </summary>
+class Base
+{
+}", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+        }
+
+        [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestCrefIdAtNestedLevel()
+        {
+            await TestDiagnosticInfoAsync(
+@"/// <summary>
+/// <see cref=""Foo([|System.String|])""/>
+/// </summary>
+class Base
+{
+    public void Foo(string s) { }
+}", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
