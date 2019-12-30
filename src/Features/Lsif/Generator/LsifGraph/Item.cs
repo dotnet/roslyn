@@ -7,9 +7,9 @@
     internal sealed class Item : Edge
     {
         public Id<Document> Document { get; }
-        public string Property { get; }
+        public string? Property { get; }
 
-        public Item(Id<Vertex> outVertex, Id<Range> range, Id<Document> document, string property)
+        public Item(Id<Vertex> outVertex, Id<Range> range, Id<Document> document, string? property = null)
             : base(label: "item", outVertex, new[] { range.As<Range, Vertex>() })
         {
             Document = document;

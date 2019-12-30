@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             // We create a ResultSetTracker to track all top-level symbols in the project. We don't want all writes to immediately go to
             // the JSON file once we support parallel processing, so we'll accumulate them and then apply at once.
             var topLevelSymbolsWriter = new InMemoryLsifJsonWriter();
-            var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter);
+            var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation);
 
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             var syntaxTree = semanticModel.SyntaxTree;
             var sourceText = semanticModel.SyntaxTree.GetText();
             var syntaxFactsService = languageServices.GetRequiredService<ISyntaxFactsService>();
+            var semanticFactsService = languageServices.GetRequiredService<ISemanticFactsService>();
 
             var documentVertex = new LsifGraph.Document(new Uri(syntaxTree.FilePath), GetLanguageKind(semanticModel.Language));
 
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             // or methods. We're also going to encounter locals that never leave this document. We don't want those locals being held by
             // the topLevelSymbolsResultSetTracker, so we'll make another tracker for document local symbols, and then have a delegating
             // one that picks the correct one of the two.
-            var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter);
+            var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter, semanticModel.Compilation);
             var symbolResultsTracker = new DelegatingResultSetTracker(symbol =>
             {
                 if (symbol.Kind == SymbolKind.Local ||
@@ -100,6 +102,21 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             foreach (var syntaxToken in syntaxTree.GetRoot().DescendantTokens(descendIntoTrivia: true))
             {
+                // We'll only create the Range vertex once it's needed, but any number of bits of code might create it first,
+                // so we'll just make it Lazy.
+                var lazyRangeVertex = new Lazy<LsifGraph.Range>(() =>
+                {
+                    var rangeVertex = LsifGraph.Range.FromTextSpan(syntaxToken.Span, sourceText);
+
+                    lsifJsonWriter.Write(rangeVertex);
+                    rangeVertices.Add(rangeVertex.GetId());
+
+                    return rangeVertex;
+                }, LazyThreadSafetyMode.None);
+
+                var declaredSymbol = semanticFactsService.GetDeclaredSymbol(semanticModel, syntaxToken, CancellationToken.None);
+                ISymbol? referencedSymbol = null;
+
                 if (syntaxFactsService.IsBindableToken(syntaxToken))
                 {
                     var bindableParent = syntaxFactsService.GetBindableParent(syntaxToken);
@@ -107,35 +124,38 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
                     if (bindableParent != null)
                     {
                         var symbolInfo = semanticModel.GetSymbolInfo(bindableParent);
-
-                        if (symbolInfo.Symbol != null)
+                        if (symbolInfo.Symbol != null && IncludeSymbolInReferences(symbolInfo.Symbol))
                         {
-                            var rangeVertex = LsifGraph.Range.FromTextSpan(syntaxToken.Span, sourceText);
-
-                            lsifJsonWriter.Write(rangeVertex);
-                            rangeVertices.Add(rangeVertex.GetId());
-
-                            // For now, we will link the range to the original definition. We'll have to fix this once we start supporting
-                            // hover, since we show different contents for different constructed types there.
-                            var originalDefinition = symbolInfo.Symbol.OriginalDefinition;
-                            var originalDefinitionResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(originalDefinition);
-                            lsifJsonWriter.Write(Edge.Create("next", rangeVertex.GetId(), originalDefinitionResultSetId));
-
-                            if (IncludeSymbolInReferences(originalDefinition))
-                            {
-                                // Create the link from the references back to this range
-                                var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(originalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult());
-                                lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), rangeVertex.GetId(), documentVertex.GetId(), property: "references"));
-
-                                // Attach the moniker if needed
-                                if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(originalDefinition, "moniker"))
-                                {
-                                    var monikerVertex = CreateMonikerVertexForSymbol(originalDefinition, semanticModel.Compilation);
-                                    lsifJsonWriter.Write(monikerVertex);
-                                    lsifJsonWriter.Write(Edge.Create("moniker", originalDefinitionResultSetId, monikerVertex.GetId()));
-                                }
-                            }
+                            referencedSymbol = symbolInfo.Symbol;
                         }
+                    }
+                }
+
+                if (declaredSymbol != null || referencedSymbol != null)
+                {
+                    // For now, we will link the range to the original definition, preferring the definition, as this is the symbol
+                    // that would be used if we invoke a feature on this range. This is analogous to the logic in
+                    // SymbolFinder.FindSymbolAtPositionAsync where if a token is both a reference and definition we'll prefer the
+                    // definition. Once we start supporting hover we'll hae to remove the "original defintion" part of this, since
+                    // since we show different contents for different constructed types there.
+                    var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.OriginalDefinition;
+                    var symbolForLinkedResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(symbolForLinkedResultSet);
+                    lsifJsonWriter.Write(Edge.Create("next", lazyRangeVertex.Value.GetId(), symbolForLinkedResultSetId));
+
+                    if (declaredSymbol != null)
+                    {
+                        var definitionResultsId = symbolResultsTracker.GetResultIdForSymbol(declaredSymbol, Methods.TextDocumentDefinitionName, () => new DefinitionResult());
+                        lsifJsonWriter.Write(new Item(definitionResultsId.As<DefinitionResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId()));
+                    }
+
+                    if (referencedSymbol != null)
+                    {
+                        // Create the link from the references back to this range. Note: this range can be reference to a
+                        // symbol but the range can point a different symbol's resultSet. This can happen if the token is
+                        // both a definition of a symbol (where we will point to the definition) but also a reference to some
+                        // other symbol.
+                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult());
+                        lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), property: "references"));
                     }
                 }
             }
@@ -148,20 +168,6 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
         private static bool IncludeSymbolInReferences(ISymbol symbol)
         {
-            // Skip built in-operators. We could pick some sort of moniker for these, but I doubt anybody really needs to search for all uses of
-            // + in the world's projects at once.
-            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
-            {
-                return false;
-            }
-
-            // TODO: some symbols for things some things in crefs don't have a ContainingAssembly. We'll skip those for now but do
-            // want those to work.
-            if (symbol.Kind != SymbolKind.Namespace && symbol.ContainingAssembly == null)
-            {
-                return false;
-            }
-
             // Skip some type of symbols that don't really make sense
             if (symbol.Kind == SymbolKind.ArrayType ||
                 symbol.Kind == SymbolKind.Discard ||
@@ -171,63 +177,6 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             }
 
             return true;
-        }
-
-        private static Moniker CreateMonikerVertexForSymbol(ISymbol symbol, Compilation compilation)
-        {
-            // This uses the existing format that earlier prototypes of the Roslyn LSIF tool implemented; a different format may make more sense long term, but changing the
-            // moniker makes it difficult for other systems that have older LSIF indexes to the connect the two indexes together.
-
-            // Namespaces are special: they're just a name that exists in the ether between compilations
-            if (symbol.Kind == SymbolKind.Namespace)
-            {
-                return new Moniker("dotnet-namespace", symbol.ToDisplayString());
-            }
-
-            string symbolMoniker = symbol.ContainingAssembly.Name + "#";
-
-            if (symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Parameter ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Label)
-            {
-                symbolMoniker += GetRequiredDocumentationCommentId(symbol.ContainingSymbol) + "#" + symbol.Name;
-            }
-            else
-            {
-                symbolMoniker += GetRequiredDocumentationCommentId(symbol);
-            }
-
-            string kind;
-
-            if (symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Label)
-            {
-                kind = "local";
-            }
-            else if (symbol.ContainingAssembly.Equals(compilation.Assembly))
-            {
-                kind = "export";
-            }
-            else
-            {
-                kind = "import";
-            }
-
-            return new Moniker("dotnet-xml-doc", symbolMoniker, kind);
-
-            static string GetRequiredDocumentationCommentId(ISymbol symbol)
-            {
-                var documentationCommentId = symbol.GetDocumentationCommentId();
-
-                if (documentationCommentId == null)
-                {
-                    throw new Exception($"Unable to get documentation comment ID for {symbol.ToDisplayString()}");
-                }
-
-                return documentationCommentId;
-            }
         }
 
         private static string GetLanguageKind(string languageName)

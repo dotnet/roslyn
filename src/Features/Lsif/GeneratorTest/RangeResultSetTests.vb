@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
         <InlineData("class C { [|string|] s; }", "mscorlib#T:System.String")>
         <InlineData("class C { void M() { [|M|](); }", TestProjectAssemblyName + "#M:C.M")>
         <InlineData("class C { void M(string s) { M([|s|]) }", TestProjectAssemblyName + "#M:C.M(System.String)#s")>
+        <InlineData("class C { void M(string s) { M(s [|+|] s) }", Nothing)>
         Public Async Sub ReferenceMonikerAsync(code As String, expectedMoniker As String)
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
@@ -26,9 +27,30 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
 
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of LsifGraph.ResultSet)(rangeVertex, "next").Single()
-            Dim monikerVertex = lsif.GetLinkedVertices(Of LsifGraph.Moniker)(resultSetVertex, "moniker").Single()
+            Dim monikerVertex = lsif.GetLinkedVertices(Of LsifGraph.Moniker)(resultSetVertex, "moniker").SingleOrDefault()
 
-            Assert.Equal(expectedMoniker, monikerVertex.Identifier)
+            Assert.Equal(expectedMoniker, monikerVertex?.Identifier)
+        End Sub
+
+        <Fact>
+        Public Async Sub DefinitionIncludedInDefinitionResultAsync()
+            Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
+                TestWorkspace.CreateWorkspace(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
+                            <Document Name="A.cs" FilePath="Z:\A.cs">
+                                class [|C|] { }
+                            </Document>
+                        </Project>
+                    </Workspace>))
+
+            Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
+            Dim resultSetVertex = lsif.GetLinkedVertices(Of LsifGraph.ResultSet)(rangeVertex, "next").Single()
+            Dim definitionsVertex = lsif.GetLinkedVertices(Of LsifGraph.DefinitionResult)(resultSetVertex, Methods.TextDocumentDefinitionName).Single()
+
+            ' The definition vertex should point back to our range
+            Dim referencedRange = Assert.Single(lsif.GetLinkedVertices(Of LsifGraph.Range)(definitionsVertex, "item"))
+            Assert.Same(rangeVertex, referencedRange)
         End Sub
 
         <Fact>

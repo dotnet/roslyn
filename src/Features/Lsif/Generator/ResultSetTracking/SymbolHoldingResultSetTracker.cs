@@ -12,9 +12,18 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
         private readonly Dictionary<ISymbol, TrackedResultSet> _symbolToResultSetId = new Dictionary<ISymbol, TrackedResultSet>();
         private readonly ILsifJsonWriter _lsifJsonWriter;
 
-        public SymbolHoldingResultSetTracker(ILsifJsonWriter lsifJsonWriter)
+        /// <summary>
+        /// The compilation which we are analyzing. When we make ResultSets, we attach monikers to them, and those
+        /// monikers express an import/export concept for symbols being consumed from another project. We must distinguish
+        /// from source symbols that come from the project being analyzed versus symbols from referenced compilations, so
+        /// we can't just use <see cref="ISymbol.Locations" /> to make the determination.
+        /// </summary>
+        private readonly Compilation _sourceCompilation;
+
+        public SymbolHoldingResultSetTracker(ILsifJsonWriter lsifJsonWriter, Compilation sourceCompilation)
         {
             _lsifJsonWriter = lsifJsonWriter;
+            _sourceCompilation = sourceCompilation;
         }
 
         private TrackedResultSet GetTrackedResultSet(ISymbol symbol)
@@ -25,9 +34,95 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
                 _lsifJsonWriter.Write(resultSet);
                 trackedResultSet = new TrackedResultSet(resultSet.GetId());
                 _symbolToResultSetId.Add(symbol, trackedResultSet);
+
+                // Since we're creating a ResultSet for a symbol for the first time, let's also attach the moniker. We only generate
+                // monikers for original definitions as we don't have a moniker system for those, but also because the place where
+                // monikers are needed -- cross-solution find references and go to definition -- only operates on original definitions
+                // anyways.
+                if (symbol.OriginalDefinition.Equals(symbol))
+                {
+                    var monikerVertex = TryCreateMonikerVertexForSymbol(symbol);
+
+                    if (monikerVertex != null)
+                    {
+                        _lsifJsonWriter.Write(monikerVertex);
+                        _lsifJsonWriter.Write(Edge.Create("moniker", trackedResultSet.Id, monikerVertex.GetId()));
+                    }
+                }
             }
 
             return trackedResultSet;
+        }
+
+        private Moniker? TryCreateMonikerVertexForSymbol(ISymbol symbol)
+        {
+            // This uses the existing format that earlier prototypes of the Roslyn LSIF tool implemented; a different format may make more sense long term, but changing the
+            // moniker makes it difficult for other systems that have older LSIF indexes to the connect the two indexes together.
+
+            // Skip built in-operators. We could pick some sort of moniker for these, but I doubt anybody really needs to search for all uses of
+            // + in the world's projects at once.
+            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
+            {
+                return null;
+            }
+
+            // TODO: some symbols for things some things in crefs don't have a ContainingAssembly. We'll skip those for now but do
+            // want those to work.
+            if (symbol.Kind != SymbolKind.Namespace && symbol.ContainingAssembly == null)
+            {
+                return null;
+            }
+
+            // Namespaces are special: they're just a name that exists in the ether between compilations
+            if (symbol.Kind == SymbolKind.Namespace)
+            {
+                return new Moniker("dotnet-namespace", symbol.ToDisplayString());
+            }
+
+            string symbolMoniker = symbol.ContainingAssembly.Name + "#";
+
+            if (symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.Parameter ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Label)
+            {
+                symbolMoniker += GetRequiredDocumentationCommentId(symbol.ContainingSymbol) + "#" + symbol.Name;
+            }
+            else
+            {
+                symbolMoniker += GetRequiredDocumentationCommentId(symbol);
+            }
+
+            string kind;
+
+            if (symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Label)
+            {
+                kind = "local";
+            }
+            else if (symbol.ContainingAssembly.Equals(_sourceCompilation.Assembly))
+            {
+                kind = "export";
+            }
+            else
+            {
+                kind = "import";
+            }
+
+            return new Moniker("dotnet-xml-doc", symbolMoniker, kind);
+
+            static string GetRequiredDocumentationCommentId(ISymbol symbol)
+            {
+                var documentationCommentId = symbol.GetDocumentationCommentId();
+
+                if (documentationCommentId == null)
+                {
+                    throw new Exception($"Unable to get documentation comment ID for {symbol.ToDisplayString()}");
+                }
+
+                return documentationCommentId;
+            }
         }
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)
