@@ -407,6 +407,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         AddSymbolDescription(symbol);
                     }
                 }
+                else
+                {
+                    AddSymbolDescription(symbol);
+                }
 
                 if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
                 {
@@ -419,12 +423,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddAwaitSymbolDescription(INamedTypeSymbol symbol)
             {
-                var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf("{0}");
+                var defaultSymbol = "{0}";
+                var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
+
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     PlainText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex)));
                 AddSymbolDescription(symbol);
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + 3)));
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + defaultSymbol.Length)));
             }
 
             private void AddSymbolDescription(INamedTypeSymbol symbol)

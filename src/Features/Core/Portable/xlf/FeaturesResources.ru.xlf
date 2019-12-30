@@ -83,8 +83,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns {0}.</source>
-        <target state="new">Awaited task returns {0}.</target>
+        <source>Awaited task returns {0}</source>
+        <target state="new">Awaited task returns {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -1656,16 +1656,6 @@ Do you want to continue?</source>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
         <target state="translated">&lt;Ожидание&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">Ожидаемая задача возвращает</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">без значения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">

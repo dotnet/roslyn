@@ -742,16 +742,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns.
-        /// </summary>
-        internal static string Awaited_task_returns {
-            get {
-                return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns {0}..
+        ///   Looks up a localized string similar to Awaited task returns {0}.
         /// </summary>
         internal static string Awaited_task_returns_0 {
             get {
@@ -2978,15 +2969,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Naming_Styles {
             get {
                 return ResourceManager.GetString("Naming_Styles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to no value..
-        /// </summary>
-        internal static string no_value {
-            get {
-                return ResourceManager.GetString("no_value", resourceCulture);
             }
         }
         

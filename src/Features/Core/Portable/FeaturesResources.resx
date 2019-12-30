@@ -694,14 +694,8 @@ Do you want to continue?</value>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>
-  <data name="Awaited_task_returns" xml:space="preserve">
-    <value>Awaited task returns</value>
-  </data>
-  <data name="no_value" xml:space="preserve">
-    <value>no value.</value>
-  </data>
   <data name="Awaited_task_returns_0" xml:space="preserve">
-    <value>Awaited task returns {0}.</value>
+    <value>Awaited task returns {0}</value>
   </data>
   <data name="Awaited_task_returns_no_value" xml:space="preserve">
     <value>Awaited task returns no value.</value>
