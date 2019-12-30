@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -64,6 +65,8 @@ namespace Microsoft.CodeAnalysis
             SecondaryDependencies = secondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty;
         }
 
+        public bool IsEmpty => DiagnosticInfo is null && PrimaryDependency is null && SecondaryDependencies?.IsEmpty != false;
+
         public UseSiteInfo<TAssemblySymbol> AdjustDiagnosticInfo(DiagnosticInfo? diagnosticInfo)
         {
             if ((object?)DiagnosticInfo != diagnosticInfo)
@@ -82,6 +85,17 @@ namespace Microsoft.CodeAnalysis
 
             return this;
         }
+
+        public void MergeDependencies(ref TAssemblySymbol? primaryDependency, ref ImmutableHashSet<TAssemblySymbol>? secondaryDependencies)
+        {
+            secondaryDependencies = (secondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty).Union(SecondaryDependencies ?? ImmutableHashSet<TAssemblySymbol>.Empty);
+            primaryDependency ??= PrimaryDependency;
+
+            if (!object.Equals(primaryDependency, PrimaryDependency) && PrimaryDependency is object)
+            {
+                secondaryDependencies = secondaryDependencies.Add(PrimaryDependency);
+            }
+        }
     }
 
     /// <summary>
@@ -90,10 +104,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal struct CompoundUseSiteInfo<TAssemblySymbol> where TAssemblySymbol : class, IAssemblySymbolInternal
     {
-        private bool _haveErrors;
+        private bool _hasErrors;
         private readonly bool _discarded;
-        public HashSet<DiagnosticInfo>? Diagnostics;
-        public HashSet<TAssemblySymbol>? Dependencies;
+        private HashSet<DiagnosticInfo>? _diagnostics;
+        private HashSet<TAssemblySymbol>? _dependencies;
 
         public static CompoundUseSiteInfo<TAssemblySymbol> Discarded => new CompoundUseSiteInfo<TAssemblySymbol>(discarded: true);
 
@@ -103,7 +117,60 @@ namespace Microsoft.CodeAnalysis
             _discarded = discarded;
         }
 
-        public bool IsDiscarded => _discarded;
+        public bool IsDiscarded
+        {
+            get
+            {
+#if DEBUG
+                if (_discarded)
+                {
+                    Debug.Assert(_diagnostics is null);
+                    Debug.Assert(_dependencies is null);
+                    Debug.Assert(!_hasErrors);
+                }
+                else
+                {
+                    AssertInternalConsistency();
+                }
+#endif
+                return _discarded;
+            }
+        }
+
+        public IReadOnlyCollection<DiagnosticInfo>? Diagnostics
+        {
+            get
+            {
+                AssertInternalConsistency();
+                return _diagnostics;
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private readonly void AssertInternalConsistency()
+        {
+            Debug.Assert(!_discarded);
+            Debug.Assert(_hasErrors == (_diagnostics?.Any(d => d.Severity == DiagnosticSeverity.Error) ?? false));
+            Debug.Assert(!_hasErrors || (_dependencies is null));
+        }
+
+        public IReadOnlyCollection<TAssemblySymbol>? Dependencies
+        {
+            get
+            {
+                AssertInternalConsistency();
+                return _dependencies;
+            }
+        }
+
+        public bool HasErrors
+        {
+            get
+            {
+                AssertInternalConsistency();
+                return _hasErrors;
+            }
+        }
 
         public void AddDiagnostics(UseSiteInfo<TAssemblySymbol> info)
         {
@@ -112,24 +179,119 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            HashSetExtensions.InitializeAndAdd(ref Diagnostics, info.DiagnosticInfo);
-
-            if (info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            if (HashSetExtensions.InitializeAndAdd(ref _diagnostics, info.DiagnosticInfo) &&
+                info.DiagnosticInfo?.Severity == DiagnosticSeverity.Error)
             {
-                _haveErrors = true;
+                RecordPresenceOfAnError();
+            }
+        }
+
+        private void RecordPresenceOfAnError()
+        {
+            if (!_hasErrors)
+            {
+                _hasErrors = true;
+                _dependencies = null;
+            }
+        }
+
+        public void AddDiagnostics(ICollection<DiagnosticInfo>? diagnostics)
+        {
+            if (_discarded)
+            {
+                return;
+            }
+
+            if (!diagnostics.IsNullOrEmpty())
+            {
+                _diagnostics ??= new HashSet<DiagnosticInfo>();
+
+                foreach (var diagnosticInfo in diagnostics)
+                {
+                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+                    {
+                        RecordPresenceOfAnError();
+                    }
+                }
+            }
+        }
+
+        public void AddDiagnostics(IReadOnlyCollection<DiagnosticInfo>? diagnostics)
+        {
+            if (_discarded)
+            {
+                return;
+            }
+
+            if (!diagnostics.IsNullOrEmpty())
+            {
+                _diagnostics ??= new HashSet<DiagnosticInfo>();
+
+                foreach (var diagnosticInfo in diagnostics)
+                {
+                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+                    {
+                        RecordPresenceOfAnError();
+                    }
+                }
+            }
+        }
+
+        public void AddDiagnostics(ImmutableArray<DiagnosticInfo> diagnostics)
+        {
+            if (_discarded)
+            {
+                return;
+            }
+
+            if (!diagnostics.IsDefaultOrEmpty)
+            {
+                _diagnostics ??= new HashSet<DiagnosticInfo>();
+
+                foreach (var diagnosticInfo in diagnostics)
+                {
+                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+                    {
+                        RecordPresenceOfAnError();
+                    }
+                }
             }
         }
 
         public void AddDependencies(UseSiteInfo<TAssemblySymbol> info)
         {
-            if (!_haveErrors && !_discarded)
+            if (!_hasErrors && !_discarded)
             {
-                HashSetExtensions.InitializeAndAdd(ref Dependencies, info.PrimaryDependency);
+                HashSetExtensions.InitializeAndAdd(ref _dependencies, info.PrimaryDependency);
 
                 if (info.SecondaryDependencies?.IsEmpty == false)
                 {
-                    (Dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(info.SecondaryDependencies);
+                    (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(info.SecondaryDependencies);
                 }
+            }
+        }
+
+        public void AddDependencies(ICollection<TAssemblySymbol>? dependencies)
+        {
+            if (!_hasErrors && !_discarded && !dependencies.IsNullOrEmpty())
+            {
+                (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
+            }
+        }
+
+        public void AddDependencies(IReadOnlyCollection<TAssemblySymbol>? dependencies)
+        {
+            if (!_hasErrors && !_discarded && !dependencies.IsNullOrEmpty())
+            {
+                (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
+            }
+        }
+
+        public void AddDependencies(ImmutableArray<TAssemblySymbol> dependencies)
+        {
+            if (!_hasErrors && !_discarded && !dependencies.IsDefaultOrEmpty)
+            {
+                (_dependencies ??= new HashSet<TAssemblySymbol>()).AddAll(dependencies);
             }
         }
 
@@ -139,27 +301,27 @@ namespace Microsoft.CodeAnalysis
 
             if (_discarded)
             {
-                other.Diagnostics = null;
-                other.Dependencies = null;
-                other._haveErrors = false;
+                other._diagnostics = null;
+                other._dependencies = null;
+                other._hasErrors = false;
                 return;
             }
 
-            mergeAndClear(ref Diagnostics, ref other.Diagnostics);
+            mergeAndClear(ref _diagnostics, ref other._diagnostics);
 
-            if (other._haveErrors)
+            if (other._hasErrors)
             {
-                _haveErrors = true;
-                other._haveErrors = false;
+                RecordPresenceOfAnError();
+                other._hasErrors = false;
             }
 
-            if (!_haveErrors)
+            if (!_hasErrors)
             {
-                mergeAndClear(ref Dependencies, ref other.Dependencies);
+                mergeAndClear(ref _dependencies, ref other._dependencies);
             }
             else
             {
-                other.Dependencies = null;
+                other._dependencies = null;
             }
 
             static void mergeAndClear<T>(ref HashSet<T>? self, ref HashSet<T>? other)

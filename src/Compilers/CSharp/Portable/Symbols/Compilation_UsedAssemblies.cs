@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var setOfReferences = new HashSet<MetadataReference>(ReferenceEqualityComparer.Instance);
+            ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>> mergedAssemblyReferencesMap = GetBoundReferenceManager().MergedAssemblyReferencesMap;
 
             foreach (var reference in References)
             {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Symbol symbol = GetAssemblyOrModuleSymbol(reference);
                     if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol) &&
                         setOfReferences.Add(reference) &&
-                        GetBoundReferenceManager().MergedAssemblyReferencesMap.TryGetValue(reference, out ImmutableArray<MetadataReference> merged))
+                        mergedAssemblyReferencesMap.TryGetValue(reference, out ImmutableArray<MetadataReference> merged))
                     {
                         // Include all "merged" references as well because they might "define" used extern aliases.
                         setOfReferences.AddAll(merged);

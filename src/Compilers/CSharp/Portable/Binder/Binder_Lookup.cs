@@ -623,12 +623,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = attributeTypeViabilityUseSiteInfo.Diagnostics;
+                    CompoundUseSiteInfo<AssemblySymbol> copyUseSiteInfo = attributeTypeViabilityUseSiteInfo;
                     attributeTypeViabilityUseSiteInfo = default;
 
-                    if (diagnose && !useSiteDiagnostics.IsNullOrEmpty())
+                    if (diagnose && copyUseSiteInfo.HasErrors)
                     {
-                        foreach (var info in useSiteDiagnostics)
+                        foreach (var info in copyUseSiteInfo.Diagnostics)
                         {
                             if (info.Severity == DiagnosticSeverity.Error)
                             {

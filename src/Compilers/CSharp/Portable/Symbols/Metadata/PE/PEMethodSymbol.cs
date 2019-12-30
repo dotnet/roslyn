@@ -1148,12 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()
         {
-            if (_uncommonFields is null)
-            {
-                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
-            }
-
-            return _uncommonFields._lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
+            return (_uncommonFields?._lazyCachedUseSiteInfo ?? default).ToUseSiteInfo(PrimaryDependency);
         }
 
         private UseSiteInfo<AssemblySymbol> InitializeUseSiteDiagnostic(UseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1163,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return GetCachedUseSiteInfo();
             }
 
-            if (useSiteInfo.DiagnosticInfo is object || useSiteInfo.SecondaryDependencies?.IsEmpty == false)
+            if (useSiteInfo.DiagnosticInfo is object || !useSiteInfo.SecondaryDependencies.IsNullOrEmpty())
             {
                 useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo);
             }

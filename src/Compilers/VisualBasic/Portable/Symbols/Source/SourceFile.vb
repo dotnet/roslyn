@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function GetBoundInformation(cancellationToken As CancellationToken) As BoundFileInformation
             If _lazyBoundInformation Is Nothing Then
-                Dim diagBag As New DiagnosticBag()
+                Dim diagBag As New BindingDiagnosticBag()
                 Dim lazyBoundInformation = BindFileInformation(diagBag, cancellationToken)
                 _sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyBoundInformation, lazyBoundInformation, diagBag, CompilationStage.Declare)
             End If
@@ -168,14 +168,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Sub EnsureImportsValidated()
             If _importsValidated = 0 Then
                 Dim boundFileInformation = BoundInformation
-                Dim diagBag As New DiagnosticBag()
+                Dim diagBag As New BindingDiagnosticBag()
                 ValidateImports(boundFileInformation.MemberImports, boundFileInformation.MemberImportsSyntax, boundFileInformation.AliasImportsOpt, diagBag)
                 _sourceModule.AtomicStoreIntegerAndDiagnostics(_importsValidated, 1, 0, diagBag, CompilationStage.Declare)
             End If
             Debug.Assert(_importsValidated = 1)
         End Sub
 
-        Private Function BindFileInformation(diagBag As DiagnosticBag, cancellationToken As CancellationToken, Optional filterSpan As TextSpan? = Nothing) As BoundFileInformation
+        Private Function BindFileInformation(diagBag As BindingDiagnosticBag, cancellationToken As CancellationToken, Optional filterSpan As TextSpan? = Nothing) As BoundFileInformation
+
+            Debug.Assert(diagBag.DiagnosticBag IsNot Nothing)
+
             ' The binder must be set up to only bind things in the global namespace, in order to bind imports 
             ' correctly. Note that a different binder would be needed for binding the file-level attributes.
             Dim binder = BinderBuilder.CreateBinderForSourceFileImports(_sourceModule, _syntaxTree)
@@ -186,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim optionExplicit As Boolean?
             Dim optionCompareText As Boolean?
 
-            BindOptions(compilationUnitSyntax.Options, diagBag, optionStrict, optionInfer, optionExplicit, optionCompareText, filterSpan)
+            BindOptions(compilationUnitSyntax.Options, diagBag.DiagnosticBag, optionStrict, optionInfer, optionExplicit, optionCompareText, filterSpan)
 
             Dim importMembersOf As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = Nothing
             Dim importMembersOfSyntax As ImmutableArray(Of SyntaxReference) = Nothing
@@ -254,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Note that the binder has already been set up to only bind to things in the global namespace.
         Private Shared Sub BindImports(importsListSyntax As SyntaxList(Of ImportsStatementSyntax),
                                        binder As Binder,
-                                       diagBag As DiagnosticBag,
+                                       diagBag As BindingDiagnosticBag,
                                        <Out> ByRef importMembersOf As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                                        <Out> ByRef importMembersOfSyntax As ImmutableArray(Of SyntaxReference),
                                        <Out> ByRef importAliasesOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition),
@@ -331,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Sub ValidateImports(memberImports As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition),
                                            memberImportsSyntax As ImmutableArray(Of SyntaxReference),
                                            aliasImportsOpt As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition),
-                                           diagnostics As DiagnosticBag)
+                                           diagnostics As BindingDiagnosticBag)
             ' TODO: Dev10 reports error on specific type parts rather than the import
             ' (reporting error on Object rather than C in C = A(Of Object) for instance).
 
@@ -432,9 +435,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get all declaration errors in the given filterSpan.
         ''' </summary>
         Friend Function GetDeclarationErrorsInSpan(filterSpan As TextSpan, cancellationToken As CancellationToken) As IEnumerable(Of Diagnostic)
-            Dim diagBag As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagBag = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
             BindFileInformation(diagBag, cancellationToken, filterSpan)
-            Return diagBag.ToReadOnlyAndFree()
+            Return diagBag.DiagnosticBag.ToReadOnlyAndFree()
         End Function
 
         Public ReadOnly Property Parent As Cci.IImportScope Implements Cci.IImportScope.Parent

@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Public _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
             Public _lazyConditionalAttributeSymbols As ImmutableArray(Of String)
             Public _lazyObsoleteAttributeData As ObsoleteAttributeData
-            Public _lazyUseSiteErrorInfo As DiagnosticInfo
+            Public _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol)
         End Class
 
         Private Function CreateUncommonFields() As UncommonFields
@@ -176,12 +176,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             '
-            ' Do not set _lazyUseSiteErrorInfo !!!!
+            ' Do not set _lazyCachedUseSiteInfo !!!!
             '
             ' "null" Indicates "no errors" or "unknown state",
             ' and we know which one of the states we have from IsUseSiteDiagnosticPopulated
             '
-            ' Setting _lazyUseSiteErrorInfo to a sentinel value here would introduce
+            ' Setting _lazyCachedUseSiteInfo to a sentinel value here would introduce
             ' a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
             ' Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
             '
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _name = String.Empty
                 End If
 
-                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                InitializeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))))
             End Try
         End Sub
 
@@ -967,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim returnParam = PEParameterSymbol.Create(moduleSymbol, Me, 0, paramInfo(0), isBad)
 
             If mrEx IsNot Nothing OrElse hasBadParameter OrElse isBad Then
-                InitializeUseSiteErrorInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me)))
+                InitializeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))))
             End If
 
             Dim signature As New SignatureData(signatureHeader, params, returnParam)
@@ -981,7 +981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 EnsureTypeParametersAreLoaded(errorInfo)
                 Dim typeParams = EnsureTypeParametersAreLoaded(errorInfo)
                 If errorInfo IsNot Nothing Then
-                    InitializeUseSiteErrorInfo(errorInfo)
+                    InitializeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(errorInfo))
                 End If
                 Return typeParams
             End Get
@@ -1093,28 +1093,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
-                Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
+                Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
-                Return InitializeUseSiteErrorInfo(errorInfo)
+                Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
-            Return _uncommonFields?._lazyUseSiteErrorInfo
+            Return GetCachedUseSiteInfo()
         End Function
 
-        Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
+        Private Function GetCachedUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return If(_uncommonFields?._lazyCachedUseSiteInfo, New CachedUseSiteInfo(Of AssemblySymbol)()).ToUseSiteInfo(PrimaryDependency)
+        End Function
+
+        Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)
             If _packedFlags.IsUseSiteDiagnosticPopulated Then
-                Return _uncommonFields?._lazyUseSiteErrorInfo
+                Return GetCachedUseSiteInfo()
             End If
 
-            If errorInfo IsNot Nothing Then
-                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
-                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo)
+            If useSiteInfo.DiagnosticInfo IsNot Nothing OrElse Not useSiteInfo.SecondaryDependencies.IsNullOrEmpty() Then
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()
-            Return errorInfo
+            Return useSiteInfo
         End Function
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData

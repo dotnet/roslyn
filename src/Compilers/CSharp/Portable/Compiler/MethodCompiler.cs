@@ -835,8 +835,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var discardedDiagnostics = BindingDiagnosticBag.GetInstance();
                 synthesizedAccessor.GenerateMethodBody(compilationState, discardedDiagnostics);
                 Debug.Assert(!discardedDiagnostics.HasAnyErrors());
-                discardedDiagnostics.DiagnosticBag.Clear();
-                _diagnostics.AddRangeAndFree(discardedDiagnostics);
+                _diagnostics.AddDependencies(discardedDiagnostics);
+                discardedDiagnostics.Free();
 
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor);
             }

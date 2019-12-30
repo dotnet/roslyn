@@ -1425,7 +1425,7 @@ End Module
             Assert.True(module1.ContainingAssembly.MightContainExtensionMethods)
 
             Dim containsExtensions As Boolean
-            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(Nothing, containsExtensions)
+            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(BindingDiagnosticBag.Discarded, Nothing, containsExtensions)
 
             Assert.False(module1.MightContainExtensionMethods)
             Assert.False(module1.ContainingModule.MightContainExtensionMethods)
@@ -1469,7 +1469,7 @@ End Module
             Assert.True(module1.ContainingAssembly.MightContainExtensionMethods)
 
             Dim containsExtensions As Boolean
-            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(Nothing, containsExtensions)
+            DirectCast(module1.ContainingModule, SourceModuleSymbol).GetAllDeclarationErrors(BindingDiagnosticBag.Discarded, Nothing, containsExtensions)
 
             Assert.False(module1.MightContainExtensionMethods)
             Assert.False(module1.ContainingModule.MightContainExtensionMethods)

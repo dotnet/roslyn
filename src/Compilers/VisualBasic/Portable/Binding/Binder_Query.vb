@@ -32,14 +32,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundQueryLambda(queryLambdaSymbol.Syntax, queryLambdaSymbol, rangeVariables, expression, exprIsOperandOfConditionalBranch)
         End Function
 
-        Friend Overridable Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overridable Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Only special query binders that have enough context can bind GroupAggregationSyntax.
             ' TODO: Do we need to report any diagnostic?
             Debug.Assert(False, "Binding out of context is unsupported!")
             Return BadExpression(group, ErrorTypeSymbol.UnknownResultType)
         End Function
 
-        Friend Overridable Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Friend Overridable Function BindFunctionAggregationExpression([function] As FunctionAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Only special query binders that have enough context can bind FunctionAggregationSyntax.
             ' TODO: Do we need to report any diagnostic?
             Debug.Assert(False, "Binding out of context is unsupported!")
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function BindQueryExpression(
             query As QueryExpressionSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
 
             If query.Clauses.Count < 1 Then
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindSubsequentQueryOperators(
             source As BoundQueryClauseBase,
             operators As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClauseBase
             Debug.Assert(source IsNot Nothing)
 
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindFromQueryExpression(
             query As QueryExpressionSyntax,
             operators As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryExpression
             ' Note, this call can advance [operators] enumerator if it absorbs the following Let or Select.
             Dim source As BoundQueryClauseBase = BindFromClause(Nothing, DirectCast(operators.Current, FromClauseSyntax), operators, diagnostics)
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindAggregateQueryExpression(
             query As QueryExpressionSyntax,
             operators As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryExpression
             Dim aggregate = DirectCast(operators.Current, AggregateClauseSyntax)
 
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As BoundQueryClauseBase,
             aggregate As AggregateClauseSyntax,
             operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundAggregateClause
             Debug.Assert(operatorsEnumerator.Current Is aggregate)
 
@@ -338,20 +338,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
             ' Now bind the [Let] operator call.
-            Dim suppressDiagnostics As DiagnosticBag = Nothing
             Dim underlyingExpression As BoundExpression
 
             If source.Type.IsErrorType() Then
                 underlyingExpression = BadExpression(aggregate, ImmutableArray.Create(Of BoundExpression)(source, letSelectorLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                Dim callDiagnostics As DiagnosticBag = diagnostics
+                Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
                 If ShouldSuppressDiagnostics(letSelectorLambda) Then
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    Debug.Assert(suppressDiagnostics Is Nothing)
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    callDiagnostics = suppressDiagnostics
+                    callDiagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 underlyingExpression = BindQueryOperatorCall(aggregate, source,
@@ -359,10 +356,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              ImmutableArray.Create(Of BoundExpression)(letSelectorLambda),
                                                              aggregate.AggregateKeyword.Span,
                                                              callDiagnostics)
-            End If
-
-            If suppressDiagnostics IsNot Nothing Then
-                suppressDiagnostics.Free()
             End If
 
             Return CompleteAggregateClauseBinding(aggregate,
@@ -389,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             firstSelectCompoundVariableType As TypeSymbol,
             group As BoundQueryClauseBase,
             intoBinder As IntoClauseDisallowGroupReferenceBinder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundAggregateClause
             Debug.Assert((sourceRangeVariablesPart1.Length = 0) = (sourceRangeVariablesPart2 = firstSelectSelectorBinder.RangeVariables))
             Debug.Assert((sourceRangeVariablesPart2.Length = 0) = (sourceRangeVariablesPart1 = firstSelectSelectorBinder.RangeVariables))
@@ -542,18 +535,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 selectSelectorLambda.SetWasCompilerGenerated()
 
                 Dim underlyingExpression As BoundExpression
-                Dim suppressDiagnostics As DiagnosticBag = Nothing
 
                 If letOperator.Type.IsErrorType() Then
                     underlyingExpression = BadExpression(aggregate, ImmutableArray.Create(Of BoundExpression)(letOperator, selectSelectorLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    Dim callDiagnostics As DiagnosticBag = diagnostics
+                    Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
                     If suppressCallDiagnostics OrElse ShouldSuppressDiagnostics(selectSelectorLambda) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                        suppressDiagnostics = DiagnosticBag.GetInstance()
-                        callDiagnostics = suppressDiagnostics
+                        callDiagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     underlyingExpression = BindQueryOperatorCall(aggregate, letOperator,
@@ -561,10 +552,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      ImmutableArray.Create(Of BoundExpression)(selectSelectorLambda),
                                                                      aggregate.AggregateKeyword.Span,
                                                                      callDiagnostics)
-                End If
-
-                If suppressDiagnostics IsNot Nothing Then
-                    suppressDiagnostics.Free()
                 End If
 
                 result = New BoundAggregateClause(aggregate, Nothing, Nothing,
@@ -592,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function BindFinalImplicitSelectClause(
             source As BoundQueryClauseBase,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Debug.Assert(Not source.Type.IsErrorType())
 
@@ -626,11 +613,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not selectorLambda.HasErrors)
 
-            Dim suppressDiagnostics As DiagnosticBag = Nothing
-
             If param.Type.IsErrorType() Then
-                suppressDiagnostics = DiagnosticBag.GetInstance()
-                diagnostics = suppressDiagnostics
+                diagnostics = BindingDiagnosticBag.Discarded
             End If
 
             Dim boundCallOrBadExpression As BoundExpression
@@ -641,10 +625,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              diagnostics)
 
             Debug.Assert(boundCallOrBadExpression.WasCompilerGenerated)
-
-            If suppressDiagnostics IsNot Nothing Then
-                suppressDiagnostics.Free()
-            End If
 
             Return New BoundQueryClause(source.Syntax.Parent,
                                         boundCallOrBadExpression,
@@ -667,7 +647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As BoundQueryClauseBase,
             clauseSyntax As SelectClauseSyntax,
             operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Debug.Assert(clauseSyntax Is operatorsEnumerator.Current)
 
@@ -704,12 +684,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCallOrBadExpression = BadExpression(clauseSyntax, ImmutableArray.Create(Of BoundExpression)(source, selectorLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                Dim suppressDiagnostics As DiagnosticBag = Nothing
-
                 If ShouldSuppressDiagnostics(selectorLambda) Then
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    diagnostics = suppressDiagnostics
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 boundCallOrBadExpression = BindQueryOperatorCall(clauseSyntax, source,
@@ -717,10 +694,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  ImmutableArray.Create(Of BoundExpression)(selectorLambda),
                                                                  clauseSyntax.SelectKeyword.Span,
                                                                  diagnostics)
-
-                If suppressDiagnostics IsNot Nothing Then
-                    suppressDiagnostics.Free()
-                End If
             End If
 
             Return New BoundQueryClause(clauseSyntax,
@@ -753,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As Boolean
             Dim lookup = LookupResult.GetInstance()
 
-            childScopeBinder.LookupInSingleBinder(lookup, rangeVar.Name, 0, Nothing, childScopeBinder, useSiteDiagnostics:=Nothing)
+            childScopeBinder.LookupInSingleBinder(lookup, rangeVar.Name, 0, Nothing, childScopeBinder, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
             Dim result As Boolean = (lookup.IsGood AndAlso lookup.Symbols(0).Kind = SymbolKind.RangeVariable)
 
@@ -786,13 +759,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As BoundQueryClauseBase,
             clauseSyntax As LetClauseSyntax,
             operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             Optional skipFirstVariable As Boolean = False
         ) As BoundQueryClause
             Debug.Assert(clauseSyntax Is operatorsEnumerator.Current)
 
-            Dim suppressDiagnostics As DiagnosticBag = Nothing
-            Dim callDiagnostics As DiagnosticBag = diagnostics
+            Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
             Dim variables As SeparatedSyntaxList(Of ExpressionRangeVariableSyntax) = clauseSyntax.Variables
             Debug.Assert(variables.Count > 0, "Malformed syntax tree.")
@@ -850,10 +822,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundCallOrBadExpression = BadExpression(variable, ImmutableArray.Create(Of BoundExpression)(source, selectorLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    If suppressDiagnostics Is Nothing AndAlso ShouldSuppressDiagnostics(selectorLambda) Then
+                    If callDiagnostics IsNot BindingDiagnosticBag.Discarded AndAlso ShouldSuppressDiagnostics(selectorLambda) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                        suppressDiagnostics = DiagnosticBag.GetInstance()
-                        callDiagnostics = suppressDiagnostics
+                        callDiagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     Dim operatorNameLocation As TextSpan
@@ -879,10 +850,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               ImmutableArray.Create(Of Binder)(selectorBinder),
                                               boundCallOrBadExpression.Type)
             Next
-
-            If suppressDiagnostics IsNot Nothing Then
-                suppressDiagnostics.Free()
-            End If
 
             Return DirectCast(source, BoundQueryClause)
         End Function
@@ -989,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             sourceOpt As BoundQueryClauseBase,
             from As FromClauseSyntax,
             ByRef operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClauseBase
             Debug.Assert(from Is operatorsEnumerator.Current)
             Return BindCollectionRangeVariables(from, sourceOpt, from.Variables, operatorsEnumerator, diagnostics)
@@ -1003,7 +970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             sourceOpt As BoundQueryClauseBase,
             variables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax),
             ByRef operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClauseBase
 
             Debug.Assert(clauseSyntax.IsKind(SyntaxKind.AggregateClause) OrElse clauseSyntax.IsKind(SyntaxKind.FromClause))
@@ -1042,8 +1009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(source.RangeVariables.Length = 1)
             End If
 
-            Dim suppressDiagnostics As DiagnosticBag = Nothing
-            Dim callDiagnostics As DiagnosticBag = diagnostics
+            Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
             For i = If(source Is sourceOpt, 0, 1) To variables.Count - 1
 
@@ -1172,11 +1138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundCallOrBadExpression = BadExpression(variable, ImmutableArray.Create(Of BoundExpression)(source, manySelectorLambda, joinSelectorLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    If suppressDiagnostics Is Nothing AndAlso
+                    If callDiagnostics IsNot BindingDiagnosticBag.Discarded AndAlso
                        (ShouldSuppressDiagnostics(manySelectorLambda) OrElse ShouldSuppressDiagnostics(joinSelectorLambda)) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                        suppressDiagnostics = DiagnosticBag.GetInstance()
-                        callDiagnostics = suppressDiagnostics
+                        callDiagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     Dim operatorNameLocation As TextSpan
@@ -1216,10 +1181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Exit For
                 End If
             Next
-
-            If suppressDiagnostics IsNot Nothing Then
-                suppressDiagnostics.Free()
-            End If
 
             Return source
         End Function
@@ -1320,7 +1281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             rightRangeVariables As ImmutableArray(Of RangeVariableSymbol),
             group As BoundQueryClauseBase,
             intoBinder As IntoClauseDisallowGroupReferenceBinder,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClauseBase
             Debug.Assert(absorbNextOperator Is operatorsEnumerator.Current)
             Debug.Assert(absorbingJoin.Binders.Length > 1)
@@ -1415,7 +1376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             join As SimpleJoinClauseSyntax,
             declaredNames As HashSet(Of String),
             ByRef operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClauseBase
             Debug.Assert(join.Kind = SyntaxKind.SimpleJoinClause)
             Debug.Assert((declaredNames IsNot Nothing) = (join.Parent.Kind = SyntaxKind.SimpleJoinClause OrElse join.Parent.Kind = SyntaxKind.GroupJoinClause))
@@ -1560,16 +1521,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCallOrBadExpression = BadExpression(join, ImmutableArray.Create(Of BoundExpression)(outer, inner, outerKeyLambda, innerKeyLambda, joinSelectorLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                Dim callDiagnostics As DiagnosticBag = diagnostics
-                Dim suppressDiagnostics As DiagnosticBag = Nothing
+                Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
                 If inner.HasErrors OrElse inner.Type.IsErrorType() OrElse
                    ShouldSuppressDiagnostics(outerKeyLambda) OrElse
                    ShouldSuppressDiagnostics(innerKeyLambda) OrElse
                    ShouldSuppressDiagnostics(joinSelectorLambda) Then
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    callDiagnostics = suppressDiagnostics
+                    callDiagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 boundCallOrBadExpression = BindQueryOperatorCall(join, outer,
@@ -1577,10 +1536,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  ImmutableArray.Create(Of BoundExpression)(inner, outerKeyLambda, innerKeyLambda, joinSelectorLambda),
                                                                  join.JoinKeyword.Span,
                                                                  callDiagnostics)
-
-                If suppressDiagnostics IsNot Nothing Then
-                    suppressDiagnostics.Free()
-                End If
             End If
 
             Dim result As BoundQueryClauseBase = New BoundQueryClause(join,
@@ -1654,7 +1609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             groupJoin As GroupJoinClauseSyntax,
             declaredNames As HashSet(Of String),
             operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Debug.Assert((declaredNames IsNot Nothing) = (groupJoin.Parent.Kind = SyntaxKind.SimpleJoinClause OrElse groupJoin.Parent.Kind = SyntaxKind.GroupJoinClause))
 
@@ -1749,7 +1704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCallOrBadExpression = BadExpression(groupJoin, ImmutableArray.Create(Of BoundExpression)(outer, inner, outerKeyLambda, innerKeyLambda, intoLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                Dim callDiagnostics As DiagnosticBag = diagnostics
+                Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
                 If inner.HasErrors OrElse inner.Type.IsErrorType() OrElse
                    ShouldSuppressDiagnostics(outerKeyLambda) OrElse
@@ -1757,7 +1712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    ShouldSuppressDiagnostics(intoLambda) Then
 
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    callDiagnostics = DiagnosticBag.GetInstance()
+                    callDiagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 ' Reusing method group that we got while inferring group type, this way we can avoid doing name lookup again. 
@@ -1767,10 +1722,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                ImmutableArray.Create(Of BoundExpression)(inner, outerKeyLambda, innerKeyLambda, intoLambda),
                                                                groupJoin.JoinKeyword.Span,
                                                                callDiagnostics)
-
-                If callDiagnostics IsNot diagnostics Then
-                    callDiagnostics.Free()
-                End If
             End If
 
             Return New BoundQueryClause(groupJoin,
@@ -1802,7 +1753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindGroupByClause(
             source As BoundQueryClauseBase,
             groupBy As GroupByClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
 
             ' Handle group items.
@@ -1860,13 +1811,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          ImmutableArray.Create(Of BoundExpression)(source).AddRange(groupByArguments),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                Dim callDiagnostics As DiagnosticBag = diagnostics
+                Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
                 If ShouldSuppressDiagnostics(keysLambda) OrElse ShouldSuppressDiagnostics(intoLambda) OrElse
                    (itemsLambda IsNot Nothing AndAlso ShouldSuppressDiagnostics(itemsLambda)) Then
 
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    callDiagnostics = DiagnosticBag.GetInstance()
+                    callDiagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 ' Reusing method group that we got while inferring group type, this way we can avoid doing name lookup again. 
@@ -1876,10 +1827,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                groupByArguments.AsImmutableOrNull(),
                                                                GetGroupByOperatorNameSpan(groupBy),
                                                                callDiagnostics)
-
-                If callDiagnostics IsNot diagnostics Then
-                    callDiagnostics.Free()
-                End If
             End If
 
             Return New BoundQueryClause(groupBy,
@@ -1907,7 +1854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             groupBy As GroupByClauseSyntax,
             <Out()> ByRef itemsLambdaBinder As QueryLambdaBinder,
             <Out()> ByRef itemsRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryLambda
             Debug.Assert(itemsLambdaBinder Is Nothing)
             Debug.Assert(itemsRangeVariables.IsDefault)
@@ -1954,7 +1901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             groupBy As GroupByClauseSyntax,
             <Out()> ByRef keysLambdaBinder As QueryLambdaBinder,
             <Out()> ByRef keysRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryLambda
             Debug.Assert(keysLambdaBinder Is Nothing)
             Debug.Assert(keysRangeVariables.IsDefault)
@@ -2002,7 +1949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             keysLambda As BoundQueryLambda,
             keysRangeVariables As ImmutableArray(Of RangeVariableSymbol),
             <Out()> ByRef methodGroup As BoundMethodGroup,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As TypeSymbol
             Debug.Assert(methodGroup Is Nothing)
 
@@ -2039,12 +1986,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         groupByArguments = {keysLambda, itemsLambda, inferenceLambda}
                     End If
 
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                     Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup,
                                                                                                                                               groupByArguments.AsImmutableOrNull(), Me,
-                                                                                                                                              useSiteDiagnostics)
+                                                                                                                                              useSiteInfo)
 
-                    diagnostics.Add(groupBy, useSiteDiagnostics)
+                    diagnostics.Add(groupBy, useSiteInfo)
 
                     If results.BestResult.HasValue Then
                         Dim method = DirectCast(results.BestResult.Value.Candidate.UnderlyingSymbol, MethodSymbol)
@@ -2078,7 +2025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             outerKeyLambda As BoundQueryLambda,
             innerKeyLambda As BoundQueryLambda,
             <Out()> ByRef methodGroup As BoundMethodGroup,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As TypeSymbol
             Debug.Assert(methodGroup Is Nothing)
 
@@ -2113,12 +2060,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim groupJoinArguments() As BoundExpression = {inner, outerKeyLambda, innerKeyLambda, inferenceLambda}
 
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                     Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup,
                                                                                                                                               groupJoinArguments.AsImmutableOrNull(), Me,
-                                                                                                                                              useSiteDiagnostics)
+                                                                                                                                              useSiteInfo)
 
-                    diagnostics.Add(groupJoin, useSiteDiagnostics)
+                    diagnostics.Add(groupJoin, useSiteInfo)
 
                     If results.BestResult.HasValue Then
                         Dim method = DirectCast(results.BestResult.Value.Candidate.UnderlyingSymbol, MethodSymbol)
@@ -2154,7 +2101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             groupCompoundVariableType As TypeSymbol,
             aggregationVariables As SeparatedSyntaxList(Of AggregationRangeVariableSyntax),
             mustProduceFlatCompoundVariable As Boolean,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out()> ByRef intoBinder As IntoClauseBinder,
             <Out()> ByRef intoRangeVariables As ImmutableArray(Of RangeVariableSymbol)
         ) As BoundQueryLambda
@@ -2209,7 +2156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Private Sub VerifyRangeVariableName(rangeVar As RangeVariableSymbol, identifier As SyntaxToken, diagnostics As DiagnosticBag)
+        Private Sub VerifyRangeVariableName(rangeVar As RangeVariableSymbol, identifier As SyntaxToken, diagnostics As BindingDiagnosticBag)
             Debug.Assert(identifier.Parent Is rangeVar.Syntax)
 
             If identifier.GetTypeCharacter() <> TypeCharacter.None Then
@@ -2297,7 +2244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindWhereClause(
             source As BoundQueryClauseBase,
             where As WhereClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Return BindFilterQueryOperator(source, where,
                                               StringConstants.WhereMethod, where.WhereKeyword.Span,
@@ -2315,7 +2262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindSkipWhileClause(
             source As BoundQueryClauseBase,
             skipWhile As PartitionWhileClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Return BindFilterQueryOperator(source, skipWhile,
                                               StringConstants.SkipWhileMethod,
@@ -2344,7 +2291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindTakeWhileClause(
             source As BoundQueryClauseBase,
             takeWhile As PartitionWhileClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Return BindFilterQueryOperator(source, takeWhile,
                                               StringConstants.TakeWhileMethod,
@@ -2361,9 +2308,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             operatorName As String,
             operatorNameLocation As TextSpan,
             condition As ExpressionSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
-            Dim suppressDiagnostics As DiagnosticBag = Nothing
 
             ' Create LambdaSymbol for the shape of the filter lambda.
 
@@ -2384,7 +2330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Need to verify result type of the condition and enforce ExprIsOperandOfConditionalBranch for possible future conversions. 
             ' In order to do verification, we simply attempt conversion to boolean in the same manner as BindBooleanExpression.
-            Dim conversionDiagnostic = DiagnosticBag.GetInstance()
+            Dim conversionDiagnostic = BindingDiagnosticBag.GetInstance()
 
             Dim boolSymbol As NamedTypeSymbol = GetSpecialType(SpecialType.System_Boolean, condition, diagnostics)
 
@@ -2412,10 +2358,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ElseIf convertedToBoolean.HasErrors AndAlso conversionDiagnostic.HasAnyErrors() Then
                 diagnostics.AddRange(conversionDiagnostic)
                 ' Suppress any additional diagnostic, otherwise we might end up with duplicate errors.
-                If suppressDiagnostics Is Nothing Then
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    diagnostics = suppressDiagnostics
-                End If
+                diagnostics = BindingDiagnosticBag.Discarded
+            Else
+                diagnostics.AddDependencies(conversionDiagnostic)
             End If
 
             conversionDiagnostic.Free()
@@ -2435,10 +2380,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCallOrBadExpression = BadExpression(operatorSyntax, ImmutableArray.Create(Of BoundExpression)(source, filterLambda),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                If suppressDiagnostics Is Nothing AndAlso ShouldSuppressDiagnostics(filterLambda) Then
+                If diagnostics IsNot BindingDiagnosticBag.Discarded AndAlso ShouldSuppressDiagnostics(filterLambda) Then
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    diagnostics = suppressDiagnostics
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 boundCallOrBadExpression = BindQueryOperatorCall(operatorSyntax, source,
@@ -2446,10 +2390,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  ImmutableArray.Create(Of BoundExpression)(filterLambda),
                                                                  operatorNameLocation,
                                                                  diagnostics)
-            End If
-
-            If suppressDiagnostics IsNot Nothing Then
-                suppressDiagnostics.Free()
             End If
 
             Return New BoundQueryClause(operatorSyntax,
@@ -2472,7 +2412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindDistinctClause(
             source As BoundQueryClauseBase,
             distinct As DistinctClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
 
             Dim boundCallOrBadExpression As BoundExpression
@@ -2508,7 +2448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindSkipClause(
             source As BoundQueryClauseBase,
             skip As PartitionClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Return BindPartitionClause(source, skip, StringConstants.SkipMethod, diagnostics)
         End Function
@@ -2524,7 +2464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindTakeClause(
             source As BoundQueryClauseBase,
             take As PartitionClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Return BindPartitionClause(source, take, StringConstants.TakeMethod, diagnostics)
         End Function
@@ -2536,7 +2476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As BoundQueryClauseBase,
             partition As PartitionClauseSyntax,
             operatorName As String,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
 
             ' Bind the Count expression as a value, conversion should take care of the rest (making it an RValue, etc.). 
@@ -2549,12 +2489,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundCallOrBadExpression = BadExpression(partition, ImmutableArray.Create(source, boundCount),
                                                          ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
             Else
-                Dim suppressDiagnostics As DiagnosticBag = Nothing
-
                 If boundCount.HasErrors OrElse (boundCount.Type IsNot Nothing AndAlso boundCount.Type.IsErrorType()) Then
                     ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    diagnostics = suppressDiagnostics
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 boundCallOrBadExpression = BindQueryOperatorCall(partition, source,
@@ -2562,10 +2499,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                ImmutableArray.Create(boundCount),
                                                                partition.SkipOrTakeKeyword.Span,
                                                                diagnostics)
-
-                If suppressDiagnostics IsNot Nothing Then
-                    suppressDiagnostics.Free()
-                End If
             End If
 
             Return New BoundQueryClause(partition,
@@ -2590,10 +2523,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindOrderByClause(
             source As BoundQueryClauseBase,
             orderBy As OrderByClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryClause
             Dim suppressDiagnostics As DiagnosticBag = Nothing
-            Dim callDiagnostics As DiagnosticBag = diagnostics
+            Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
             Dim lambdaParameterName As String = GetQueryLambdaParameterName(source.RangeVariables)
 
@@ -2646,10 +2579,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     boundCallOrBadExpression = BadExpression(ordering, ImmutableArray.Create(Of BoundExpression)(sourceOrPreviousOrdering, keyLambda),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    If suppressDiagnostics Is Nothing AndAlso ShouldSuppressDiagnostics(keyLambda) Then
+                    If callDiagnostics IsNot BindingDiagnosticBag.Discarded AndAlso ShouldSuppressDiagnostics(keyLambda) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                        suppressDiagnostics = DiagnosticBag.GetInstance()
-                        callDiagnostics = suppressDiagnostics
+                        callDiagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     Dim operatorName As String
@@ -2761,7 +2693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 [select] As SelectClauseSyntax,
                 operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
                 <Out()> ByRef declaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Debug.Assert(declaredRangeVariables.IsDefault)
 
@@ -2808,7 +2740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 requireRangeVariable As Boolean,
                 selectorSyntax As QueryClauseSyntax,
                 <Out()> ByRef declaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Debug.Assert(selectorSyntax IsNot Nothing AndAlso declaredRangeVariables.IsDefault)
 
@@ -2886,7 +2818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 shadowingCheckBinder As Binder,
                 declaredNames As HashSet(Of String),
                 <Out()> ByRef selector As BoundExpression,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As RangeVariableSymbol
                 Debug.Assert(selector Is Nothing)
 
@@ -3006,7 +2938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 variable As ExpressionRangeVariableSyntax,
                 operatorsEnumerator As SyntaxList(Of QueryClauseSyntax).Enumerator,
                 <Out()> ByRef declaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Debug.Assert(declaredRangeVariables.IsDefault)
 
@@ -3058,7 +2990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 <Out()> ByRef declaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 <Out()> ByRef group As BoundQueryClauseBase,
                 <Out()> ByRef intoBinder As IntoClauseDisallowGroupReferenceBinder,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Debug.Assert(operatorsEnumerator.Current Is aggregate)
                 Debug.Assert(declaredRangeVariables.IsDefault)
@@ -3190,7 +3122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 <Out> ByRef joinSelectorDeclaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 <Out> ByRef group As BoundQueryClauseBase,
                 <Out> ByRef intoBinder As IntoClauseDisallowGroupReferenceBinder,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Debug.Assert(joinSelectorDeclaredRangeVariables.IsDefault)
                 Debug.Assert(absorbNextOperator Is operatorsEnumerator.Current)
@@ -3250,7 +3182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Function BuildJoinSelector(
                 syntax As VisualBasicSyntaxNode,
                 mustProduceFlatCompoundVariable As Boolean,
-                diagnostics As DiagnosticBag,
+                diagnostics As BindingDiagnosticBag,
                 Optional rangeVarOpt As RangeVariableSymbol = Nothing,
                 Optional rangeVarValueOpt As BoundExpression = Nothing
             ) As BoundExpression
@@ -3334,7 +3266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 <Out()> ByRef outerKeyBinder As QueryLambdaBinder,
                 <Out()> ByRef innerKeyLambda As BoundQueryLambda,
                 <Out()> ByRef innerKeyBinder As QueryLambdaBinder,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             )
                 Debug.Assert(outerKeyLambda Is Nothing)
                 Debug.Assert(outerKeyBinder Is Nothing)
@@ -3363,8 +3295,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 innerKeyBinder = New QueryLambdaBinder(innerKeyLambdaSymbol, joinSelectorRangeVariables)
 
-                Dim suppressDiagnostics As DiagnosticBag = Nothing
-
                 Dim sideDeterminator As New JoinConditionSideDeterminationVisitor(outer.RangeVariables, inner.RangeVariables)
 
                 Dim joinConditions As SeparatedSyntaxList(Of JoinConditionSyntax) = join.JoinConditions
@@ -3391,8 +3321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     inner.RangeVariables,
                                                     innerKey,
                                                     sideDeterminator,
-                                                    diagnostics,
-                                                    suppressDiagnostics)
+                                                    diagnostics)
 
                     If Not keysAreGood Then
                         If outerKey.Type IsNot ErrorTypeSymbol.UnknownResultType Then
@@ -3417,8 +3346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  inner.RangeVariables,
                                                  innerKeys(i),
                                                  sideDeterminator,
-                                                 diagnostics,
-                                                 suppressDiagnostics) Then
+                                                 diagnostics) Then
                             keysAreGood = False
                         End If
                     Next
@@ -3448,10 +3376,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     innerKey.MakeCompilerGenerated()
                 End If
 
-                If suppressDiagnostics IsNot Nothing Then
-                    suppressDiagnostics.Free()
-                End If
-
                 outerKeyLambda = CreateBoundQueryLambda(outerKeyLambdaSymbol,
                                                         outer.RangeVariables,
                                                         outerKey,
@@ -3479,8 +3403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 innerRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 <Out()> ByRef innerKey As BoundExpression,
                 sideDeterminator As JoinConditionSideDeterminationVisitor,
-                diagnostics As DiagnosticBag,
-                ByRef suppressDiagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As Boolean
                 Debug.Assert(outerKey Is Nothing AndAlso innerKey Is Nothing)
 
@@ -3514,11 +3437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 diagnostics)
                 ElseIf leftSide = JoinConditionSideDeterminationVisitor.Result.Inner Then
                     ' Rebind with the inner binder.
-                    If suppressDiagnostics Is Nothing Then
-                        suppressDiagnostics = DiagnosticBag.GetInstance()
-                    End If
-
-                    innerKey = innerKeyBinder.BindRValue(joinCondition.Left, suppressDiagnostics)
+                    innerKey = innerKeyBinder.BindRValue(joinCondition.Left, BindingDiagnosticBag.Discarded)
                     Debug.Assert(leftSide = sideDeterminator.DetermineTheSide(innerKey, diagnostics))
                     outerKey = outerKeyBinder.BindRValue(joinCondition.Right, diagnostics)
                     keysAreGood = innerKeyBinder.VerifyJoinKeys(outerKey, outerRangeVariables, sideDeterminator.DetermineTheSide(outerKey, diagnostics),
@@ -3532,12 +3451,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If rightSide = JoinConditionSideDeterminationVisitor.Result.Outer Then
                         ' Rebind with the outer binder.
-                        If suppressDiagnostics Is Nothing Then
-                            suppressDiagnostics = DiagnosticBag.GetInstance()
-                        End If
-
-                        outerKey = outerKeyBinder.BindRValue(joinCondition.Right, suppressDiagnostics)
-                        innerKey = innerKeyBinder.BindRValue(joinCondition.Left, suppressDiagnostics)
+                        outerKey = outerKeyBinder.BindRValue(joinCondition.Right, BindingDiagnosticBag.Discarded)
+                        innerKey = innerKeyBinder.BindRValue(joinCondition.Left, BindingDiagnosticBag.Discarded)
                         keysAreGood = innerKeyBinder.VerifyJoinKeys(outerKey, outerRangeVariables, rightSide,
                                                                     innerKey, innerRangeVariables, leftSide,
                                                                     diagnostics)
@@ -3561,20 +3476,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Apply conversion if available.
                     Dim targetType As TypeSymbol = Nothing
                     Dim intrinsicOperatorType As SpecialType = SpecialType.None
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                     Dim operatorKind As BinaryOperatorKind = OverloadResolution.ResolveBinaryOperator(BinaryOperatorKind.Equals,
                                                                                                       outerKey, innerKey,
                                                                                                       innerKeyBinder,
                                                                                                       considerUserDefinedOrLateBound:=False,
                                                                                                       intrinsicOperatorType:=intrinsicOperatorType,
                                                                                                       userDefinedOperator:=Nothing,
-                                                                                                      useSiteDiagnostics:=useSiteDiagnostics)
+                                                                                                      useSiteInfo:=useSiteInfo)
 
                     If (operatorKind And BinaryOperatorKind.Equals) <> 0 AndAlso
                        (operatorKind And Not (BinaryOperatorKind.Equals Or BinaryOperatorKind.Lifted)) = 0 AndAlso
                        intrinsicOperatorType <> SpecialType.None Then
                         ' There is an intrinsic (=) operator, use its argument type. 
-                        Debug.Assert(useSiteDiagnostics.IsNullOrEmpty)
+                        Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty)
+                        diagnostics.AddDependencies(useSiteInfo)
                         targetType = innerKeyBinder.GetSpecialTypeForBinaryOperator(joinCondition, outerKey.Type, innerKey.Type, intrinsicOperatorType,
                                                                                     (operatorKind And BinaryOperatorKind.Lifted) <> 0, diagnostics)
                     Else
@@ -3584,11 +3500,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         inferenceCollection.AddType(innerKey.Type, RequiredConversion.Any, innerKey)
 
                         Dim resultList = ArrayBuilder(Of DominantTypeData).GetInstance()
-                        inferenceCollection.FindDominantType(resultList, Nothing, useSiteDiagnostics)
+                        inferenceCollection.FindDominantType(resultList, Nothing, useSiteInfo)
 
-                        If diagnostics.Add(joinCondition, useSiteDiagnostics) Then
+                        If diagnostics.Add(joinCondition, useSiteInfo) Then
                             ' Suppress additional diagnostics
-                            diagnostics = New DiagnosticBag()
+                            diagnostics = BindingDiagnosticBag.Discarded
                         End If
 
                         If resultList.Count = 1 Then
@@ -3619,7 +3535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 innerKey As BoundExpression,
                 innerRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                 innerSide As JoinConditionSideDeterminationVisitor.Result,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As Boolean
                 If outerSide = JoinConditionSideDeterminationVisitor.Result.Outer AndAlso
                    innerSide = JoinConditionSideDeterminationVisitor.Result.Inner Then
@@ -3738,7 +3654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _innerRangeVariables = StaticCast(Of Object).From(innerRangeVariables)
                 End Sub
 
-                Public Function DetermineTheSide(node As BoundExpression, diagnostics As DiagnosticBag) As Result
+                Public Function DetermineTheSide(node As BoundExpression, diagnostics As BindingDiagnosticBag) As Result
                     _side = Result.None
                     Try
                         Visit(node)
@@ -3771,14 +3687,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Private ReadOnly _binder As Binder
                 Private ReadOnly _errorInfo As DiagnosticInfo
-                Private ReadOnly _diagnostics As DiagnosticBag
+                Private ReadOnly _diagnostics As BindingDiagnosticBag
                 Private ReadOnly _badRangeVariables As ImmutableArray(Of Object) 'ImmutableArray(Of RangeVariableSymbol)
 
                 Private Sub New(
                     binder As Binder,
                     errorInfo As DiagnosticInfo,
                     badRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                    diagnostics As DiagnosticBag
+                    diagnostics As BindingDiagnosticBag
                 )
                     _badRangeVariables = StaticCast(Of Object).From(badRangeVariables)
                     _binder = binder
@@ -3791,7 +3707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     errorInfo As DiagnosticInfo,
                     badRangeVariables As ImmutableArray(Of RangeVariableSymbol),
                     node As BoundExpression,
-                    diagnostics As DiagnosticBag
+                    diagnostics As BindingDiagnosticBag
                 )
                     Dim v As New EqualsOperandIsBadErrorVisitor(binder, errorInfo, badRangeVariables, diagnostics)
                     Try
@@ -3845,7 +3761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend Overrides Function BindGroupAggregationExpression(
                 group As GroupAggregationSyntax,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Return New BoundGroupAggregation(group, m_GroupReference, m_GroupReference.Type)
             End Function
@@ -3864,7 +3780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 aggregationVariables As SeparatedSyntaxList(Of AggregationRangeVariableSyntax),
                 mustProduceFlatCompoundVariable As Boolean,
                 <Out()> ByRef declaredRangeVariables As ImmutableArray(Of RangeVariableSymbol),
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 Debug.Assert(declaredRangeVariables.IsDefault)
                 Debug.Assert(compoundKeyReferencePart2 Is Nothing OrElse compoundKeyReferencePart1 IsNot Nothing)
@@ -3997,7 +3913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend Overrides Function BindFunctionAggregationExpression(
                 functionAggregationSyntax As FunctionAggregationSyntax,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
                 If functionAggregationSyntax.FunctionName.GetTypeCharacter() <> TypeCharacter.None Then
                     ReportDiagnostic(diagnostics, functionAggregationSyntax.FunctionName, ERRID.ERR_TypeCharOnAggregation)
@@ -4050,11 +3966,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              ImmutableArray.Create(m_GroupReference).AddRange(arguments),
                                                              ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated()
                 Else
-                    Dim callDiagnostics As DiagnosticBag = diagnostics
+                    Dim callDiagnostics As BindingDiagnosticBag = diagnostics
 
                     If aggregationLambda IsNot Nothing AndAlso ShouldSuppressDiagnostics(aggregationLambda) Then
                         ' Operator BindQueryClauseCall will fail, let's suppress any additional errors it will report.
-                        callDiagnostics = DiagnosticBag.GetInstance()
+                        callDiagnostics = BindingDiagnosticBag.Discarded
                     End If
 
                     boundCallOrBadExpression = BindQueryOperatorCall(functionAggregationSyntax, m_GroupReference,
@@ -4062,10 +3978,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    arguments,
                                                                    functionAggregationSyntax.FunctionName.Span,
                                                                    callDiagnostics)
-
-                    If callDiagnostics IsNot diagnostics Then
-                        callDiagnostics.Free()
-                    End If
                 End If
 
                 Return New BoundQueryClause(functionAggregationSyntax, boundCallOrBadExpression,
@@ -4087,7 +3999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                   options Or CType(LookupOptions.MethodsOnly Or LookupOptions.MustBeInstance, LookupOptions))
             End Sub
 
-            Public Overrides Sub Lookup(lookupResult As LookupResult, name As String, arity As Integer, options As LookupOptions, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+            Public Overrides Sub Lookup(lookupResult As LookupResult, name As String, arity As Integer, options As LookupOptions, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
                 If (options And (LookupOptionExtensions.ConsiderationMask Or LookupOptions.MustNotBeInstance)) <> 0 Then
                     Return
                 End If
@@ -4098,7 +4010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              name,
                              arity,
                              options Or CType(LookupOptions.MethodsOnly Or LookupOptions.MustBeInstance, LookupOptions),
-                             useSiteDiagnostics)
+                             useSiteInfo)
             End Sub
 
             ''' <summary>
@@ -4108,7 +4020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 item As AggregationRangeVariableSyntax,
                 declaredNames As HashSet(Of String),
                 <Out()> ByRef selector As BoundExpression,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As RangeVariableSymbol
                 Debug.Assert(selector Is Nothing)
 
@@ -4207,7 +4119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(parent, groupReference, groupRangeVariables, groupCompoundVariableType, aggregationArgumentRangeVariables)
             End Sub
 
-            Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+            Friend Overrides Function BindGroupAggregationExpression(group As GroupAggregationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
                 ' Parser should have reported an error.
                 Return BadExpression(group, m_GroupReference, ErrorTypeSymbol.UnknownResultType)
             End Function
@@ -4221,7 +4133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntax As CollectionRangeVariableSyntax,
             beginsTheQuery As Boolean,
             declaredNames As HashSet(Of String),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryableSource
             Debug.Assert(declaredNames Is Nothing OrElse syntax.Parent.Kind = SyntaxKind.SimpleJoinClause OrElse syntax.Parent.Kind = SyntaxKind.GroupJoinClause)
 
@@ -4347,7 +4259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As BoundQueryPart,
             variableType As TypeSymbol,
             targetVariableType As TypeSymbol,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundQueryPart
             If source.Type.IsErrorType() Then
                 ' If the source is already a "bad" type, we know that we will not be able to bind to the Select.
@@ -4382,13 +4294,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             exprIsOperandOfConditionalBranch:=False)
                 selectorLambda.SetWasCompilerGenerated()
 
-                Dim suppressDiagnostics As DiagnosticBag = Nothing
-
                 If ShouldSuppressDiagnostics(selectorLambda) Then
                     ' If the selector is already "bad", we know that we will not be able to bind to the Select.
                     ' Let's suppress additional errors.
-                    suppressDiagnostics = DiagnosticBag.GetInstance()
-                    diagnostics = suppressDiagnostics
+                    diagnostics = BindingDiagnosticBag.Discarded
                 End If
 
                 Dim boundCallOrBadExpression As BoundExpression
@@ -4399,10 +4308,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  diagnostics)
 
                 Debug.Assert(boundCallOrBadExpression.WasCompilerGenerated)
-
-                If suppressDiagnostics IsNot Nothing Then
-                    suppressDiagnostics.Free()
-                End If
 
                 Return New BoundQueryClause(source.Syntax,
                                             boundCallOrBadExpression,
@@ -4425,7 +4330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function ConvertToQueryableType(
             source As BoundExpression,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out()> ByRef controlVariableType As TypeSymbol
         ) As BoundExpression
             controlVariableType = Nothing
@@ -4454,7 +4359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim result As BoundExpression = Nothing
-            Dim additionalDiagnostics = DiagnosticBag.GetInstance()
+            Dim additionalDiagnostics = BindingDiagnosticBag.GetInstance()
 
             ' Does it have Function AsQueryable() As CT returning queryable collection?
             Dim asQueryable As BoundExpression = BindQueryOperatorCall(source.Syntax, source, StringConstants.AsQueryableMethod,
@@ -4522,15 +4427,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' Returns inferred type or Nothing.
         ''' </summary>
-        Private Function InferControlVariableType(source As BoundExpression, diagnostics As DiagnosticBag) As TypeSymbol
+        Private Function InferControlVariableType(source As BoundExpression, diagnostics As BindingDiagnosticBag) As TypeSymbol
             Debug.Assert(source.IsValue)
 
             Dim result As TypeSymbol = Nothing
 
             ' Look for Select methods available for the source.
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            LookupMember(lookupResult, source.Type, StringConstants.SelectMethod, 0, QueryOperatorLookupOptions, useSiteDiagnostics)
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            LookupMember(lookupResult, source.Type, StringConstants.SelectMethod, 0, QueryOperatorLookupOptions, useSiteInfo)
 
             If lookupResult.IsGood Then
 
@@ -4551,7 +4456,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' We tried to infer from instance methods and there were no suitable 'Select' method, 
                     ' let's try to infer from extension methods.
                     lookupResult.Clear()
-                    Me.LookupExtensionMethods(lookupResult, source.Type, StringConstants.SelectMethod, 0, QueryOperatorLookupOptions, useSiteDiagnostics)
+                    Me.LookupExtensionMethods(lookupResult, source.Type, StringConstants.SelectMethod, 0, QueryOperatorLookupOptions, useSiteInfo)
 
                     If lookupResult.IsGood Then
                         result = InferControlVariableType(lookupResult.Symbols, failedDueToAnAmbiguity)
@@ -4559,7 +4464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            diagnostics.Add(source, useSiteDiagnostics)
+            diagnostics.Add(source, useSiteInfo)
             lookupResult.Free()
 
             Return result
@@ -4660,11 +4565,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             source As BoundExpression,
             operatorName As String,
             typeArgumentsOpt As BoundTypeArguments,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundMethodGroup
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            LookupMember(lookupResult, source.Type, operatorName, 0, QueryOperatorLookupOptions, useSiteDiagnostics)
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            LookupMember(lookupResult, source.Type, operatorName, 0, QueryOperatorLookupOptions, useSiteInfo)
 
             Dim methodGroup As BoundMethodGroup = Nothing
 
@@ -4686,7 +4591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             QualificationKind.QualifiedViaValue).MakeCompilerGenerated()
             End If
 
-            diagnostics.Add(node, useSiteDiagnostics)
+            diagnostics.Add(node, useSiteInfo)
             lookupResult.Free()
 
             Return methodGroup
@@ -4699,7 +4604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             operatorName As String,
             arguments As ImmutableArray(Of BoundExpression),
             operatorNameLocation As TextSpan,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Return BindQueryOperatorCall(node,
                                          source,
@@ -4717,7 +4622,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             typeArgumentsOpt As BoundTypeArguments,
             arguments As ImmutableArray(Of BoundExpression),
             operatorNameLocation As TextSpan,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Return BindQueryOperatorCall(node,
                                          source,
@@ -4738,7 +4643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             methodGroup As BoundMethodGroup,
             arguments As ImmutableArray(Of BoundExpression),
             operatorNameLocation As TextSpan,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As BoundExpression
             Debug.Assert(source.IsValue)
             Debug.Assert(methodGroup Is Nothing OrElse
@@ -4748,15 +4653,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundCall As BoundExpression = Nothing
 
             If methodGroup IsNot Nothing Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
                 Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup,
                                                                                                                                           arguments, Me,
-                                                                                                                                          useSiteDiagnostics)
+                                                                                                                                          useSiteInfo)
 
-                If diagnostics.Add(node, useSiteDiagnostics) Then
+                If diagnostics.Add(node, useSiteInfo) Then
                     If methodGroup.ResultKind <> LookupResultKind.Inaccessible Then
                         ' Suppress additional diagnostics
-                        diagnostics = New DiagnosticBag()
+                        diagnostics = BindingDiagnosticBag.Discarded
                     End If
                 End If
 
@@ -4764,7 +4669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Create and report the diagnostic.
                     If results.Candidates.Length = 0 Then
                         results = OverloadResolution.QueryOperatorInvocationOverloadResolution(methodGroup, arguments, Me, includeEliminatedCandidates:=True,
-                                                                                               useSiteDiagnostics:=useSiteDiagnostics)
+                                                                                               useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                     End If
 
                     If results.Candidates.Length > 0 Then

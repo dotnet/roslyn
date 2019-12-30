@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 targetType As NamedTypeSymbol,
                 boundMember As BoundLateMemberAccess,
                 binder As Binder,
-                diagnostics As DiagnosticBag
+                diagnostics As BindingDiagnosticBag
             ) As BoundExpression
 
             Dim delegateInvoke = targetType.DelegateInvokeMethod
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundLambda = New BoundLambda(syntaxNode,
                                           lambdaSymbol,
                                           lambdaBody,
-                                          ImmutableArray(Of Diagnostic).Empty,
+                                          ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
                                           Nothing,
                                           ConversionKind.DelegateRelaxationLevelWidening,
                                           MethodConversionKind.Identity)

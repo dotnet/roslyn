@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // PROTOTYPE(UsedAssemblyReferences): Consider if it makes sense to move this type into its own file
     internal static class BindingDiagnosticBagExtensions
     {
         internal static CSDiagnosticInfo Add(this CodeAnalysis.BindingDiagnosticBag diagnostics, ErrorCode code, Location location)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static CSDiagnosticInfo Add(this CodeAnalysis.BindingDiagnosticBag diagnostics, ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
         {
-            var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<global::Microsoft.CodeAnalysis.Location>.Empty);
+            var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<Location>.Empty);
             diagnostics.DiagnosticBag?.Add(new CSDiagnostic(info, location));
             return info;
         }
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(info.DiagnosticInfo == null || addDependencies); // It would be strange to drop diagnostics, but record dependencies
+                Debug.Assert(info.DiagnosticInfo == null); // It would be strange to drop diagnostics, but record dependencies
             }
 
             if (addDependencies)
@@ -90,12 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BindingDiagnosticBag GetInstance()
         {
             return new BindingDiagnosticBag(usePool: true);
-        }
-
-        // PROTOTYPE(UsedAssemblyReferences): Remove this overload once conversion operators are removed from the base type.
-        internal void AddRange(BindingDiagnosticBag other)
-        {
-            AddRange((BindingDiagnosticBag<AssemblySymbol>)other);
         }
 
         internal void AddDependencies(Symbol? symbol)
@@ -133,16 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            addAssembliesUsedByNamespaceReference(ns);
+            addAssembliesUsedByNamespaceReferenceImpl(ns);
 
-            void addAssembliesUsedByNamespaceReference(NamespaceSymbol ns)
+            void addAssembliesUsedByNamespaceReferenceImpl(NamespaceSymbol ns)
             {
                 // Treat all assemblies contributing to this namespace symbol as used
                 if (ns.Extent.Kind == NamespaceKind.Compilation)
                 {
                     foreach (var constituent in ns.ConstituentNamespaces)
                     {
-                        AddAssembliesUsedByNamespaceReference(constituent);
+                        addAssembliesUsedByNamespaceReferenceImpl(constituent);
                     }
                 }
                 else

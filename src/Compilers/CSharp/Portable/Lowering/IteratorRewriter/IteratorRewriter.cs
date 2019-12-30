@@ -117,10 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = bag.HasAnyErrors();
             if (!hasErrors)
             {
-                bag.DiagnosticBag.Clear();
+                diagnostics.AddDependencies(bag);
+            }
+            else
+            {
+                diagnostics.AddRange(bag);
             }
 
-            diagnostics.AddRangeAndFree(bag);
+            bag.Free();
             return !hasErrors;
         }
 
