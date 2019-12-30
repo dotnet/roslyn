@@ -21,6 +21,18 @@
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+        "label": "build csc skip analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "msbuild",
+          "src/Compilers/CSharp/csc/csc.csproj",
+          "-p:UseRoslynAnalyzers=false"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
     }
   ]
 }

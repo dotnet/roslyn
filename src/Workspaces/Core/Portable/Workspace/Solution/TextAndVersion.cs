@@ -23,49 +23,32 @@ namespace Microsoft.CodeAnalysis
         public VersionStamp Version { get; }
 
         /// <summary>
-        /// An optional file path that identifies the origin of the source text. Empty if not available.
+        /// An optional file path that identifies the origin of the source text
         /// </summary>
         public string FilePath { get; }
 
-        /// <summary>
-        /// If an error occurred while loading the text the corresponding diagnostic, otherwise null.
-        /// </summary>
-        internal Diagnostic? LoadDiagnostic { get; }
-
-        private TextAndVersion(SourceText text, VersionStamp version, string? filePath, Diagnostic? loadDiagnostic)
+        private TextAndVersion(SourceText text, VersionStamp version, string? filePath)
         {
-            Text = text;
-            Version = version;
-            FilePath = filePath ?? string.Empty;
-            LoadDiagnostic = loadDiagnostic;
+            this.Text = text;
+            this.Version = version;
+            this.FilePath = filePath ?? string.Empty;
         }
 
         /// <summary>
-        /// Create a new <see cref="TextAndVersion"/> instance.
+        /// Create a new TextAndVersion instance.
         /// </summary>
         /// <param name="text">The text</param>
         /// <param name="version">The version</param>
         /// <param name="filePath">An optional file path that identifies the original of the source text.</param>
         /// <returns></returns>
         public static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath = null)
-            => Create(text, version, filePath, loadDiagnostic: null);
-
-        /// <summary>
-        /// Create a new <see cref="TextAndVersion"/> instance.
-        /// </summary>
-        /// <param name="text">The text</param>
-        /// <param name="version">The version</param>
-        /// <param name="filePath">An optional file path that identifies the original of the source text.</param>
-        /// <param name="loadDiagnostic">Diagnostic describing failure to load the source text.</param>
-        /// <returns></returns>
-        internal static TextAndVersion Create(SourceText text, VersionStamp version, string? filePath, Diagnostic? loadDiagnostic)
         {
             if (text == null)
             {
                 throw new ArgumentNullException(nameof(text));
             }
 
-            return new TextAndVersion(text, version, filePath, loadDiagnostic);
+            return new TextAndVersion(text, version, filePath);
         }
     }
 }

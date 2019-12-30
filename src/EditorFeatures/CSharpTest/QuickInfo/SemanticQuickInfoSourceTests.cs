@@ -4373,21 +4373,17 @@ class C<T>
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestAwaitableMethod()
         {
-            var markup = @"using System.Threading.Tasks;
-class C
-{
-    async Task Goo()
-    {
-        Go$$o();
-    }
+            var markup = @"using System.Threading.Tasks;	
+class C	
+{	
+    async Task Goo()	
+    {	
+        Go$$o();	
+    }	
 }";
             var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
-            var documentation = $@"
-{WorkspacesResources.Usage_colon}
-  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} Goo();";
-
-            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description), Usage(documentation) });
+            await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description) });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -5775,7 +5771,7 @@ public class C
         var y$$ = ValueTuple.Create();
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) ValueTuple y"));
         }
 
@@ -5793,7 +5789,7 @@ public class C
         var$$ y = ValueTuple.Create();
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription("struct System.ValueTuple"));
         }
 
@@ -5811,7 +5807,7 @@ public class C
         var y$$ = ValueTuple.Create(1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) ValueTuple<int> y"));
         }
 
@@ -5829,8 +5825,8 @@ public class C
         var$$ y = ValueTuple.Create(1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
-                MainDescription("ValueTuple<System.Int32>"));
+",
+                MainDescription("struct System.ValueTuple<System.Int32>"));
         }
 
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
@@ -5847,7 +5843,7 @@ public class C
         var y$$ = ValueTuple.Create(1, 1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription($"({ FeaturesResources.local_variable }) (int, int) y"));
         }
 
@@ -5865,7 +5861,7 @@ public class C
         var$$ y = ValueTuple.Create(1, 1);
     }
 }
-" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+",
                 MainDescription("(System.Int32, System.Int32)"));
         }
 

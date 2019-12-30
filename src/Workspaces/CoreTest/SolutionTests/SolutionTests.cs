@@ -1243,33 +1243,75 @@ End Class";
         }
 
         [Fact]
-        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
-        public async Task TestDocumentFileAccessFailureMissingFile()
+        public void TestDocumentFileAccessFailureMissingFile()
         {
-            var workspace = new AdhocWorkspace();
-            var solution = workspace.CurrentSolution;
+            var solution = new AdhocWorkspace().CurrentSolution;
 
-            WorkspaceDiagnostic diagnosticFromEvent = null;
+            WorkspaceDiagnostic diagnostic = null;
+
             solution.Workspace.WorkspaceFailed += (sender, args) =>
             {
-                diagnosticFromEvent = args.Diagnostic;
+                diagnostic = args.Diagnostic;
             };
 
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8))
-                               .WithDocumentFilePath(did, "document path");
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
 
             var doc = solution.GetDocument(did);
-            var text = await doc.GetTextAsync().ConfigureAwait(false);
+            var text = doc.GetTextAsync().Result;
 
-            var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
+            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
 
-            Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
-            Assert.Equal("", text.ToString());
+            Assert.NotNull(diagnostic);
+            var dd = diagnostic as DocumentDiagnostic;
+            Assert.NotNull(dd);
+            Assert.Equal(did, dd.DocumentId);
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, dd.Kind);
+        }
+
+        [Fact]
+        [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
+        public void TestWorkspaceDiagnosticHasDebuggerText()
+        {
+            var solution = new AdhocWorkspace().CurrentSolution;
+
+            WorkspaceDiagnostic diagnostic = null;
+
+            solution.Workspace.WorkspaceFailed += (sender, args) =>
+            {
+                diagnostic = args.Diagnostic;
+            };
+
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+
+            solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
+
+            var doc = solution.GetDocument(did);
+            var text = doc.GetTextAsync().Result;
+
+            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
+
+            Assert.NotNull(diagnostic);
+            var dd = diagnostic as DocumentDiagnostic;
+            Assert.NotNull(dd);
+            Assert.Equal(dd.ToString(), string.Format("[{0}] {1}", WorkspacesResources.Failure, dd.Message));
+        }
+
+        private bool WaitFor(Func<bool> condition, TimeSpan timeout)
+        {
+            var start = DateTime.UtcNow;
+
+            while ((DateTime.UtcNow - start) < timeout && !condition())
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(10));
+            }
+
+            return condition();
         }
 
         [Fact]
@@ -1493,7 +1535,7 @@ public class C : A {
             var factory = dummyProject.LanguageServices.SyntaxTreeFactory;
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// empty"), treeDiagnosticReportingOptions: null, CancellationToken.None);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// emtpy"), analyzerConfigOptionsResult: null, CancellationToken.None);
 
             // create recoverable tree off the original tree
             var recoverableTree = factory.CreateRecoverableTree(
@@ -1767,6 +1809,57 @@ public class C : A {
             var finalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
 
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterUpdateRoot));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3705, "https://github.com/dotnet/roslyn/issues/3705")]
+        public async Task TestAddingEditorConfigFileWithIsGeneratedCodeOption()
+        {
+            var solution = CreateSolution();
+            var projectId = ProjectId.CreateNewId();
+            var sourceDocumentId = DocumentId.CreateNewId(projectId);
+
+            solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
+                .WithProjectMetadataReferences(projectId, new[] { TestReferences.NetFx.v4_0_30319.mscorlib })
+                .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
+            var src = @"
+class C
+{
+    void M(C? c)
+    {
+        _ = c.ToString();   // warning CS8602: Dereference of a possibly null reference.
+    }
+}";
+            solution = solution.AddDocument(sourceDocumentId, "Test.cs", src, filePath: @"Z:\Test.cs");
+
+            var originalSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var originalCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            // warning CS8602: Dereference of a possibly null reference.
+            var diagnostics = originalCompilation.GetDiagnostics();
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal("CS8602", diagnostic.Id);
+
+            var editorConfigDocumentId = DocumentId.CreateNewId(projectId);
+            solution = solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(
+                DocumentInfo.Create(
+                    editorConfigDocumentId,
+                    ".editorconfig",
+                    filePath: @"Z:\.editorconfig",
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("[*.*]\r\n\r\ngenerated_code = true"), VersionStamp.Default)))));
+
+            var newSyntaxTree = await solution.GetDocument(sourceDocumentId).GetSyntaxTreeAsync();
+            var newCompilation = await solution.GetProject(projectId).GetCompilationAsync();
+
+            Assert.NotSame(originalSyntaxTree, newSyntaxTree);
+            Assert.NotSame(originalCompilation, newCompilation);
+
+            Assert.True(newCompilation.ContainsSyntaxTree(newSyntaxTree));
+
+            // warning CS8669: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context. Auto-generated code requires an explicit '#nullable' directive in source.
+            diagnostics = newCompilation.GetDiagnostics();
+            diagnostic = Assert.Single(diagnostics);
+            Assert.Contains("CS8669", diagnostic.Id);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

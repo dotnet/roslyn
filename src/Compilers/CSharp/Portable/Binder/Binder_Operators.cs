@@ -2303,6 +2303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, DiagnosticBag diagnostics)
         {
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
@@ -2316,7 +2317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If the operand is bad, avoid generating cascading errors.
-            if (operand.HasAnyErrors || isOperandTypeNull)
+            if (isOperandTypeNull || operand.Type?.IsErrorType() == true)
             {
                 // Note: no candidate user-defined operators.
                 return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
@@ -2342,7 +2343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt: ConstantValue.NotAvailable,
                     methodOpt: null,
                     resultKind: LookupResultKind.Viable,
-                    type: operand.Type);
+                    type: operand.Type!);
             }
 
             LookupResultKind resultKind;
@@ -2380,6 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 resultType);
         }
+#nullable restore
 
         private ConstantValue FoldEnumUnaryOperator(
             CSharpSyntaxNode syntax,

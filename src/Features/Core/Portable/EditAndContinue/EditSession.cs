@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     case CommittedSolution.DocumentState.OutOfSync:
                         var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee);
-                        outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(document.FilePath, textSpan: default, lineSpan: default), new[] { document.FilePath }));
+                        outOfSyncDiagnostics.Add(Diagnostic.Create(descriptor, Location.Create(document.FilePath!, textSpan: default, lineSpan: default), new[] { document.FilePath }));
                         continue;
 
                     default:
@@ -479,6 +479,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var baseProject = DebuggingSession.LastCommittedSolution.GetProject(project.Id);
+                    if (baseProject == project)
+                    {
+                        continue;
+                    }
 
                     // When debugging session is started some projects might not have been loaded to the workspace yet. 
                     // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied

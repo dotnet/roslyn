@@ -67,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  string? diagnosticId = null,
                  CancellationToken cancellationToken = default)
             {
-                // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
-                //         Here we don't filter out hidden diagnostic only analyzer since such analyzer can produce hidden diagnostic
-                //         on active file (non local diagnostic)
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => !owner.AnalyzerService.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 
@@ -218,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private Task<IEnumerable<DiagnosticData>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
-                return _owner.AnalyzerService.ComputeDiagnosticsAsync(_compilation, _document, analyzer, AnalysisKind.Syntax, _range, _owner.DiagnosticLogAggregator, cancellationToken);
+                return _owner.ComputeDiagnosticsAsync(_compilation, _document, analyzer, AnalysisKind.Syntax, _range, cancellationToken);
             }
 
             private Task<IEnumerable<DiagnosticData>> GetSemanticDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
@@ -226,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var supportsSemanticInSpan = analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
 
                 var analysisSpan = supportsSemanticInSpan ? (TextSpan?)_range : null;
-                return _owner.AnalyzerService.ComputeDiagnosticsAsync(_compilation, _document, analyzer, AnalysisKind.Semantic, analysisSpan, _owner.DiagnosticLogAggregator, cancellationToken);
+                return _owner.ComputeDiagnosticsAsync(_compilation, _document, analyzer, AnalysisKind.Semantic, analysisSpan, cancellationToken);
             }
 
             private async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)

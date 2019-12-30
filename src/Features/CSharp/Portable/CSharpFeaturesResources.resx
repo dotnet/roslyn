@@ -669,4 +669,8 @@
   <data name="Pass_in_captured_variables_as_arguments" xml:space="preserve">
     <value>Pass in captured variables as arguments</value>
   </data>
+  <data name="Reverse_for_statement" xml:space="preserve">
+    <value>Reverse 'for' statement</value>
+    <comment>{Locked="for"} "for" is a C# keyword and should not be localized.</comment>
+  </data>
 </root>

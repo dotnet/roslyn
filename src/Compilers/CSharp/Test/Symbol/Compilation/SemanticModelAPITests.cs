@@ -4095,6 +4095,49 @@ namespace N
             Assert.False(semanticModel.IsAccessible(positionInCGoo, fieldZ));
         }
 
+        [Fact, WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        public void SpeculativeModelConflictingNameUnary_DeclarationPattern()
+        {
+            var source = @"
+using System.Threading;
+
+class C
+{
+    void Test()
+    {
+        var ct = CancellationToken.None;
+        if (!(this.Helper(CancellationToken.None) is string nonDiscard))
+        {
+        }
+    }
+
+    object Helper(CancellationToken ct) { return null; }
+}
+";
+
+            var replacementSource = @"
+        if (!(this.Helper(CancellationToken.None) is var nonDiscard))
+        {
+        }";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
+            var replacementIfStatement = (IfStatementSyntax)SyntaxFactory.ParseStatement(replacementSource);
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(ifStatement.SpanStart, replacementIfStatement, out var specModel));
+
+            var originalTypeInfo = model.GetTypeInfo(ifStatement.Condition);
+            Assert.Equal(SpecialType.System_Boolean, originalTypeInfo.Type.SpecialType);
+
+            var speculativeTypeInfo = specModel.GetTypeInfo(replacementIfStatement.Condition);
+            Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

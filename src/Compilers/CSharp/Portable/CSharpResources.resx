@@ -2978,10 +2978,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</value>
+    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
     <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
@@ -4002,7 +4002,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Command line switch is not yet implemented</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
-    <value>Failed to emit module '{0}'.</value>
+    <value>Failed to emit module '{0}': {1}</value>
   </data>
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
@@ -5861,12 +5861,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureObsoleteOnPropertyAccessor" xml:space="preserve">
     <value>obsolete on property accessor</value>
   </data>
-  <data name="WRN_NullReferenceIterationVariable" xml:space="preserve">
-    <value>Possible null reference assignment to iteration variable</value>
-  </data>
-  <data name="WRN_NullReferenceIterationVariable_Title" xml:space="preserve">
-    <value>Possible null reference assignment to iteration variable</value>
-  </data>
   <data name="WRN_UnconsumedEnumeratorCancellationAttributeUsage" xml:space="preserve">
     <value>The EnumeratorCancellationAttribute applied to parameter '{0}' will have no effect. The attribute is only effective on a parameter of type CancellationToken in an async-iterator method returning IAsyncEnumerable</value>
   </data>
@@ -5929,5 +5923,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_VarianceInterfaceNesting" xml:space="preserve">
     <value>Enums, classes, and structures cannot be declared in an interface that has an 'in' or 'out' type parameter.</value>
+  </data>
+  <data name="ERR_ExternEventInitializer" xml:space="preserve">
+    <value>'{0}': extern event cannot have initializer</value>
+  </data>
+  <data name="ERR_ImplicitIndexIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Index Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Range Indexer cannot name the argument.</value>
   </data>
 </root>

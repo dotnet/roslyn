@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var others = diagnosticDataSerializer.ReadDiagnosticData(reader, project, document: null, cancellationToken);
 
-                var analysisResult = DiagnosticAnalysisResult.Create(
+                var analysisResult = DiagnosticAnalysisResult.CreateFromSerialization(
                     project,
                     version,
                     syntaxLocalMap,

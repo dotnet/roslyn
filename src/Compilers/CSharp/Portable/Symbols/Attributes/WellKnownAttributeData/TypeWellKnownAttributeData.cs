@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Information decoded from well-known custom attributes applied on a type.
     /// </summary>
-    internal sealed class TypeWellKnownAttributeData : CommonTypeWellKnownAttributeData
+    internal sealed class TypeWellKnownAttributeData : CommonTypeWellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
         #region CoClassAttribute
 
@@ -31,6 +31,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        #endregion
+
+        #region SkipLocalsInitAttribute
+        private bool _hasSkipLocalsInitAttribute;
+        public bool HasSkipLocalsInitAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSkipLocalsInitAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasSkipLocalsInitAttribute = value;
+                SetDataStored();
+            }
+        }
         #endregion
     }
 }

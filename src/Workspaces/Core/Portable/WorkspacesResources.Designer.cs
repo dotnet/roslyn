@@ -782,15 +782,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error reading content of source file &apos;{0}&apos; -- &apos;{1}&apos;..
-        /// </summary>
-        internal static string Error_reading_content_of_source_file_0_1 {
-            get {
-                return ResourceManager.GetString("Error_reading_content_of_source_file_0_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Event.
         /// </summary>
         internal static string Event {
@@ -3755,15 +3746,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Usage:.
-        /// </summary>
-        internal static string Usage_colon {
-            get {
-                return ResourceManager.GetString("Usage_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Value too large to be represented as a 30 bit unsigned integer..
         /// </summary>
         internal static string Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer {
@@ -3806,15 +3788,6 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_na" +
                         "me_as_member_access", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Workspace error.
-        /// </summary>
-        internal static string Workspace_error {
-            get {
-                return ResourceManager.GetString("Workspace_error", resourceCulture);
             }
         }
         

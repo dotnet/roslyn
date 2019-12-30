@@ -327,6 +327,11 @@
         <target state="translated">Indeksowanie można uprościć</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Wprowadź stałą</target>
@@ -345,6 +350,11 @@
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">Wprowadź zmienną zapytania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
@@ -515,6 +525,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edycja reguły</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">

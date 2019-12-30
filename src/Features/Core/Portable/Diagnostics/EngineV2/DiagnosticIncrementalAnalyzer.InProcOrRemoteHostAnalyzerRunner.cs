@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 try
                 {
-                    await client.TryRunCodeAnalysisRemoteAsync(
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                         new object[]
                         {
@@ -108,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             // +1 for project itself
                             project.DocumentIds.Count + 1
                         },
+                        solution: null,
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, analyzerMap.Keys.ToArray());
 
-                using var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget: null, cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // session is not available
