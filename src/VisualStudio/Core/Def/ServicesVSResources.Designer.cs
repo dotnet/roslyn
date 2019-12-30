@@ -435,6 +435,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Background analysis scope:.
+        /// </summary>
+        internal static string Background_analysis_scope_colon {
+            get {
+                return ResourceManager.GetString("Background_analysis_scope_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Types.
         /// </summary>
         internal static string Base_Types {
@@ -750,11 +759,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C#/Visual Basic Language Server Client.
+        /// </summary>
+        internal static string CSharp_Visual_Basic_Language_Server_Client {
+            get {
+                return ResourceManager.GetString("CSharp_Visual_Basic_Language_Server_Client", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current block.
         /// </summary>
         internal static string Current_block {
             get {
                 return ResourceManager.GetString("Current_block", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Document.
+        /// </summary>
+        internal static string Current_Document {
+            get {
+                return ResourceManager.GetString("Current_Document", resourceCulture);
             }
         }
         
@@ -887,15 +914,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable full solution _analysis.
-        /// </summary>
-        internal static string Enable_full_solution_analysis {
-            get {
-                return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enable navigation to decompiled sources (experimental).
         /// </summary>
         internal static string Enable_navigation_to_decompiled_sources {
@@ -946,6 +964,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enter_a_title_for_this_Symbol_Specification {
             get {
                 return ResourceManager.GetString("Enter_a_title_for_this_Symbol_Specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Entire Solution.
+        /// </summary>
+        internal static string Entire_Solution {
+            get {
+                return ResourceManager.GetString("Entire_Solution", resourceCulture);
             }
         }
         
@@ -2070,6 +2097,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string OK {
             get {
                 return ResourceManager.GetString("OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open Documents and Projects.
+        /// </summary>
+        internal static string Open_Documents_and_Projects {
+            get {
+                return ResourceManager.GetString("Open_Documents_and_Projects", resourceCulture);
             }
         }
         

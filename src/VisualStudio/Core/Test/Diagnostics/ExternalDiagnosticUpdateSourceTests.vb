@@ -4,10 +4,9 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -254,7 +253,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim waiter = New AsynchronousOperationListener()
 
                 ' turn on FSA
-                workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, True)
+                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
@@ -454,7 +453,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty.Add("reference", ImmutableArray.Create(Of DiagnosticDescriptor)(New DiagnosticDescriptor("CS1002", "test", "test", "test", DiagnosticSeverity.Warning, True)))
             End Function
 
-            Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, Optional diagnosticId As String = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+            Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, Optional diagnosticId As String = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
                 Return Task.FromResult(SpecializedCollections.EmptyEnumerable(Of DiagnosticData))
             End Function
 
@@ -467,10 +466,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Function
 
             Public Function GetCachedDiagnosticsAsync(workspace As Microsoft.CodeAnalysis.Workspace, Optional projectId As ProjectId = Nothing, Optional documentId As DocumentId = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetCachedDiagnosticsAsync
-                Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
-            End Function
-
-            Public Function GetSpecificDiagnosticsAsync(solution As Solution, id As Object, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetSpecificDiagnosticsAsync
                 Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)()
             End Function
 

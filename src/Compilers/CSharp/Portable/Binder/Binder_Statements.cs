@@ -207,19 +207,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected virtual void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            Next?.ValidateYield(node, diagnostics);
+        }
+
         private BoundStatement BindYieldReturnStatement(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var binder = this;
-
-            TypeSymbol elementType = binder.GetIteratorElementType(node, diagnostics).Type;
+            ValidateYield(node, diagnostics);
+            TypeSymbol elementType = GetIteratorElementType().Type;
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
-                : binder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+                : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
-                argument = binder.GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
             else
             {
@@ -261,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
-            GetIteratorElementType(node, diagnostics);
+            ValidateYield(node, diagnostics);
             CheckRequiredLangVersionForAsyncIteratorMethods(diagnostics);
             return new BoundYieldBreakStatement(node);
         }
@@ -396,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // In C# 8 and later we follow the ECMA specification, which neatly handles null and expressions of exception type.
-                boundExpr = GenerateConversionForAssignment(Compilation.GetWellKnownType(WellKnownType.System_Exception), boundExpr, diagnostics);
+                boundExpr = GenerateConversionForAssignment(GetWellKnownType(WellKnownType.System_Exception, diagnostics, exprSyntax), boundExpr, diagnostics);
             }
 
             return boundExpr;
@@ -571,7 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
                     // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
                     // It's a bit of code duplication, but refactoring would make things worse.
-                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, blockDiagnostics);
+                    // However, we don't need to report diagnostics here. They will be reported when analyzing the parent method.
+                    var ignored = DiagnosticBag.GetInstance();
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, ignored);
+                    ignored.Free();
                     if (endIsReachable)
                     {
                         if (ImplicitReturnIsOkay(localSymbol))
@@ -698,12 +705,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(expr is object);
             Debug.Assert(expr.Type is object);
             Debug.Assert(expr.Type.IsRefLikeType || hasAwait); // pattern dispose lookup is only valid on ref structs or asynchronous usings
-
-            // Don't try and lookup if we're not enabled
-            if (MessageID.IDS_FeatureUsingDeclarations.RequiredVersion() > Compilation.LanguageVersion)
-            {
-                return null;
-            }
 
             var result = PerformPatternMethodLookup(expr,
                                                     hasAwait ? WellKnownMemberNames.DisposeAsyncMethodName : WellKnownMemberNames.DisposeMethodName,
@@ -1706,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
-                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType(null, diagnostics);
+                    method.IteratorElementTypeWithAnnotations = GetIteratorElementType();
                 }
                 else
                 {
@@ -2068,6 +2069,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (targetType.IsVoidType())
+            {
+                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, operand.Display, targetType);
+                return;
+            }
+
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
@@ -2086,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypes) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypes) &&
                             targetElementTypes.Length == tuple.Arguments.Length)
                         {
                             GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);

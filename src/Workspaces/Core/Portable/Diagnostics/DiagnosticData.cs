@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -21,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public readonly string Id;
         public readonly string Category;
-        public readonly string Message;
-        public readonly string ENUMessageForBingSearch;
+        public readonly string? Message;
+        public readonly string? ENUMessageForBingSearch;
 
         public readonly DiagnosticSeverity Severity;
         public readonly DiagnosticSeverity DefaultSeverity;
@@ -54,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticData(
             string id,
             string category,
-            string message,
-            string enuMessageForBingSearch,
+            string? message,
+            string? enuMessageForBingSearch,
             DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ProjectId = projectId;
             DataLocation = location;
-            AdditionalLocations = additionalLocations;
+            AdditionalLocations = additionalLocations ?? Array.Empty<DiagnosticDataLocation>();
 
             Language = language;
             Title = title;
@@ -98,12 +99,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool HasTextSpan => (DataLocation?.SourceSpan).HasValue;
 
         /// <summary>
-        /// return TextSpan if it exists, otherwise it will throw
+        /// Get <see cref="TextSpan"/> if it exists, throws otherwise.
         /// 
-        /// some diagnostic data such as created from build will have original line/column but not text span
-        /// in those cases, use GetTextSpan method instead to calculate one from original line/column
+        /// Some diagnostic data such as those created from build have original line/column but not <see cref="TextSpan"/>.
+        /// In those cases use <see cref="GetTextSpan(DiagnosticDataLocation, SourceText)"/> method instead to calculate span from original line/column.
         /// </summary>
-        public TextSpan TextSpan => DataLocation?.SourceSpan ?? throw new InvalidOperationException();
+        public TextSpan GetTextSpan()
+        {
+            Contract.ThrowIfFalse(DataLocation != null && DataLocation.SourceSpan.HasValue);
+            return DataLocation.SourceSpan.Value;
+        }
 
         public override bool Equals(object obj)
             => obj is DiagnosticData data && Equals(data);
@@ -281,29 +286,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic, ProjectId? projectId = null)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-
-            return new DiagnosticData(
-                diagnostic.Id,
-                diagnostic.Descriptor.Category,
-                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(workspace),
-                diagnostic.Severity,
-                diagnostic.DefaultSeverity,
-                diagnostic.Descriptor.IsEnabledByDefault,
-                diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                diagnostic.Properties,
-                projectId,
-                language: workspace.CurrentSolution.GetProject(projectId)?.Language,
-                title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
-                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
-                helpLink: diagnostic.Descriptor.HelpLinkUri,
-                isSuppressed: diagnostic.IsSuppressed);
-        }
-
         private static DiagnosticDataLocation? CreateLocation(Document? document, Location location)
         {
             if (document == null)
@@ -328,8 +310,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Document document, Diagnostic diagnostic)
+        public static DiagnosticData Create(Diagnostic diagnostic, OptionSet options)
         {
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            return Create(diagnostic, projectId: null, language: null, options, location: null, additionalLocations: null, additionalProperties: null);
+        }
+
+        public static DiagnosticData Create(Diagnostic diagnostic, Project project)
+        {
+            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+            return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: null, additionalProperties: null);
+        }
+
+        public static DiagnosticData Create(Diagnostic diagnostic, Document document)
+        {
+            var project = document.Project;
             var location = CreateLocation(document, diagnostic.Location);
 
             var additionalLocations = diagnostic.AdditionalLocations.Count == 0
@@ -339,60 +334,65 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 .WhereNotNull()
                                                 .ToReadOnlyCollection();
 
-            var properties = GetProperties(document, diagnostic);
+            return Create(diagnostic,
+                project.Id,
+                project.Language,
+                project.Solution.Options,
+                location,
+                additionalLocations,
+                GetAdditionalProperties(document, diagnostic));
+        }
 
+        private static DiagnosticData Create(
+            Diagnostic diagnostic,
+            ProjectId? projectId,
+            string? language,
+            OptionSet options,
+            DiagnosticDataLocation? location,
+            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations,
+            ImmutableDictionary<string, string>? additionalProperties)
+        {
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(document.Project.Solution.Workspace),
+                diagnostic.GetBingHelpMessage(options),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
-                properties,
-                document.Project.Id,
+                (additionalProperties == null) ? diagnostic.Properties : diagnostic.Properties.AddRange(additionalProperties),
+                projectId,
                 location,
                 additionalLocations,
-                language: document.Project.Language,
+                language: language,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
                 description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: diagnostic.Descriptor.HelpLinkUri,
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static ImmutableDictionary<string, string> GetProperties(
-            Document document, Diagnostic diagnostic)
+        private static ImmutableDictionary<string, string>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
         {
-            var properties = diagnostic.Properties;
             var service = document.GetLanguageService<IDiagnosticPropertiesService>();
-            var additionalProperties = service?.GetAdditionalProperties(diagnostic);
-
-            return additionalProperties == null
-                ? properties
-                : properties.AddRange(additionalProperties);
+            return service?.GetAdditionalProperties(diagnostic);
         }
 
         /// <summary>
         /// Create a host/VS specific diagnostic with the given descriptor and message arguments for the given project.
         /// Note that diagnostic created through this API cannot be suppressed with in-source suppression due to performance reasons (see the PERF remark below for details).
         /// </summary>
-        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, [NotNullWhen(true)] out DiagnosticData? diagnosticData)
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, Project project, [NotNullWhen(true)]out DiagnosticData? diagnosticData)
         {
             diagnosticData = null;
-            var project = workspace.CurrentSolution.GetProject(projectId);
-            if (project == null)
-            {
-                return false;
-            }
 
             DiagnosticSeverity effectiveSeverity;
             if (project.SupportsCompilation)
             {
                 // Get the effective severity of the diagnostic from the compilation options.
                 // PERF: We do not check if the diagnostic was suppressed by a source suppression, as this requires us to force complete the assembly attributes, which is very expensive.
-                var reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions);
+                var reportDiagnostic = descriptor.GetEffectiveSeverity(project.CompilationOptions!);
                 if (reportDiagnostic == ReportDiagnostic.Suppress)
                 {
                     // Rule is disabled by compilation options.
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var diagnostic = Diagnostic.Create(descriptor, Location.None, effectiveSeverity, additionalLocations: null, properties: null, messageArgs: messageArguments);
-            diagnosticData = diagnostic.ToDiagnosticData(project);
+            diagnosticData = Create(diagnostic, project);
             return true;
         }
 

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#nullable enable 
+#nullable enable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
             }
 
-            public override ITypeSymbol GetContainingScopeType()
+            public override ITypeSymbol? GetContainingScopeType()
             {
                 var node = this.GetContainingScope();
                 var model = this.SemanticDocument.SemanticModel;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
-                        return model.GetTypeInfo(variableDeclExpression.Type).GetTypeWithAnnotatedNullability();
+                        return model.GetTypeInfo(variableDeclExpression.Type).Type;
                     }
                 }
 
@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (node.Parent is CastExpressionSyntax castExpression)
                     {
-                        return model.GetTypeInfo(castExpression).GetTypeWithFlowNullability();
+                        return model.GetTypeInfo(castExpression).Type;
                     }
                 }
 
                 return GetRegularExpressionType(model, node);
             }
 
-            private static ITypeSymbol GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
+            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();

@@ -113,6 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             CheckDeclarationNode<TypeDeclarationSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>(destination);
 
+            options = options.With(options: options.Options ?? Workspace.Options);
+
             // Synthesized methods for properties/events are not things we actually generate 
             // declarations for.
             if (method.AssociatedSymbol is IEventSymbol)
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
 
                 return Cast<TDeclarationNode>(MethodGenerator.AddMethodTo(
-                    typeDeclaration, method, Workspace, options, availableIndices));
+                    typeDeclaration, method, options, availableIndices));
             }
 
             if (method.IsConstructor() ||
@@ -167,12 +169,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (destination is CompilationUnitSyntax compilationUnit)
             {
                 return Cast<TDeclarationNode>(
-                    MethodGenerator.AddMethodTo(compilationUnit, method, Workspace, options, availableIndices));
+                    MethodGenerator.AddMethodTo(compilationUnit, method, options, availableIndices));
             }
 
             var ns = Cast<NamespaceDeclarationSyntax>(destination);
             return Cast<TDeclarationNode>(
-                MethodGenerator.AddMethodTo(ns, method, Workspace, options, availableIndices));
+                MethodGenerator.AddMethodTo(ns, method, options, availableIndices));
         }
 
         protected override TDeclarationNode AddProperty<TDeclarationNode>(TDeclarationNode destination, IPropertySymbol property, CodeGenerationOptions options, IList<bool> availableIndices)
@@ -470,6 +472,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return AddStatementsToMemberDeclaration<TDeclarationNode>(destinationMember, statements, memberDeclaration);
             }
+            else if (destinationMember is LocalFunctionStatementSyntax localFunctionDeclaration)
+            {
+                return (localFunctionDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(localFunctionDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
+            else if (destinationMember is AccessorDeclarationSyntax accessorDeclaration)
+            {
+                return (accessorDeclaration.Body == null) ? destinationMember : Cast<TDeclarationNode>(accessorDeclaration.AddBodyStatements(StatementGenerator.GenerateStatements(statements).ToArray()));
+            }
             else
             {
                 return AddStatementsWorker(destinationMember, statements, options, cancellationToken);
@@ -565,14 +575,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
+            if (method.IsDestructor())
+            {
+                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
+            }
+
+            options = options.With(options: options.Options ?? Workspace.Options);
+
             if (method.IsConstructor())
             {
                 return ConstructorGenerator.GenerateConstructorDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
-            }
-            else if (method.IsDestructor())
-            {
-                return DestructorGenerator.GenerateDestructorDeclaration(method, destination, options);
             }
             else if (method.IsUserDefinedOperator())
             {
@@ -584,10 +597,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return ConversionGenerator.GenerateConversionDeclaration(
                     method, destination, Workspace, options, options.ParseOptions);
             }
+            else if (method.IsLocalFunction())
+            {
+                return MethodGenerator.GenerateLocalFunctionDeclaration(
+                    method, destination, options, options.ParseOptions);
+            }
             else
             {
                 return MethodGenerator.GenerateMethodDeclaration(
-                    method, destination, Workspace, options, options.ParseOptions);
+                    method, destination, options, options.ParseOptions);
             }
         }
 

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
     /// <summary>
     /// Structure that describes a member of a type.
     /// </summary>
-    internal struct MemberDescriptor
+    internal readonly struct MemberDescriptor
     {
         public readonly MemberFlags Flags;
 

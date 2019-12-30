@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (typeInfo.Type != null)
             {
-                return typeInfo.GetTypeWithFlowNullability();
+                return typeInfo.Type;
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);

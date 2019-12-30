@@ -303,6 +303,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
+        protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, out SyntaxNode found);
 
         protected virtual ImmutableArray<TaggedText> TryGetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken) => default;
 
@@ -313,16 +314,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            ImmutableArray<ISymbol> symbols;
-            if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
-            {
-                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
-            }
-            else
-            {
-                symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
-                    .GetSymbols(includeType: true);
-            }
+            var symbols = GetSymbolsFromToken(token, document.Project.Solution.Workspace, semanticModel, cancellationToken);
 
             var bindableParent = syntaxFacts.GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
@@ -351,6 +343,26 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return (semanticModel, ImmutableArray<ISymbol>.Empty);
+        }
+
+        private ImmutableArray<ISymbol> GetSymbolsFromToken(SyntaxToken token, Workspace workspace, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (GetBindableNodeForTokenIndicatingLambda(token, out var lambdaSyntax))
+            {
+                return ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax, cancellationToken).Symbol);
+            }
+
+            if (GetBindableNodeForTokenIndicatingPossibleIndexerAccess(token, out var elementAccessExpression))
+            {
+                var symbol = semanticModel.GetSymbolInfo(elementAccessExpression, cancellationToken).Symbol;
+                if (symbol?.IsIndexer() == true)
+                {
+                    return ImmutableArray.Create(symbol);
+                }
+            }
+
+            return semanticModel.GetSemanticInfo(token, workspace, cancellationToken)
+                .GetSymbols(includeType: true);
         }
 
         private static bool IsOk(ISymbol symbol)

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -26,6 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TypeKind TypeKind
         {
             get { return TypeKind.Class; }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency

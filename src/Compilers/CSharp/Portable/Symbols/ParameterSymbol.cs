@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        public abstract bool IsDiscard { get; }
+
+        /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
         /// </summary>
         public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }

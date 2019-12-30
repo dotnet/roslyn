@@ -1475,9 +1475,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode("2");
 
-            N(SyntaxKind.NameMemberCref);
+            M(SyntaxKind.NameMemberCref);
             {
-                N(SyntaxKind.IdentifierName);
+                M(SyntaxKind.IdentifierName);
                 {
                     M(SyntaxKind.IdentifierToken);
                 }

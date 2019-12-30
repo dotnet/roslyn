@@ -84,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation)
         {
             Assert.Equal(OperationKind.VariableDeclarationGroup, operation.Kind);
-            Assert.IsType(typeof(VariableDeclarationKind), operation.DeclarationKind);
             AssertEx.Equal(operation.Declarations, operation.Children);
         }
 
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (root != null)
             {
                 Assert.Null(root.Parent);
-                var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
+                var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
                 foreach (IOperation descendant in root.DescendantsAndSelf())
                 {
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            explictNodeMap.Add(descendant.Syntax, descendant);
+                            explicitNodeMap.Add(descendant.Syntax, descendant);
                         }
                         catch (ArgumentException)
                         {
@@ -1467,6 +1466,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.ReDimClause, operation.Kind);
             AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.DimensionSizes), operation.Children);
+        }
+
+        public override void VisitUsingDeclaration(IUsingDeclarationOperation operation)
+        {
+            Assert.NotNull(operation.DeclarationGroup);
+            AssertEx.Equal(SpecializedCollections.SingletonEnumerable(operation.DeclarationGroup), operation.Children);
+            Assert.True(operation.DeclarationGroup.IsImplicit);
+            Assert.Null(operation.Type);
+            Assert.False(operation.ConstantValue.HasValue);
+            _ = operation.IsAsynchronous;
+            _ = operation.IsImplicit;
         }
     }
 }

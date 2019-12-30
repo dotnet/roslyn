@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition _returnTemp;
 
+        /// <summary>
+        /// True if there was a <see cref="ILOpCode.Localloc"/> anywhere in the method. This will
+        /// affect whether or not we require the locals init flag to be marked, since locals init
+        /// affects <see cref="ILOpCode.Localloc"/>.
+        /// </summary>
+        private bool _sawStackalloc;
+
         public CodeGenerator(
             MethodSymbol method,
             BoundStatement boundBody,
@@ -188,18 +195,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
 
-        public void Generate()
+        public void Generate(out bool hasStackalloc)
         {
             this.GenerateImpl();
+            hasStackalloc = _sawStackalloc;
 
             Debug.Assert(_asyncCatchHandlerOffset < 0);
             Debug.Assert(_asyncYieldPoints == null);
             Debug.Assert(_asyncResumePoints == null);
         }
 
-        public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
+        public void Generate(
+            out int asyncCatchHandlerOffset,
+            out ImmutableArray<int> asyncYieldPoints,
+            out ImmutableArray<int> asyncResumePoints,
+            out bool hasStackAlloc)
         {
             this.GenerateImpl();
+            hasStackAlloc = _sawStackalloc;
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
             asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);

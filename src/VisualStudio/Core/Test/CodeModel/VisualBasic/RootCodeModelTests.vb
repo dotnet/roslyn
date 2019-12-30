@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "CodeElements tests"
 
-        ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
+        ' This test depends on the version of mscorlib used by the TestWorkspace and may
         ' change in the future
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements1()
@@ -22,10 +22,10 @@ Class Goo
 End Class
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "FxResources", "Windows")
         End Sub
 
-        ' This test depends On the version Of mscorlib used by the TestWorkspace And may 
+        ' This test depends on the version of mscorlib used by the TestWorkspace and may
         ' change in the future
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements2()
@@ -35,7 +35,7 @@ Module Goo
 End Module
 </code>
 
-            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "Windows")
+            TestChildren(code, "MS", "My", "Microsoft", "System", "Goo", "FxResources", "Windows")
         End Sub
 
 #End Region

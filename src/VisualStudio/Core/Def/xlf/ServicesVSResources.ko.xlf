@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">솔루션 루트에서 새 .editorconfig 파일이 검색되었습니다. 이 파일을 솔루션 항목으로 설정하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -62,9 +62,19 @@
         <target state="translated">뒤로</target>
         <note />
       </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="new">Background analysis scope:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">빌드 + 실시간 분석(NuGet 패키지)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
@@ -94,17 +104,27 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">포함하는 멤버</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">포함하는 형식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_Document">
+        <source>Current Document</source>
+        <target state="new">Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">요소가 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_Solution">
+        <source>Entire Solution</source>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -334,7 +354,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">명명 규칙</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -345,6 +365,11 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">public이 아닌 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_Documents_and_Projects">
+        <source>Open Documents and Projects</source>
+        <target state="new">Open Documents and Projects</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -519,7 +544,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">심각도를 업데이트하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1881,11 +1906,6 @@ Additional information: {1}</source>
       <trans-unit id="Analysis">
         <source>Analysis</source>
         <target state="translated">분석</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">전체 솔루션 분석 사용(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">

@@ -3,6 +3,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis
         internal TypeInfo(ITypeSymbol? type, ITypeSymbol? convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
             : this()
         {
+            Debug.Assert(type is null || type.NullableAnnotation == nullability.FlowState.ToAnnotation());
+            Debug.Assert(convertedType is null || convertedType.NullableAnnotation == convertedNullability.FlowState.ToAnnotation());
             this.Type = type;
             this.Nullability = nullability;
             this.ConvertedType = convertedType;

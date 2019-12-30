@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +22,8 @@ namespace Microsoft.CodeAnalysis
 
         internal DiagnosticWithInfo(DiagnosticInfo info, Location location, bool isSuppressed = false)
         {
-            Debug.Assert(info != null);
-            Debug.Assert(location != null);
+            RoslynDebug.Assert(info != null);
+            RoslynDebug.Assert(location != null);
             _info = info;
             _location = location;
             _isSuppressed = isSuppressed;
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.WarningLevel; }
         }
 
-        public override string GetMessage(IFormatProvider formatProvider = null)
+        public override string GetMessage(IFormatProvider? formatProvider = null)
         {
             return this.Info.GetMessage(formatProvider);
         }
@@ -139,12 +141,12 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Diagnostic);
         }
 
-        public override bool Equals(Diagnostic obj)
+        public override bool Equals(Diagnostic? obj)
         {
             if (this == obj)
             {

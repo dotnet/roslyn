@@ -6,29 +6,52 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Syntax;
 
 namespace Microsoft.CodeAnalysis
 {
     public static class CSharpExtensions
     {
+        /// <summary>
+        /// Determines if <see cref="SyntaxToken"/> is of a specified kind.
+        /// </summary>
+        /// <param name="token">The source token.</param>
+        /// <param name="kind">The syntax kind to test for.</param>
+        /// <returns><see langword="true"/> if the token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind)
         {
             return token.RawKind == (int)kind;
         }
 
+        /// <summary>
+        /// Determines if <see cref="SyntaxTrivia"/> is of a specified kind.
+        /// </summary>
+        /// <param name="trivia">The source trivia.</param>
+        /// <param name="kind">The syntax kind to test for.</param>
+        /// <returns><see langword="true"/> if the trivia is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxTrivia trivia, SyntaxKind kind)
         {
             return trivia.RawKind == (int)kind;
         }
 
+        /// <summary>
+        /// Determines if <see cref="SyntaxNode"/> is of a specified kind.
+        /// </summary>
+        /// <param name="node">The source node.</param>
+        /// <param name="kind">The syntax kind to test for.</param>
+        /// <returns><see langword="true"/> if the node is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind)
         {
             return node?.RawKind == (int)kind;
         }
 
+        /// <summary>
+        /// Determines if <see cref="SyntaxNodeOrToken"/> is of a specified kind.
+        /// </summary>
+        /// <param name="nodeOrToken">The source node or token.</param>
+        /// <param name="kind">The syntax kind to test for.</param>
+        /// <returns><see langword="true"/> if the node or token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         public static bool IsKind(this SyntaxNodeOrToken nodeOrToken, SyntaxKind kind)
         {
             return nodeOrToken.RawKind == (int)kind;
@@ -37,6 +60,11 @@ namespace Microsoft.CodeAnalysis
         internal static SyntaxKind ContextualKind(this SyntaxToken token)
         {
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
+        }
+
+        internal static bool IsUnderscoreToken(this SyntaxToken identifier)
+        {
+            return identifier.ContextualKind() == SyntaxKind.UnderscoreToken;
         }
 
         /// <summary>
@@ -134,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public static class CSharpExtensions
     {
+        /// <summary>
+        /// Determines if the given raw kind value belongs to the C# <see cref="SyntaxKind"/> enumeration.
+        /// </summary>
+        /// <param name="rawKind">The raw value to test.</param>
+        /// <returns><see langword="true"/> when the raw value belongs to the C# syntax kind; otherwise, <see langword="false"/>.</returns>
         internal static bool IsCSharpKind(int rawKind)
         {
             const int FirstVisualBasicKind = (int)SyntaxKind.List + 1;
@@ -143,24 +176,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return unchecked((uint)(rawKind - FirstVisualBasicKind)) > (FirstCSharpKind - 1 - FirstVisualBasicKind);
         }
 
+        /// <summary>
+        /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxToken"/> from <see cref="SyntaxToken.RawKind"/> property.
+        /// </summary>
         public static SyntaxKind Kind(this SyntaxToken token)
         {
             var rawKind = token.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
+        /// <summary>
+        /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> from <see cref="SyntaxTrivia.RawKind"/> property.
+        /// </summary>
         public static SyntaxKind Kind(this SyntaxTrivia trivia)
         {
             var rawKind = trivia.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
+        /// <summary>
+        /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
+        /// </summary>
         public static SyntaxKind Kind(this SyntaxNode node)
         {
             var rawKind = node.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
+        /// <summary>
+        /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNodeOrToken.RawKind"/> property.
+        /// </summary>
         public static SyntaxKind Kind(this SyntaxNodeOrToken nodeOrToken)
         {
             var rawKind = nodeOrToken.RawKind;

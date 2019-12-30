@@ -592,6 +592,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        bool Cci.ITypeDefinition.IsDelegate
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return this.IsDelegateType();
+            }
+        }
+
         bool Cci.ITypeDefinition.IsRuntimeSpecial
         {
             get

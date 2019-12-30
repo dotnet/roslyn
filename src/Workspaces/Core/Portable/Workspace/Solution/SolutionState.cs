@@ -421,9 +421,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+
         private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
         {
-            return new CompilationTracker(solution.GetProjectState(projectId));
+            var projectState = solution.GetProjectState(projectId);
+            Contract.ThrowIfNull(projectState);
+            return new CompilationTracker(projectState);
         }
 
         private CompilationTracker GetCompilationTracker(ProjectId projectId)
@@ -844,6 +847,31 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.UpdateHasAllInformation(hasAllInformation);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            // fork without any change on compilation.
+            return this.ForkProject(newProject);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Debug.Assert(this.ContainsProject(projectId));
+
+            var oldProject = this.GetProjectState(projectId)!;
+            var newProject = oldProject.UpdateRunAnalyzers(runAnalyzers);
 
             if (oldProject == newProject)
             {
@@ -1933,8 +1961,8 @@ namespace Microsoft.CodeAnalysis
         public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation
-                ? this.GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken)
-                : SpecializedTasks.Default<Compilation?>();
+                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
+                : SpecializedTasks.Null<Compilation>();
         }
 
         /// <summary>
@@ -1975,7 +2003,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // sanity check: this should always be true, no matter how many times
                 // we attempt to record the association.
-                System.Diagnostics.Debug.Assert(tmp == projectId);
+                Debug.Assert(tmp == projectId);
             }
         }
 
@@ -2003,8 +2031,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private MetadataReference? GetPartialMetadataReference(
             ProjectReference projectReference,
-            ProjectState fromProject,
-            CancellationToken cancellationToken)
+            ProjectState fromProject)
         {
             // Try to get the compilation state for this project.  If it doesn't exist, don't do any
             // more work.  
@@ -2013,7 +2040,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return state.GetPartialMetadataReference(this, fromProject, projectReference);
+            return state.GetPartialMetadataReference(fromProject, projectReference);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)

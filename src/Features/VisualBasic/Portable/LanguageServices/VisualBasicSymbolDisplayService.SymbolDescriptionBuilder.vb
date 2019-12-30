@@ -150,11 +150,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Protected Overrides Sub AddAwaitableUsageText(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer)
-                AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position))
-            End Sub
-
             Protected Overrides Sub AddCaptures(symbol As ISymbol)
                 Dim method = TryCast(symbol, IMethodSymbol)
                 If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then

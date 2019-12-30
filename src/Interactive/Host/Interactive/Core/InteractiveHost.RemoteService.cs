@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public readonly Service Service;
             private readonly int _processId;
             private readonly SemaphoreSlim _disposeSemaphore = new SemaphoreSlim(initialCount: 1);
+            private readonly bool _joinOutputWritingThreadsOnDisposal;
 
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private InteractiveHost _host;              // nulled on dispose
@@ -31,10 +32,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(process != null);
                 Debug.Assert(service != null);
 
+                Process = process;
+                Service = service;
+
                 _host = host;
-                this.Process = process;
+                _joinOutputWritingThreadsOnDisposal = host._joinOutputWritingThreadsOnDisposal;
                 _processId = processId;
-                this.Service = service;
                 _processExitHandlerStatus = ProcessExitHandlerStatus.Uninitialized;
 
                 // TODO (tomat): consider using single-thread async readers
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 InitiateTermination(Process, _processId);
 
-                if (_host._joinOutputWritingThreadsOnDisposal)
+                if (_joinOutputWritingThreadsOnDisposal)
                 {
                     try
                     {

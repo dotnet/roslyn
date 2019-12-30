@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
+    [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
     internal sealed class DocumentProvider
     {
         [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]

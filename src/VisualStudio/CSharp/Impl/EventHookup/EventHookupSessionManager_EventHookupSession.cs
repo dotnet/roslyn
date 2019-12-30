@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 {
                     _trackingPoint = textView.TextSnapshot.CreateTrackingPoint(0, PointTrackingMode.Negative);
                     _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(), SpanTrackingMode.EdgeInclusive);
-                    this.GetEventNameTask = SpecializedTasks.Default<string>();
+                    this.GetEventNameTask = SpecializedTasks.Null<string>();
                     eventHookupSessionManager.CancelAndDismissExistingSessions();
                 }
             }

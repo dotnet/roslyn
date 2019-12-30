@@ -4795,6 +4795,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: extern event cannot have initializer.
+        /// </summary>
+        internal static string ERR_ExternEventInitializer {
+            get {
+                return ResourceManager.GetString("ERR_ExternEventInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and declare a body.
         /// </summary>
         internal static string ERR_ExternHasBody {
@@ -5587,6 +5596,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invocation of implicit Index Indexer cannot name the argument..
+        /// </summary>
+        internal static string ERR_ImplicitIndexIndexerWithName {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitIndexIndexerWithName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No best type found for implicitly-typed array.
         /// </summary>
         internal static string ERR_ImplicitlyTypedArrayNoBestType {
@@ -5655,6 +5673,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ImplicitlyTypedVariableWithNoInitializer {
             get {
                 return ResourceManager.GetString("ERR_ImplicitlyTypedVariableWithNoInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invocation of implicit Range Indexer cannot name the argument..
+        /// </summary>
+        internal static string ERR_ImplicitRangeIndexerWithName {
+            get {
+                return ResourceManager.GetString("ERR_ImplicitRangeIndexerWithName", resourceCulture);
             }
         }
         
@@ -6973,7 +7000,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to emit module &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Failed to emit module &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ERR_ModuleEmitFailure {
             get {
@@ -7414,7 +7441,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;..
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {
@@ -7423,7 +7450,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or implement a suitable &apos;Dispose&apos; method. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos;. Did you mean &apos;await using&apos; rather than &apos;using&apos;?.
         /// </summary>
         internal static string ERR_NoConvToIDispWrongAsync {
             get {
@@ -10753,6 +10780,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enums, classes, and structures cannot be declared in an interface that has an &apos;in&apos; or &apos;out&apos; type parameter..
+        /// </summary>
+        internal static string ERR_VarianceInterfaceNesting {
+            get {
+                return ResourceManager.GetString("ERR_VarianceInterfaceNesting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The syntax &apos;var (...)&apos; as an lvalue is reserved..
         /// </summary>
         internal static string ERR_VarInvocationLvalueReserved {
@@ -11452,6 +11488,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureLambda {
             get {
                 return ResourceManager.GetString("IDS_FeatureLambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to lambda discard parameters.
+        /// </summary>
+        internal static string IDS_FeatureLambdaDiscardParameters {
+            get {
+                return ResourceManager.GetString("IDS_FeatureLambdaDiscardParameters", resourceCulture);
             }
         }
         
@@ -12626,24 +12671,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_AsOperatorMayReturnNull {
-            get {
-                return ResourceManager.GetString("WRN_AsOperatorMayReturnNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;as&apos; operator may produce a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_AsOperatorMayReturnNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_AsOperatorMayReturnNull_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; from module &apos;{1}&apos; will be ignored in favor of the instance appearing in source.
         /// </summary>
         internal static string WRN_AssemblyAttributeFromModuleIsOverridden {
@@ -13787,24 +13814,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Conditional access may produce a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_ConditionalAccessMayReturnNull {
-            get {
-                return ResourceManager.GetString("WRN_ConditionalAccessMayReturnNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Conditional access may produce a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_ConditionalAccessMayReturnNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_ConditionalAccessMayReturnNull_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Different checksum values given for &apos;{0}&apos;.
         /// </summary>
         internal static string WRN_ConflictingChecksum {
@@ -13873,24 +13882,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_DebugFullNameTooLong_Title {
             get {
                 return ResourceManager.GetString("WRN_DebugFullNameTooLong_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A default expression introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_DefaultExpressionMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_DefaultExpressionMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A default expression introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_DefaultExpressionMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_DefaultExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         
@@ -14296,24 +14287,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ExplicitImplCollision_Title {
             get {
                 return ResourceManager.GetString("WRN_ExplicitImplCollision_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_ExpressionMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A member returning a [MaybeNull] value introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_ExpressionMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_ExpressionMayIntroduceNullT_Title", resourceCulture);
             }
         }
         
@@ -15764,24 +15737,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A null literal introduces a null value when &apos;{0}&apos; is a non-nullable reference type..
-        /// </summary>
-        internal static string WRN_NullLiteralMayIntroduceNullT {
-            get {
-                return ResourceManager.GetString("WRN_NullLiteralMayIntroduceNullT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A null literal introduces a null value for a type parameter..
-        /// </summary>
-        internal static string WRN_NullLiteralMayIntroduceNullT_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullLiteralMayIntroduceNullT_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Possible null reference argument for parameter &apos;{0}&apos; in &apos;{1}&apos;..
         /// </summary>
         internal static string WRN_NullReferenceArgument {
@@ -15832,24 +15787,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_NullReferenceInitializer_Title {
             get {
                 return ResourceManager.GetString("WRN_NullReferenceInitializer_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null reference assignment to iteration variable.
-        /// </summary>
-        internal static string WRN_NullReferenceIterationVariable_Title {
-            get {
-                return ResourceManager.GetString("WRN_NullReferenceIterationVariable_Title", resourceCulture);
             }
         }
         

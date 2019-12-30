@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis
         bool IsThis { get; }
 
         /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        bool IsDiscard { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
         ITypeSymbol Type { get; }
