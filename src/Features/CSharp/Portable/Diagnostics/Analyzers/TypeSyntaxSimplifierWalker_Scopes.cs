@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         private readonly Action<ClassDeclarationSyntax> _visitBaseClassDeclaration;
         private readonly Action<StructDeclarationSyntax> _visitBaseStructDeclaration;
         private readonly Action<InterfaceDeclarationSyntax> _visitBaseInterfaceDeclaration;
+        private readonly Action<EnumDeclarationSyntax> _visitBaseEnumDeclaration;
 
         private bool _inCref;
 
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             _visitBaseClassDeclaration = n => base.VisitClassDeclaration(n);
             _visitBaseStructDeclaration = n => base.VisitStructDeclaration(n);
             _visitBaseInterfaceDeclaration = n => base.VisitInterfaceDeclaration(n);
+            _visitBaseEnumDeclaration = n => base.VisitEnumDeclaration(n);
         }
 
         public void Dispose()
@@ -175,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => EnterNamespaceContext(node, node.Usings, node.OpenBraceToken.Span.End, _visitBaseNamespaceDeclaration);
 
-        private void VisitTypeDeclaration<TNode>(TNode node, Action<TNode> func) where TNode : TypeDeclarationSyntax
+        private void VisitTypeDeclaration<TNode>(TNode node, Action<TNode> func) where TNode : BaseTypeDeclarationSyntax
         {
             using var declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject();
             using var staticNamesInScope = SharedPools.StringHashSet.GetPooledObject();
@@ -198,6 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
             => VisitTypeDeclaration(node, _visitBaseInterfaceDeclaration);
+
+        public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
+            => VisitTypeDeclaration(node, _visitBaseEnumDeclaration);
 
         public override void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
         {

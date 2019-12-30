@@ -5040,6 +5040,24 @@ class Base
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyEnumMemberReferenceInsideEnum()
+        {
+            await TestInRegularAndScript1Async(
+@"
+enum E
+{
+    Goo = 1,
+    Bar = [|E|].Goo,
+}",
+@"
+enum E
+{
+    Goo = 1,
+    Bar = Goo,
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
