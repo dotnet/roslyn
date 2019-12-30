@@ -4391,6 +4391,27 @@ class C
 }", new TestParameters(options: PreferImplicitTypeEverywhere));
         }
 
+        [WorkItem(40647, "https://github.com/dotnet/roslyn/issues/40647")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyMemberAccessOverPredefinedType()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Base
+{
+    public void Goo(object o1, object o2) => [|Object|].ReferenceEquals(o1, o2);
+}
+",
+@"using System;
+
+class Base
+{
+    public void Goo(object o1, object o2) => ReferenceEquals(o1, o2);
+}
+");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]

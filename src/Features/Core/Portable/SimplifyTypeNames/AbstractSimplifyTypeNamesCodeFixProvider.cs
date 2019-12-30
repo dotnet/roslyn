@@ -38,24 +38,35 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
-        private SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, TextSpan span, OptionSet optionSet, out string diagnosticId, CancellationToken cancellationToken)
+        private (SyntaxNode, string diagnosticId) GetNodeToSimplify(
+            SyntaxNode root, SemanticModel model, TextSpan span,
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
-            diagnosticId = null;
             var token = root.FindToken(span.Start, findInsideTrivia: true);
             if (!token.Span.IntersectsWith(span))
             {
-                return null;
+                return default;
             }
 
-            foreach (var n in token.GetAncestors<SyntaxNode>())
+            SyntaxNode topmostSimplifiableNode = null;
+            string topmostDiagnosticId = null;
+            foreach (var node in token.GetAncestors<SyntaxNode>())
             {
-                if (n.Span.IntersectsWith(span) && CanSimplifyTypeNameExpression(model, n, optionSet, span, out diagnosticId, cancellationToken))
+                if (node.Span.IntersectsWith(span) && CanSimplifyTypeNameExpression(model, node, optionSet, span, out var diagnosticId, cancellationToken))
                 {
-                    return n;
+                    // keep overwriting the best simplifiable node as long as we keep finding them.
+                    topmostSimplifiableNode = node;
+                    topmostDiagnosticId = diagnosticId;
+                }
+                else if (topmostSimplifiableNode != null)
+                {
+                    // if we have found something simplifiable, but hit something that isn't, then
+                    // return the best thing we've found.
+                    break;
                 }
             }
 
-            return null;
+            return (topmostSimplifiableNode, topmostDiagnosticId);
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -68,12 +79,10 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var node = GetNodeToSimplify(
-                root, model, span, documentOptions, out var diagnosticId, cancellationToken);
+            var (node, diagnosticId) = GetNodeToSimplify(
+                root, model, span, documentOptions, cancellationToken);
             if (node == null)
-            {
                 return;
-            }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
@@ -94,14 +103,12 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
             foreach (var diagnostic in diagnostics)
             {
-                var node = GetNodeToSimplify(
+                var (node, _) = GetNodeToSimplify(
                     root, model, diagnostic.Location.SourceSpan,
-                    documentOptions, out var diagnosticId, cancellationToken);
+                    documentOptions, cancellationToken);
 
                 if (node == null)
-                {
                     return;
-                }
 
                 editor.ReplaceNode(
                     node,
@@ -114,7 +121,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             diagnosticId = null;
             if (!_analyzer.IsCandidate(node) ||
                 !_analyzer.CanSimplifyTypeNameExpression(
-                    model, node, optionSet, out var issueSpan, out diagnosticId, out var inDeclaration, cancellationToken))
+                    model, node, optionSet, out var issueSpan, out diagnosticId, out _, cancellationToken))
             {
                 return false;
             }
