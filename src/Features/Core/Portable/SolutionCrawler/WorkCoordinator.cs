@@ -3,14 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -671,7 +669,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private readonly struct ReanalyzeScope
         {
             private readonly SolutionId _solutionId;
-            private readonly ISet<object> _projectOrDocumentIds;
+            private readonly ISet<ProjectOrDocumentId> _projectOrDocumentIds;
 
             public ReanalyzeScope(SolutionId solutionId)
             {
@@ -685,7 +683,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
 
                 _solutionId = null;
-                _projectOrDocumentIds = new HashSet<object>(projectIds);
+                _projectOrDocumentIds = new HashSet<ProjectOrDocumentId>(projectIds.Select(projectId => new ProjectOrDocumentId(projectId)));
 
                 foreach (var documentId in documentIds)
                 {
@@ -718,24 +716,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 foreach (var projectOrDocumentId in _projectOrDocumentIds)
                 {
-                    switch (projectOrDocumentId)
+                    if (projectOrDocumentId.DocumentId is { } documentId)
                     {
-                        case ProjectId projectId:
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
-                            {
-                                pool.Object.Add(project.Language);
-                            }
-                            break;
-                        case DocumentId documentId:
-                            var document = solution.GetDocument(documentId);
-                            if (document != null)
-                            {
-                                pool.Object.Add(document.Project.Language);
-                            }
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                        var document = solution.GetDocument(documentId);
+                        if (document != null)
+                        {
+                            pool.Object.Add(document.Project.Language);
+                        }
+                    }
+                    else
+                    {
+                        var project = solution.GetProject(projectOrDocumentId.ProjectId);
+                        if (project != null)
+                        {
+                            pool.Object.Add(project.Language);
+                        }
                     }
                 }
 
@@ -762,20 +757,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 foreach (var projectOrDocumentId in _projectOrDocumentIds)
                 {
-                    switch (projectOrDocumentId)
+                    if (projectOrDocumentId.DocumentId is { } documentId)
                     {
-                        case ProjectId projectId:
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
-                            {
-                                count += project.DocumentIds.Count;
-                            }
-                            break;
-                        case DocumentId documentId:
-                            count++;
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(projectOrDocumentId);
+                        count++;
+                    }
+                    else
+                    {
+                        var project = solution.GetProject(projectOrDocumentId.ProjectId);
+                        if (project != null)
+                        {
+                            count += project.DocumentIds.Count;
+                        }
                     }
                 }
 
@@ -801,29 +793,24 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 foreach (var projectOrDocumentId in _projectOrDocumentIds)
                 {
-                    switch (projectOrDocumentId)
+                    if (projectOrDocumentId.DocumentId is { } documentId)
                     {
-                        case ProjectId projectId:
+                        var document = solution.GetDocument(documentId);
+                        if (document != null)
+                        {
+                            yield return document;
+                        }
+                    }
+                    else
+                    {
+                        var project = solution.GetProject(projectOrDocumentId.ProjectId);
+                        if (project != null)
+                        {
+                            foreach (var document in project.Documents)
                             {
-                                var project = solution.GetProject(projectId);
-                                if (project != null)
-                                {
-                                    foreach (var document in project.Documents)
-                                    {
-                                        yield return document;
-                                    }
-                                }
-                                break;
+                                yield return document;
                             }
-                        case DocumentId documentId:
-                            {
-                                var document = solution.GetDocument(documentId);
-                                if (document != null)
-                                {
-                                    yield return document;
-                                }
-                                break;
-                            }
+                        }
                     }
                 }
             }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
             }
 
-            var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
+            var (projectId, documentId) = argsId.ProjectOrDocumentId;
             return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, (AnalysisKind)argsId.Kind, cancellationToken);
         }
 
