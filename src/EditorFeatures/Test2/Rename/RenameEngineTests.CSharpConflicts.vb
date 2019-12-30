@@ -1560,7 +1560,6 @@ class C
                     </Project>
                 </Workspace>, renameTo:="x")
 
-
                 result.AssertLabeledSpansAre("Stmt1", "x();", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
