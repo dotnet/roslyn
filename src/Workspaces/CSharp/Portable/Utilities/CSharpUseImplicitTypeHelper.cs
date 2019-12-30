@@ -359,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return true;
                 }
             }
+
             return false;
         }
     }
