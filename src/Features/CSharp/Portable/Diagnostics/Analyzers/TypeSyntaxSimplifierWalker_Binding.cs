@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                     return;
 
-                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, inMemberAccess: false, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                     return;
             }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 // A generic name is never a predefined type. So we don't need to check for that.
                 var identifier = node.Identifier.ValueText;
                 INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, inMemberAccess: false, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                     return;
 
                 // Might be a reference to `Nullable<T>` that we can replace with `T?`
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                 return true;
 
-            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, inMemberAccess: false, ref symbol))
+            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                 return true;
 
             if (TryReplaceWithNullable(node, identifier, ref symbol))
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
                 return true;
 
-            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, inMemberAccess: true, ref symbol))
+            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
                 return true;
 
             var parts = TryGetPartsOfQualifiedName(node);
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             // simplify to an alias if it has the same name as us.
             INamespaceOrTypeSymbol symbol = null;
             var memberName = node.Name.Identifier.ValueText;
-            if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, inMemberAccess: true, ref symbol))
+            if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, ref symbol))
                 return true;
 
             if (TryReplaceExprWithRightSide(node, node.Expression, node.Name, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return symbolInfo.Symbol as INamespaceOrTypeSymbol;
         }
 
-        private bool AddAliasDiagnostic(SyntaxNode node, string alias, bool inMemberAccess)
+        private bool AddAliasDiagnostic(SyntaxNode node, string alias)
         {
             if (node is IdentifierNameSyntax identifier &&
                 alias == identifier.Identifier.ValueText)
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return false;
             }
 
-            var diagnosticId = inMemberAccess
+            var diagnosticId = node.Kind() == SyntaxKind.SimpleMemberAccessExpression
                 ? IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
                 : IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
@@ -430,9 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         }
 
         private bool TryReplaceWithAlias(
-            SyntaxNode node, string typeName,
-            bool nameMustMatch, bool inMemberAccess,
-            ref INamespaceOrTypeSymbol symbol)
+            SyntaxNode node, string typeName, bool nameMustMatch, ref INamespaceOrTypeSymbol symbol)
         {
             // See if we actually have an alias to something with our name.
             if (!Peek(_aliasedSymbolNamesStack).Contains(typeName))
@@ -456,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     foreach (var found in foundSymbols)
                     {
                         if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
-                            return AddAliasDiagnostic(node, alias, inMemberAccess);
+                            return AddAliasDiagnostic(node, alias);
                     }
                 }
             }
