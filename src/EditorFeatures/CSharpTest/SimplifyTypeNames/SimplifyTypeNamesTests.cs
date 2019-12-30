@@ -4969,6 +4969,42 @@ class Base
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoSimplifyInferrableTypeArgumentList()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class Base
+{
+    public void Goo() => Bar[|<int>|](0);
+    public void Bar<T>(T t) => default;
+}
+",
+@"using System;
+
+class Base
+{
+    public void Goo() => Bar(0);
+    public void Bar<T>(T t) => default;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyNonInferrableTypeArgumentList()
+        {
+            await TestMissingAsync(
+@"using System;
+
+class Base
+{
+    public void Goo() => Bar[|<int>|](0);
+    public void Bar<T>() => default;
+}
+");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]

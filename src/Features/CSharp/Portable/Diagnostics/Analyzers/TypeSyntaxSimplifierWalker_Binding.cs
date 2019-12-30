@@ -85,8 +85,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     return;
             }
 
+            if (TrySimplifyTypeArgumentList(node))
+                return;
+
             // Try to simplify the type arguments if we can't simplify anything else.
             this.Visit(node.TypeArgumentList);
+        }
+
+        private bool TrySimplifyTypeArgumentList(GenericNameSyntax node)
+        {
+            // If we have a generic method call (like `Goo<int>(...)`), see if we can replace this
+            // with a call it like so `Goo(...)`.
+            if (IsNameOfInvocation(node))
+            {
+                var replacementNode = SyntaxFactory.IdentifierName(node.Identifier);
+                if (node.CanReplaceWithReducedName(replacementNode, _semanticModel, _cancellationToken))
+                    return this.AddDiagnostic(node.TypeArgumentList, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
+            }
+
+            return false;
+        }
+
+        private static bool IsNameOfInvocation(GenericNameSyntax name)
+        {
+            if (name.IsExpressionOfInvocation())
+                return true;
+
+            if (name.IsAnyMemberAccessExpressionName())
+            {
+                var memberAccess = name.Parent as ExpressionSyntax;
+                return memberAccess.IsExpressionOfInvocation();
+            }
+
+            return false;
         }
 
         private bool VisitAnyQualifiedName(SyntaxNode node)
