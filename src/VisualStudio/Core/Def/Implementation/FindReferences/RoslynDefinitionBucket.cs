@@ -42,6 +42,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return content != null;
             }
 
+            /// <summary>
+            /// Override the string content to provide a name without a hashcode so that screen readers function correctly.
+            /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1020534/
+            /// </summary>
+            public override bool TryCreateStringContent(out string content)
+            {
+                content = DefinitionItem.DisplayParts.JoinText();
+                return true;
+            }
+
             private object GetValue(string key)
             {
                 switch (key)
