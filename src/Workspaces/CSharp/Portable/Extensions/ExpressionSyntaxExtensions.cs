@@ -795,19 +795,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return memberAccess.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
 
-            if (expression is TypeSyntax typeName)
+            if (expression is NameSyntax name)
             {
-                // First, see if we can replace this type with var if that's what the user prefers.
-                // That always overrides all other simplification.
-                if (typeName.IsReplaceableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken))
-                {
-                    return true;
-                }
-
-                if (expression is NameSyntax name)
-                {
-                    return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-                }
+                return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
 
             return false;
@@ -1653,11 +1643,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken);
                     if (nameHasNoAlias && aliasInfo == null)
                     {
-                        if (IsReplaceableByVar(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken))
-                        {
-                            return true;
-                        }
-
                         // Don't simplify to predefined type if name is part of a QualifiedName.
                         // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                         // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
@@ -2396,31 +2381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
-        }
-
-        private static bool IsReplaceableByVar(
-            this TypeSyntax simpleName,
-            SemanticModel semanticModel,
-            out TypeSyntax replacementNode,
-            out TextSpan issueSpan,
-            OptionSet optionSet,
-            CancellationToken cancellationToken)
-        {
-            var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
-                simpleName, semanticModel, optionSet, cancellationToken);
-
-            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
-            {
-                replacementNode = null;
-                issueSpan = default;
-                return false;
-            }
-
-            replacementNode = SyntaxFactory.IdentifierName("var")
-                .WithLeadingTrivia(simpleName.GetLeadingTrivia())
-                .WithTrailingTrivia(simpleName.GetTrailingTrivia());
-            issueSpan = simpleName.Span;
-            return true;
         }
 
         private static bool ContainsOpenName(NameSyntax name)
