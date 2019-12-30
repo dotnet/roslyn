@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public readonly ProjectId? ProjectId;
         public readonly DiagnosticDataLocation? DataLocation;
-        public readonly IReadOnlyCollection<DiagnosticDataLocation>? AdditionalLocations;
+        public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
 
         /// <summary>
         /// Language name (<see cref="LanguageNames"/>) or null if the diagnostic is not associated with source code.

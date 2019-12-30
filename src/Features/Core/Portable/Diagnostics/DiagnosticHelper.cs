@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -69,7 +70,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Typically, these are locations of other items referenced in the message.
         /// If null, <see cref="Diagnostic.AdditionalLocations"/> will return an empty list.
         /// </param>
-        /// <param name="tagIndices">a map of location tag to index in additional locations.</param>
+        /// <param name="tagIndices">
+        /// a map of location tag to index in additional locations.
+        /// <see cref="AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer{TLanguageKindEnum, TParenthesizedExpressionSyntax}"/> for an example of usage.
+        /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
         public static Diagnostic CreateWithLocationTags(
@@ -80,12 +84,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IDictionary<string, IEnumerable<int>> tagIndices,
             params object[] messageArgs)
         {
-            var properties = tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value))).ToImmutableDictionary();
+            Contract.ThrowIfTrue(additionalLocations.IsEmpty());
+            Contract.ThrowIfTrue(tagIndices.IsEmpty());
+
+            var properties = tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))).ToImmutableDictionary();
 
             return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
 
-            static string EncodeIndices(IEnumerable<int> indices)
+            static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
             {
+                // Ensure that the provided tag index is a valid index into additional locations.
+                Contract.ThrowIfFalse(indices.All(idx => idx >= 0 && idx < additionalLocationsLength));
+
                 using var stream = new MemoryStream();
                 var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
                 serializer.WriteObject(stream, indices);

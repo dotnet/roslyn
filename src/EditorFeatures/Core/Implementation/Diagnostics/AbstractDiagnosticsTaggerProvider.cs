@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         /// <summary>
         /// Get the <see cref="DiagnosticDataLocation"/> that should have the tag applied to it.
-        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides (e.g. unnecessary classifications).
+        /// In most cases, this is the <see cref="DiagnosticData.DataLocation"/> but overrides can change it (e.g. unnecessary classifications).
         /// </summary>
         /// <param name="diagnosticData">the diagnostic containing the location(s).</param>
         /// <returns>an array of locations that should have the tag applied.</returns>

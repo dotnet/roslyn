@@ -11,16 +11,15 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
@@ -67,11 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
-            using var locationsToTagDisposer = ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
+            using var locationsToTagDisposer = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
 
             // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
-            if (diagnosticData.AdditionalLocations != null
-                && diagnosticData.AdditionalLocations.Count > 0
+            if (diagnosticData.AdditionalLocations?.Count > 0
+                && diagnosticData.Properties != null
                 && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices))
             {
                 var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
@@ -87,12 +86,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             static IEnumerable<int> GetLocationIndices(string indicesProperty)
             {
-                var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
-                var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
-
-                var result = serializer.ReadObject(stream) as IEnumerable<int>;
-                stream.Close();
-                return result;
+                try
+                {
+                    using var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
+                    var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
+                    var result = serializer.ReadObject(stream) as IEnumerable<int>;
+                    return result;
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                    return ImmutableArray<int>.Empty;
+                }
             }
         }
     }
