@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -14,29 +17,25 @@ namespace Microsoft.CodeAnalysis.Host
     /// The initial value comes from the <see cref="ValueSource{T}"/> specified in the constructor.
     /// Derived types implement SaveAsync and RecoverAsync.
     /// </summary>
-    internal abstract class RecoverableWeakValueSource<T> : ValueSource<T> where T : class
+    internal abstract class WeaklyCachedRecoverableValueSource<T> : ValueSource<T> where T : class
     {
-        private SemaphoreSlim _gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
+        private SemaphoreSlim? _lazyGate; // Lazily created. Access via the Gate property
         private bool _saved;
-        private WeakReference<T> _weakInstance;
+        private WeakReference<T>? _weakReference;
         private ValueSource<T> _recoverySource;
 
-        private static readonly WeakReference<T> s_noReference = new WeakReference<T>(null);
-
-        public RecoverableWeakValueSource(ValueSource<T> initialValue)
+        public WeaklyCachedRecoverableValueSource(ValueSource<T> initialValue)
         {
-            _weakInstance = s_noReference;
             _recoverySource = initialValue;
         }
 
-        public RecoverableWeakValueSource(RecoverableWeakValueSource<T> savedSource)
+        public WeaklyCachedRecoverableValueSource(WeaklyCachedRecoverableValueSource<T> savedSource)
         {
             Contract.ThrowIfFalse(savedSource._saved);
-            Contract.ThrowIfFalse(savedSource.GetType() == this.GetType());
+            Contract.ThrowIfFalse(savedSource.GetType() == GetType());
 
             _saved = true;
-            _weakInstance = s_noReference;
-            _recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+            _recoverySource = new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false);
         }
 
         /// <summary>
@@ -61,33 +60,40 @@ namespace Microsoft.CodeAnalysis.Host
         private static Task s_latestTask = Task.CompletedTask;
         private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 
-        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
+        private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _lazyGate, SemaphoreSlimFactory.Instance);
 
-        public override bool TryGetValue(out T value)
+        public override bool TryGetValue([MaybeNullWhen(false)]out T value)
         {
-            // it has 2 fields that can hold onto the value. if we only check weakInstance, we will
+            // It has 2 fields that can hold onto the value. if we only check weakInstance, we will
             // return false for the initial case where weakInstance is set to s_noReference even if
             // value can be retrieved from _recoverySource. so we check both here.
-            return _weakInstance.TryGetTarget(out value) ||
-                   _recoverySource.TryGetValue(out value);
+            // Suppressing nullable warning due to https://github.com/dotnet/roslyn/issues/40266
+            var weakReference = _weakReference;
+            return weakReference != null && weakReference.TryGetTarget(out value) ||
+                   _recoverySource.TryGetValue(out value!);
         }
 
         public override T GetValue(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!_weakInstance.TryGetTarget(out var instance))
+
+            var weakReference = _weakReference;
+            if (weakReference == null || !weakReference.TryGetTarget(out var instance))
             {
-                Task saveTask = null;
-                using (this.Gate.DisposableWait(cancellationToken))
+                Task? saveTask = null;
+                using (Gate.DisposableWait(cancellationToken))
                 {
-                    if (!_weakInstance.TryGetTarget(out instance))
+                    if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
                     {
                         instance = _recoverySource.GetValue(cancellationToken);
                         saveTask = EnsureInstanceIsSaved(instance);
                     }
                 }
 
-                ResetRecoverySource(saveTask, instance);
+                if (saveTask != null)
+                {
+                    ResetRecoverySource(saveTask, instance);
+                }
             }
 
             return instance;
@@ -95,19 +101,23 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override async Task<T> GetValueAsync(CancellationToken cancellationToken)
         {
-            if (!_weakInstance.TryGetTarget(out var instance))
+            var weakReference = _weakReference;
+            if (weakReference == null || !weakReference.TryGetTarget(out var instance))
             {
-                Task saveTask = null;
-                using (await this.Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                Task? saveTask = null;
+                using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    if (!_weakInstance.TryGetTarget(out instance))
+                    if (_weakReference == null || !_weakReference.TryGetTarget(out instance))
                     {
                         instance = await _recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                         saveTask = EnsureInstanceIsSaved(instance);
                     }
                 }
 
-                ResetRecoverySource(saveTask, instance);
+                if (saveTask != null)
+                {
+                    ResetRecoverySource(saveTask, instance);
+                }
             }
 
             return instance;
@@ -115,30 +125,27 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void ResetRecoverySource(Task saveTask, T instance)
         {
-            if (saveTask != null)
+            saveTask.SafeContinueWith(t =>
             {
-                saveTask.SafeContinueWith(t =>
+                using (Gate.DisposableWait(CancellationToken.None))
                 {
-                    using (this.Gate.DisposableWait(CancellationToken.None))
-                    {
-                        _recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+                    _recoverySource = new AsyncLazy<T>(RecoverAsync, Recover, cacheResult: false);
 
-                        // Need to keep instance alive until recovery source is updated.
-                        GC.KeepAlive(instance);
-                    }
-                }, TaskScheduler.Default);
-            }
+                    // Need to keep instance alive until recovery source is updated.
+                    GC.KeepAlive(instance);
+                }
+            }, TaskScheduler.Default);
         }
 
-        private Task EnsureInstanceIsSaved(T instance)
+        private Task? EnsureInstanceIsSaved(T instance)
         {
-            if (_weakInstance == s_noReference)
+            if (_weakReference == null)
             {
-                _weakInstance = new WeakReference<T>(instance);
+                _weakReference = new WeakReference<T>(instance);
             }
             else
             {
-                _weakInstance.SetTarget(instance);
+                _weakReference.SetTarget(instance);
             }
 
             if (!_saved)
@@ -148,14 +155,12 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     // force all save tasks to be in sequence so we don't hog all the threads
                     s_latestTask = s_latestTask.SafeContinueWithFromAsync(t =>
-                         this.SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
+                         SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
                     return s_latestTask;
                 }
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }

@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private static readonly TestInterval s_containsTest = Contains;
         private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
 
-        private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool =
-            new ObjectPool<Stack<(Node node, bool firstTime)>>(() => new Stack<(Node node, bool firstTime)>());
+        private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
+            = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
 
         public IntervalTree()
         {

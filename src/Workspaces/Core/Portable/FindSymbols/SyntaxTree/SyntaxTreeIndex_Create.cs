@@ -37,11 +37,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // The probability of getting a false positive when calling ContainsIdentifier.
         private const double FalsePositiveProbability = 0.0001;
 
-        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool =
-            new ObjectPool<HashSet<string>>(() => new HashSet<string>(), 20);
-
-        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
-            new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
+        public static readonly ObjectPool<HashSet<string>> StringLiteralHashSetPool = SharedPools.Default<HashSet<string>>();
+        public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool = SharedPools.Default<HashSet<long>>();
 
         /// <summary>
         /// String interning table so that we can share many more strings in our DeclaredSymbolInfo
