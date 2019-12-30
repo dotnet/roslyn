@@ -31,5 +31,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         CanFavorite = 0x1000000,
         IsFavorite = 0x2000000,
         HasFavorites = 0x4000000,
+        ExpansionHasSideEffects = 0x10000000,
     }
 }
