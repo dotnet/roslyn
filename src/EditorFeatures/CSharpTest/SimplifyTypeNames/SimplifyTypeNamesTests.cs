@@ -4694,6 +4694,21 @@ class Base
 }", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNameofReportsSimplifyMemberAccess()
+        {
+            await TestDiagnosticInfoAsync(
+@"using System;
+
+class Base
+{
+    void Goo()
+    {
+        var v = nameof([|System|].Int32);
+    }
+}", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
