@@ -2204,7 +2204,7 @@ namespace N
 @"#if true
 class A
 #else
-        class B
+class B
 #endif
 {
     class C
