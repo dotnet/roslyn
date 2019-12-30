@@ -11,14 +11,6 @@ using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 {
     [Guid(LanguageServiceGuids.CSharpReplPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideMenuResource("Menus.ctmenu", 17)]
-    [ProvideLanguageExtension(LanguageServiceGuids.CSharpLanguageServiceIdString, ".csx")]
-    [ProvideInteractiveWindow(
-        IdString,
-        Orientation = ToolWindowOrientation.Bottom,
-        Style = VsDockStyle.Tabbed,
-        Window = CommonVsUtils.OutputWindowId)]
     internal partial class CSharpVsInteractiveWindowPackage : VsInteractiveWindowPackage<CSharpVsInteractiveWindowProvider>
     {
         private const string IdString = "CA8CC5C7-0231-406A-95CD-AA5ED6AC0190";
