@@ -225,24 +225,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
             {
-                var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
-                ImmutableArray<CodeRefactoringProvider>.Builder? builder = null;
+                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
                 foreach (var reference in project.AnalyzerReferences)
                 {
                     var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
                     foreach (var refactoring in projectCodeRefactoringProvider.GetRefactorings(project.Language))
                     {
-                        builder ??= ImmutableArray.CreateBuilder<CodeRefactoringProvider>();
                         builder.Add(refactoring);
                     }
                 }
 
-                if (builder is null)
-                {
-                    return ImmutableArray<CodeRefactoringProvider>.Empty;
-                }
-
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
         }
 
