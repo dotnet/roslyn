@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly Action<InterfaceDeclarationSyntax> _visitBaseInterfaceDeclaration;
         private readonly Action<EnumDeclarationSyntax> _visitBaseEnumDeclaration;
 
-        private bool _inCref;
-
         public readonly List<Diagnostic> Diagnostics = new List<Diagnostic>();
 
         public TypeSyntaxSimplifierWalker(
@@ -207,13 +205,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
             => VisitTypeDeclaration(node, _visitBaseEnumDeclaration);
-
-        public override void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-        {
-            var savedInCref = _inCref;
-            _inCref = true;
-            base.VisitXmlCrefAttribute(node);
-            _inCref = savedInCref;
-        }
     }
 }

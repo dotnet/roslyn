@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     /// </summary>
     internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
-        private static bool IsInNamespaceOrTypeContext(SyntaxNode location)
-            => location is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
-
         private bool TrySimplify(SyntaxNode node)
         {
             if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _optionSet, _cancellationToken))
@@ -28,10 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             this.Diagnostics.Add(diagnostic);
             return true;
         }
-
-        // For back-compat, we treat everything in a cref as if it's not a declaration context.
-        private bool InDeclarationContext(SyntaxNode node)
-            => !_inCref && IsInNamespaceOrTypeContext(node);
 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
@@ -68,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     return;
 
                 // Might be a reference to `Nullable<T>` that we can replace with `T?`
-                if (TryReplaceWithNullable(node, identifier, ref symbol))
+                if (TryReplaceWithNullable(node, identifier))
                     return;
             }
 
@@ -117,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (TryReplaceWithAlias(node, identifier, ref symbol))
                 return true;
 
-            if (TryReplaceWithNullable(node, identifier, ref symbol))
+            if (TryReplaceWithNullable(node, identifier))
                 return true;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
@@ -236,16 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private bool SimplifyStaticMemberAccessInScope(
             SyntaxNode node, SimpleNameSyntax right)
         {
-            var memberNameNode = right;
-
             // see if we can just access this member using it's name alone here.
-            var memberName = memberNameNode.Identifier.ValueText;
+            var memberName = right.Identifier.ValueText;
             if (!Peek(_staticNamesInScopeStack).Contains(memberName))
                 return false;
-
-            //var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
-            //if (!IsNamedTypeOrStaticSymbol(nameSymbol))
-            //    return false;
 
             return TrySimplify(node);
         }
@@ -253,10 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private bool SimplifyStaticMemberAccessThroughDerivedType(
             SyntaxNode node, ExpressionSyntax left, SimpleNameSyntax right)
         {
-            var memberNameNode = right;
-
             // Member on the right of the dot needs to be a static member or another named type.
-            var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
+            var nameSymbol = _semanticModel.GetSymbolInfo(right).Symbol;
             if (!IsNamedTypeOrStaticSymbol(nameSymbol))
                 return false;
 
@@ -402,11 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private bool TryReplaceWithPredefinedType(SyntaxNode node, string typeName)
         {
-            var inDeclaration = InDeclarationContext(node);
-            if (inDeclaration && !_preferPredefinedTypeInDecl)
-                return false;
-
-            if (!inDeclaration && !_preferPredefinedTypeInMemberAccess)
+            if (!_preferPredefinedTypeInDecl && !_preferPredefinedTypeInMemberAccess)
                 return false;
 
             if (!s_predefinedTypeNames.Contains(typeName))
@@ -418,24 +399,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private bool IsNameOfArgumentExpression(SyntaxNode node)
             => node is ExpressionSyntax expr && expr.IsNameOfArgumentExpression();
 
-        private bool TryReplaceWithNullable(
-            SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
+        private bool TryReplaceWithNullable(SyntaxNode node, string typeName)
         {
-            // `int?` can only be used in a type-decl context.  i.e. it can't be used like 
-            // `int?.Equals()`
-            if (typeName == nameof(Nullable) &&
-                !node.IsParentKind(SyntaxKind.UsingDirective) &&
-                IsInNamespaceOrTypeContext(node))
-            {
-                symbol ??= GetNamespaceOrTypeSymbol(node);
-                if (symbol is ITypeSymbol typeSymbol &&
-                    typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-                {
-                    return TrySimplify(node);
-                }
-            }
+            if (typeName != nameof(Nullable))
+                return false;
 
-            return false;
+            return TrySimplify(node);
         }
 
         private (ExpressionSyntax left, SimpleNameSyntax right)? TryGetPartsOfQualifiedName(SyntaxNode node)
