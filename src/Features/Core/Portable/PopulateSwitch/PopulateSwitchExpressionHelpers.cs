@@ -17,12 +17,22 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
         {
             var switchExpression = operation.Value;
-            var switchExpressionType = switchExpression?.Type;
+            var switchExpressionType = (INamedTypeSymbol?)switchExpression?.Type;
 
             var enumMembers = new Dictionary<long, ISymbol>();
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
                 if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
+                    !TryRemoveExistingEnumMembers(operation, enumMembers))
+                {
+                    return SpecializedCollections.EmptyCollection<ISymbol>();
+                }
+            }
+            else if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
+                        switchExpressionType?.TypeArguments[0].TypeKind == TypeKind.Enum)
+            {
+                var underlyingEnum = switchExpressionType.TypeArguments[0];
+                if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(underlyingEnum, enumMembers) ||
                     !TryRemoveExistingEnumMembers(operation, enumMembers))
                 {
                     return SpecializedCollections.EmptyCollection<ISymbol>();
