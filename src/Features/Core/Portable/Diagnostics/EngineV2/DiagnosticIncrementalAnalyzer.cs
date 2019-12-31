@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
         internal IPersistentStorageService PersistentStorageService { get; }
-        internal AbstractHostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; }
+        internal AbstractHostDiagnosticUpdateSource? HostDiagnosticUpdateSource { get; }
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache { get; }
         internal DiagnosticLogAggregator DiagnosticLogAggregator { get; private set; }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             int correlationId,
             Workspace workspace,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
         {
             Contract.ThrowIfNull(analyzerService);
 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return info;
             }
 
-            public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
+            public async Task<SymbolTreeInfo?> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
                 if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
@@ -161,14 +163,14 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!SupportAnalysis(document.Project))
                 {
                     return;
                 }
 
-                if (bodyOpt != null)
+                if (body != null)
                 {
                     // This was a method body edit.  We can reuse the existing SymbolTreeInfo if
                     // we have one.  We can't just bail out here as the change in the document means
@@ -205,8 +207,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // Produce the indices for the source and metadata symbols in parallel.
                 var tasks = new List<Task>
                 {
-                    GetTask(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), null, cancellationToken),
-                    GetTask(project, (self, project, _, cancellationToken) => self.UpdateReferencesAync(project, cancellationToken), null, cancellationToken)
+                    GetTask<MetadataReference?>(project, (self, project, _, cancellationToken) => self.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), reference: null, cancellationToken),
+                    GetTask<MetadataReference?>(project, (self, project, _, cancellationToken) => self.UpdateReferencesAync(project, cancellationToken), reference: null, cancellationToken)
                 };
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -231,14 +233,15 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36158", AllowCaptures = false, Constraint = "Avoid captures to reduce GC pressure when running in the host workspace.")]
-            private Task GetTask(Project project, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, PortableExecutableReference reference, CancellationToken cancellationToken)
+            private Task GetTask<TReference>(Project project, Func<IncrementalAnalyzer, Project, TReference, CancellationToken, Task> func, TReference reference, CancellationToken cancellationToken)
+                where TReference : MetadataReference?
             {
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
                 return isRemoteWorkspace
                     ? GetNewTask(this, func, project, reference, cancellationToken)
                     : func(this, project, reference, cancellationToken);
 
-                static Task GetNewTask(IncrementalAnalyzer self, Func<IncrementalAnalyzer, Project, PortableExecutableReference, CancellationToken, Task> func, Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+                static Task GetNewTask(IncrementalAnalyzer self, Func<IncrementalAnalyzer, Project, TReference, CancellationToken, Task> func, Project project, TReference reference, CancellationToken cancellationToken)
                 {
                     return Task.Run(() => func(self, project, reference, cancellationToken), cancellationToken);
                 }

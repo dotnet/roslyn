@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
             var service = new MyDiagnosticAnalyzerService(new Analyzer(), listener);
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = service.CreateIncrementalAnalyzer(workspace)!;
 
             // listen to events
             // check empty since this could be called to clear up existing diagnostics
@@ -128,7 +130,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
             var service = new MyDiagnosticAnalyzerService(new DisabledByDefaultAnalyzer(), listener);
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = service.CreateIncrementalAnalyzer(workspace)!;
 
             // listen to events
             var syntaxDiagnostic = false;
@@ -178,7 +180,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
             var service = new MyDiagnosticAnalyzerService(diagnosticAnalyzer, listener);
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = service.CreateIncrementalAnalyzer(workspace)!;
 
             var syntax = false;
             var semantic = false;
@@ -218,7 +220,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             // create listener/service/analyzer
             var listener = new AsynchronousOperationListener();
             var service = new MyDiagnosticAnalyzerService(new OpenFileOnlyAnalyzer(), listener);
-            var analyzer = service.CreateIncrementalAnalyzer(workspace);
+            var analyzer = service.CreateIncrementalAnalyzer(workspace)!;
 
             // listen to events
             service.DiagnosticsUpdated += (s, a) =>
@@ -302,7 +304,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             };
 
             // cause analysis
-            var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
+            var location = Location.Create(document.FilePath!, textSpan: default, lineSpan: default);
 
             await service.SynchronizeWithBuildAsync(
                 workspace,
@@ -344,7 +346,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 new Analyzer(),
             }, listener, project.Language);
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace)!;
             var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
 
             Assert.Equal(typeof(CSharpCompilerDiagnosticAnalyzer), analyzers[0].GetType());
@@ -399,7 +401,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 called = true;
             };
 
-            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
+            var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace)!;
             await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
 
             await listener.CreateExpeditedWaitTask();
@@ -449,7 +451,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         private static async Task RunAllAnalysisAsync(IIncrementalAnalyzer analyzer, Document document)
         {
             await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
-            await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            await analyzer.AnalyzeDocumentAsync(document, body: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
             await analyzer.AnalyzeProjectAsync(document.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
         }
 
@@ -535,7 +537,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
-                return Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
+                return Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath!, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
             }
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
@@ -606,7 +608,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                return ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, root.GetLocation()));
+                return ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, root!.GetLocation()));
             }
 
             public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)

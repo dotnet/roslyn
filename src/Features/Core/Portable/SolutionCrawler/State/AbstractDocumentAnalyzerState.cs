@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
     internal abstract class AbstractDocumentAnalyzerState<T> : AbstractAnalyzerState<DocumentId, Document, T>
+        where T : class
     {
         protected abstract string StateName { get; }
 

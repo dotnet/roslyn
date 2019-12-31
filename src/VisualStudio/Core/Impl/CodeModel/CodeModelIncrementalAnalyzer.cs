@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _projectCodeModelFactory = projectCodeModelFactory;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
             {
@@ -126,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return false;
             }
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }

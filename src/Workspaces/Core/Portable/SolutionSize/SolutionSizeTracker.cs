@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Composition;
 using System.Threading;
@@ -39,14 +41,14 @@ namespace Microsoft.CodeAnalysis.SolutionSize
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
             => IsSupported(workspace) ? _tracker.GetSolutionSize(solutionId) : -1;
 
-        IIncrementalAnalyzer IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
+        IIncrementalAnalyzer? IIncrementalAnalyzerProvider.CreateIncrementalAnalyzer(Workspace workspace)
             => IsSupported(workspace) ? _tracker : null;
 
         internal class IncrementalAnalyzer : IIncrementalAnalyzer
         {
             private readonly ConcurrentDictionary<DocumentId, long> _map = new ConcurrentDictionary<DocumentId, long>(concurrencyLevel: 2, capacity: 10);
 
-            private SolutionId _solutionId;
+            private SolutionId? _solutionId;
             private long _size;
 
             public long GetSolutionSize(SolutionId solutionId)
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
                 }
 
                 // getting tree is cheap since tree always stays in memory
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
                 var length = tree.Length;
 
                 while (true)
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionSize
             }
 
             #region Not Used
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }

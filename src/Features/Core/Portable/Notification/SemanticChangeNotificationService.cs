@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Notification
         {
         }
 
-        public event EventHandler<Document> OpenedDocumentSemanticChanged;
+        public event EventHandler<Document>? OpenedDocumentSemanticChanged;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
@@ -75,10 +77,10 @@ namespace Microsoft.CodeAnalysis.Notification
                 return false;
             }
 
-            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 // method body change
-                if (bodyOpt != null || !document.IsOpen())
+                if (body != null || !document.IsOpen())
                 {
                     return;
                 }

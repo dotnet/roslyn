@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -32,14 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IAsynchronousOperationListener _listener;
 
         // cache whether a project is cps project or not
-        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService> _cpsProjects;
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?> _cpsProjects;
 
         /// <summary>
         /// cache designer from UI thread
         /// 
         /// access this field through <see cref="GetDesignerFromForegroundThread"/>
         /// </summary>
-        private IVSMDDesignerService _dotNotAccessDirectlyDesigner;
+        private IVSMDDesignerService? _dotNotAccessDirectlyDesigner;
 
         public DesignerAttributeIncrementalAnalyzer(
             IThreadingContext threadingContext,
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             Contract.ThrowIfNull(_serviceProvider);
 
             _notificationService = notificationService;
-            _cpsProjects = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService>(concurrencyLevel: 2, capacity: 10);
+            _cpsProjects = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService?>(concurrencyLevel: 2, capacity: 10);
 
             _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttribute);
             _state = new DesignerAttributeState();
@@ -61,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             _state.Remove(document.Id);
-            return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: null), cancellationToken);
+            return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: string.Empty), cancellationToken);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -69,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
@@ -131,14 +133,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<IProjectItemDesignerTypeUpdateService> GetUpdateServiceIfCpsProjectAsync(Project project, CancellationToken cancellationToken)
+        private async Task<IProjectItemDesignerTypeUpdateService?> GetUpdateServiceIfCpsProjectAsync(Project project, CancellationToken cancellationToken)
         {
             if (_cpsProjects.TryGetValue(project.Id, out var value))
             {
                 return value;
             }
 
-            var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            var vsWorkspace = (VisualStudioWorkspaceImpl)project.Solution.Workspace;
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
@@ -263,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private async Task NotifyCpsDesignerAttributeAsync(Document document, string designerAttributeArgument, IProjectItemDesignerTypeUpdateService updateService)
+        private async Task NotifyCpsDesignerAttributeAsync(Document document, string? designerAttributeArgument, IProjectItemDesignerTypeUpdateService updateService)
         {
             using (_listener.BeginAsyncOperation("RegisterDesignerAttribute"))
             {
@@ -280,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private IVSMDDesignerService GetDesignerFromForegroundThread()
+        private IVSMDDesignerService? GetDesignerFromForegroundThread()
         {
             if (_dotNotAccessDirectlyDesigner != null)
             {

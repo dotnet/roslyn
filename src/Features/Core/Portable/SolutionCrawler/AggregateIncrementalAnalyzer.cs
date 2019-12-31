@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -69,11 +72,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             if (TryGetAnalyzer(document.Project, out var analyzer))
             {
-                await analyzer.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken).ConfigureAwait(false);
+                await analyzer.AnalyzeDocumentAsync(document, body, reasons, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private bool TryGetAnalyzer(Project project, out IIncrementalAnalyzer analyzer)
+        private bool TryGetAnalyzer(Project project, [NotNullWhen(true)] out IIncrementalAnalyzer? analyzer)
         {
             if (!Analyzers.TryGetValue(project.Language, out var lazyAnalyzer))
             {

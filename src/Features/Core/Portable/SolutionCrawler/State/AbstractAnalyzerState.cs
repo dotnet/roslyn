@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -11,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
     internal abstract class AbstractAnalyzerState<TKey, TValue, TData>
+        where TData : class
     {
         protected readonly ConcurrentDictionary<TKey, CacheEntry> DataCache = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel: 2, capacity: 10);
 
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
         protected abstract int GetCount(TData data);
 
         protected abstract Task<Stream> ReadStreamAsync(IPersistentStorage storage, TValue value, CancellationToken cancellationToken);
-        protected abstract TData TryGetExistingData(Stream stream, TValue value, CancellationToken cancellationToken);
+        protected abstract TData? TryGetExistingData(Stream stream, TValue value, CancellationToken cancellationToken);
 
         protected abstract void WriteTo(Stream stream, TData data, CancellationToken cancellationToken);
         protected abstract Task<bool> WriteStreamAsync(IPersistentStorage storage, TValue value, Stream stream, CancellationToken cancellationToken);
@@ -37,12 +40,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             return entry.Count;
         }
 
-        public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
+        public async Task<TData?> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {
             if (!DataCache.TryGetValue(GetCacheKey(value), out var entry))
             {
                 // we don't have data
-                return default;
+                return null;
             }
 
             // we have in memory cache for the document
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // we have persisted data
             var solution = GetSolution(value);
-            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistService = solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             try
             {
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default, GetCount(data));
+            DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(null, GetCount(data));
         }
 
         public virtual bool Remove(TKey id)
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
             WriteTo(stream, data, cancellationToken);
 
             var solution = GetSolution(value);
-            var persistService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistService = solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
 
             using var storage = persistService.GetStorage(solution);
             stream.Position = 0;
@@ -105,16 +108,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         protected readonly struct CacheEntry
         {
-            public readonly TData Data;
+            public readonly TData? Data;
             public readonly int Count;
 
-            public CacheEntry(TData data, int count)
+            public CacheEntry(TData? data, int count)
             {
                 Data = data;
                 Count = count;
             }
 
-            public bool HasCachedData => !object.Equals(Data, default);
+            public bool HasCachedData => Data is object;
         }
     }
 }

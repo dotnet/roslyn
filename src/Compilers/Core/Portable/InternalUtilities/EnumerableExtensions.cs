@@ -231,7 +231,7 @@ namespace Roslyn.Utilities
 
         private static readonly Func<object, bool> s_notNullTest = x => x != null;
 
-        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?>? source)
             where T : class
         {
             if (source == null)
@@ -240,6 +240,17 @@ namespace Roslyn.Utilities
             }
 
             return source.Where((Func<T?, bool>)s_notNullTest)!;
+        }
+
+        public static IEnumerable<(T1, T2)> WhereItem1NotNull<T1, T2>(this IEnumerable<(T1?, T2)>? source)
+            where T1 : class
+        {
+            if (source == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<(T1, T2)>();
+            }
+
+            return source.Where(x => x.Item1 is object)!;
         }
 
         public static T[] AsArray<T>(this IEnumerable<T> source)

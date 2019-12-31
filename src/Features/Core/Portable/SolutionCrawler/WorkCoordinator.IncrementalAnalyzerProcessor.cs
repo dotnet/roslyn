@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
                                 analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))
-                                                .Where(t => t.Item1 != null)
+                                                .WhereItem1NotNull()
                                                 .OrderBy(t => !(t.Item1 is DiagnosticIncrementalAnalyzer))
                                                 .ToImmutableArray();
 

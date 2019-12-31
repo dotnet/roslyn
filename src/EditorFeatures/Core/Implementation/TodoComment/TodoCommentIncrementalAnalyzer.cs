@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
         }
 
-        private static async Task<(Data existingData, Data newData)> ComputeAndPersistTodoCommentsAsync(
+        private static async Task<(Data? existingData, Data newData)> ComputeAndPersistTodoCommentsAsync(
             Document document,
             TodoCommentState state,
             TodoCommentTokens todoCommentTokens,
@@ -121,19 +123,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
                 foreach (var comment in comments)
                 {
-                    items.Add(CreateItem(document, text, syntaxTree, comment));
+                    var item = TryCreateItem(document, text, syntaxTree, comment);
+                    if (item is null)
+                    {
+                        continue;
+                    }
+
+                    items.Add(item);
                 }
             }
 
             return items.ToImmutable();
         }
 
-        private static TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
+        private static TodoItem? TryCreateItem(Document document, SourceText text, SyntaxTree? tree, TodoComment comment)
         {
             // make sure given position is within valid text range.
             var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, comment.Position)), 0);
 
-            var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
+            Location location;
+            if (tree is null)
+            {
+                if (document.FilePath is null)
+                {
+                    return null;
+                }
+
+                location = Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan));
+            }
+            else
+            {
+                location = tree.GetLocation(textSpan);
+            }
+
             var originalLineInfo = location.GetLineSpan();
             var mappedLineInfo = location.GetMappedLineSpan();
 
@@ -185,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return _state.GetItems_TestingOnly(documentId);
         }
 
-        private void RaiseTaskListUpdated(Workspace workspace, Solution solution, DocumentId documentId, ImmutableArray<TodoItem> items)
+        private void RaiseTaskListUpdated(Workspace workspace, Solution? solution, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
             if (_owner != null)
             {
@@ -197,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
             _state.Remove(documentId);
 
-            RaiseTaskListUpdated(_workspace, null, documentId, ImmutableArray<TodoItem>.Empty);
+            RaiseTaskListUpdated(_workspace, solution: null, documentId, ImmutableArray<TodoItem>.Empty);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -235,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return Task.CompletedTask;
         }
 
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
         }

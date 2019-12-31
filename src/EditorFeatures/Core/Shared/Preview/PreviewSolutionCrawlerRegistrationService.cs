@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
                         // do actual analysis
                         await diagnosticAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
-                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
+                        await diagnosticAnalyzer.AnalyzeDocumentAsync(document, body: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
 
                         // don't call project one.
                     }

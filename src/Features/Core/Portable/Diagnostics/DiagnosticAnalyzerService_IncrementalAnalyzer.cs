@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -17,13 +19,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
 
-        private DiagnosticAnalyzerService()
+        private void InitializeDiagnosticAnalyzerService(
+            out ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> map,
+            out ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback createIncrementalAnalyzer)
         {
-            _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
-            _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
+            map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
+            createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
             {

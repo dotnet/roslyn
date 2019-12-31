@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             registrationService.Register(this);
         }
 
-        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        public IIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace)
         {
             if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
             {
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
         }
 
-        public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         // this only support push model, pull model will be provided by DiagnosticService by caching everything this one pushed
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 await AnalyzeForKind(document, AnalysisKind.Syntax, cancellationToken).ConfigureAwait(false);
             }
 
-            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 Debug.Assert(document.Project.Solution.Workspace == _workspace);
 
@@ -229,9 +231,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {
-                private readonly string _workspaceKind;
+                private readonly string? _workspaceKind;
 
-                public DefaultUpdateArgsId(string workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
+                public DefaultUpdateArgsId(string? workspaceKind, AnalysisKind kind, DocumentId documentId) : base((int)kind, documentId)
                 {
                     _workspaceKind = workspaceKind;
                 }
@@ -250,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override int GetHashCode()
                 {
-                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
+                    return Hash.Combine(_workspaceKind?.GetHashCode() ?? 0, base.GetHashCode());
                 }
             }
         }

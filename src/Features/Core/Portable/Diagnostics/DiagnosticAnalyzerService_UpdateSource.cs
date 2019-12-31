@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -19,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly EventMap _eventMap;
         private readonly SimpleTaskQueue _eventQueue;
 
-        private DiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService) : this()
+        private void InitializeDiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService, out EventMap eventMap, out SimpleTaskQueue eventQueue)
         {
-            _eventMap = new EventMap();
+            eventMap = new EventMap();
 
             // use diagnostic event task scheduler so that we never flood async events queue with million of events.
             // queue itself can handle huge number of events but we are seeing OOM due to captured data in pending events.
-            _eventQueue = new SimpleTaskQueue(s_eventScheduler);
+            eventQueue = new SimpleTaskQueue(s_eventScheduler);
 
             registrationService.Register(this);
         }

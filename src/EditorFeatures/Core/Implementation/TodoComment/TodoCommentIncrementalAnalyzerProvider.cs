@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -40,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                new TodoCommentIncrementalAnalyzer(w, this, _todoCommentTokens));
         }
 
-        internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
+        internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution? solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
             _eventListenerTracker.EnsureEventListener(workspace, this);
 
             this.TodoListUpdated?.Invoke(this, new TodoItemsUpdatedArgs(Tuple.Create(this, id), workspace, solution, projectId, documentId, items));
         }
 
-        public event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;
+        public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
         public ImmutableArray<TodoItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return analyzer.GetTodoItemsUpdatedEventArgs(workspace);
         }
 
-        private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)
+        private TodoCommentIncrementalAnalyzer? TryGetAnalyzer(Workspace workspace)
         {
             if (s_analyzers.TryGetValue(workspace, out var analyzer))
             {

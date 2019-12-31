@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         internal class InProcOrRemoteHostAnalyzerRunner
         {
             private readonly DiagnosticAnalyzerService _owner;
-            private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
+            private readonly AbstractHostDiagnosticUpdateSource? _hostDiagnosticUpdateSource;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public InProcOrRemoteHostAnalyzerRunner(DiagnosticAnalyzerService owner, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(DiagnosticAnalyzerService owner, AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource)
             {
                 _owner = owner;
-                _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
+                _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
                 // currently option is a bit weird since it is not part of snapshot and 
                 // we can't load all options without loading all language specific dlls.
@@ -199,7 +199,7 @@ This data should always be correct as we're never persisting the data between se
                 {
                     foreach (var diagnostic in diagnostics)
                     {
-                        _hostDiagnosticUpdateSourceOpt?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
+                        _hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, project);
                     }
                 }
             }

@@ -63,8 +63,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AbstractHostDiagnosticUpdateSource? hostDiagnosticUpdateSource,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener? listener = null)
-            : this(registrationService)
         {
+            InitializeDiagnosticAnalyzerService(out _map, out _createIncrementalAnalyzer);
+            InitializeDiagnosticAnalyzerService(registrationService, out _eventMap, out _eventQueue);
+
             _analyzerInfoCache = analyzerInfoCache;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             Listener = listener ?? AsynchronousOperationListenerProvider.NullListener;

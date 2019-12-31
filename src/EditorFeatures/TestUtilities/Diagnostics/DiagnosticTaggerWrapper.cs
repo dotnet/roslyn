@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,19 +22,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private readonly TestWorkspace _workspace;
-        public readonly DiagnosticAnalyzerService AnalyzerService;
+        public readonly DiagnosticAnalyzerService? AnalyzerService;
         private readonly ISolutionCrawlerRegistrationService _registrationService;
-        private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
-        private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
+        private readonly ImmutableArray<IIncrementalAnalyzer?> _incrementalAnalyzers;
+        private readonly SolutionCrawlerRegistrationService? _solutionCrawlerService;
         public readonly DiagnosticService DiagnosticService;
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
-        private ITaggerProvider _taggerProvider;
+        private ITaggerProvider? _taggerProvider;
 
         public DiagnosticTaggerWrapper(
             TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null,
+            Dictionary<string, DiagnosticAnalyzer[]>? analyzerMap = null,
             bool createTaggerProvider = true)
             : this(workspace, analyzerMap, updateSource: null, createTaggerProvider: createTaggerProvider)
         {
@@ -42,12 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestWorkspace workspace,
             IDiagnosticUpdateSource updateSource,
             bool createTaggerProvider = true)
-            : this(workspace, null, updateSource, createTaggerProvider)
+            : this(workspace, analyzerMap: null, updateSource, createTaggerProvider)
         {
         }
 
         private static DiagnosticAnalyzerService CreateDiagnosticAnalyzerService(
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap, IAsynchronousOperationListener listener)
+            Dictionary<string, DiagnosticAnalyzer[]>? analyzerMap, IAsynchronousOperationListener listener)
         {
             return analyzerMap == null || analyzerMap.Count == 0
                 ? new MyDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap(), listener: listener)
@@ -56,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private DiagnosticTaggerWrapper(
             TestWorkspace workspace,
-            Dictionary<string, DiagnosticAnalyzer[]> analyzerMap,
-            IDiagnosticUpdateSource updateSource,
+            Dictionary<string, DiagnosticAnalyzer[]>? analyzerMap,
+            IDiagnosticUpdateSource? updateSource,
             bool createTaggerProvider)
         {
             _threadingContext = workspace.GetService<IThreadingContext>();
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             _workspace = workspace;
 
-            _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            _registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
             DiagnosticService = new DiagnosticService(_listenerProvider, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());

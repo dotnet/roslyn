@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -88,7 +90,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var solution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
-            var compilationOptions = solution.Projects.First().CompilationOptions;
+            var compilationOptions = solution.Projects.First().CompilationOptions!;
 
             Assert.True(compilationOptions.StrongNameProvider is DesktopStrongNameProvider);
             Assert.True(compilationOptions.XmlReferenceResolver is XmlFileResolver);
@@ -116,7 +118,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var solution = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
-            var compilationOptions = solution.Projects.First().CompilationOptions;
+            var compilationOptions = solution.Projects.First().CompilationOptions!;
 
             Assert.True(compilationOptions.StrongNameProvider is DesktopStrongNameProvider);
             Assert.True(compilationOptions.XmlReferenceResolver is XmlFileResolver);
@@ -238,14 +240,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 s = s.AddProject("newProject", "newProject", LanguageNames.CSharp).Solution;
 
-                var project = s.GetProject(existingProjectId);
-                project = project.WithCompilationOptions(project.CompilationOptions.WithModuleName("modified"));
+                var project = s.GetProject(existingProjectId)!;
+                project = project.WithCompilationOptions(project.CompilationOptions!.WithModuleName("modified"));
 
                 var existingDocumentId = project.DocumentIds.First();
 
                 project = project.AddDocument("newDocument", SourceText.From("// new text")).Project;
 
-                var document = project.GetDocument(existingDocumentId);
+                var document = project.GetDocument(existingDocumentId)!;
 
                 document = document.WithSourceCodeKind(SourceCodeKind.Script);
 
@@ -373,7 +375,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 // check remote workspace has enabled solution crawler in remote host
                 var testAnalyzerProvider = new TestAnalyzerProvider();
-                solutionCrawlerService.AddAnalyzerProvider(
+                solutionCrawlerService!.AddAnalyzerProvider(
                     testAnalyzerProvider,
                     new IncrementalAnalyzerProviderMetadata("Test", highPriorityForActiveFile: false, workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
@@ -499,7 +501,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
         }
 
-        private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)
+        private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object>? map = null)
         {
             // make sure checksum is calculated
             await solution.State.GetChecksumAsync(CancellationToken.None);
@@ -529,7 +531,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 private TaskCompletionSource<bool> _source = new TaskCompletionSource<bool>();
 
-                public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+                public override Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
                 {
                     _source.SetResult(true);
                     return Task.CompletedTask;

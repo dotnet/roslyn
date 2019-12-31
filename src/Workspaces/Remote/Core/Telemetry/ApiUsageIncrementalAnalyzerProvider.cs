@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -76,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    if (model is null)
+                    {
+                        continue;
+                    }
 
                     foreach (var operation in GetOperations(model, cancellationToken))
                     {
@@ -126,24 +132,24 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
 
                 // local functions
                 static void CollectApisUsed(
-                    IOperation operation, Solution solutionOpt, HashSet<ISymbol> metadataSymbolUsed, CancellationToken cancellationToken)
+                    IOperation operation, Solution? solution, HashSet<ISymbol> metadataSymbolUsed, CancellationToken cancellationToken)
                 {
                     switch (operation)
                     {
                         case IMemberReferenceOperation memberOperation:
-                            AddIfMetadataSymbol(solutionOpt, memberOperation.Member, metadataSymbolUsed, cancellationToken);
+                            AddIfMetadataSymbol(solution, memberOperation.Member, metadataSymbolUsed, cancellationToken);
                             break;
                         case IInvocationOperation invocationOperation:
-                            AddIfMetadataSymbol(solutionOpt, invocationOperation.TargetMethod, metadataSymbolUsed, cancellationToken);
+                            AddIfMetadataSymbol(solution, invocationOperation.TargetMethod, metadataSymbolUsed, cancellationToken);
                             break;
                         case IObjectCreationOperation objectCreation:
-                            AddIfMetadataSymbol(solutionOpt, objectCreation.Constructor, metadataSymbolUsed, cancellationToken);
+                            AddIfMetadataSymbol(solution, objectCreation.Constructor, metadataSymbolUsed, cancellationToken);
                             break;
                     }
                 }
 
                 static void AddIfMetadataSymbol(
-                    Solution solutionOpt, ISymbol symbol, HashSet<ISymbol> metadataSymbolUsed, CancellationToken cancellationToken)
+                    Solution? solution, ISymbol symbol, HashSet<ISymbol> metadataSymbolUsed, CancellationToken cancellationToken)
                 {
                     // get symbol as it is defined in metadata
                     symbol = symbol.OriginalDefinition;
@@ -154,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                     }
 
                     if (symbol.Locations.All(l => l.Kind == LocationKind.MetadataFile) &&
-                        solutionOpt?.GetProject(symbol.ContainingAssembly, cancellationToken) == null)
+                        solution?.GetProject(symbol.ContainingAssembly, cancellationToken) == null)
                     {
                         metadataSymbolUsed.Add(symbol);
                     }
@@ -198,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
                 return Task.CompletedTask;
             }
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return Task.CompletedTask;
             }

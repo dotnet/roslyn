@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return data.Items.Length;
             }
 
-            protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
+            protected override Data? TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             {
                 if (this.DataCache.TryGetValue(documentId, out var entry) && entry.HasCachedData)
                 {
-                    return entry.Data.Items;
+                    return entry.Data!.Items;
                 }
 
                 return ImmutableArray<TodoItem>.Empty;

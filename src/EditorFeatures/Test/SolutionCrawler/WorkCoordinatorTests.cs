@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var newSolution = workspace.CurrentSolution.WithRunAnalyzers(project.Id, false);
             var worker = await ExecuteOperation(workspace, w => w.ChangeProject(project.Id, newSolution));
 
-            project = workspace.CurrentSolution.GetProject(project.Id);
+            project = workspace.CurrentSolution.GetProject(project.Id)!;
             Assert.False(project.State.RunAnalyzers);
 
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
@@ -486,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
                     if (activeDocument)
                     {
-                        var document = w.CurrentSolution.GetDocument(info.Id);
+                        var document = w.CurrentSolution.GetDocument(info.Id)!;
                         MakeDocumentActive(document);
                     }
                 });
@@ -533,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var info = solution.Projects[0].Documents[0];
             if (reloadActiveDocument)
             {
-                var document = workspace.CurrentSolution.GetDocument(info.Id);
+                var document = workspace.CurrentSolution.GetDocument(info.Id)!;
                 MakeDocumentActive(document);
             }
 
@@ -558,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var info = solution.Projects[0].Documents[0];
             if (reanalyzeActiveDocument)
             {
-                var document = workspace.CurrentSolution.GetDocument(info.Id);
+                var document = workspace.CurrentSolution.GetDocument(info.Id)!;
                 MakeDocumentActive(document);
             }
 
@@ -1105,7 +1107,7 @@ End Class";
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawler);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            var service = workspace.Services.GetService<ISolutionCrawlerService>();
+            var service = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = service.GetProgressReporter(workspace);
             Assert.False(reporter.InProgress);
 
@@ -1125,7 +1127,7 @@ End Class";
                 }
             };
 
-            var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+            var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             registrationService.Register(workspace);
 
             // first mutation
@@ -1197,7 +1199,7 @@ End Class";
             // let the test not care about cancellation or work not enqueued yet.
 
             // block solution cralwer from processing.
-            var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
+            var globalOperation = workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
             using (var operation = globalOperation.Start("Block SolutionCrawler"))
             {
                 // make sure global operaiton is actually started
@@ -1253,7 +1255,7 @@ End Class";
 
             service.Register(workspace);
 
-            var insertPosition = testDocument.CursorPosition;
+            var insertPosition = testDocument.CursorPosition!;
 
             using (var edit = textBuffer.CreateEdit())
             {
@@ -1391,13 +1393,13 @@ End Class";
 
         private static void MakeDocumentActive(Document document)
         {
-            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Workspace.Services.GetService<IDocumentTrackingService>();
+            var documentTrackingService = (TestDocumentTrackingService)document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
             documentTrackingService.SetActiveDocument(document.Id);
         }
 
         private static void ClearActiveDocument(Workspace workspace)
         {
-            var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
+            var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             documentTrackingService.SetActiveDocument(null);
         }
 
@@ -1406,7 +1408,7 @@ End Class";
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
-            public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
+            public WorkCoordinatorWorkspace(string? workspaceKind = null, bool disablePartialSolutions = true)
                 : base(EditorServicesUtil.ExportProvider, workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
@@ -1418,7 +1420,7 @@ End Class";
                 SetOptions(this);
             }
 
-            public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true)
+            public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string? workspaceKind = null, bool disablePartialSolutions = true)
             {
                 var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions);
                 workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
@@ -1491,9 +1493,9 @@ End Class";
                 return Task.CompletedTask;
             }
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (bodyOpt == null)
+                if (body == null)
                 {
                     this.DocumentIds.Add(document.Id);
                 }
@@ -1569,7 +1571,7 @@ End Class";
         {
             public readonly List<DocumentId> DocumentIds = new List<DocumentId>();
 
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode? body, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 this.DocumentIds.Add(document.Id);
                 return Task.CompletedTask;

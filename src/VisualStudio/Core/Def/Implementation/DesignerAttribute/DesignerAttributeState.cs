@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -20,9 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             /// <summary>
             /// remember last time what we reported
             /// </summary>
-            private readonly ConcurrentDictionary<DocumentId, string> _lastReported = new ConcurrentDictionary<DocumentId, string>(concurrencyLevel: 2, capacity: 10);
+            private readonly ConcurrentDictionary<DocumentId, string?> _lastReported = new ConcurrentDictionary<DocumentId, string?>(concurrencyLevel: 2, capacity: 10);
 
-            public bool Update(DocumentId id, string designerAttributeArgument)
+            public bool Update(DocumentId id, string? designerAttributeArgument)
             {
                 if (_lastReported.TryGetValue(id, out var lastReported) &&
                     lastReported == designerAttributeArgument)
@@ -49,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return 1;
             }
 
-            protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
+            protected override Data? TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
