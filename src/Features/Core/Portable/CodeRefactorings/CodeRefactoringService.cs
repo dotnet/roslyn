@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageToProvidersMap
             => _lazyLanguageToProvidersMap.Value;
 
-        private ImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
+        private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
         {
             var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
             if (LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 allRefactorings = lazyProviders.Value;
             }
 
-            allRefactorings = allRefactorings.AddRange(GetProjectRefactorings(document.Project));
-            return allRefactorings;
+            return allRefactorings.ConcatFast(GetProjectRefactorings(document.Project));
         }
 
         public async Task<bool> HasRefactoringsAsync(
@@ -206,31 +205,45 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
-            return project.Solution.Workspace.Kind == WorkspaceKind.Interactive
-                ? ImmutableArray<CodeRefactoringProvider>.Empty
-                : _projectRefactoringsMap.GetValue(project.AnalyzerReferences, pId => new StrongBox<ImmutableArray<CodeRefactoringProvider>>(ComputeProjectRefactorings(project))).Value;
-        }
-
-        private ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
-        {
-            var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
-            ImmutableArray<CodeRefactoringProvider>.Builder? builder = null;
-            foreach (var reference in project.AnalyzerReferences)
-            {
-                var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
-                foreach (var refactoring in projectCodeRefactoringProvider.GetRefactorings(project.Language))
-                {
-                    builder ??= ImmutableArray.CreateBuilder<CodeRefactoringProvider>();
-                    builder.Add(refactoring);
-                }
-            }
-
-            if (builder is null)
+            if (project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
             {
                 return ImmutableArray<CodeRefactoringProvider>.Empty;
             }
 
-            return builder.ToImmutable();
+            if (_projectRefactoringsMap.TryGetValue(project.AnalyzerReferences, out var refactorings))
+            {
+                return refactorings.Value;
+            }
+
+            return GetProjectRefactoringsSlow(project);
+
+            // Local functions
+            ImmutableArray<CodeRefactoringProvider> GetProjectRefactoringsSlow(Project project)
+            {
+                return _projectRefactoringsMap.GetValue(project.AnalyzerReferences, pId => new StrongBox<ImmutableArray<CodeRefactoringProvider>>(ComputeProjectRefactorings(project))).Value;
+            }
+
+            ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
+            {
+                var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
+                ImmutableArray<CodeRefactoringProvider>.Builder? builder = null;
+                foreach (var reference in project.AnalyzerReferences)
+                {
+                    var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
+                    foreach (var refactoring in projectCodeRefactoringProvider.GetRefactorings(project.Language))
+                    {
+                        builder ??= ImmutableArray.CreateBuilder<CodeRefactoringProvider>();
+                        builder.Add(refactoring);
+                    }
+                }
+
+                if (builder is null)
+                {
+                    return ImmutableArray<CodeRefactoringProvider>.Empty;
+                }
+
+                return builder.ToImmutable();
+            }
         }
 
         private class ProjectCodeRefactoringProvider
