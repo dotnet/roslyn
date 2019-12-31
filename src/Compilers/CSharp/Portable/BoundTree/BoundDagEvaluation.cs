@@ -1,15 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagEvaluation
     {
+        private static IEqualityComparer<ISymbol> s_ignoreEverythingComparer = SymbolEqualityComparer.IgnoreEverything;
+
         public override bool Equals(object obj) => obj is BoundDagEvaluation other && this.Equals(other);
         public virtual bool Equals(BoundDagEvaluation other)
         {
-            return other != (object)null && this.Kind == other.Kind && this.GetOriginalInput().Equals(other.GetOriginalInput()) && this.Symbol == other.Symbol;
+            return other != (object)null &&
+                this.Kind == other.Kind &&
+                this.GetOriginalInput().Equals(other.GetOriginalInput()) &&
+                s_ignoreEverythingComparer.Equals(this.Symbol?.GetPublicSymbol(), other.Symbol?.GetPublicSymbol());
         }
         private Symbol Symbol
         {
@@ -26,9 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
         public override int GetHashCode()
         {
-            return Hash.Combine(GetOriginalInput().GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
+            return Hash.Combine(GetOriginalInput().GetHashCode(), s_ignoreEverythingComparer.GetHashCode(this.Symbol?.GetPublicSymbol()));
         }
 
         /// <summary>
