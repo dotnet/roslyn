@@ -4496,6 +4496,33 @@ class Base
 ");
         }
 
+        [WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyInTypeOf()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = typeof([|Object|]);
+    }
+}
+",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = typeof(object);
+    }
+}
+");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
