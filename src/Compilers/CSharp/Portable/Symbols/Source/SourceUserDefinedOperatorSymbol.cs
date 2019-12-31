@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceUserDefinedOperatorSymbol CreateUserDefinedOperatorSymbol(
             SourceMemberContainerTypeSymbol containingType,
             OperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var location = syntax.OperatorToken.GetLocation();
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             OperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool isExpressionBodied) :
             base(
                 MethodKind.UserDefinedOperator,

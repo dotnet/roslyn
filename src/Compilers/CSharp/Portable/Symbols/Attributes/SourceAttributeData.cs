@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>System.Type type symbol.</returns>
         internal virtual TypeSymbol GetSystemType(Symbol targetSymbol)
         {
-            return targetSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type, recordUsage: false);
+            return targetSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
         }
     }
 }

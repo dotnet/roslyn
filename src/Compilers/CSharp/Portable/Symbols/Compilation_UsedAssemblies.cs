@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -9,47 +10,65 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpCompilation
     {
-        private ConcurrentSet<AssemblySymbol> _lazyUsedAssemblyReferences;
+        private ConcurrentSet<AssemblySymbol>? _lazyUsedAssemblyReferences;
         private bool _usedAssemblyReferencesFrozen;
 
         internal override ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default)
         {
-            ConcurrentSet<AssemblySymbol> usedAssemblies = GetCompleteSetOfUsedAssemblies(cancellationToken);
+            ConcurrentSet<AssemblySymbol>? usedAssemblies = GetCompleteSetOfUsedAssemblies(cancellationToken);
 
             if (usedAssemblies is null)
             {
                 return ImmutableArray<MetadataReference>.Empty;
             }
 
-            var builder = ArrayBuilder<MetadataReference>.GetInstance(usedAssemblies.Count);
+            var setOfReferences = new HashSet<MetadataReference>(ReferenceEqualityComparer.Instance);
 
             foreach (var reference in References)
             {
                 if (reference.Properties.Kind == MetadataImageKind.Assembly)
                 {
                     Symbol symbol = GetAssemblyOrModuleSymbol(reference);
-                    if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol))
+                    if (symbol is object && usedAssemblies.Contains((AssemblySymbol)symbol) &&
+                        setOfReferences.Add(reference) &&
+                        GetBoundReferenceManager().MergedAssemblyReferencesMap.TryGetValue(reference, out ImmutableArray<MetadataReference> merged))
                     {
-                        builder.Add(reference);
+                        // Include all "merged" references as well because they might "define" used extern aliases.
+                        setOfReferences.AddAll(merged);
                     }
+                }
+            }
+
+            // Use stable ordering for the result, matching the order in References.
+            var builder = ArrayBuilder<MetadataReference>.GetInstance(setOfReferences.Count);
+
+            foreach (var reference in References)
+            {
+                if (setOfReferences.Contains(reference))
+                {
+                    builder.Add(reference);
                 }
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private ConcurrentSet<AssemblySymbol> GetCompleteSetOfUsedAssemblies(CancellationToken cancellationToken)
+        private ConcurrentSet<AssemblySymbol>? GetCompleteSetOfUsedAssemblies(CancellationToken cancellationToken)
         {
             if (!_usedAssemblyReferencesFrozen && !Volatile.Read(ref _usedAssemblyReferencesFrozen))
             {
                 // PROTOTYPE(UsedAssemblyReferences): Try to optimize scenarios when GetDiagnostics was called before
                 //                                    and we either already encountered errors, or have done all the work 
                 //                                    to record usage.
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
+                RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
+
                 GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, cancellationToken);
 
                 bool seenErrors = diagnostics.HasAnyErrors();
@@ -57,13 +76,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Clear();
                     // PROTOTYPE(UsedAssemblyReferences): Might want to suppress nullable analysis for this call.
+                    // PROTOTYPE(UsedAssemblyReferences): Ensure we don't trigger any analyzers during the GetDiagnosticsForAllMethodBodies call.
                     GetDiagnosticsForAllMethodBodies(diagnostics, doLowering: true, cancellationToken);
                     seenErrors = diagnostics.HasAnyErrors();
+
+                    if (!seenErrors)
+                    {
+                        AddUsedAssemblies(diagnostics.DependenciesBag);
+                    }
                 }
 
                 completeTheSetOfUsedAssemblies(seenErrors, cancellationToken);
 
-                diagnostics.Free();
+                diagnostics.DiagnosticBag.Free();
             }
 
             return _lazyUsedAssemblyReferences;
@@ -129,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             while (stack.Count != 0)
                             {
                                 AssemblySymbol current = stack.Pop();
-                                ConcurrentSet<AssemblySymbol> usedAssemblies;
+                                ConcurrentSet<AssemblySymbol>? usedAssemblies;
 
                                 switch (current)
                                 {
@@ -194,7 +219,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool AddUsedAssembly(AssemblySymbol assembly)
+        internal void AddUsedAssemblies(ICollection<AssemblySymbol>? assemblies)
+        {
+            if (assemblies?.Count > 0)
+            {
+                foreach (var candidate in assemblies)
+                {
+                    AddUsedAssembly(candidate);
+                }
+            }
+        }
+
+        internal bool AddUsedAssembly(AssemblySymbol? assembly)
         {
             if (assembly is null || assembly == SourceAssembly || assembly.IsMissing)
             {
@@ -217,56 +253,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal void AddAssembliesUsedByTypeReference(TypeSymbol typeOpt)
-        {
-            while (true)
-            {
-                switch (typeOpt)
-                {
-                    case null:
-                    case TypeParameterSymbol _:
-                    case DynamicTypeSymbol _:
-                        return;
-                    case PointerTypeSymbol pointer:
-                        typeOpt = pointer.PointedAtTypeWithAnnotations.DefaultType;
-                        break;
-                    case ArrayTypeSymbol array:
-                        typeOpt = array.ElementTypeWithAnnotations.DefaultType;
-                        break;
-                    case NamedTypeSymbol named:
-                        named = named.TupleUnderlyingTypeOrSelf();
-                        AddUsedAssembly(named.ContainingAssembly);
-                        do
-                        {
-                            foreach (var typeArgument in named.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
-                            {
-                                AddAssembliesUsedByTypeReference(typeArgument.DefaultType);
-                            }
-
-                            named = named.ContainingType;
-                        }
-                        while (named is object);
-                        return;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(typeOpt.TypeKind);
-                }
-            }
-        }
-
-        internal void AddAssembliesUsedByNamespaceReference(NamespaceSymbol ns)
-        {
-            // Treat all assemblies contributing to this namespace symbol as used
-            if (ns.Extent.Kind == NamespaceKind.Compilation)
-            {
-                foreach (var constituent in ns.ConstituentNamespaces)
-                {
-                    AddAssembliesUsedByNamespaceReference(constituent);
-                }
-            }
-            else
-            {
-                AddUsedAssembly(ns.ContainingAssembly);
-            }
-        }
     }
 }

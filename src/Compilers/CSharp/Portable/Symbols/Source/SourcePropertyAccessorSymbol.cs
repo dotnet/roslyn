@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string aliasQualifierOpt,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ArrowExpressionClauseSyntax syntax,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics) :
+            BindingDiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location)
         {
             _property = property;
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
             bool isExplicitInterfaceImplementation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
                    location)
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
             propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             // These values may not be final, but we need to have something set here in the
             // event that we need to find the overridden accessor.
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-        private TypeWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
+        private TypeWithAnnotations ComputeReturnType(BindingDiagnosticBag diagnostics)
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
@@ -480,9 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // If we have IsReadOnly..ctor, we can use the attribute. Otherwise, we need to NOT be a netmodule and the type must not already exist in order to synthesize it.
-                var isReadOnlyAttributeUsable = DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor, recordUsage: false) != null ||
+                var isReadOnlyAttributeUsable = DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor) != null ||
                     (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&
-                     DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, recordUsage: false) is MissingMetadataTypeSymbol);
+                     DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol);
 
                 if (!isReadOnlyAttributeUsable)
                 {
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
-            bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+            bool hasBody, Location location, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private void CheckModifiers(Location location, bool hasBody, bool isAutoPropertyOrExpressionBodied, DiagnosticBag diagnostics)
+        private void CheckModifiers(Location location, bool hasBody, bool isAutoPropertyOrExpressionBodied, BindingDiagnosticBag diagnostics)
         {
             // Check accessibility against the accessibility declared on the accessor not the property.
             var localAccessibility = this.LocalAccessibility;
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<ParameterSymbol> ComputeParameters(DiagnosticBag diagnostics)
+        private ImmutableArray<ParameterSymbol> ComputeParameters(BindingDiagnosticBag diagnostics)
         {
             bool isGetMethod = this.MethodKind == MethodKind.PropertyGet;
             var propertyParameters = _property.Parameters;

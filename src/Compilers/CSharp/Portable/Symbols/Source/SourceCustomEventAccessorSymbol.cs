@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
                    ImmutableArray.Create(syntax.Keyword.GetLocation()), explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration)

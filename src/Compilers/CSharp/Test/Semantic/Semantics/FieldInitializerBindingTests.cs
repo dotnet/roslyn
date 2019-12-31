@@ -292,7 +292,7 @@ class C
                 typeSymbol.DeclaringCompilation,
                 initializers,
                 boundInitializers,
-                diagnostics,
+                new BindingDiagnosticBag(diagnostics),
                 firstDebugImports: out unused);
             diagnostics.Verify();
             diagnostics.Free();

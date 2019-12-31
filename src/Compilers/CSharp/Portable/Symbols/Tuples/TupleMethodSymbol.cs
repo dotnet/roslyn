@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
-            MergeUseSiteDiagnostics(ref result, _underlyingMethod.GetUseSiteDiagnostic());
+            UseSiteInfo<AssemblySymbol> result = base.GetUseSiteInfo();
+            MergeUseSiteInfo(ref result, _underlyingMethod.GetUseSiteInfo());
             return result;
         }
 

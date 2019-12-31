@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // rather than Interlocked.CompareExchange.
                 if (_event.IsWindowsRuntimeEvent)
                 {
-                    TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken, recordUsage: true);
-                    Binder.ReportUseSiteDiagnostics(eventTokenType, diagnostics, this.Location);
+                    TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
+                    Binder.ReportUseSite(eventTokenType, diagnostics, this.Location);
 
                     if (this.MethodKind == MethodKind.EventAdd)
                     {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // void remove_E(EventRegistrationToken t);
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                        Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                        Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // void remove_E(EventDelegate d);
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                    Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                    Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 

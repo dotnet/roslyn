@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // lazy binding
         private readonly NameSyntax _aliasTargetName;
         private readonly bool _isExtern;
-        private DiagnosticBag _aliasTargetDiagnostics;
+        private BindingDiagnosticBag _aliasTargetDiagnostics;
 
         private AliasSymbol(Binder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
         {
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // the target is not yet bound. If it is an ordinary alias, bind the target
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
-                var newDiagnostics = DiagnosticBag.GetInstance();
+                var newDiagnostics = BindingDiagnosticBag.GetInstance();
 
                 NamespaceOrTypeSymbol symbol = this.IsExtern ?
                     ResolveExternAliasTarget(newDiagnostics) :
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _aliasTarget;
         }
 
-        internal DiagnosticBag AliasTargetDiagnostics
+        internal BindingDiagnosticBag AliasTargetDiagnostics
         {
             get
             {
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void CheckConstraints(DiagnosticBag diagnostics)
+        internal void CheckConstraints(BindingDiagnosticBag diagnostics)
         {
             var target = this.Target as TypeSymbol;
             if ((object)target != null && _locations.Length > 0)
@@ -308,17 +308,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamespaceSymbol ResolveExternAliasTarget(DiagnosticBag diagnostics)
+        private NamespaceSymbol ResolveExternAliasTarget(BindingDiagnosticBag diagnostics)
         {
             NamespaceSymbol target;
             if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
             {
                 diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
-            }
-            else if (!_binder.IsSemanticModelBinder &&
-                     !Compilation.ReportUnusedImportsInTree(_aliasName.SyntaxTree))
-            {
-                _binder.Compilation.AddAssembliesUsedByNamespaceReference(target);
             }
 
             Debug.Assert((object)target != null);
@@ -327,19 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved)
         {
-            var declarationBinder = _binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks | BinderFlags.InUsing);
-            NamespaceOrTypeSymbol result = declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
-
-            if (!declarationBinder.IsSemanticModelBinder &&
-                !Compilation.ReportUnusedImportsInTree(syntax.SyntaxTree) &&
-                result is NamespaceSymbol ns)
-            {
-                declarationBinder.Compilation.AddAssembliesUsedByNamespaceReference(ns);
-            }
-
-            return result;
+            var declarationBinder = _binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)

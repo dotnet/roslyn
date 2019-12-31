@@ -170,12 +170,19 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<TAssemblySymbol> _lazyReferencedAssemblies;
 
         /// <summary>
-        /// Assemblies referenced directly by the source module of the compilation.
+        /// Aliases used by assemblies referenced directly by the source module of the compilation.
         /// </summary>
         /// <remarks>
         /// Aliases <see cref="_lazyAliasesOfReferencedAssemblies"/>[i] are of an assembly <see cref="_lazyReferencedAssemblies"/>[i].
         /// </remarks>
         private ImmutableArray<ImmutableArray<string>> _lazyAliasesOfReferencedAssemblies;
+
+        /// <summary>
+        /// A map capturing <see cref="MetadataReference"/>s that were "merged" to a single referenced assembly
+        /// associated with a key in the map.
+        /// The keys are a subset of keys from <see cref="_lazyReferencedAssembliesMap"/>.
+        /// </summary>
+        private ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>> _lazyMergedAssemblyReferencesMap;
 
         /// <summary>
         /// Unified assemblies referenced directly by the source module of the compilation.
@@ -311,6 +318,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>> MergedAssemblyReferencesMap
+        {
+            get
+            {
+                AssertBound();
+                return _lazyMergedAssemblyReferencesMap;
+            }
+        }
+
         internal ImmutableArray<UnifiedAssembly<TAssemblySymbol>> UnifiedAssemblies
         {
             get
@@ -340,6 +356,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyReferencedModulesReferences.IsDefault);
             Debug.Assert(_lazyReferencedAssemblies.IsDefault);
             Debug.Assert(_lazyAliasesOfReferencedAssemblies.IsDefault);
+            Debug.Assert(_lazyMergedAssemblyReferencesMap == null);
             Debug.Assert(_lazyUnifiedAssemblies.IsDefault);
             Debug.Assert(_lazyCorLibraryOpt == null);
         }
@@ -359,6 +376,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(!_lazyReferencedModulesReferences.IsDefault);
             Debug.Assert(!_lazyReferencedAssemblies.IsDefault);
             Debug.Assert(!_lazyAliasesOfReferencedAssemblies.IsDefault);
+            Debug.Assert(_lazyMergedAssemblyReferencesMap != null);
             Debug.Assert(!_lazyUnifiedAssemblies.IsDefault);
 
             // lazyCorLibrary is null if the compilation is corlib
@@ -396,7 +414,8 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ModuleReferences<TAssemblySymbol>> referencedModulesReferences,
             ImmutableArray<TAssemblySymbol> referencedAssemblies,
             ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies,
-            ImmutableArray<UnifiedAssembly<TAssemblySymbol>> unifiedAssemblies)
+            ImmutableArray<UnifiedAssembly<TAssemblySymbol>> unifiedAssemblies,
+            Dictionary<MetadataReference, ImmutableArray<MetadataReference>> mergedAssemblyReferencesMapOpt)
         {
             AssertUnbound();
 
@@ -417,6 +436,7 @@ namespace Microsoft.CodeAnalysis
             _lazyReferencedModulesReferences = referencedModulesReferences;
             _lazyReferencedAssemblies = referencedAssemblies;
             _lazyAliasesOfReferencedAssemblies = aliasesOfReferencedAssemblies;
+            _lazyMergedAssemblyReferencesMap = mergedAssemblyReferencesMapOpt?.ToImmutableDictionary() ?? ImmutableDictionary<MetadataReference, ImmutableArray<MetadataReference>>.Empty;
             _lazyUnifiedAssemblies = unifiedAssemblies;
             _lazyHasCircularReference = containsCircularReferences.ToThreeState();
 
@@ -441,12 +461,15 @@ namespace Microsoft.CodeAnalysis
             bool supersedeLowerVersions,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
             out Dictionary<MetadataReference, int> referencedModulesMap,
-            out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
+            out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies,
+            out Dictionary<MetadataReference, ImmutableArray<MetadataReference>> mergedAssemblyReferencesMapOpt)
         {
             referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
             referencedModulesMap = new Dictionary<MetadataReference, int>(referencedModuleCount);
             var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referenceMap.Length - referencedModuleCount);
             bool hasRecursiveAliases = false;
+
+            mergedAssemblyReferencesMapOpt = null;
 
             for (int i = 0; i < referenceMap.Length; i++)
             {
@@ -467,8 +490,14 @@ namespace Microsoft.CodeAnalysis
                     int assemblyIndex = referenceMap[i].Index;
                     Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
 
-                    referencedAssembliesMap.Add(references[i], assemblyIndex);
+                    MetadataReference reference = references[i];
+                    referencedAssembliesMap.Add(reference, assemblyIndex);
                     aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].AliasesOpt);
+
+                    if (!referenceMap[i].MergedReferences.IsEmpty)
+                    {
+                        (mergedAssemblyReferencesMapOpt ??= new Dictionary<MetadataReference, ImmutableArray<MetadataReference>>()).Add(reference, referenceMap[i].MergedReferences);
+                    }
 
                     hasRecursiveAliases |= !referenceMap[i].RecursiveAliasesOpt.IsDefault;
                 }

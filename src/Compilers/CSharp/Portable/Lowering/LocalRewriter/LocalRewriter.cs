@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Instrumenter instrumenter)
         {
             _compilation = compilation;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool instrumentForDynamicAnalysis,
             ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
             DebugDocumentProvider debugDocumentProvider,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
-            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, recordUsage: true, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
+            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
             return ((object)symbol != null);
         }
 
@@ -413,10 +413,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol method;
             if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
         }
 
-        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics, out MethodSymbol method)
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method)
         {
             return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
         }
@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode resultExpr;
             if (TypeSymbol.Equals(
                 indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Index, recordUsage: false),
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
                 // array[Index] is treated like a pattern-based System.Index indexing
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (TypeSymbol.Equals(
                 indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Range, recordUsage: false),
+                _compilation.GetWellKnownType(WellKnownType.System_Range),
                 TypeCompareKind.ConsiderEverything))
             {
                 // array[Range] is compiled to:

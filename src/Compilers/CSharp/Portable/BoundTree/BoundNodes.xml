@@ -32,6 +32,10 @@
   <ValueType Name="BoundTypeOrValueData"/>
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
+  <!-- PROTOTYPE(UsedAssemblyReferences): Remove this entry and adjusted code generator to handle 
+                                          ImmutableBindingDiagnostic specially, the same way as ImmutableArray.
+  -->
+  <ValueType Name="ImmutableBindingDiagnostic&lt;AssemblySymbol&gt;"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -1867,7 +1871,10 @@
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
-    <Field Name="Diagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" />
+    <!-- PROTOTYPE(UsedAssemblyReferences): Remove Null="allow" once code generator is adjusted to 
+                                            handle ImmutableBindingDiagnostic specially.
+    -->
+    <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic&lt;AssemblySymbol&gt;" Null="allow"/>
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 

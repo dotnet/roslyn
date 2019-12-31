@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected BoundExpression BindTargetExpression(DiagnosticBag diagnostics, Binder originalBinder, TypeSymbol targetTypeOpt = null)
+        protected BoundExpression BindTargetExpression(BindingDiagnosticBag diagnostics, Binder originalBinder, TypeSymbol targetTypeOpt = null)
         {
             if (_lazyExpressionAndDiagnostics == null)
             {
                 // Filter out method group in conversion.
-                DiagnosticBag expressionDiagnostics = DiagnosticBag.GetInstance();
+                var expressionDiagnostics = BindingDiagnosticBag.GetInstance();
                 BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
                 if (targetTypeOpt is object)
                 {
@@ -106,9 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class ExpressionAndDiagnostics
         {
             public readonly BoundExpression Expression;
-            public readonly ImmutableArray<Diagnostic> Diagnostics;
+            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public ExpressionAndDiagnostics(BoundExpression expression, ImmutableArray<Diagnostic> diagnostics)
+            public ExpressionAndDiagnostics(BoundExpression expression, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.Expression = expression;
                 this.Diagnostics = diagnostics;

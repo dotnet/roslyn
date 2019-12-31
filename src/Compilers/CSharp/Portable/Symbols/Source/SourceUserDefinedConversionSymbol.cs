@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
             SourceMemberContainerTypeSymbol containingType,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
             // Narrowing/Widening in VB and we want the languages to be consistent.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             Location location,
             ConversionOperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics) :
+            BindingDiagnosticBag diagnostics) :
             base(
                 MethodKind.Conversion,
                 name,

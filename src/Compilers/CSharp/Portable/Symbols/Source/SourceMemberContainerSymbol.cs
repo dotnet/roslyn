@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberContainerTypeSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             MergedTypeDeclaration declaration,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             _containingSymbol = containingSymbol;
             this.declaration = declaration;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(TypeKind typeKind, DiagnosticBag diagnostics)
+        private DeclarationModifiers MakeModifiers(TypeKind typeKind, BindingDiagnosticBag diagnostics)
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
             SourceMemberContainerTypeSymbol self,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
             modifierErrors = false;
@@ -432,8 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        protected abstract void CheckBase(DiagnosticBag diagnostics);
-        protected abstract void CheckInterfaces(DiagnosticBag diagnostics);
+        protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
+        protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishBaseType:
                         if (state.NotePartComplete(CompletionPart.StartBaseType))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             CheckBase(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishInterfaces:
                         if (state.NotePartComplete(CompletionPart.StartInterfaces))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             CheckInterfaces(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishInterfaces);
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishMemberChecks:
                         if (state.NotePartComplete(CompletionPart.StartMemberChecks))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
 
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeMembers == null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyTypeMembers, MakeTypeMembers(diagnostics), null) == null)
                 {
                     AddDeclarationDiagnostics(diagnostics);
@@ -1126,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeMembers;
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(DiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
@@ -1180,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNameDistinctFromType(Symbol member, DiagnosticBag diagnostics)
+        private void CheckMemberNameDistinctFromType(Symbol member, BindingDiagnosticBag diagnostics)
         {
             switch (this.TypeKind)
             {
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return membersAndInitializers;
             }
 
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             membersAndInitializers = BuildMembersAndInitializers(diagnostics);
 
             var alreadyKnown = Interlocked.CompareExchange(ref _lazyMembersAndInitializers, membersAndInitializers, null);
@@ -1370,7 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyMembersDictionary == null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 var membersDictionary = MakeAllMembers(diagnostics);
                 if (Interlocked.CompareExchange(ref _lazyMembersDictionary, membersDictionary, null) == null)
                 {
@@ -1395,7 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceFieldOrEvent);
         }
 
-        protected void AfterMembersChecks(DiagnosticBag diagnostics)
+        protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             if (IsInterface)
             {
@@ -1445,7 +1445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)
+        private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)
         {
             foreach (var member in GetMembersAndInitializers().NonTypeNonIndexerMembers)
             {
@@ -1453,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNameConflicts(DiagnosticBag diagnostics)
+        private void CheckMemberNameConflicts(BindingDiagnosticBag diagnostics)
         {
             Dictionary<string, ImmutableArray<Symbol>> membersByName = GetMembersByName();
 
@@ -1642,7 +1642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Report a name conflict; the error is reported on the location of method1.
         // UNDONE: Consider adding a secondary location pointing to the second method.
-        private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
+        private void ReportMethodSignatureCollision(BindingDiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
             // Partial methods are allowed to collide by signature.
             if (method1.IsPartial && method2.IsPartial)
@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
         }
 
-        private void CheckIndexerNameConflicts(DiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
+        private void CheckIndexerNameConflicts(BindingDiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
         {
             PooledHashSet<string> typeParameterNames = null;
             if (this.Arity > 0)
@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckIndexerSignatureCollisions(
             PropertySymbol indexer,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Dictionary<string, ImmutableArray<Symbol>> membersByName,
             Dictionary<PropertySymbol, PropertySymbol> indexersBySignature,
             ref string lastIndexerName)
@@ -1783,7 +1783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckSpecialMemberErrors(DiagnosticBag diagnostics)
+        private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
             var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
             foreach (var member in this.GetMembersUnordered())
@@ -1792,7 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckTypeParameterNameConflicts(DiagnosticBag diagnostics)
+        private void CheckTypeParameterNameConflicts(BindingDiagnosticBag diagnostics)
         {
             if (this.TypeKind == TypeKind.Delegate)
             {
@@ -1815,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckAccessorNameConflicts(DiagnosticBag diagnostics)
+        private void CheckAccessorNameConflicts(BindingDiagnosticBag diagnostics)
         {
             // Report errors where property and event accessors
             // conflict with other members of the same name.
@@ -1859,7 +1859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        var diagnostics = DiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
                         var value = (int)CheckStructCircularity(diagnostics).ToThreeState();
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
@@ -1876,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool CheckStructCircularity(DiagnosticBag diagnostics)
+        private bool CheckStructCircularity(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
@@ -1884,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return HasStructCircularity(diagnostics);
         }
 
-        private bool HasStructCircularity(DiagnosticBag diagnostics)
+        private bool HasStructCircularity(BindingDiagnosticBag diagnostics)
         {
             foreach (var valuesByName in GetMembersByName().Values)
             {
@@ -1924,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void CheckForProtectedInStaticClass(DiagnosticBag diagnostics)
+        private void CheckForProtectedInStaticClass(BindingDiagnosticBag diagnostics)
         {
             if (!IsStatic)
             {
@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckForUnmatchedOperators(DiagnosticBag diagnostics)
+        private void CheckForUnmatchedOperators(BindingDiagnosticBag diagnostics)
         {
             // SPEC: The true and false unary operators require pairwise declaration.
             // SPEC: A compile-time error occurs if a class or struct declares one 
@@ -1982,7 +1982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForEqualityAndGetHashCode(diagnostics);
         }
 
-        private void CheckForUnmatchedOperator(DiagnosticBag diagnostics, string operatorName1, string operatorName2)
+        private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2)
         {
             var ops1 = this.GetOperators(operatorName1);
             var ops2 = this.GetOperators(operatorName2);
@@ -1991,7 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void CheckForUnmatchedOperator(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ImmutableArray<MethodSymbol> ops1,
             ImmutableArray<MethodSymbol> ops2,
             string operatorName2)
@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private void CheckForEqualityAndGetHashCode(DiagnosticBag diagnostics)
+        private void CheckForEqualityAndGetHashCode(BindingDiagnosticBag diagnostics)
         {
             if (this.IsInterfaceType())
             {
@@ -2087,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void CheckFiniteFlatteningGraph(DiagnosticBag diagnostics)
+        private void CheckFiniteFlatteningGraph(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(ReferenceEquals(this, this.OriginalDefinition));
             if (AllTypeArgumentCount() == 0) return;
@@ -2139,7 +2139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckSequentialOnPartialType(DiagnosticBag diagnostics)
+        private void CheckSequentialOnPartialType(BindingDiagnosticBag diagnostics)
         {
             if (!IsPartial || this.Layout.Kind != LayoutKind.Sequential)
             {
@@ -2218,7 +2218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private Dictionary<string, ImmutableArray<Symbol>> MakeAllMembers(DiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<Symbol>> MakeAllMembers(BindingDiagnosticBag diagnostics)
         {
             var membersAndInitializers = GetMembersAndInitializers();
 
@@ -2356,7 +2356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MembersAndInitializers BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        private MembersAndInitializers BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             var builder = new MembersAndInitializersBuilder();
             AddDeclaredNontypeMembers(builder, diagnostics);
@@ -2398,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToReadOnlyAndFree();
         }
 
-        private void AddDeclaredNontypeMembers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        private void AddDeclaredNontypeMembers(MembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
         {
             foreach (var decl in this.declaration.Declarations)
             {
@@ -2462,7 +2462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void MergePartialMembers(
             ArrayBuilder<string> memberNames,
             Dictionary<string, ImmutableArray<Symbol>> membersByName,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             //key and value will be the same object
             var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.PartialMethodsComparer);
@@ -2572,7 +2572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckForMemberConflictWithPropertyAccessor(
             PropertySymbol propertySymbol,
             bool getNotSet,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!propertySymbol.IsExplicitInterfaceImplementation); // checked by caller
 
@@ -2620,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckForMemberConflictWithEventAccessor(
             EventSymbol eventSymbol,
             bool isAdder,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!eventSymbol.IsExplicitInterfaceImplementation); // checked by caller
 
@@ -2710,7 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
         }
 
-        private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             // The previous enum constant used to calculate subsequent
             // implicit enum constants. (This is the most recent explicit
@@ -2783,7 +2783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckInterfaceMembers(ImmutableArray<Symbol> nonTypeMembers, DiagnosticBag diagnostics)
+        private static void CheckInterfaceMembers(ImmutableArray<Symbol> nonTypeMembers, BindingDiagnosticBag diagnostics)
         {
             foreach (var member in nonTypeMembers)
             {
@@ -2791,7 +2791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckInterfaceMember(Symbol member, DiagnosticBag diagnostics)
+        private static void CheckInterfaceMember(Symbol member, BindingDiagnosticBag diagnostics)
         {
             switch (member.Kind)
             {
@@ -2846,7 +2846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void CheckForStructDefaultConstructors(
             ArrayBuilder<Symbol> members,
             bool isEnum,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             foreach (var s in members)
             {
@@ -2868,7 +2868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckForStructBadInitializers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        private void CheckForStructBadInitializers(MembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
@@ -2882,7 +2882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, BindingDiagnosticBag diagnostics)
         {
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
@@ -2955,7 +2955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void AddNonTypeMembers(
             MembersAndInitializersBuilder builder,
             SyntaxList<MemberDeclarationSyntax> members,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (members.Count == 0)
             {
@@ -3306,7 +3306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddInitializers(builder.StaticInitializers, staticInitializers);
         }
 
-        private void AddAccessorIfAvailable(ArrayBuilder<Symbol> symbols, MethodSymbol accessorOpt, DiagnosticBag diagnostics, bool checkName = false)
+        private void AddAccessorIfAvailable(ArrayBuilder<Symbol> symbols, MethodSymbol accessorOpt, BindingDiagnosticBag diagnostics, bool checkName = false)
         {
             if ((object)accessorOpt != null)
             {

@@ -187,10 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_globalNamespace == null)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
                     var globalNS = new SourceNamespaceSymbol(
                         this, this, DeclaringCompilation.MergedRootDeclaration, diagnostics);
-                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    Debug.Assert(diagnostics.DiagnosticBag.IsEmptyWithoutResolution);
                     diagnostics.Free();
                     Interlocked.CompareExchange(ref _globalNamespace, globalNS, null);
                 }
@@ -223,11 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.StartValidatingReferencedAssemblies:
                         {
-                            DiagnosticBag diagnostics = null;
+                            BindingDiagnosticBag diagnostics = null;
 
                             if (AnyReferencedAssembliesAreLinked)
                             {
-                                diagnostics = DiagnosticBag.GetInstance();
+                                diagnostics = BindingDiagnosticBag.GetInstance();
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (diagnostics != null)
                                 {
-                                    _assemblySymbol.DeclaringCompilation.DeclarationDiagnostics.AddRange(diagnostics);
+                                    _assemblySymbol.AddDeclarationDiagnostics(diagnostics);
                                 }
 
                                 _state.NotePartComplete(CompletionPart.FinishValidatingReferencedAssemblies);
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void ValidateLinkedAssemblies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void ValidateLinkedAssemblies(BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             foreach (AssemblySymbol a in GetReferencedAssemblySymbols())
             {
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.Options.AllowUnsafe)
             {
                 // NOTE: GlobalAttrBind::EmitCompilerGeneratedAttrs skips attribute if the well-known type isn't available.
-                if (!(compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute, recordUsage: false) is MissingMetadataTypeSymbol))
+                if (!(compilation.GetWellKnownType(WellKnownType.System_Security_UnverifiableCodeAttribute) is MissingMetadataTypeSymbol))
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));

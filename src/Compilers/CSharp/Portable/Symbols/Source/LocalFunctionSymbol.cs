@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
         // diagnostics get added to the store exactly once
-        private readonly DiagnosticBag _declarationDiagnostics;
+        private readonly BindingDiagnosticBag _declarationDiagnostics;
 
         public LocalFunctionSymbol(
             Binder binder,
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntax = syntax;
             _containingSymbol = containingSymbol;
 
-            _declarationDiagnostics = new DiagnosticBag();
+            _declarationDiagnostics = new BindingDiagnosticBag();
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics);
+                syntax.Modifiers.ToDeclarationModifiers(diagnostics: _declarationDiagnostics.DiagnosticBag);
 
             this.CheckUnsafeModifier(_declarationModifiers, _declarationDiagnostics);
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _typeParameters = ImmutableArray<SourceMethodTypeParameterSymbol>.Empty;
-                ReportErrorIfHasConstraints(_syntax.ConstraintClauses, _declarationDiagnostics);
+                ReportErrorIfHasConstraints(_syntax.ConstraintClauses, _declarationDiagnostics.DiagnosticBag);
             }
 
             if (IsExtensionMethod)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public Binder ParameterBinder => _binder;
 
-        internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
+        internal void GetDeclarationDiagnostics(BindingDiagnosticBag addTo)
         {
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             addTo.AddRange(_declarationDiagnostics);
         }
 
-        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+        internal override void AddDeclarationDiagnostics(BindingDiagnosticBag diagnostics)
             => _declarationDiagnostics.AddRange(diagnostics);
 
         public override bool RequiresInstanceReceiver => false;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             SyntaxToken arglistToken;
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
 
             var parameters = ParameterHelpers.MakeParameters(
                 _binder,
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             TypeSyntax returnTypeSyntax = _syntax.ReturnType;
             TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (this.RefKind != RefKind.None)
                     {
-                        ReportBadRefToken(returnTypeSyntax, diagnostics);
+                        ReportBadRefToken(returnTypeSyntax, diagnostics.DiagnosticBag);
                     }
                     else if (returnType.Type.IsBadAsyncReturn(compilation))
                     {
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, DiagnosticBag diagnostics)
+        private static void ReportAttributesDisallowed(SyntaxList<AttributeListSyntax> attributes, BindingDiagnosticBag diagnostics)
         {
             foreach (var attrList in attributes)
             {
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(DiagnosticBag diagnostics)
+        private ImmutableArray<SourceMethodTypeParameterSymbol> MakeTypeParameters(BindingDiagnosticBag diagnostics)
         {
             var result = ArrayBuilder<SourceMethodTypeParameterSymbol>.GetInstance();
             var typeParameters = _syntax.TypeParameterList.Parameters;
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeParameterConstraints.IsDefault)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 var constraints = this.MakeTypeParameterConstraints(
                     _binder,
                     TypeParameters,

@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             compiler.WaitForWorkers()
 
             If moduleBeingBuiltOpt IsNot Nothing Then
-                Dim additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes(diagnostics)
+                Dim additionalTypes = moduleBeingBuiltOpt.GetAdditionalTopLevelTypes()
                 If Not additionalTypes.IsEmpty Then
                     compiler.CompileSynthesizedMethods(additionalTypes)
                 End If

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class DocumentationCommentWalker : CSharpSyntaxWalker
         {
             private readonly CSharpCompilation _compilation;
-            private readonly DiagnosticBag _diagnostics;
+            private readonly BindingDiagnosticBag _diagnostics;
             private readonly Symbol _memberSymbol;
             private readonly TextWriter _writer;
             private readonly ArrayBuilder<CSharpSyntaxNode> _includeElementNodes;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private DocumentationCommentWalker(
                 CSharpCompilation compilation,
-                DiagnosticBag diagnostics,
+                BindingDiagnosticBag diagnostics,
                 Symbol memberSymbol,
                 TextWriter writer,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </remarks>
             public static string GetSubstitutedText(
                 CSharpCompilation compilation,
-                DiagnosticBag diagnostics,
+                BindingDiagnosticBag diagnostics,
                 Symbol symbol,
                 DocumentationCommentTriviaSyntax trivia,
                 ArrayBuilder<CSharpSyntaxNode> includeElementNodes,
@@ -93,13 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder binder = factory.GetBinder(cref);
 
                     // Do this for the diagnostics, even if it won't be written.
-                    DiagnosticBag crefDiagnostics = DiagnosticBag.GetInstance();
-                    string docCommentId = GetDocumentationCommentId(cref, binder, crefDiagnostics);
-                    if (diagnose)
-                    {
-                        _diagnostics.AddRange(crefDiagnostics);
-                    }
-                    crefDiagnostics.Free();
+                    string docCommentId = GetDocumentationCommentId(cref, binder, diagnose ? _diagnostics : new BindingDiagnosticBag(diagnosticBag: null, _diagnostics.DependenciesBag));
 
                     if (_writer != null)
                     {

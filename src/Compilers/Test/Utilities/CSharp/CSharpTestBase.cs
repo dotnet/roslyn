@@ -1063,20 +1063,31 @@ namespace System.Runtime.CompilerServices
             var compileDiagnostics = comp.GetDiagnostics();
             var emitDiagnostics = comp.GetEmitDiagnostics();
 
+            var resolvedReferences = comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Assembly);
+
             if (!compileDiagnostics.Any(d => d.DefaultSeverity == DiagnosticSeverity.Error) &&
-                comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Assembly).Count() > used.Length)
+                !resolvedReferences.Any(r => r.Properties.HasRecursiveAliases))
             {
-                if (!compileDiagnostics.Any(d => d.Code == (int)ErrorCode.HDN_UnusedExternAlias || d.Code == (int)ErrorCode.HDN_UnusedUsingDirective))
+                if (resolvedReferences.Count() > used.Length)
                 {
-                    var comp2 = comp.RemoveAllReferences().AddReferences(used.Concat(comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Module)));
-                    comp2.GetEmitDiagnostics().Where(d => shouldCompare(d)).Verify(
-                        emitDiagnostics.Where(d => shouldCompare(d)).
-                                        Select(d => new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity: false, includeEffectiveSeverity: false)).ToArray());
+                    AssertSubset(used, resolvedReferences);
+
+                    if (!compileDiagnostics.Any(d => d.Code == (int)ErrorCode.HDN_UnusedExternAlias || d.Code == (int)ErrorCode.HDN_UnusedUsingDirective))
+                    {
+                        var comp2 = comp.RemoveAllReferences().AddReferences(used.Concat(comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Module)));
+                        comp2.GetEmitDiagnostics().Where(d => shouldCompare(d)).Verify(
+                            emitDiagnostics.Where(d => shouldCompare(d)).
+                                            Select(d => new DiagnosticDescription(d, errorCodeOnly: false, includeDefaultSeverity: false, includeEffectiveSeverity: false)).ToArray());
+                    }
+                }
+                else
+                {
+                    AssertEx.Equal(resolvedReferences, used);
                 }
             }
             else
             {
-                AssertEx.Equal(comp.References.Where(r => r.Properties.Kind == MetadataImageKind.Assembly && comp.GetAssemblyOrModuleSymbol(r) is object), used);
+                AssertSubset(used, resolvedReferences);
             }
 
             static bool shouldCompare(Diagnostic d)
@@ -1086,6 +1097,14 @@ namespace System.Runtime.CompilerServices
                        d.Code != (int)ErrorCode.WRN_AmbiguousXMLReference &&
                        d.Code != (int)ErrorCode.WRN_MultiplePredefTypes &&
                        d.Code != (int)ErrorCode.WRN_SameFullNameThisAggNs;
+            }
+
+            static void AssertSubset(ImmutableArray<MetadataReference> used, IEnumerable<MetadataReference> resolvedReferences)
+            {
+                foreach (var reference in used)
+                {
+                    Assert.Contains(reference, resolvedReferences);
+                }
             }
         }
 #endif
@@ -1515,7 +1534,7 @@ namespace System.Runtime.CompilerServices
 
                 try
                 {
-                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, diagnostics, default(CancellationToken), filterTree, filterSpanWithinTree);
+                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, new BindingDiagnosticBag(diagnostics), default(CancellationToken), filterTree, filterSpanWithinTree);
                 }
                 finally
                 {

@@ -127,10 +127,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo result = base.GetUseSiteDiagnostic();
-            MergeUseSiteDiagnostics(ref result, _underlyingProperty.GetUseSiteDiagnostic());
+            UseSiteInfo<AssemblySymbol> result = base.GetUseSiteInfo();
+            MergeUseSiteInfo(ref result, _underlyingProperty.GetUseSiteInfo());
             return result;
         }
 
