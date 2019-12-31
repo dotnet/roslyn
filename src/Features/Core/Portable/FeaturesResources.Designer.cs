@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns {0}.
+        ///   Looks up a localized string similar to Awaited task returns &apos;{0}&apos;.
         /// </summary>
         internal static string Awaited_task_returns_0 {
             get {
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns no value..
+        ///   Looks up a localized string similar to Awaited task returns no value.
         /// </summary>
         internal static string Awaited_task_returns_no_value {
             get {
