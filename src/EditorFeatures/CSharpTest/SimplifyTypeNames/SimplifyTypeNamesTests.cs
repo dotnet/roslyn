@@ -3128,6 +3128,45 @@ namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase6()
+        {
+            await TestMissingAsync(
+@"using System.Reflection.Metadata;
+using Microsoft.Cci;
+
+namespace System.Reflection.Metadata
+{
+    public enum PrimitiveTypeCode
+    {
+        Void = 1,
+    }
+}
+
+namespace Microsoft.Cci
+{
+    internal enum PrimitiveTypeCode
+    {
+        NotPrimitive,
+        Pointer,
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    internal class TypeSymbol
+    {
+        internal Cci.PrimitiveTypeCode PrimitiveTypeCode => Cci.PrimitiveTypeCode.Pointer;
+    }
+
+    internal partial class NamedTypeSymbol : TypeSymbol
+    {
+        Cci.PrimitiveTypeCode TypeCode
+            => [|Cci|].PrimitiveTypeCode.NotPrimitive;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAliasQualifiedType()
         {
             var source =

@@ -280,20 +280,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             foreach (var found in foundSymbols)
             {
-                if (IsMatch(nameSymbol, found, arity))
+                if (!SkipArityCheck(found, arity) &&
+                    found.GetArity() != arity)
                 {
-                    matches.Object.Add(found);
+                    continue;
                 }
+
+                matches.Object.Add(found);
             }
 
             if (matches.Object.Count == 0)
                 return false;
 
-            // It's only ok to get multiple results if we're getting method overloads.
-            if (matches.Object.Count >= 2 && !(matches.Object[0] is IMethodSymbol))
-                return false;
+            if (matches.Object.Count >= 2)
+            {
+                // It's only ok to get multiple results if we're getting method overloads.
+                if (matches.Object[0] is IMethodSymbol)
+                {
+                    foreach (var match in matches.Object)
+                    {
+                        if (IsMatch(nameSymbol, match))
+                            return this.AddDiagnostic(diagnosticLocation, diagnoticId);
+                    }
+                }
 
-            return this.AddDiagnostic(diagnosticLocation, diagnoticId);
+                return false;
+            }
+
+            Debug.Assert(matches.Object.Count == 1);
+            if (IsMatch(nameSymbol, matches.Object[0]))
+                return this.AddDiagnostic(diagnosticLocation, diagnoticId);
+
+            return false;
+        }
+
+        private bool IsMatch(ISymbol nameSymbol, ISymbol match)
+        {
+            return Equals(nameSymbol.OriginalDefinition, match.OriginalDefinition) &&
+                   Equals(nameSymbol.ContainingSymbol, match.ContainingSymbol);
         }
 
         private bool SimplifyStaticMemberAccessThroughDerivedType(
@@ -590,9 +614,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
                 return true;
 
-            // See if we're in the `Color Color` case.  i.e user may have written
-            // `X.Color.Red`.  We need to retry binding `Color` as a decl here to 
-            // see if we can simplify to that.
+            // See if we're in the `Color Color` case.  i.e user may have written `X.Color.Red`.  We
+            // need to retry binding `Color` as a decl here to see if we can simplify to that.
+            //
+            // From the spec:
+            //
+            // In a member access of the form E.I, if E is a single identifier, and if the meaning
+            // of E as a simple_name (Simple names) is a constant, field, property, local variable,
+            // or parameter with the same type as the meaning of E as a type_name (Namespace and
+            // type names), then both possible meanings of E are permitted
+
             if (!isNamespaceOrTypeContext &&
                 rightArity == 0 &&
                 IsColorColorCase(foundSymbols))
@@ -601,24 +632,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                     root.Parent is QualifiedCrefSyntax)
                 {
                     foundSymbols = LookupName(root, isNamespaceOrTypeContext: true, rightIdentifier);
-                    if (AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
+                    if (foundSymbols.Length == 1 &&
+                        AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
                         return true;
                 }
             }
 
             return false;
-        }
-
-        private static bool IsMatch(ISymbol symbol, ISymbol found, int arity)
-        {
-            if (!SkipArityCheck(found, arity) &&
-                found.GetArity() != arity)
-            {
-                return false;
-            }
-
-            return Equals(symbol.OriginalDefinition, found.OriginalDefinition) &&
-                   Equals(symbol.ContainingSymbol, found.ContainingSymbol);
         }
 
         private static bool SkipArityCheck(ISymbol found, int arity)
