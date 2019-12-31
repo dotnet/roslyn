@@ -15,19 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
-    //class C
-    //{
-    //    void M()
-    //    {
-    //        N<int>(1);
-    //    }
-
-    //    void N<T>(T t)
-    //    {
-
-    //    }
-    //}
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
@@ -64,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            using var simplifier = new TypeSyntaxSimplifierWalker(semanticModel, optionSet, cancellationToken);
+            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, cancellationToken);
             simplifier.Visit(root);
 
             foreach (var diagnostic in simplifier.Diagnostics)

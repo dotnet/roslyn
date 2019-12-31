@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     /// <summary>
     /// This walker sees if we can simplify types/namespaces that it encounters.
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     /// </summary>
     internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
+        private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
         private readonly SemanticModel _semanticModel;
         private readonly OptionSet _optionSet;
         private readonly bool _preferPredefinedTypeInDecl;
@@ -40,8 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         public readonly List<Diagnostic> Diagnostics = new List<Diagnostic>();
 
         public TypeSyntaxSimplifierWalker(
-            SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel,
+            OptionSet optionSet, CancellationToken cancellationToken)
         {
+            _analyzer = analyzer;
             _semanticModel = semanticModel;
             _optionSet = optionSet;
             _cancellationToken = cancellationToken;

@@ -103,25 +103,34 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            diagnostic = default;
-
             var syntaxTree = node.SyntaxTree;
             var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
+                diagnostic = null;
                 return false;
             }
 
+            return TrySimplify(model, node, out diagnostic, optionSet, cancellationToken);
+        }
+
+        public bool TrySimplify(
+            SemanticModel model, SyntaxNode node,
+            out Diagnostic diagnostic, OptionSet optionSet,
+            CancellationToken cancellationToken)
+        {
             if (!CanSimplifyTypeNameExpressionCore(
                     model, node, optionSet,
                     out var issueSpan, out var diagnosticId, out var inDeclaration,
                     cancellationToken))
             {
+                diagnostic = null;
                 return false;
             }
 
             if (model.SyntaxTree.OverlapsHiddenPosition(issueSpan, cancellationToken))
             {
+                diagnostic = null;
                 return false;
             }
 
