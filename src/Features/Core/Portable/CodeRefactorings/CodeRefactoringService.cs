@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             public ImmutableArray<CodeRefactoringProvider> GetRefactorings(string language)
             {
-                return ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, CreateRefactorings);
+                return ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, (language, provider) => provider.CreateRefactorings(language), this);
             }
 
             private ImmutableArray<CodeRefactoringProvider> CreateRefactorings(string language)
