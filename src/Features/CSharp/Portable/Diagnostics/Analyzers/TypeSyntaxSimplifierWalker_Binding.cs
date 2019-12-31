@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return false;
         }
 
-        private bool VisitAnyQualifiedName(SyntaxNode node)
+        private bool SimplifyQualifiedReferenceToNamespaceOrType(SyntaxNode node)
         {
             var (left, right) = TryGetPartsOfQualifiedName(node).Value;
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 return true;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-            if (TryReplaceExprWithRightSide(node, left, right, IDEDiagnosticIds.SimplifyNamesDiagnosticId, ref symbol))
+            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, left, right, IDEDiagnosticIds.SimplifyNamesDiagnosticId, ref symbol))
                 return true;
 
             return false;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
         {
-            if (VisitAnyQualifiedName(node))
+            if (SimplifyQualifiedReferenceToNamespaceOrType(node))
                 return;
 
             // we could have something like `A.B.C<D.E>`.  We want to visit both A.B to see if that
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
         {
-            if (VisitAnyQualifiedName(node))
+            if (SimplifyQualifiedReferenceToNamespaceOrType(node))
                 return;
 
             // We still want to simplify the right side of this name.  We might have something
@@ -166,7 +166,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
         public override void VisitQualifiedCref(QualifiedCrefSyntax node)
         {
-            if (VisitAnyQualifiedName(node))
+            // A qualified cref could be referencing a namespace, type or member.  Try simplifying
+            // all of those possibilities.
+
+            if (SimplifyQualifiedReferenceToNamespaceOrType(node))
+                return;
+
+            if (SimplifyStaticMemberAccess(node))
                 return;
 
             base.VisitQualifiedCref(node);
@@ -200,14 +206,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
                     return;
 
-                if (SimplifyStaticMemberAccessInScope(node))
-                    return;
-
-                if (SimplifyStaticMemberAccessThroughDerivedType(node))
+                if (SimplifyStaticMemberAccess(node))
                     return;
             }
 
             base.VisitMemberAccessExpression(node);
+        }
+
+        private bool SimplifyStaticMemberAccess(SyntaxNode node)
+        {
+            var parts = TryGetPartsOfQualifiedName(node);
+            if (parts == null)
+                return false;
+
+            var (left, right) = parts.Value;
+
+            if (SimplifyStaticMemberAccessInScope(node, left, right))
+                return true;
+
+            if (SimplifyStaticMemberAccessThroughDerivedType(node, left, right))
+                return true;
+
+            return false;
         }
 
         private bool TrySimplifyBaseAccessExpression(MemberAccessExpressionSyntax node)
@@ -233,10 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
-        private bool SimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)
+        private bool SimplifyStaticMemberAccessInScope(
+            SyntaxNode node, ExpressionSyntax left, SimpleNameSyntax right)
         {
-            Debug.Assert(IsSimplifiableMemberAccess(node));
-            var memberNameNode = node.Name;
+            var memberNameNode = right;
 
             // see if we can just access this member using it's name alone here.
             var memberName = memberNameNode.Identifier.ValueText;
@@ -249,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             var foundSymbols = LookupName(node, isNamespaceOrTypeContext: false, memberName);
             return AddMatches(nameSymbol, foundSymbols, memberNameNode.Arity,
-                node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+                left, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
         private bool AddMatches(
@@ -276,10 +296,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             return this.AddDiagnostic(diagnosticLocation, diagnoticId);
         }
 
-        private bool SimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
+        private bool SimplifyStaticMemberAccessThroughDerivedType(
+            SyntaxNode node, ExpressionSyntax left, SimpleNameSyntax right)
         {
-            Debug.Assert(IsSimplifiableMemberAccess(node));
-            var memberNameNode = node.Name;
+            var memberNameNode = right;
 
             // Member on the right of the dot needs to be a static member or another named type.
             var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
@@ -296,11 +316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             // If the user is already accessing the static through its containing type, there's
             // nothing we need to simplify to.
-            var containerSymbol = _semanticModel.GetSymbolInfo(node.Expression).Symbol;
+            var containerSymbol = _semanticModel.GetSymbolInfo(left).Symbol;
             if (Equals(containerSymbol, nameSymbol.ContainingType))
                 return false;
 
-            return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
+            return this.AddDiagnostic(left, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
@@ -331,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 
             var parts = TryGetPartsOfQualifiedName(node);
             if (parts != null &&
-                TryReplaceExprWithRightSide(node, parts.Value.left, parts.Value.right, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
+                TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, parts.Value.left, parts.Value.right, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
             {
                 return true;
             }
@@ -351,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, ref symbol))
                 return true;
 
-            if (TryReplaceExprWithRightSide(node, node.Expression, node.Name, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
+            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, node.Expression, node.Name, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
                 return true;
 
             return false;
@@ -524,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 _ => default((ExpressionSyntax, SimpleNameSyntax)?),
             };
 
-        private bool TryReplaceExprWithRightSide(
+        private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(
             SyntaxNode root, ExpressionSyntax left, SimpleNameSyntax right,
             string diagnosticId, ref INamespaceOrTypeSymbol symbol)
         {

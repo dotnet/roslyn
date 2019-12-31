@@ -5059,6 +5059,28 @@ enum E
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyEnumMemberReferenceInsideEnumDocComment()
+        {
+            await TestInRegularAndScript1Async(
+@"
+/// <summary>
+/// <see cref=""[|E|].Goo""/>
+/// </summary>
+enum E
+{
+    Goo = 1,
+}",
+@"
+/// <summary>
+/// <see cref=""Goo""/>
+/// </summary>
+enum E
+{
+    Goo = 1,
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
