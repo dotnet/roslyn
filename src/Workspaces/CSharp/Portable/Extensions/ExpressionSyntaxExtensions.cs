@@ -1826,6 +1826,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            if (name.Parent is NameMemberCrefSyntax)
+                return false;
+
             // Inside crefs, if the T in this Nullable{T} is being declared right here
             // then this Nullable{T} is not a constructed generic type and we should
             // not offer to simplify this to T?.

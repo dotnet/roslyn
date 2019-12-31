@@ -2453,20 +2453,36 @@ class A
         }
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestNullableInsideCref_AllowedIfReferencingActualType()
+        public async Task TestNullableInsideCref_NotAllowedAtTopLevel()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 /// <summary>
 /// <see cref=""[|Nullable{int}|]""/>
 /// </summary>
 class A
 {
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [WorkItem(40664, "https://github.com/dotnet/roslyn/issues/40664")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNullableInsideCref_TopLevel2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+/// <summary>
+/// <see cref=""[|System.Nullable{int}|]""/>
+/// </summary>
+class A
+{
 }",
 @"using System;
 /// <summary>
-/// <see cref=""int?""/>
+/// <see cref=""Nullable{int}""/>
 /// </summary>
 class A
 {
