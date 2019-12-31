@@ -2,13 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
@@ -24,10 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private static bool IsInNamespaceOrTypeContext(SyntaxNode location)
             => location is ExpressionSyntax expr && SyntaxFacts.IsInNamespaceOrTypeContext(expr);
 
-        //private ImmutableArray<ISymbol> LookupName(SyntaxNode location, bool isNamespaceOrTypeContext, string name)
-        //    => isNamespaceOrTypeContext
-        //        ? _semanticModel.LookupNamespacesAndTypes(location.SpanStart, name: name)
-        //        : _semanticModel.LookupSymbols(location.SpanStart, name: name);
+        private bool TrySimplify(SyntaxNode node)
+        {
+            if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _optionSet, _cancellationToken))
+                return false;
+
+            this.Diagnostics.Add(diagnostic);
+            return true;
+        }
 
         // For back-compat, we treat everything in a cref as if it's not a declaration context.
         private bool InDeclarationContext(SyntaxNode node)
@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 // predefined-type name.  Do a very quick syntactic check to even see if either of those
                 // are possible.
                 var identifier = node.Identifier.ValueText;
-                INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
+                if (TryReplaceWithPredefinedType(node, identifier))
                     return;
 
-                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
+                INamespaceOrTypeSymbol symbol = null;
+                if (TryReplaceWithAlias(node, identifier, ref symbol))
                     return;
             }
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 // A generic name is never a predefined type. So we don't need to check for that.
                 var identifier = node.Identifier.ValueText;
                 INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
+                if (TryReplaceWithAlias(node, identifier, ref symbol))
                     return;
 
                 // Might be a reference to `Nullable<T>` that we can replace with `T?`
@@ -83,22 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         {
             // If we have a generic method call (like `Goo<int>(...)`), see if we can replace this
             // with a call it like so `Goo(...)`.
-            if (IsNameOfInvocation(node))
-            {
-                if (TrySimplify(node))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private bool TrySimplify(SyntaxNode node)
-        {
-            if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _optionSet, _cancellationToken))
+            if (!IsNameOfInvocation(node))
                 return false;
 
-            this.Diagnostics.Add(diagnostic);
-            return true;
+            return TrySimplify(node);
         }
 
         private static bool IsNameOfInvocation(GenericNameSyntax name)
@@ -122,18 +110,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // We have a qualified name (like A.B).  Check and see if 'B' is the name of
             // predefined type, or if there's something aliased to the name B.
             var identifier = right.Identifier.ValueText;
-            INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
+            if (TryReplaceWithPredefinedType(node, identifier))
                 return true;
 
-            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
+            INamespaceOrTypeSymbol symbol = null;
+            if (TryReplaceWithAlias(node, identifier, ref symbol))
                 return true;
 
             if (TryReplaceWithNullable(node, identifier, ref symbol))
                 return true;
 
             // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
-            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, left, right, IDEDiagnosticIds.SimplifyNamesDiagnosticId, ref symbol))
+            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, right, ref symbol))
                 return true;
 
             return false;
@@ -216,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             var (left, right) = parts.Value;
 
-            if (SimplifyStaticMemberAccessInScope(node, left, right))
+            if (SimplifyStaticMemberAccessInScope(node, right))
                 return true;
 
             if (SimplifyStaticMemberAccessThroughDerivedType(node, left, right))
@@ -243,14 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // looking up through an instance may involve far more complex overload resolution (i.e.
             // because of different instance members in scope, or extension methods).
             return TrySimplify(node);
-            //if (!node.CanReplaceWithReducedName(node.Name, _semanticModel, _cancellationToken))
-            //    return false;
-
-            //return this.AddDiagnostic(node.Expression, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
         private bool SimplifyStaticMemberAccessInScope(
-            SyntaxNode node, ExpressionSyntax left, SimpleNameSyntax right)
+            SyntaxNode node, SimpleNameSyntax right)
         {
             var memberNameNode = right;
 
@@ -259,56 +243,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!Peek(_staticNamesInScopeStack).Contains(memberName))
                 return false;
 
-            var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
-            if (!IsNamedTypeOrStaticSymbol(nameSymbol))
-                return false;
+            //var nameSymbol = _semanticModel.GetSymbolInfo(memberNameNode).Symbol;
+            //if (!IsNamedTypeOrStaticSymbol(nameSymbol))
+            //    return false;
 
             return TrySimplify(node);
-            //var foundSymbols = LookupName(node, isNamespaceOrTypeContext: false, memberName);
-            //return AddMatches(nameSymbol, foundSymbols, memberNameNode.Arity,
-            //    left, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
-
-        //private bool AddMatches(
-        //    ISymbol nameSymbol, ImmutableArray<ISymbol> foundSymbols, int arity,
-        //    SyntaxNode diagnosticLocation, string diagnoticId)
-        //{
-        //    using var matches = SharedPools.Default<List<ISymbol>>().GetPooledObject();
-
-        //    foreach (var found in foundSymbols)
-        //    {
-        //        if (!SkipArityCheck(found, arity) &&
-        //            found.GetArity() != arity)
-        //        {
-        //            continue;
-        //        }
-
-        //        matches.Object.Add(found);
-        //    }
-
-        //    if (matches.Object.Count == 0)
-        //        return false;
-
-        //    // It's only ok to get multiple results if we're getting method overloads.
-        //    if (matches.Object.Count >= 2 && !(matches.Object[0] is IMethodSymbol))
-        //        return false;
-
-
-        //    foreach (var match in matches.Object)
-        //    {
-        //        if (IsMatch(nameSymbol, match))
-        //            return this.AddDiagnostic(diagnosticLocation, diagnoticId);
-        //    }
-
-
-        //    return false;
-        //}
-
-        //private bool IsMatch(ISymbol nameSymbol, ISymbol match)
-        //{
-        //    return Equals(nameSymbol.OriginalDefinition, match.OriginalDefinition) &&
-        //           Equals(nameSymbol.ContainingSymbol, match.ContainingSymbol);
-        //}
 
         private bool SimplifyStaticMemberAccessThroughDerivedType(
             SyntaxNode node, ExpressionSyntax left, SimpleNameSyntax right)
@@ -335,7 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
 
             return TrySimplify(node);
-            // return this.AddDiagnostic(left, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId);
         }
 
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
@@ -357,16 +296,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
 
             var identifier = rightmostName.Identifier.ValueText;
-            INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithPredefinedType(node, identifier, ref symbol))
+            if (TryReplaceWithPredefinedType(node, identifier))
                 return true;
 
-            if (TryReplaceWithAlias(node, identifier, nameMustMatch: false, ref symbol))
+            INamespaceOrTypeSymbol symbol = null;
+            if (TryReplaceWithAlias(node, identifier, ref symbol))
                 return true;
 
             var parts = TryGetPartsOfQualifiedName(node);
             if (parts != null &&
-                TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, parts.Value.left, parts.Value.right, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
+                TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, parts.Value.right, ref symbol))
             {
                 return true;
             }
@@ -383,10 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // simplify to an alias if it has the same name as us.
             INamespaceOrTypeSymbol symbol = null;
             var memberName = node.Name.Identifier.ValueText;
-            if (TryReplaceWithAlias(node, memberName, nameMustMatch: true, ref symbol))
+            if (TryReplaceWithAlias(node, memberName, ref symbol))
                 return true;
 
-            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, node.Expression, node.Name, IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, ref symbol))
+            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, node.Name, ref symbol))
                 return true;
 
             return false;
@@ -437,35 +376,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return symbolInfo.Symbol as INamespaceOrTypeSymbol;
         }
 
-        //private bool AddAliasDiagnostic(SyntaxNode node, string alias)
-        //{
-        //    if (node is IdentifierNameSyntax identifier &&
-        //        alias == identifier.Identifier.ValueText)
-        //    {
-        //        // No point simplifying an identifier to the same alias name.
-        //        return false;
-        //    }
-
-        //    var diagnosticId = node.Kind() == SyntaxKind.SimpleMemberAccessExpression
-        //        ? IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
-        //        : IDEDiagnosticIds.SimplifyNamesDiagnosticId;
-
-        //    // If we're replacing a qualified name with an alias that is the same as
-        //    // the RHS, then don't mark the entire type-syntax as being simplified.
-        //    // Only mark the LHS.
-        //    var parts = TryGetPartsOfQualifiedName(node);
-        //    if (parts != null &&
-        //        parts.Value.right is IdentifierNameSyntax identifier2 &&
-        //        alias == identifier2.Identifier.ValueText)
-        //    {
-        //        return this.AddDiagnostic(parts.Value.left, diagnosticId);
-        //    }
-
-        //    return this.AddDiagnostic(node, diagnosticId);
-        //}
-
         private bool TryReplaceWithAlias(
-            SyntaxNode node, string typeName, bool nameMustMatch, ref INamespaceOrTypeSymbol symbol)
+            SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
             // See if we actually have an alias to something with our name.
             if (!Peek(_aliasedSymbolNamesStack).Contains(typeName))
@@ -476,30 +388,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
 
             // Next, see if there's an alias in scope we can bind to.
-            var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(node);
             for (var i = _aliasStack.Count - 1; i >= 0; i--)
             {
                 var symbolToAlias = _aliasStack[i];
                 if (symbolToAlias.TryGetValue(symbol, out var alias))
                 {
                     return TrySimplify(node);
-                    //if (nameMustMatch && alias != typeName)
-                    //    continue;
-
-                    //var foundSymbols = LookupName(node, isNamespaceOrTypeContext, alias);
-                    //foreach (var found in foundSymbols)
-                    //{
-                    //    if (found is IAliasSymbol aliasSymbol && aliasSymbol.Target.Equals(symbol))
-                    //        return AddAliasDiagnostic(node, alias);
-                    //}
                 }
             }
 
             return false;
         }
 
-        private bool TryReplaceWithPredefinedType(
-            SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
+        private bool TryReplaceWithPredefinedType(SyntaxNode node, string typeName)
         {
             var inDeclaration = InDeclarationContext(node);
             if (inDeclaration && !_preferPredefinedTypeInDecl)
@@ -508,23 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!inDeclaration && !_preferPredefinedTypeInMemberAccess)
                 return false;
 
-            if (s_predefinedTypeNames.Contains(typeName) &&
-                !node.IsParentKind(SyntaxKind.UsingDirective) &&
-                !IsNameOfArgumentExpression(node))
-            {
-                return TrySimplify(node);
-                //symbol ??= GetNamespaceOrTypeSymbol(node);
-                //if (symbol is ITypeSymbol typeSymbol)
-                //{
-                //    var specialTypeKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(typeSymbol.SpecialType);
-                //    if (specialTypeKind != SyntaxKind.None)
-                //    {
-                //        return this.AddDiagnostic(node, IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId);
-                //    }
-                //}
-            }
+            if (!s_predefinedTypeNames.Contains(typeName))
+                return false;
 
-            return false;
+            return TrySimplify(node);
         }
 
         private bool IsNameOfArgumentExpression(SyntaxNode node)
@@ -544,7 +432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     typeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return TrySimplify(node);
-                    // return AddDiagnostic(node, IDEDiagnosticIds.SimplifyNamesDiagnosticId);
                 }
             }
 
@@ -563,8 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             };
 
         private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(
-            SyntaxNode root, ExpressionSyntax left, SimpleNameSyntax right,
-            string diagnosticId, ref INamespaceOrTypeSymbol symbol)
+            SyntaxNode root, SimpleNameSyntax right, ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
 
@@ -575,13 +461,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!Peek(_declarationNamesInScopeStack).Contains(rightIdentifier))
                 return false;
 
-            symbol ??= GetNamespaceOrTypeSymbol(root);
-            if (symbol == null)
-                return false;
-
             if (root is QualifiedNameSyntax qualifiedName &&
                 IsNameOfUsingDirective(qualifiedName, out var usingDirective))
             {
+                symbol ??= GetNamespaceOrTypeSymbol(root);
+                if (symbol == null)
+                    return false;
+
                 // Check for a couple of cases where it is legal to simplify, but where users prefer
                 // that we not do that.
 
@@ -601,70 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             return TrySimplify(root);
-            //// Now try to bind just 'B' in our current location.  If it binds to 'A.B' then we can
-            //// reduce to just that name.
-            //var isNamespaceOrTypeContext = IsInNamespaceOrTypeContext(root);
-            //var foundSymbols = LookupName(root, isNamespaceOrTypeContext, rightIdentifier);
-            //var rightArity = right.Arity;
-            //if (AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
-            //    return true;
-
-            //// See if we're in the `Color Color` case.  i.e user may have written `X.Color.Red`.  We
-            //// need to retry binding `Color` as a decl here to see if we can simplify to that.
-            ////
-            //// From the spec:
-            ////
-            //// In a member access of the form E.I, if E is a single identifier, and if the meaning
-            //// of E as a simple_name (Simple names) is a constant, field, property, local variable,
-            //// or parameter with the same type as the meaning of E as a type_name (Namespace and
-            //// type names), then both possible meanings of E are permitted
-
-            //if (!isNamespaceOrTypeContext &&
-            //    rightArity == 0 &&
-            //    IsColorColorCase(foundSymbols))
-            //{
-            //    if (root.Parent is MemberAccessExpressionSyntax ||
-            //        root.Parent is QualifiedCrefSyntax)
-            //    {
-            //        foundSymbols = LookupName(root, isNamespaceOrTypeContext: true, rightIdentifier);
-            //        if (foundSymbols.Length == 1 &&
-            //            AddMatches(symbol, foundSymbols, rightArity, left, diagnosticId))
-            //            return true;
-            //    }
-            //}
-
-            //return false;
         }
-
-        //private static bool SkipArityCheck(ISymbol found, int arity)
-        //    => found is IMethodSymbol && arity == 0;
-
-        //private bool IsColorColorCase(ImmutableArray<ISymbol> foundSymbols)
-        //{
-        //    if (foundSymbols.Length == 1)
-        //    {
-        //        var found = foundSymbols[0];
-        //        return found switch
-        //        {
-        //            IPropertySymbol property => found.Name == property.Type.Name,
-        //            IFieldSymbol field => found.Name == field.Type.Name,
-        //            ILocalSymbol local => found.Name == local.Type.Name,
-        //            IParameterSymbol parameter => found.Name == parameter.Type.Name,
-        //            _ => false,
-        //        };
-        //    }
-
-        //    return false;
-        //}
-
-        //private bool AddDiagnostic(
-        //    SyntaxNode original, SyntaxNode replacement,
-        //    SyntaxNode location, string diagnosticId)
-        //{
-        //    this.Diagnostics.Add(CSharpSimplifyTypeNamesDiagnosticAnalyzer.CreateDiagnostic(
-        //        _semanticModel, _optionSet, location.Span, diagnosticId, InDeclarationContext(location)));
-        //    return true;
-        //}
 
         private static readonly HashSet<string> s_predefinedTypeNames = new HashSet<string>
         {
