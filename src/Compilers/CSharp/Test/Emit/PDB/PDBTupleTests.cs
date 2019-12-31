@@ -309,9 +309,9 @@ class C
 {
   // Code size        5 (0x5)
   .maxstack  1
-  .locals init ((int a, int b)[] V_0, //v1
-                (int a, int b)[] V_1, //v2
-                (int a, int b)[] V_2) //v3
+  .locals init (System.ValueTuple<int, int>[] V_0, //v1
+                System.ValueTuple<int, int>[] V_1, //v2
+                System.ValueTuple<int, int>[] V_2) //v3
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.0

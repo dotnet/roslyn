@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             var discardedDiagnostics = DiagnosticBag.GetInstance();
             var result =
-                (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
+                !expression.NeedsToBeConverted() ? expression :
                 type is null ? BindToNaturalType(expression, discardedDiagnostics, reportDefaultMissingType: false) :
                 GenerateConversionForAssignment(type, expression, discardedDiagnostics);
             discardedDiagnostics.Free();
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
-                        var tupleType = TupleTypeSymbol.Create(
+                        var tupleType = NamedTypeSymbol.CreateTuple(
                             locationOpt: null,
                             subExpressions.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                             elementLocations: default,
@@ -905,13 +905,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
+                tupleTypeOpt = NamedTypeSymbol.CreateTuple(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
                     includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
-                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
+                NamedTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
             }
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = syntax.TryGetInferredMemberName();
 
             // Reserved names are never candidates to be inferred names, at any position
-            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
+            if (name == null || NamedTypeSymbol.IsTupleElementNameReserved(name) != -1)
             {
                 return null;
             }
@@ -2286,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypesWithAnnotations) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypesWithAnnotations) &&
                             targetElementTypesWithAnnotations.Length == tuple.Arguments.Length)
                         {
                             GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypesWithAnnotations);

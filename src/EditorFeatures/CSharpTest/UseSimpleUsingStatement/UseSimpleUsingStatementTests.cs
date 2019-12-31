@@ -935,5 +935,94 @@ class Program
 }",
 parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
         }
+
+        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestCopyTrivia()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        [||]using (var x = y)
+        {
+            // comment
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        using var x = y;
+        // comment
+    }
+}");
+        }
+
+        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestMultiCopyTrivia()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        [||]using (var x = y)
+        using (var a = b)
+        {
+            // comment
+        }
+    }
+}",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        using var x = y;
+        using var a = b;
+        // comment
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestFixAll_WithTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        {|FixAllInDocument:|}using (var a = b)
+        {
+            using (var c = d)
+            {
+                Console.WriteLine(a);
+                // comment1
+            }
+            // comment2
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        using var a = b;
+        using var c = d;
+        Console.WriteLine(a);
+        // comment1
+        // comment2
+    }
+}",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }

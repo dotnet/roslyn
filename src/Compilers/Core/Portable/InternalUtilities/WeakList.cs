@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -123,7 +125,7 @@ namespace Roslyn.Utilities
             {
                 while (j < oldSize)
                 {
-                    _items[j++] = null;
+                    _items[j++] = null!;
                 }
             }
         }

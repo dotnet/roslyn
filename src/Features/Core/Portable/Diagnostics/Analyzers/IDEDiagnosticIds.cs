@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseSystemHashCode = "IDE0070";
 
+        public const string SimplifyInterpolationId = "IDE0071";
+
         public const string PopulateSwitchExpressionDiagnosticId = "IDE0072";
 
         // Analyzer error Ids
