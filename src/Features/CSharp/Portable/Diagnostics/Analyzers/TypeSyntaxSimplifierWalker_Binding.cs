@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
                 // In a using declaration we've found that people prefer to see the full name for
                 // clarity. Note: this does not apply to stripping the 'global' alias off of
                 // something like `using static global::NS1.C1`.
-                if (usingDirective.StaticKeyword != default)
+                if (usingDirective.StaticKeyword != default || usingDirective.Alias != default)
                     return false;
             }
 
