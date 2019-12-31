@@ -1090,16 +1090,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (expression.Kind() == SyntaxKind.IdentifierName ||
                 expression.Kind() == SyntaxKind.QualifiedName ||
-                expression.Kind() == SyntaxKind.AliasQualifiedName)
+                expression.Kind() == SyntaxKind.AliasQualifiedName ||
+                expression.Kind() == SyntaxKind.GenericName)
             {
                 return true;
             }
 
-            if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
-                return memberAccess.Expression != null && memberAccess.Expression.IsAliasReplaceableExpression();
-            }
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+                return memberAccess.Expression.IsAliasReplaceableExpression();
 
             return false;
         }
@@ -1829,6 +1827,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Nullable<T> can always be simplified to T? outside crefs.
                 return true;
             }
+
+            if (name.Parent is NameMemberCrefSyntax)
+                return false;
 
             // Inside crefs, if the T in this Nullable{T} is being declared right here
             // then this Nullable{T} is not a constructed generic type and we should
