@@ -1401,7 +1401,9 @@ tryAgain:
             var name = this.ParseIdentifierToken();
             var typeParameters = this.ParseTypeParameterList();
 
-            ParameterListSyntax? paramList = CurrentToken.Kind == SyntaxKind.OpenParenToken
+            bool isInterface = classOrStructOrInterface.Kind == SyntaxKind.InterfaceKeyword;
+
+            ParameterListSyntax? paramList = !isInterface && CurrentToken.Kind == SyntaxKind.OpenParenToken
                 ? CheckFeatureAvailability(ParseParenthesizedParameterList(), MessageID.IDS_FeatureRecords)
                 : null;
 
@@ -1423,7 +1425,7 @@ tryAgain:
                 SyntaxToken semicolon;
                 SyntaxToken? openBrace;
                 SyntaxToken? closeBrace;
-                if (CurrentToken.Kind != SyntaxKind.SemicolonToken)
+                if (isInterface || CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
                     openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
 
@@ -1489,7 +1491,7 @@ tryAgain:
                 }
                 else
                 {
-                    semicolon = EatToken(SyntaxKind.SemicolonToken);
+                    semicolon = CheckFeatureAvailability(EatToken(SyntaxKind.SemicolonToken), MessageID.IDS_FeatureRecords);
                     openBrace = null;
                     closeBrace = null;
                 }
@@ -1527,6 +1529,7 @@ tryAgain:
                             semicolon);
 
                     case SyntaxKind.InterfaceKeyword:
+                        RoslynDebug.Assert(paramList is null);
                         RoslynDebug.Assert(openBrace != null);
                         RoslynDebug.Assert(closeBrace != null);
                         return _syntaxFactory.InterfaceDeclaration(
@@ -1560,7 +1563,7 @@ tryAgain:
             }
         }
 
-#nullable disable
+#nullable restore
 
         private void SkipBadMemberListTokens(ref SyntaxToken openBrace, SyntaxListBuilder members)
         {
