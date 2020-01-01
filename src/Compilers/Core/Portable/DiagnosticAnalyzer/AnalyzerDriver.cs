@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected AnalyzerManager AnalyzerManager { get; }
         protected AnalyzerExecutor AnalyzerExecutor { get; private set; }
         protected CompilationData CurrentCompilationData { get; private set; }
-        protected StrongBox<AnalyzerActions> AnalyzerActions { get; private set; }
+        protected ref readonly AnalyzerActions AnalyzerActions => ref _analyzerActions;
 
         /// <summary>
         /// Cache of additional analyzer actions to be executed per symbol per analyzer, which are registered in symbol start actions.
@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Map from analyzers to their <see cref="GeneratedCodeAnalysisFlags"/> setting. 
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeAnalysisFlagsMap;
+
+        private AnalyzerActions _analyzerActions;
 
         /// <summary>
         /// Set of unsuppressed analyzers that need to be executed. 
@@ -210,10 +212,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
                 _initializeTask = Task.Run(async () =>
                 {
-                    var (actions, unsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
-
-                    AnalyzerActions = new StrongBox<AnalyzerActions>(actions);
-                    _unsuppressedAnalyzers = unsuppressedAnalyzers;
+                    (_analyzerActions, _unsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _analyzerGateMap = await CreateAnalyzerGateMapAsync(_unsuppressedAnalyzers, AnalyzerManager, analyzerExecutor).ConfigureAwait(false);
                     _nonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(_unsuppressedAnalyzers);
                     _symbolStartAnalyzers = ComputeSymbolStartAnalyzers(_unsuppressedAnalyzers);
@@ -227,13 +226,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _lazySuppressedAnalyzersForTreeMap = new ConcurrentDictionary<SyntaxTree, ImmutableHashSet<DiagnosticAnalyzer>>();
                     _generatedCodeAttribute = analyzerExecutor.Compilation?.GetTypeByMetadataName("System.CodeDom.Compiler.GeneratedCodeAttribute");
 
-                    _symbolActionsByKind = MakeSymbolActionsByKind(in AnalyzerActions.Value);
-                    _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer(in AnalyzerActions.Value);
-                    _syntaxTreeActionsMap = MakeSyntaxTreeActionsByAnalyzer(in AnalyzerActions.Value);
-                    _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.Value.CompilationActions);
-                    _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.Value.CompilationEndActions);
+                    _symbolActionsByKind = MakeSymbolActionsByKind(in AnalyzerActions);
+                    _semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer(in AnalyzerActions);
+                    _syntaxTreeActionsMap = MakeSyntaxTreeActionsByAnalyzer(in AnalyzerActions);
+                    _compilationActionsMap = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.CompilationActions);
+                    _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.AnalyzerActions.CompilationEndActions);
 
-                    if (this.AnalyzerActions.Value.SymbolStartActionsCount > 0)
+                    if (this.AnalyzerActions.SymbolStartActionsCount > 0)
                     {
                         _perSymbolAnalyzerActionsCache = new ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), StrongBox<AnalyzerActions>>();
                     }
@@ -355,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableHashSet<DiagnosticAnalyzer> ComputeSymbolStartAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers)
         {
             var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
-            foreach (var action in this.AnalyzerActions.Value.SymbolStartActions)
+            foreach (var action in this.AnalyzerActions.SymbolStartActions)
             {
                 if (unsuppressedAnalyzers.Contains(action.Analyzer))
                 {
@@ -1250,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 await analysisStateOpt.OnCompilationEventProcessedAsync(e, processedAnalyzers, onSymbolAndMembersProcessedAsync).ConfigureAwait(false);
             }
-            else if (AnalyzerActions.Value.SymbolStartActionsCount > 0 &&
+            else if (AnalyzerActions.SymbolStartActionsCount > 0 &&
                 e is SymbolDeclaredCompilationEvent symbolDeclaredEvent)
             {
                 foreach (var analyzer in processedAnalyzers)
@@ -1261,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             async Task onSymbolAndMembersProcessedAsync(ISymbol symbol, DiagnosticAnalyzer analyzer)
             {
-                if (AnalyzerActions.Value.SymbolStartActionsCount == 0 || symbol.IsImplicitlyDeclared)
+                if (AnalyzerActions.SymbolStartActionsCount == 0 || symbol.IsImplicitlyDeclared)
                 {
                     return;
                 }
@@ -1343,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var skipSymbolAnalysis = AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent);
                 var skipDeclarationAnalysis = AnalysisScope.ShouldSkipDeclarationAnalysis(symbol);
-                var hasPerSymbolActions = AnalyzerActions.Value.SymbolStartActionsCount > 0 && (!skipSymbolAnalysis || !skipDeclarationAnalysis);
+                var hasPerSymbolActions = AnalyzerActions.SymbolStartActionsCount > 0 && (!skipSymbolAnalysis || !skipDeclarationAnalysis);
 
                 AnalyzerActions? perSymbolActions = hasPerSymbolActions ?
                     await GetPerSymbolAnalyzerActionsAsync(symbol, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false) :
@@ -1421,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken,
             out ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers)
         {
-            Debug.Assert(AnalyzerActions.Value.SymbolStartActionsCount > 0);
+            Debug.Assert(AnalyzerActions.SymbolStartActionsCount > 0);
             subsetProcessedAnalyzers = default;
 
             var symbol = symbolEvent.Symbol;
@@ -1723,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public bool HasSymbolStartedActions(AnalysisScope analysisScope)
         {
-            if (this.AnalyzerActions.Value.SymbolStartActionsCount == 0)
+            if (this.AnalyzerActions.SymbolStartActionsCount == 0)
             {
                 return false;
             }
@@ -1739,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // We are executing a single analyzer.
                 var analyzer = analysisScope.Analyzers[0];
-                foreach (var action in this.AnalyzerActions.Value.SymbolStartActions)
+                foreach (var action in this.AnalyzerActions.SymbolStartActions)
                 {
                     if (action.Analyzer == analyzer)
                     {
@@ -1754,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbolStartAnalyzers = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             try
             {
-                foreach (var action in this.AnalyzerActions.Value.SymbolStartActions)
+                foreach (var action in this.AnalyzerActions.SymbolStartActions)
                 {
                     symbolStartAnalyzers.Add(action.Analyzer);
                 }
@@ -1784,7 +1783,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState analysisStateOpt,
             CancellationToken cancellationToken)
         {
-            if (AnalyzerActions.Value.SymbolStartActionsCount == 0 || symbol.IsImplicitlyDeclared)
+            if (AnalyzerActions.SymbolStartActionsCount == 0 || symbol.IsImplicitlyDeclared)
             {
                 return null;
             }
@@ -1811,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalysisState analysisStateOpt,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(AnalyzerActions.Value.SymbolStartActionsCount > 0);
+            Debug.Assert(AnalyzerActions.SymbolStartActionsCount > 0);
 
             if (symbol.IsImplicitlyDeclared)
             {
@@ -2068,7 +2067,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyCoreActions == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyCoreActions, GroupedAnalyzerActions.Create(in base.AnalyzerActions.Value), null);
+                    Interlocked.CompareExchange(ref _lazyCoreActions, GroupedAnalyzerActions.Create(in base.AnalyzerActions), null);
                 }
 
                 return _lazyCoreActions;
