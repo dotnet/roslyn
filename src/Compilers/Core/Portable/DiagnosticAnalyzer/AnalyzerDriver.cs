@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         ///   1. myActions: analyzer actions registered in the symbol start actions of containing namespace/type, which are to be executed for this symbol
         ///   2. childActions: analyzer actions registered in this symbol's start actions, which are to be executed for member symbols.
         /// </summary>
-        private ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), StrongBox<AnalyzerActions>> _perSymbolAnalyzerActionsCache;
+        private ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), AnalyzerActions> _perSymbolAnalyzerActionsCache;
 
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> _symbolActionsByKind;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>> _semanticModelActionsMap;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (this.AnalyzerActions.SymbolStartActionsCount > 0)
                     {
-                        _perSymbolAnalyzerActionsCache = new ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), StrongBox<AnalyzerActions>>();
+                        _perSymbolAnalyzerActionsCache = new ConcurrentDictionary<(ISymbol, DiagnosticAnalyzer), AnalyzerActions>();
                     }
 
                 }, cancellationToken);
@@ -1794,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var analyzerActions = await GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
                 if (analyzerActions != null)
                 {
-                    allActions = allActions.Append(in analyzerActions.Value);
+                    allActions = allActions.Append(analyzerActions.GetValueOrDefault());
                 }
             }
 
@@ -1804,7 +1804,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
             OftenCompletesSynchronously = true)]
-        private async ValueTask<StrongBox<AnalyzerActions>> GetPerSymbolAnalyzerActionsAsync(
+        private async ValueTask<AnalyzerActions?> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             DiagnosticAnalyzer analyzer,
             AnalysisState analysisStateOpt,
@@ -1828,7 +1828,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Execute the symbol start actions for this symbol to compute additional actions for its members.
             StrongBox<AnalyzerActions> myActions = await getSymbolActionsCoreAsync().ConfigureAwait(false);
             AnalyzerActions allActions = myActions != null ? inheritedActions.Append(in myActions.Value) : inheritedActions;
-            return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), new StrongBox<AnalyzerActions>(allActions));
+            return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), allActions);
 
             async ValueTask<AnalyzerActions> getInheritedActionsAsync()
             {
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (symbol.ContainingSymbol.Kind != symbol.Kind)
                         {
                             // Don't inherit the symbol start and symbol end actions.
-                            return Diagnostics.AnalyzerActions.Empty.Append(in containerActions.Value, appendSymbolStartAndSymbolEndActions: false);
+                            return Diagnostics.AnalyzerActions.Empty.Append(containerActions.GetValueOrDefault(), appendSymbolStartAndSymbolEndActions: false);
                         }
                     }
                 }
