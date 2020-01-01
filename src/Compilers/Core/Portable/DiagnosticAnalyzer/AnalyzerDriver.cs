@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
@@ -1826,8 +1825,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerActions inheritedActions = await getInheritedActionsAsync().ConfigureAwait(false);
 
             // Execute the symbol start actions for this symbol to compute additional actions for its members.
-            StrongBox<AnalyzerActions> myActions = await getSymbolActionsCoreAsync().ConfigureAwait(false);
-            AnalyzerActions allActions = myActions != null ? inheritedActions.Append(in myActions.Value) : inheritedActions;
+            AnalyzerActions myActions = await getSymbolActionsCoreAsync().ConfigureAwait(false);
+            AnalyzerActions allActions = !myActions.IsDefault ? inheritedActions.Append(in myActions) : inheritedActions;
             return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), allActions);
 
             async ValueTask<AnalyzerActions> getInheritedActionsAsync()
@@ -1852,16 +1851,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Diagnostics.AnalyzerActions.Empty;
             }
 
-            async ValueTask<StrongBox<AnalyzerActions>> getSymbolActionsCoreAsync()
+            async ValueTask<AnalyzerActions> getSymbolActionsCoreAsync()
             {
                 if (!_unsuppressedAnalyzers.Contains(analyzer) ||
                     IsGeneratedCodeSymbol(symbol) && ShouldSkipAnalysisOnGeneratedCode(analyzer))
                 {
-                    return null;
+                    return default;
                 }
                 else
                 {
-                    return await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false);
+                    return (await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false))?.Value ?? default;
                 }
             }
         }
