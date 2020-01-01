@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 baseList,
                 constraintClauses,
-                openBraceToken: default,
+                SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
                 members,
-                closeBraceToken: default,
+                SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
                 semicolonToken: default);
 
         /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
