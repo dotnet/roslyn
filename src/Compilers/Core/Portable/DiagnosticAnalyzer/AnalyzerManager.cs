@@ -146,13 +146,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions?> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.GetAnalyzerActions(analyzer).Value.CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions(analyzer).GetValueOrDefault(AnalyzerActions.Empty).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-                return compilationScope.GetAnalyzerActions(analyzer)?.Value;
+                return compilationScope.GetAnalyzerActions(analyzer);
             }
 
-            return sessionScope.GetAnalyzerActions(analyzer)?.Value;
+            return sessionScope.GetAnalyzerActions(analyzer);
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (filteredSymbolStartActions.Length > 0)
                 {
                     var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
-                    return symbolScope.GetAnalyzerActions(analyzer)?.Value;
+                    return symbolScope.GetAnalyzerActions(analyzer);
                 }
             }
 

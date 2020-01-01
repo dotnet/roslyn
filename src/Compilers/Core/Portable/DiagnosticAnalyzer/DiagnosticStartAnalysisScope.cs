@@ -384,22 +384,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _sessionScope = sessionScope;
         }
 
-        public override StrongBox<AnalyzerActions> GetAnalyzerActions(DiagnosticAnalyzer analyzer)
+        public override AnalyzerActions? GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            StrongBox<AnalyzerActions> compilationActions = base.GetAnalyzerActions(analyzer);
-            StrongBox<AnalyzerActions> sessionActions = _sessionScope.GetAnalyzerActions(analyzer);
+            AnalyzerActions? compilationActions = base.GetAnalyzerActions(analyzer);
+            AnalyzerActions? sessionActions = _sessionScope.GetAnalyzerActions(analyzer);
 
-            if (sessionActions.Value.IsEmpty)
+            if (sessionActions.GetValueOrDefault(AnalyzerActions.Empty).IsEmpty)
             {
                 return compilationActions;
             }
 
-            if (compilationActions.Value.IsEmpty)
+            if (compilationActions.GetValueOrDefault(AnalyzerActions.Empty).IsEmpty)
             {
                 return sessionActions;
             }
 
-            return new StrongBox<AnalyzerActions>(compilationActions.Value.Append(sessionActions.Value));
+            return compilationActions.Value.Append(sessionActions.GetValueOrDefault(AnalyzerActions.Empty));
         }
     }
 
@@ -474,9 +474,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>> _analyzerActions = new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>>();
 
-        public virtual StrongBox<AnalyzerActions> GetAnalyzerActions(DiagnosticAnalyzer analyzer)
+        public virtual AnalyzerActions? GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            return this.GetOrCreateAnalyzerActions(analyzer);
+            return this.GetOrCreateAnalyzerActions(analyzer)?.Value;
         }
 
         public void RegisterCompilationAction(DiagnosticAnalyzer analyzer, Action<CompilationAnalysisContext> action)
