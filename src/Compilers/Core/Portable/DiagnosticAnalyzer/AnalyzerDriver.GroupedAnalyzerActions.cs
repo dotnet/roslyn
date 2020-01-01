@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private sealed class GroupedAnalyzerActions
         {
-            private static readonly GroupedAnalyzerActions s_Default = new GroupedAnalyzerActions(new AnalyzerActions());
+            private static readonly GroupedAnalyzerActions s_Default = new GroupedAnalyzerActions(in Diagnostics.AnalyzerActions.Empty);
 
             private readonly AnalyzerActions _analyzerActions;
 
@@ -32,19 +32,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockActionsByAnalyzer;
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockEndActionsByAnalyzer;
 
-            private GroupedAnalyzerActions(AnalyzerActions analyzerActions)
+            private GroupedAnalyzerActions(in AnalyzerActions analyzerActions)
             {
                 _analyzerActions = analyzerActions;
             }
 
-            public static GroupedAnalyzerActions Create(AnalyzerActions analyzerActionsOpt)
+            public static GroupedAnalyzerActions Create(in AnalyzerActions analyzerActions)
             {
-                if (analyzerActionsOpt == null || analyzerActionsOpt.IsEmpty)
+                if (analyzerActions.IsEmpty)
                 {
                     return s_Default;
                 }
 
-                return new GroupedAnalyzerActions(analyzerActionsOpt);
+                return new GroupedAnalyzerActions(in analyzerActions);
             }
 
             public ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> NodeActionsByAnalyzerAndKind
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyNodeActionsByKind == null)
                     {
-                        var analyzerActionsByKind = CreateNodeActionsByKind(this._analyzerActions);
+                        var analyzerActionsByKind = CreateNodeActionsByKind(in _analyzerActions);
                         Interlocked.CompareExchange(ref _lazyNodeActionsByKind, analyzerActionsByKind, null);
                     }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> CreateNodeActionsByKind(
-                AnalyzerActions analyzerActions)
+                in AnalyzerActions analyzerActions)
             {
                 var nodeActions = analyzerActions.GetSyntaxNodeActions<TLanguageKindEnum>();
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> analyzerActionsByKind;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (_lazyOperationActionsByKind == null)
                     {
-                        var analyzerActionsByKind = CreateOperationActionsByKind(this._analyzerActions);
+                        var analyzerActionsByKind = CreateOperationActionsByKind(in _analyzerActions);
                         Interlocked.CompareExchange(ref _lazyOperationActionsByKind, analyzerActionsByKind, null);
                     }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>> CreateOperationActionsByKind(
-                AnalyzerActions analyzerActions)
+                in AnalyzerActions analyzerActions)
             {
                 var operationActions = analyzerActions.OperationActions;
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>>> analyzerActionsByKind;
@@ -145,43 +145,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> CodeBlockStartActionsByAnalyzer
             {
-                get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockStartActionsByAnalyzer, analyzerActions => analyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>(), this._analyzerActions); }
+                get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockStartActionsByAnalyzer, analyzerActions => analyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>(), in _analyzerActions); }
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> CodeBlockEndActionsByAnalyzer
             {
-                get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockEndActionsByAnalyzer, analyzerActions => analyzerActions.CodeBlockEndActions, this._analyzerActions); }
+                get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockEndActionsByAnalyzer, analyzerActions => analyzerActions.CodeBlockEndActions, in _analyzerActions); }
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> CodeBlockActionsByAnalyzer
             {
-                get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockActionsByAnalyzer, analyzerActions => analyzerActions.CodeBlockActions, this._analyzerActions); }
+                get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockActionsByAnalyzer, analyzerActions => analyzerActions.CodeBlockActions, in _analyzerActions); }
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockStartAnalyzerAction>> OperationBlockStartActionsByAnalyzer
             {
-                get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockStartActionsByAnalyzer, analyzerActions => analyzerActions.OperationBlockStartActions, this._analyzerActions); }
+                get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockStartActionsByAnalyzer, analyzerActions => analyzerActions.OperationBlockStartActions, in _analyzerActions); }
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> OperationBlockEndActionsByAnalyzer
             {
-                get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockEndActionsByAnalyzer, analyzerActions => analyzerActions.OperationBlockEndActions, this._analyzerActions); }
+                get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockEndActionsByAnalyzer, analyzerActions => analyzerActions.OperationBlockEndActions, in _analyzerActions); }
             }
 
             private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> OperationBlockActionsByAnalyzer
             {
-                get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockActionsByAnalyzer, analyzerActions => analyzerActions.OperationBlockActions, this._analyzerActions); }
+                get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockActionsByAnalyzer, analyzerActions => analyzerActions.OperationBlockActions, in _analyzerActions); }
             }
 
             private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> GetBlockActionsByAnalyzer<ActionType>(
                 ref ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> lazyCodeBlockActionsByAnalyzer,
                 Func<AnalyzerActions, ImmutableArray<ActionType>> codeBlockActionsFactory,
-                AnalyzerActions analyzerActions)
+                in AnalyzerActions analyzerActions)
                 where ActionType : AnalyzerAction
             {
                 if (lazyCodeBlockActionsByAnalyzer == null)
                 {
-                    var codeBlockActionsByAnalyzer = CreateBlockActionsByAnalyzer(codeBlockActionsFactory, analyzerActions);
+                    var codeBlockActionsByAnalyzer = CreateBlockActionsByAnalyzer(codeBlockActionsFactory, in analyzerActions);
                     Interlocked.CompareExchange(ref lazyCodeBlockActionsByAnalyzer, codeBlockActionsByAnalyzer, null);
                 }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> CreateBlockActionsByAnalyzer<ActionType>(
                 Func<AnalyzerActions, ImmutableArray<ActionType>> codeBlockActionsFactory,
-                AnalyzerActions analyzerActions)
+                in AnalyzerActions analyzerActions)
                 where ActionType : AnalyzerAction
             {
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> codeBlockActionsByAnalyzer;

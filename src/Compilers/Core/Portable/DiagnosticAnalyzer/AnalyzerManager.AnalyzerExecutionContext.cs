@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         _lazyCompilationScopeTask = Task.Run(() =>
                         {
                             var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).CompilationStartActions, compilationAnalysisScope);
+                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).Value.CompilationStartActions, compilationAnalysisScope);
                             return compilationAnalysisScope;
                         }, analyzerExecutor.CancellationToken);
                     }
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
-                        if (symbolEndActions.SymbolEndActionsCount > 0)
+                        if (symbolEndActions.Value.SymbolEndActionsCount > 0)
                         {
                             var dependentSymbols = getDependentSymbols();
                             lock (_gate)
