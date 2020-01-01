@@ -1860,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    return (await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false))?.Value ?? default;
+                    return (await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false)) ?? default;
                 }
             }
         }

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// These are the actions registered during the various RegisterSymbolStartAction method invocations for the given symbol on different analysis contexts.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<StrongBox<AnalyzerActions>> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async ValueTask<AnalyzerActions?> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             if (analyzerActions.GetValueOrDefault(AnalyzerActions.Empty).SymbolStartActionsCount > 0)
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (filteredSymbolStartActions.Length > 0)
                 {
                     var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
-                    return symbolScope.GetAnalyzerActions(analyzer);
+                    return symbolScope.GetAnalyzerActions(analyzer)?.Value;
                 }
             }
 
