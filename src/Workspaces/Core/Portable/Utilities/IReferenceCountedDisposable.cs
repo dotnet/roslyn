@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
-using System.Runtime.CompilerServices;
 
 namespace Roslyn.Utilities
 {
@@ -38,6 +39,6 @@ namespace Roslyn.Utilities
         /// <returns>A new <see cref="ReferenceCountedDisposable{T}"/> pointing to the same underlying object, if it
         /// has not yet been disposed; otherwise, <see langword="null"/> if this reference to the underlying object
         /// has already been disposed.</returns>
-        IReferenceCountedDisposable<T> TryAddReference();
+        IReferenceCountedDisposable<T>? TryAddReference();
     }
 }

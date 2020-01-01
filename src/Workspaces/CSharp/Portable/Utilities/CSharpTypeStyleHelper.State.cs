@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal partial class CSharpTypeStyleHelper
     {
-        protected struct State
+        protected readonly struct State
         {
             public readonly UseVarPreference TypeStylePreference;
 
