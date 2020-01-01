@@ -144,16 +144,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<StrongBox<AnalyzerActions>> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async ValueTask<AnalyzerActions?> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             if (sessionScope.GetAnalyzerActions(analyzer).Value.CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-                return compilationScope.GetAnalyzerActions(analyzer);
+                return compilationScope.GetAnalyzerActions(analyzer)?.Value;
             }
 
-            return sessionScope.GetAnalyzerActions(analyzer);
+            return sessionScope.GetAnalyzerActions(analyzer)?.Value;
         }
 
         /// <summary>
@@ -164,9 +164,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<StrongBox<AnalyzerActions>> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (analyzerActions.Value.SymbolStartActionsCount > 0)
+            if (analyzerActions.GetValueOrDefault(AnalyzerActions.Empty).SymbolStartActionsCount > 0)
             {
-                var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.Value.SymbolStartActions);
+                var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.GetValueOrDefault().SymbolStartActions);
                 if (filteredSymbolStartActions.Length > 0)
                 {
                     var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);

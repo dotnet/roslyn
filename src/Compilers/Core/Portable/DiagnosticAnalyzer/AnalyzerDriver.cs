@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
                     if (analyzerActions != null)
                     {
-                        allAnalyzerActions = allAnalyzerActions.Append(in analyzerActions.Value);
+                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions.GetValueOrDefault());
                     }
                 }
             }
@@ -2010,7 +2010,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var analyzerActions = await AnalyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            return new AnalyzerActionCounts(in analyzerActions.Value);
+            if (analyzerActions.GetValueOrDefault(AnalyzerActions.Empty).IsEmpty)
+            {
+                return AnalyzerActionCounts.Empty;
+            }
+
+            return new AnalyzerActionCounts(analyzerActions.GetValueOrDefault());
         }
 
         /// <summary>
