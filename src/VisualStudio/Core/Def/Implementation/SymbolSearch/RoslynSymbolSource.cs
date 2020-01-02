@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         string INamed.DisplayName => ServicesVSResources.Symbol_search_source_name;
 
-        string ISymbolSource.UniqueId => nameof(RoslynSymbolSource);
+        string ISymbolSource.Id => nameof(RoslynSymbolSource);
 
         public async Task<SymbolSearchStatus> FindSymbolsAsync(string navigationKind, VisualStudio.Language.Intellisense.SymbolSearch.Location sourceLocation, ISymbolSearchCallback callback, CancellationToken token)
         {

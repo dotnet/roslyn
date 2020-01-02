@@ -10,14 +10,13 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
-using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch.Capabilities;
 using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal class RoslynSymbolResult : SymbolSearchResult, IResultInLocalFile, IResultHasContext, IResultHasNamedProject, IResultHasVSGuids, IResultHasKind, IResultHasAncestors, IResultIsReferenceOrDefinition, IResultHasIcon
+    internal class RoslynSymbolResult : SymbolSearchResult, IResultWithFileLocation, IResultWithContext, IResultWithNamedProject, IResultWithVSGuids, IResultWithReferenceOrDefinition, IResultWithIcon, IResultWithCustomData /* takes care of containin member, containing type and kind */
     {
         private DefinitionItem DefinitionItem { get; set; }
         private SourceReferenceItem ReferenceItem { get; set; }
@@ -25,68 +24,55 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private RoslynSymbolSource SourceInternal { get; }
         private string PlainText { get; set; }
 
-        public override ISymbolSource Source => SourceInternal;
-        public override string Text => PlainText;
-        public override SymbolOriginData Origin { get; }
-
-        private RoslynSymbolResult(SymbolSearchContext context)
+        private RoslynSymbolResult(SymbolSearchContext context, string plainText) : base(context.SymbolSource, context.LocalOrigin, plainText)
         {
             this.Context = context;
             this.SourceInternal = context.SymbolSource;
-            this.Origin = context.LocalOrigin;
         }
 
         internal static async Task<RoslynSymbolResult> MakeAsync(SymbolSearchContext context, DefinitionItem definition, DocumentSpan documentSpan, CancellationToken token)
         {
-            var result = new RoslynSymbolResult(context);
-            result.DefinitionItem = definition;
-            await MakeContent(result, documentSpan, token).ConfigureAwait(false);
-            return result;
+            return await MakeResultAsync(context, documentSpan, referenceItem: null, definitionItem: definition, cancellationToken: token).ConfigureAwait(false);
         }
 
         internal static async Task<RoslynSymbolResult> MakeAsync(SymbolSearchContext context, SourceReferenceItem reference, DocumentSpan documentSpan, CancellationToken token)
         {
-            var result = new RoslynSymbolResult(context);
-            result.ReferenceItem = reference;
-            result.DefinitionItem = reference.Definition;
-            await MakeContent(result, documentSpan, token).ConfigureAwait(false);
-
-            return result;
+            return await MakeResultAsync(context, documentSpan, referenceItem: reference, definitionItem: reference.Definition, cancellationToken: token).ConfigureAwait(false);
         }
 
-        private static async Task MakeContent(RoslynSymbolResult result, DocumentSpan documentSpan, CancellationToken token)
+        private static async Task<RoslynSymbolResult> MakeResultAsync(SymbolSearchContext context, DocumentSpan documentSpan, SourceReferenceItem referenceItem, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, token)
+            var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, cancellationToken)
                 .ConfigureAwait(false);
 
-            // GUIDs allow scoping to current project and document
-            result.ProjectId = projectGuid.ToString();
-            result.DocumentId = documentGuid.ToString();
+            var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
+            var plainText = excerptResult.Content.ToString();
+            var result = new RoslynSymbolResult(context, plainText);
+
+            result.ProjectGuid = projectGuid.ToString();
+            result.DocumentGuid = documentGuid.ToString();
             result.ProjectName = projectName;
 
-            var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, token).ConfigureAwait(false);
-            result.PlainText = excerptResult.Content.ToString();
-
-            if (result.ReferenceItem != null)
+            if (referenceItem != null)
             {
-                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(result.ReferenceItem.SourceSpan, token).ConfigureAwait(false);
+                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(referenceItem.SourceSpan, cancellationToken).ConfigureAwait(false);
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await result.ReferenceItem.SourceSpan.Document.GetTextAsync(token).ConfigureAwait(false);
+                var docText = await referenceItem.SourceSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 result.ContextText = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
                 result.ContextHighlightSpan = AsSpan(classifiedSpansAndHighlightSpan.HighlightSpan);
 
-                if (result.ReferenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
+                if (referenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
                 {
                     result.ContainingTypeName = containingTypeInfo;
                 }
 
-                if (result.ReferenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var containingMemberInfo))
+                if (referenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var containingMemberInfo))
                 {
                     result.ContainingMemberName = containingMemberInfo;
                 }
 
                 // Get read\written information
-                if (result.ReferenceItem.IsWrittenTo)
+                if (referenceItem.IsWrittenTo)
                 {
                     result.IsWrittenTo = true;
                 }
@@ -96,23 +82,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 }
 
                 // Override read\writtern information from SymbolUsageInfo
-                if (result.ReferenceItem.SymbolUsageInfo.IsWrittenTo() && result.ReferenceItem.SymbolUsageInfo.IsReadFrom())
+                if (referenceItem.SymbolUsageInfo.IsWrittenTo() && referenceItem.SymbolUsageInfo.IsReadFrom())
                 {
                     result.IsReadFrom = true;
                     result.IsWrittenTo = true;
                 }
-                else if (result.ReferenceItem.SymbolUsageInfo.IsWrittenTo())
+                else if (referenceItem.SymbolUsageInfo.IsWrittenTo())
                 {
                     result.IsReadFrom = false;
                     result.IsWrittenTo = true;
                 }
-                else if (result.ReferenceItem.SymbolUsageInfo.IsReadFrom())
+                else if (referenceItem.SymbolUsageInfo.IsReadFrom())
                 {
                     result.IsReadFrom = true;
                     result.IsWrittenTo = false;
                 }
 
-                var definitionResult = result.Context.GetDefinitionResult(result.ReferenceItem.Definition);
+                var definitionResult = context.GetDefinitionResult(referenceItem.Definition);
                 if (definitionResult != null)
                 {
                     result.Definition = definitionResult;
@@ -124,21 +110,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     // In this case, create a queue of definitions that need to have their Results realized.
                 }
             }
-            else if (result.DefinitionItem != null)
+            else if (definitionItem != null)
             {
                 result.IsDefinition = true;
-                if (result.DefinitionItem.DisplayableProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
+                if (definitionItem.DisplayableProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
                 {
                     result.ContainingTypeName = containingTypeInfo;
                 }
 
-                if (result.DefinitionItem.DisplayableProperties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var containingMemberInfo))
+                if (definitionItem.DisplayableProperties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var containingMemberInfo))
                 {
                     result.ContainingMemberName = containingMemberInfo;
                 }
                 result.Kind = "Definition";
 
-                result.Icon = new ImageElement(result.DefinitionItem.Tags.GetFirstGlyph().GetImageId());
+                result.Icon = new ImageElement(definitionItem.Tags.GetFirstGlyph().GetImageId());
 
                 // TODO: Use DocumentSpanEntry
                 result.ContextText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
@@ -149,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             }
 
             // Set location so that Editor can navigate to the result
-            var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, token).ConfigureAwait(false);
+            var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
             if (mappedDocumentSpan.HasValue)
             {
                 var location = mappedDocumentSpan.Value;
@@ -158,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 result.LineNumber = location.LinePositionSpan.Start.Line;
                 result.CharacterNumber = location.LinePositionSpan.Start.Character;
 
-                result.PersistentSpan = result.SourceInternal.ServiceProvider.PersistentSpanFactory.Create(
+                result.PersistentSpan = context.SymbolSource.ServiceProvider.PersistentSpanFactory.Create(
                     documentSpan.Document.FilePath,
                     location.LinePositionSpan.Start.Line,
                     location.LinePositionSpan.Start.Character,
@@ -166,6 +152,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     location.LinePositionSpan.End.Character,
                     SpanTrackingMode.EdgeInclusive);
             }
+
+            return result;
+        }
+
+        private static Span AsSpan(TextSpan sourceSpan)
+        {
+            return new Span(sourceSpan.Start, sourceSpan.Length);
         }
 
         public string RelativePath { get; private set; }
@@ -180,9 +173,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public Span ContextHighlightSpan { get; private set; }
 
-        public string DocumentId { get; private set; }
+        public string DocumentGuid { get; private set; }
 
-        public string ProjectId { get; private set; }
+        public string ProjectGuid { get; private set; }
 
         public ClassifiedTextElement ContextText { get; private set; }
 
@@ -190,30 +183,50 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         public string ProjectName { get; private set; }
 
-        public string Kind { get; private set; }
-
-        public string ContainingTypeName { get; private set; }
-
-        public string ContainingMemberName { get; private set; }
-
         public SymbolSearchResult Definition { get; private set; }
 
         public bool IsDefinition { get; private set; }
 
-        public bool IsReadFrom { get; private set; }
+        // Private, because these fields are accessed from TryGetValue until LSP spec is finalized
 
-        public bool IsWrittenTo { get; private set; }
+        private string Kind { get; set; }
 
-        public Task NavigateToAsync(CancellationToken token)
+        private bool IsReadFrom { get; set; }
+
+        private bool IsWrittenTo { get; set; }
+
+        private string ContainingTypeName { get; set; }
+
+        private string ContainingMemberName { get; set; }
+
+        /// <summary>
+        /// Allows us to pass data whose API hasn't been fully fleshed out in the LSP standard
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool TryGetValue(string key, out object value)
         {
-            // how to get the workspace?
-            //return definition.TryNavigateTo()
-            return Task.CompletedTask;
-        }
-
-        private static Span AsSpan(TextSpan sourceSpan)
-        {
-            return new Span(sourceSpan.Start, sourceSpan.Length);
+            switch (key)
+            {
+                case "ContainingTypeName":
+                    value = ContainingTypeName;
+                    return true;
+                case "ContainingMemberName":
+                    value = ContainingMemberName;
+                    return true;
+                case "IsReadFrom":
+                    value = IsReadFrom;
+                    return true;
+                case "IsWrittenTo":
+                    value = IsWrittenTo;
+                    return true;
+                case "Kind":
+                    value = Kind;
+                    return true;
+            }
+            value = null;
+            return false;
         }
     }
 }

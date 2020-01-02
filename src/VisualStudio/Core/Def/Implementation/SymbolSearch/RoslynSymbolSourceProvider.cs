@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
@@ -21,16 +22,16 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         internal ISymbolSearchBroker SymbolSearchBroker { get; private set; }
 
         /// <summary>
-        /// <see cref="GetOrCreate(ITextBuffer)"/> is capable of returning multiple <see cref="ISymbolSource"/>s,
-        /// and each source can return <see cref="SymbolSearchResult"/>s with varying <see cref="SymbolOriginData"/>.
+        /// <see cref="Create(ITextBuffer)"/> is capable of returning multiple <see cref="ISymbolSource"/>s,
+        /// and each source can return <see cref="SymbolSearchResult"/>s with varying <see cref="SymbolOrigin"/>.
         /// Currently, we are using only <see cref="RoslynSymbolSource"/> 
-        /// and will cache the return value of <see cref="GetOrCreate(ITextBuffer)"/> in this variable.
+        /// and will cache the return value of <see cref="ISymbolSourceProvider.Create(ITextBuffer)"/> in this variable.
         /// </summary>
         private ImmutableArray<ISymbolSource> _cachedSources;
 
         private object _cacheLock = new object();
 
-        public ImmutableArray<ISymbolSource> GetOrCreate(ITextBuffer buffer)
+        IEnumerable<ISymbolSource> ISymbolSourceProvider.Create(ITextBuffer buffer)
         {
             lock (_cacheLock)
             {

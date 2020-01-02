@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     internal class SymbolSearchContext : FindUsagesContext
     {
         internal RoslynSymbolSource SymbolSource { get; }
-        internal SymbolOriginData LocalOrigin { get; }
+        internal SymbolOrigin LocalOrigin { get; }
 
         private readonly ISymbolSearchCallback Callback;
         public new readonly CancellationToken CancellationToken;
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             this.SymbolSource = symbolSource;
             this.Callback = callback;
             this.CancellationToken = token;
-            this.LocalOrigin = new SymbolOriginData(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty);
+            this.LocalOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty, default);
         }
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
