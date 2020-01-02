@@ -384,22 +384,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _sessionScope = sessionScope;
         }
 
-        public override AnalyzerActions? GetAnalyzerActions(DiagnosticAnalyzer analyzer)
+        public override AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            AnalyzerActions? compilationActions = base.GetAnalyzerActions(analyzer);
-            AnalyzerActions sessionActions = _sessionScope.GetAnalyzerActions(analyzer) ?? AnalyzerActions.Empty;
+            AnalyzerActions compilationActions = base.GetAnalyzerActions(analyzer);
+            AnalyzerActions sessionActions = _sessionScope.GetAnalyzerActions(analyzer);
 
             if (sessionActions.IsEmpty)
             {
                 return compilationActions;
             }
 
-            if (compilationActions.GetValueOrDefault(AnalyzerActions.Empty).IsEmpty)
+            if (compilationActions.IsEmpty)
             {
                 return sessionActions;
             }
 
-            return compilationActions.Value.Append(in sessionActions);
+            return compilationActions.Append(in sessionActions);
         }
     }
 
@@ -474,9 +474,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>> _analyzerActions = new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<AnalyzerActions>>();
 
-        public virtual AnalyzerActions? GetAnalyzerActions(DiagnosticAnalyzer analyzer)
+        public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
-            return this.GetOrCreateAnalyzerActions(analyzer)?.Value;
+            return this.GetOrCreateAnalyzerActions(analyzer).Value;
         }
 
         public void RegisterCompilationAction(DiagnosticAnalyzer analyzer, Action<CompilationAnalysisContext> action)
