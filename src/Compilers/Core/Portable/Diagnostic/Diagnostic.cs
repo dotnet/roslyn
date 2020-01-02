@@ -507,14 +507,11 @@ namespace Microsoft.CodeAnalysis
                     yield return location;
                 }
 
-                if (additionalLocations is object && additionalLocations.Count > 0)
+                foreach (var additionalLocation in additionalLocations)
                 {
-                    foreach (var additionalLocation in additionalLocations)
+                    if (additionalLocation.SourceTree == tree)
                     {
-                        if (additionalLocation.SourceTree == tree)
-                        {
-                            yield return additionalLocation;
-                        }
+                        yield return additionalLocation;
                     }
                 }
             }
