@@ -28,8 +28,8 @@
         "type": "shell",
         "args": [
           "msbuild",
-          "src/Compilers/CSharp/csc/csc.csproj",
-          "-p:UseRoslynAnalyzers=false"
+          "-p:UseRoslynAnalyzers=false",
+          "src/Compilers/CSharp/csc/csc.csproj"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
