@@ -476,17 +476,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool HasIntersectingLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
         {
-            if (AdditionalLocations is null || AdditionalLocations.Count == 0)
+            if (isLocationWithinSpan(Location, tree, filterSpanWithinTree))
             {
-                // Fast path to avoid allocations.
-                // Test scenario: https://github.com/dotnet/roslyn/issues/26778
-                return Location.SourceTree == tree
-                    && isLocationWithinSpan(Location, filterSpanWithinTree);
+                return true;
             }
 
-            foreach (var location in getDiagnosticLocationsWithinTree(Location, AdditionalLocations, tree))
+            if (AdditionalLocations is null || AdditionalLocations.Count == 0)
             {
-                if (isLocationWithinSpan(location, filterSpanWithinTree))
+                // Avoid possible enumerator allocations if there are no additional locations.
+                return false;
+            }
+
+            foreach (var location in AdditionalLocations)
+            {
+                if (isLocationWithinSpan(location, tree, filterSpanWithinTree))
                 {
                     return true;
                 }
@@ -495,25 +498,14 @@ namespace Microsoft.CodeAnalysis
             return false;
 
             // Local functions
-            static bool isLocationWithinSpan(Location location, TextSpan? filterSpan)
+            static bool isLocationWithinSpan(Location location, SyntaxTree tree, TextSpan? filterSpan)
             {
+                if (location.SourceTree != tree)
+                {
+                    return false;
+                }
+
                 return !filterSpan.HasValue || filterSpan.GetValueOrDefault().IntersectsWith(location.SourceSpan);
-            }
-
-            static IEnumerable<Location> getDiagnosticLocationsWithinTree(Location location, IReadOnlyList<Location> additionalLocations, SyntaxTree tree)
-            {
-                if (location.SourceTree == tree)
-                {
-                    yield return location;
-                }
-
-                foreach (var additionalLocation in additionalLocations)
-                {
-                    if (additionalLocation.SourceTree == tree)
-                    {
-                        yield return additionalLocation;
-                    }
-                }
             }
         }
 
