@@ -43,22 +43,22 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchOperation switchStatement)
         {
             var switchExpression = switchStatement.Value;
-            var switchExpressionType = (INamedTypeSymbol?)switchExpression?.Type;
+            var switchExpressionType = switchExpression?.Type;
 
             var enumMembers = new Dictionary<long, ISymbol>();
+
+            if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+                && switchExpressionType is INamedTypeSymbol)
+            {
+                // Check if the type of the expression is a nullable INamedTypeSymbol
+                // if the type is both nullable and an INamedTypeSymbol extact the type argument from the nullable
+                // and check if it is of enum type
+                switchExpressionType = ((INamedTypeSymbol)switchExpressionType).TypeArguments[0];
+            }
+
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
                 if (!TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
-                    !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
-                {
-                    return SpecializedCollections.EmptyCollection<ISymbol>();
-                }
-            }
-            else if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
-                        switchExpressionType?.TypeArguments[0].TypeKind == TypeKind.Enum)
-            {
-                var underlyingEnum = switchExpressionType.TypeArguments[0];
-                if (!TryGetAllEnumMembers(underlyingEnum, enumMembers) ||
                     !TryRemoveExistingEnumMembers(switchStatement, enumMembers))
                 {
                     return SpecializedCollections.EmptyCollection<ISymbol>();

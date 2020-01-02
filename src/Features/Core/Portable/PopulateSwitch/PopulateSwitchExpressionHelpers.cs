@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PopulateSwitch;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -17,22 +16,21 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         public static ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
         {
             var switchExpression = operation.Value;
-            var switchExpressionType = (INamedTypeSymbol?)switchExpression?.Type;
+            var switchExpressionType = switchExpression?.Type;
 
             var enumMembers = new Dictionary<long, ISymbol>();
+
+            if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+                && switchExpressionType is INamedTypeSymbol)
+            {
+                // Check if the type of the expression is a nullable INamedTypeSymbol
+                // if the type is both nullable and an INamedTypeSymbol extact the type argument from the nullable
+                // and check if it is of enum type
+                switchExpressionType = ((INamedTypeSymbol)switchExpressionType).TypeArguments[0];
+            }
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
                 if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
-                    !TryRemoveExistingEnumMembers(operation, enumMembers))
-                {
-                    return SpecializedCollections.EmptyCollection<ISymbol>();
-                }
-            }
-            else if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
-                        switchExpressionType?.TypeArguments[0].TypeKind == TypeKind.Enum)
-            {
-                var underlyingEnum = switchExpressionType.TypeArguments[0];
-                if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(underlyingEnum, enumMembers) ||
                     !TryRemoveExistingEnumMembers(operation, enumMembers))
                 {
                     return SpecializedCollections.EmptyCollection<ISymbol>();
