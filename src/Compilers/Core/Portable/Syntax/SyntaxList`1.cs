@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newGreen = creator.CreateList(items.Select(n => n.Green));
-            return new SyntaxList<TNode>(newGreen.CreateRed());
+            return new SyntaxList<TNode>(newGreen!.CreateRed());
         }
 
         /// <summary>

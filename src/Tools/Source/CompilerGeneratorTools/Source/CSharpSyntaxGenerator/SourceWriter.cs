@@ -93,7 +93,7 @@ namespace CSharpSyntaxGenerator
                 OpenBlock();
 
                 // ctor with diagnostics and annotations
-                WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)");
+                WriteLine($"internal {node.Name}(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
                 if (node.Name == "DirectiveTriviaSyntax")
@@ -182,7 +182,7 @@ namespace CSharpSyntaxGenerator
 
                 WriteGreenNodeConstructorArgs(nodeFields, valueFields);
 
-                WriteLine(", DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)");
+                WriteLine(", DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)");
                 WriteLine("  : base(kind, diagnostics, annotations)");
                 OpenBlock();
                 WriteCtorBody(valueFields, nodeFields);
@@ -410,7 +410,7 @@ namespace CSharpSyntaxGenerator
         private void WriteSetAnnotations(Node node)
         {
             WriteLine();
-            WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)");
+            WriteLine("internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)");
             Write($"    => new {node.Name}(");
             Write(CommaJoin(
                 "this.Kind",
@@ -423,7 +423,7 @@ namespace CSharpSyntaxGenerator
         private void WriteSetDiagnostics(Node node)
         {
             WriteLine();
-            WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)");
+            WriteLine("internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)");
             Write($"    => new {node.Name}(");
             Write(CommaJoin(
                 "this.Kind",

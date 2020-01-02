@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal partial struct ChildSyntaxList
@@ -8,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             private readonly GreenNode _node;
             private int _childIndex;
-            private GreenNode _list;
+            private GreenNode? _list;
             private int _listIndex;
-            private GreenNode _currentChild;
+            private GreenNode? _currentChild;
 
             internal Enumerator(GreenNode node)
             {
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             public GreenNode Current
             {
-                get { return _currentChild; }
+                get { return _currentChild!; }
             }
         }
     }

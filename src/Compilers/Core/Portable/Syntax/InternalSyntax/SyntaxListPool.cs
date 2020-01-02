@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal class SyntaxListPool
     {
-        private ArrayElement<SyntaxListBuilder>[] _freeList = new ArrayElement<SyntaxListBuilder>[10];
+        private ArrayElement<SyntaxListBuilder?>[] _freeList = new ArrayElement<SyntaxListBuilder?>[10];
         private int _freeIndex;
 
 #if DEBUG
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             if (_freeIndex > 0)
             {
                 _freeIndex--;
-                item = _freeList[_freeIndex].Value;
+                item = _freeList[_freeIndex].Value!;
                 _freeList[_freeIndex].Value = null;
             }
             else
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private void Grow()
         {
-            var tmp = new ArrayElement<SyntaxListBuilder>[_freeList.Length * 2];
+            var tmp = new ArrayElement<SyntaxListBuilder?>[_freeList.Length * 2];
             Array.Copy(_freeList, tmp, _freeList.Length);
             _freeList = tmp;
         }
