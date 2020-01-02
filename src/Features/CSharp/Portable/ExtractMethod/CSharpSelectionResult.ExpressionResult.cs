@@ -51,44 +51,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var node = this.GetContainingScope();
                 var model = this.SemanticDocument.SemanticModel;
 
-                if (!node.IsExpression())
+                if (!node.IsExpression(out var expression))
                 {
                     Contract.Fail("this shouldn't happen");
                 }
 
                 // special case for array initializer and explicit cast
-                if (node.IsArrayInitializer())
+                if (expression.IsArrayInitializer())
                 {
-                    var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
+                    var variableDeclExpression = expression.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
                         return model.GetTypeInfo(variableDeclExpression.Type).Type;
                     }
                 }
 
-                if (node.IsExpressionInCast())
+                if (expression.IsExpressionInCast())
                 {
                     // bug # 12774 and # 4780
                     // if the expression is under cast, we use the heuristic below
                     // 1. if regular binding returns a meaningful type, we use it as it is
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
-                    var regularType = GetRegularExpressionType(model, node);
+                    var regularType = GetRegularExpressionType(model, expression);
                     if (regularType != null)
                     {
                         return regularType;
                     }
 
-                    if (node.Parent is CastExpressionSyntax castExpression)
+                    if (expression.Parent is CastExpressionSyntax castExpression)
                     {
                         return model.GetTypeInfo(castExpression).Type;
                     }
                 }
 
-                return GetRegularExpressionType(model, node);
+                return GetRegularExpressionType(model, expression);
             }
 
-            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
+            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();

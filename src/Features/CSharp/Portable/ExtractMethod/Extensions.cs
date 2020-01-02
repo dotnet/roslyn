@@ -18,11 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal static class Extensions
     {
-        public static ExpressionSyntax? GetUnparenthesizedExpression(this SyntaxNode? node)
+        [return: NotNullIfNotNull("node")]
+        public static ExpressionSyntax? GetUnparenthesizedExpression(this ExpressionSyntax? node)
         {
             if (!(node is ParenthesizedExpressionSyntax parenthesizedExpression))
             {
-                return node as ExpressionSyntax;
+                return node;
             }
 
             return GetUnparenthesizedExpression(parenthesizedExpression.Expression);
@@ -259,6 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         public static bool IsExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
             return node is ExpressionSyntax;
+        }
+
+        public static bool IsExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node, [NotNullWhen(true)] out ExpressionSyntax? expression)
+        {
+            expression = node as ExpressionSyntax;
+            return expression is object;
         }
 
         public static bool IsObjectType(this ITypeSymbol? type)
