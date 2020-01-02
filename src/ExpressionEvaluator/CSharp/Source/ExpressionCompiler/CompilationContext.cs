@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 filterOpt: null,
                 CancellationToken.None);
 
-            return diagnostics.HasAnyErrors();
+            return !diagnostics.HasAnyErrors();
         }
 
         internal bool TryCompileExpression(
