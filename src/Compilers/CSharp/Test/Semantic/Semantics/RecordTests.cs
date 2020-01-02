@@ -54,6 +54,7 @@ data class Point(int x, int y);
             comp = CreateCompilation(src2, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
             comp = CreateCompilation(src3, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
     }
 }

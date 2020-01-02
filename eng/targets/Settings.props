@@ -17,6 +17,7 @@
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
 
+    <!-- PROTOTYPE: Swap the order of the frameworks back before merging -->
     <RoslynPortableTargetFrameworks>netcoreapp2.1;net472</RoslynPortableTargetFrameworks>
     <RoslynCheckCodeStyle Condition="'$(ContinuousIntegrationBuild)' != 'true' or '$(RoslynEnforceCodeStyle)' == 'true'">true</RoslynCheckCodeStyle>
     <UseSharedCompilation>true</UseSharedCompilation>
