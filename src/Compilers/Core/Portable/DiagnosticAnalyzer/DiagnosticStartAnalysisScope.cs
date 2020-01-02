@@ -387,9 +387,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override AnalyzerActions? GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
             AnalyzerActions? compilationActions = base.GetAnalyzerActions(analyzer);
-            AnalyzerActions? sessionActions = _sessionScope.GetAnalyzerActions(analyzer);
+            AnalyzerActions sessionActions = _sessionScope.GetAnalyzerActions(analyzer) ?? AnalyzerActions.Empty;
 
-            if (sessionActions.GetValueOrDefault(AnalyzerActions.Empty).IsEmpty)
+            if (sessionActions.IsEmpty)
             {
                 return compilationActions;
             }
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return sessionActions;
             }
 
-            return compilationActions.Value.Append(sessionActions.GetValueOrDefault(AnalyzerActions.Empty));
+            return compilationActions.Value.Append(in sessionActions);
         }
     }
 

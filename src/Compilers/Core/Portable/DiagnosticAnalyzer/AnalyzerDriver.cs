@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 if (!skipDeclarationAnalysis &&
-                    !TryExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, perSymbolActions.GetValueOrDefault(Diagnostics.AnalyzerActions.Empty), cancellationToken))
+                    !TryExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, perSymbolActions ?? AnalyzerActions.Empty, cancellationToken))
                 {
                     processedState = EventProcessedState.NotProcessed;
                 }
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers = default;
                 if (processedState.Kind == EventProcessedStateKind.Processed &&
                     hasPerSymbolActions &&
-                    !TryExecuteSymbolEndActions(perSymbolActions.GetValueOrDefault(Diagnostics.AnalyzerActions.Empty), symbolEvent, analysisScope, analysisStateOpt, cancellationToken, out subsetProcessedAnalyzers))
+                    !TryExecuteSymbolEndActions(perSymbolActions ?? AnalyzerActions.Empty, symbolEvent, analysisScope, analysisStateOpt, cancellationToken, out subsetProcessedAnalyzers))
                 {
                     processedState = subsetProcessedAnalyzers.IsDefaultOrEmpty ? EventProcessedState.NotProcessed : EventProcessedState.CreatePartiallyProcessed(subsetProcessedAnalyzers);
                 }
@@ -2009,13 +2009,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return AnalyzerActionCounts.Empty;
             }
 
-            var analyzerActions = await AnalyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false);
-            if (analyzerActions.GetValueOrDefault(AnalyzerActions.Empty).IsEmpty)
+            var analyzerActions = await AnalyzerManager.GetAnalyzerActionsAsync(analyzer, executor).ConfigureAwait(false) ?? AnalyzerActions.Empty;
+            if (analyzerActions.IsEmpty)
             {
                 return AnalyzerActionCounts.Empty;
             }
 
-            return new AnalyzerActionCounts(analyzerActions.GetValueOrDefault());
+            return new AnalyzerActionCounts(in analyzerActions);
         }
 
         /// <summary>

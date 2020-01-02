@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
-                        if (symbolEndActions.GetValueOrDefault(AnalyzerActions.Empty).SymbolEndActionsCount > 0)
+                        if (symbolEndActions?.SymbolEndActionsCount > 0)
                         {
                             var dependentSymbols = getDependentSymbols();
                             lock (_gate)
