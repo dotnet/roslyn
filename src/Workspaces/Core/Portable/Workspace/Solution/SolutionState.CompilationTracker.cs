@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis
                                     await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
 
                                 compilation = compilation.WithScriptCompilationInfo(
-                                    compilation.ScriptCompilationInfo.WithPreviousScriptCompilation(previousSubmissionCompilation));
+                                    compilation.ScriptCompilationInfo.WithPreviousScriptCompilation(previousSubmissionCompilation!));
                             }
                             else
                             {
