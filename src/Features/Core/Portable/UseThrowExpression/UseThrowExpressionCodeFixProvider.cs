@@ -9,8 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -53,25 +51,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
             foreach (var diagnostic in diagnostics)
             {
-                var ifStatement = (IfStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
+                var ifStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
                 var throwStatementExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var assignmentValue = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
-                var blockStatement = ifStatement.ChildNodes().OfType<BlockSyntax>().First();
-                var allTrivia = new List<SyntaxTrivia>();
+                var trivia = new List<SyntaxTrivia>();
 
-                allTrivia.AddRange(ifStatement.CloseParenToken.TrailingTrivia);
-                allTrivia.AddRange(blockStatement.OpenBraceToken.TrailingTrivia);
-                allTrivia.AddRange(throwStatementExpression.GetTrailingTrivia());
-
-                var triviaToAdd = new List<SyntaxTrivia>(new[] { SyntaxFactory.ElasticSpace });
-                allTrivia.ForEach(x =>
-                {
-                    if (x.IsKind(SyntaxKind.SingleLineCommentTrivia) || x.IsKind(SyntaxKind.MultiLineCommentTrivia))
-                    {
-                        triviaToAdd.Add(x);
-                        triviaToAdd.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
-                    }
-                });
+                trivia.AddRange(assignmentValue.GetLeadingTrivia());
+                trivia.AddRange(throwStatementExpression.GetTrailingTrivia());
 
                 // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
@@ -81,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
                 // Now, update the assignment value to go from 'a' to 'a ?? throw ...'
                 // Copying all comment trivia from the old statements.
-                editor.ReplaceNode(assignmentValue, newNode.WithTrailingTrivia(triviaToAdd).WithTrailingTrivia());
+                editor.ReplaceNode(assignmentValue, newNode.WithTrailingTrivia(trivia));
             }
 
             return Task.CompletedTask;
