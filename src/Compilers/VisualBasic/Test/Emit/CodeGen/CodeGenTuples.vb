@@ -22477,17 +22477,17 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference()}) ' missing reference to vt
             comp.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp, successfulDecoding:=False)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp)
 
             Dim compWithMetadataReference = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.ToMetadataReference()}) ' missing reference to vt
 
             compWithMetadataReference.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference, successfulDecoding:=True)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithMetadataReference)
 
             Dim fakeVtLib = CreateEmptyCompilation("", references:={MscorlibRef}, assemblyName:="vt")
             Dim compWithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
             compWithFakeVt.AssertNoDiagnostics()
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt, successfulDecoding:=False)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compWithFakeVt)
 
             Dim source2 As Xml.Linq.XElement =
                  <compilation>
@@ -22509,7 +22509,7 @@ BC30652: Reference required to assembly 'vt, Version=0.0.0.0, Culture=neutral, P
         Dim x = New ClassA().GetGenericEnumerator()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                          </errors>)
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2, successfulDecoding:=False)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2)
 
             Dim comp2WithFakeVt = CreateCompilationWithMscorlib40AndVBRuntime(source2, additionalRefs:={libComp.EmitToImageReference(), fakeVtLib.EmitToImageReference()}) ' reference to fake vt
             comp2WithFakeVt.AssertTheseDiagnostics(<errors>
@@ -22517,28 +22517,20 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' fail
         Dim x = New ClassA().GetGenericEnumerator()
                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                                    </errors>)
-            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2WithFakeVt, successfulDecoding:=False)
+            FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(comp2WithFakeVt)
         End Sub
 
-        Private Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compilation As Compilation, successfulDecoding As Boolean)
+        Private Sub FailedDecodingOfTupleNamesWhenMissingValueTupleType_Verify(compilation As Compilation)
             Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
             Dim iEnumerable = classA.Interfaces()(0)
 
-            If successfulDecoding Then
-                Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
-                    iEnumerable.ToTestDisplayString())
+            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+                iEnumerable.ToTestDisplayString())
 
-                Dim tuple = iEnumerable.TypeArguments()(0)
-                Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
-                Assert.True(tuple.IsTupleType)
-                Assert.True(tuple.TupleUnderlyingType.IsErrorType())
-            Else
-                Assert.Equal("System.Collections.Generic.IEnumerable(Of System.ValueTuple(Of System.Int32, System.Int32)[missing])",
-                    iEnumerable.ToTestDisplayString())
-                Dim tuple = iEnumerable.TypeArguments()(0)
-                Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)[missing]", tuple.ToTestDisplayString())
-                Assert.False(tuple.IsTupleType)
-            End If
+            Dim tuple = iEnumerable.TypeArguments()(0)
+            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
+            Assert.True(tuple.IsTupleType)
+            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
         End Sub
 
         <Fact>
@@ -22619,11 +22611,37 @@ End Class
                 Assert.True(tuple.IsTupleType)
                 Assert.False(tuple.TupleUnderlyingType.IsErrorType())
             Else
-                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", IEnumerable.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", iEnumerable.ToTestDisplayString())
                 Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", tuple.ToTestDisplayString())
                 Assert.False(tuple.IsTupleType)
             End If
         End Sub
+
+        <Fact>
+        <WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")>
+        Public Sub MissingTypeArgumentInBase_ValueTuple()
+            Dim lib_vb = "
+Public Class ClassWithTwoTypeParameters(Of T1, T2)
+End Class
+
+Public Class SelfReferencingClassWithTuple
+    Inherits ClassWithTwoTypeParameters(Of SelfReferencingClassWithTuple, (A As String, B As Integer))
+End Class
+"
+            Dim library = CreateCompilationWithMscorlib40(lib_vb, references:=s_valueTupleRefs)
+            library.VerifyDiagnostics()
+
+            Dim source_vb = "
+Public Class TriggerStackOverflowException
+    Sub Method()
+        Dim x = New SelfReferencingClassWithTuple()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={library.EmitToImageReference()})
+            comp.VerifyEmitDiagnostics()
+        End Sub
+
     End Class
 
 End Namespace

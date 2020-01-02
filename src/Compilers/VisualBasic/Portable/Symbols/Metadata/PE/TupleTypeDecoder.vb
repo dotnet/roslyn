@@ -120,8 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private Function DecodeType(type As TypeSymbol) As TypeSymbol
             Select Case type.Kind
-                Case SymbolKind.ErrorType,
-                    SymbolKind.DynamicType,
+                Case SymbolKind.ErrorType
+                    Dim cardinality As Integer = 0
+                    Return If(type.IsTupleCompatible(cardinality), DecodeNamedType(DirectCast(type, NamedTypeSymbol)), type)
+
+                Case SymbolKind.DynamicType,
                     SymbolKind.TypeParameter,
                     SymbolKind.PointerType
 
