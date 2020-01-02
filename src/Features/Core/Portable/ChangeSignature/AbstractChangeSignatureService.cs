@@ -137,10 +137,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().Select(p => new ExistingParameter(p)).ToList<Parameter>(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
-            if (!parameterConfiguration.IsChangeable())
-            {
-                return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
-            }
 
             return new ChangeSignatureAnalyzedContext(
                 document, symbol, parameterConfiguration, insertPosition);
@@ -166,9 +162,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
         {
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
-
-            // TODO are there any restricitons for extension methods? e.g. remove the first param or reorder it?
-            var isExtensionMethod = context.Symbol is IMethodSymbol && (context.Symbol as IMethodSymbol).IsExtensionMethod;
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
                 context.Symbol,
@@ -277,7 +270,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
 
                 // Find and annotate all the relevant definitions
-
                 if (includeDefinitionLocations)
                 {
                     foreach (var def in symbolWithSyntacticParameters.Locations)
@@ -297,7 +289,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
 
                 // Find and annotate all the relevant references
-
                 foreach (var location in symbol.Locations)
                 {
                     if (location.Location.IsInMetadata)
@@ -330,7 +321,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // Construct all the relevant syntax trees from the base solution
-
             var updatedRoots = new Dictionary<DocumentId, SyntaxNode>();
             foreach (var docId in nodesToUpdate.Keys)
             {
@@ -363,7 +353,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // Update the documents using the updated syntax trees
-
             var updatedSolution = originalSolution;
             foreach (var docId in nodesToUpdate.Keys)
             {

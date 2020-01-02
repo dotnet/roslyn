@@ -79,12 +79,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return list;
         }
-
-        // TODO probably remove this check. It was created when we didn't support Add Parameters to parameterless methods.
-        public bool IsChangeable()
-        {
-            return true;
-        }
     }
 }
 
