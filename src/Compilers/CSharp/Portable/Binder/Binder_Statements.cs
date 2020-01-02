@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // In C# 8 and later we follow the ECMA specification, which neatly handles null and expressions of exception type.
-                boundExpr = GenerateConversionForAssignment(Compilation.GetWellKnownType(WellKnownType.System_Exception), boundExpr, diagnostics);
+                boundExpr = GenerateConversionForAssignment(GetWellKnownType(WellKnownType.System_Exception, diagnostics, exprSyntax), boundExpr, diagnostics);
             }
 
             return boundExpr;
@@ -2059,6 +2059,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (targetType.IsVoidType())
+            {
+                Error(diagnostics, ErrorCode.ERR_NoImplicitConv, syntax, operand.Display, targetType);
+                return;
+            }
+
             switch (operand.Kind)
             {
                 case BoundKind.BadExpression:
@@ -2077,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypes) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypes) &&
                             targetElementTypes.Length == tuple.Arguments.Length)
                         {
                             GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypes);

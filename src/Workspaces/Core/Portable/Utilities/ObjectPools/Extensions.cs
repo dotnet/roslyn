@@ -46,6 +46,13 @@ namespace Microsoft.CodeAnalysis
             return PooledObject<List<TItem>>.Create(pool);
         }
 
+        public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool, out List<TItem> list)
+        {
+            var pooledObject = PooledObject<List<TItem>>.Create(pool);
+            list = pooledObject.Object;
+            return pooledObject;
+        }
+
         public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool) where T : class
         {
             return new PooledObject<T>(pool, p => p.Allocate(), (p, o) => p.Free(o));

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -3397,6 +3398,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
             => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
+
+        internal override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
+
+        internal override SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxFactory.InterpolationFormatClause(
+                    SyntaxFactory.Token(SyntaxKind.ColonToken),
+                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
         internal override SyntaxToken NumericLiteralToken(string text, ulong value)
             => SyntaxFactory.Literal(text, value);

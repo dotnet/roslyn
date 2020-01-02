@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
-        private sealed class RecoverableText : RecoverableWeakValueSource<SourceText>
+        private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>
         {
             private readonly RecoverableTextAndVersion _parent;
             private ITemporaryTextStorage _storage;

@@ -4779,11 +4779,7 @@ public class S
         [Fact]
         public void TupleLiteral001()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4791,7 +4787,6 @@ class C
         var t = (1, 2);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4802,17 +4797,12 @@ class C
             Assert.Equal("(int, int)", type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
             Assert.Equal("(1, 2)", type.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.True(type.Locations.Single().IsInSource);
-
         }
 
         [Fact]
         public void TupleLiteral002()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4820,7 +4810,6 @@ class C
         var t = (Alice: 1, Bob: 2);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4836,11 +4825,7 @@ class C
         [Fact]
         public void TupleLiteral003()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4848,7 +4833,6 @@ class C
         (short Alice, int Bob) t = (1, 1);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4864,11 +4848,7 @@ class C
         [Fact]
         public void TupleLiteral004()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4876,7 +4856,6 @@ class C
         (short Alice, string Bob) t = (1, null);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4892,11 +4871,7 @@ class C
         [Fact]
         public void TupleLiteral005()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4904,7 +4879,6 @@ class C
         (short, string) t = (Alice:1, Bob:null);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4920,11 +4894,7 @@ class C
         [Fact]
         public void TupleLiteralElement001()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4932,7 +4902,6 @@ class C
         var t = (Alice: 1, Bob: 2);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4948,11 +4917,7 @@ class C
         [Fact]
         public void TupleLiteralElement002()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4960,7 +4925,6 @@ class C
         (int X, short Y) t = (Alice: 1, Bob: 2);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -4976,11 +4940,7 @@ class C
         [Fact]
         public void TupleLiteralElement003()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -4988,7 +4948,6 @@ class C
         (short X, string Y) t = (Alice: 1, Bob: null);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);
@@ -5134,11 +5093,7 @@ namespace System
         [Fact]
         public void TupleLiteralElement006()
         {
-            var source =
-@"
-
-using System;
-
+            var source = @"
 class C
 {
     static void Main() 
@@ -5146,7 +5101,6 @@ class C
         (short X, string) t = (1, Bob: null);
     }
 }
-
 ";
 
             var compilation = CreateCompilation(source);

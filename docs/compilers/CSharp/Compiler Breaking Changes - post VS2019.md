@@ -92,3 +92,12 @@ could be different than the one that compiler used to find.
     - `e is T t + c`
 
     These all have in common that the left operand is of looser precedence than the `+` operator, but the left operand does not end in an expression so it cannot "consume" the addition.  Such expressions will no longer be permitted in Visual Studio 2019 version 16.5 and later.
+
+14. In Visual Studio version 15.0 and onwards, the compiler would allow compiling some malformed definitions of the `System.ValueTuple` types. For instance, one with a private `Item1` field. In *Visual Studio 2019 version 16.5* such definitions produce warnings.
+
+15. In Visual Studio version 15.0 and onwards, the compiler APIs would produce non-generic tuple symbols (`Arity` would be 0, would have no type arguments, would be original definitions). In *Visual Studio 2019 version 16.5* a 2-tuple symbol has `Arity` 2, and a 9-tuple symbol has `Arity` 8 (since it is a `ValueTuple'8`).
+
+
+16. In *Visual Studio 2019 version 16.5* and language version 8.0 and later, the compiler will no longer accept `throw null` when there is no type `System.Exception`.
+
+17. https://github.com/dotnet/roslyn/issues/39852 Previously the compiler would allow an invocation of an implicit index or range indexer to specify any named argument. In *Visual Studio 2019 version 16.5* argument names are no longer permitted for these invocations.

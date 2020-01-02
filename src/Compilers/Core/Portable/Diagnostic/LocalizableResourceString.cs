@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Globalization;
 using System.Linq;
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string GetText(IFormatProvider formatProvider)
+        protected override string GetText(IFormatProvider? formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
@@ -116,7 +118,7 @@ namespace Microsoft.CodeAnalysis
                 string.Empty;
         }
 
-        protected override bool AreEqual(object other)
+        protected override bool AreEqual(object? other)
         {
             var otherResourceString = other as LocalizableResourceString;
             return otherResourceString != null &&

@@ -60,14 +60,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
                 else
                 {
-                    return await IntroduceFieldAsync(cancellationToken).ConfigureAwait(false);
+                    return await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
                 }
-            }
-
-            private async Task<Document> IntroduceFieldAsync(CancellationToken cancellationToken)
-            {
-                var result = await _service.IntroduceFieldAsync(_semanticDocument, _expression, _allOccurrences, _isConstant, cancellationToken).ConfigureAwait(false);
-                return result.Item1;
             }
 
             private string CreateDisplayText(TExpressionSyntax expression)
