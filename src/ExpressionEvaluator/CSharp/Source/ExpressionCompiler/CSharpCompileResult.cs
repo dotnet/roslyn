@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal CSharpCompileResult(
             byte[] assembly,
             MethodSymbol method,
-            ReadOnlyCollection<string> formatSpecifiers)
+            ReadOnlyCollection<string>? formatSpecifiers)
             : base(assembly, method.ContainingType.MetadataName, method.MetadataName, formatSpecifiers)
         {
             Debug.Assert(method is EEMethodSymbol); // Expected but not required.
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload)
         {
             payload = _method.GetCustomTypeInfoPayload();
-            return (payload == null) ? default(Guid) : CustomTypeInfo.PayloadTypeId;
+            return (payload == null) ? default : CustomTypeInfo.PayloadTypeId;
         }
     }
 }
