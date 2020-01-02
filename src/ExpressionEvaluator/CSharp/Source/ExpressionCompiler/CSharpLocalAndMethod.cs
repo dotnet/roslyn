@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// The custom type info payload depends on the return type, which is not available when
         /// <see cref="CSharpLocalAndMethod"/> is created.
         /// </remarks>
-        public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload)
+        public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte>? payload)
         {
             payload = _method.GetCustomTypeInfoPayload();
             return (payload == null) ? default : CustomTypeInfo.PayloadTypeId;

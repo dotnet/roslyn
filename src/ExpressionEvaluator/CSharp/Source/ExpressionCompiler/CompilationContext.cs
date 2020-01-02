@@ -726,8 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // We're re-getting the namespace, rather than using the one containing
                     // the current frame method, because we want the merged namespace.
                     @namespace = @namespace.GetNestedNamespace(namespaceName);
-                    RoslynDebug.AssertNotNull(@namespace,
-                        $"We worked backwards from symbols to names, but no symbol exists for name '{namespaceName}'");
+                    RoslynDebug.AssertNotNull(@namespace);
                 }
                 else
                 {

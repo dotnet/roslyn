@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _method = method;
         }
 
-        public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload)
+        public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte>? payload)
         {
             payload = _method.GetCustomTypeInfoPayload();
             return (payload == null) ? default : CustomTypeInfo.PayloadTypeId;

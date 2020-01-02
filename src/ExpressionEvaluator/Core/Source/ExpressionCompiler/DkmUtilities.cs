@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
-            ReadOnlyCollection<byte> customTypeInfo;
+            ReadOnlyCollection<byte>? customTypeInfo;
             Guid customTypeInfoId = compResult.GetCustomTypeInfo(out customTypeInfo);
 
             return DkmCompiledClrInspectionQuery.Create(

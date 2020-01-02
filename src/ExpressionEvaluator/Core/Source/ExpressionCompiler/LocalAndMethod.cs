@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Flags = flags;
         }
 
-        public abstract Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload);
+        public abstract Guid GetCustomTypeInfo(out ReadOnlyCollection<byte>? payload);
     }
 }

@@ -26,6 +26,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             FormatSpecifiers = formatSpecifiers;
         }
 
-        public abstract Guid GetCustomTypeInfo(out ReadOnlyCollection<byte> payload);
+        public abstract Guid GetCustomTypeInfo(out ReadOnlyCollection<byte>? payload);
     }
 }
