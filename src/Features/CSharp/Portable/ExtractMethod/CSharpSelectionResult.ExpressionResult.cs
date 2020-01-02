@@ -48,13 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                var node = this.GetContainingScope();
-                var model = this.SemanticDocument.SemanticModel;
-
-                if (!node.IsExpression())
+                if (!(GetContainingScope() is ExpressionSyntax node))
                 {
-                    Contract.Fail("this shouldn't happen");
+                    throw ExceptionUtilities.Unreachable;
                 }
+
+                var model = this.SemanticDocument.SemanticModel;
 
                 // special case for array initializer and explicit cast
                 if (node.IsArrayInitializer())
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return GetRegularExpressionType(model, node);
             }
 
-            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, SyntaxNode node)
+            private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();
