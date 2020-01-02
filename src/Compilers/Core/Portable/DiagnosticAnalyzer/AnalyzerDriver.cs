@@ -1279,7 +1279,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<EventProcessedState> TryProcessEventCoreAsync(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<EventProcessedState> TryProcessEventCoreAsync(CompilationEvent e, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -1322,7 +1325,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <returns>
         /// <see cref="EventProcessedState"/> indicating the current state of processing of the given compilation event.
         /// </returns>
-        private async Task<EventProcessedState> TryProcessSymbolDeclaredAsync(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<EventProcessedState> TryProcessSymbolDeclaredAsync(SymbolDeclaredCompilationEvent symbolEvent, AnalysisScope analysisScope, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
         {
             try
             {
@@ -1765,7 +1771,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
@@ -1789,7 +1798,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return allActions;
         }
 
-        private async Task<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             DiagnosticAnalyzer analyzer,
             AnalysisState analysisStateOpt,
@@ -1815,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerActions allActions = myActions != null ? inheritedActions.Append(myActions) : inheritedActions;
             return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), allActions);
 
-            async Task<AnalyzerActions> getInheritedActionsAsync()
+            async ValueTask<AnalyzerActions> getInheritedActionsAsync()
             {
                 if (symbol.ContainingSymbol != null)
                 {
@@ -1837,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return new AnalyzerActions();
             }
 
-            async Task<AnalyzerActions> getSymbolActionsCoreAsync()
+            async ValueTask<AnalyzerActions> getSymbolActionsCoreAsync()
             {
                 if (!_unsuppressedAnalyzers.Contains(analyzer) ||
                     IsGeneratedCodeSymbol(symbol) && ShouldSkipAnalysisOnGeneratedCode(analyzer))
