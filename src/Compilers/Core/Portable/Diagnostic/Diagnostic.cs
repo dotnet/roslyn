@@ -474,6 +474,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the diagnostic location (or any additional location) is within the given tree and intersects with the filterSpanWithinTree, if non-null.
         /// </summary>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            Constraint = "In most cases, AdditionalLocations is empty.",
+            AllowCaptures = false)]
         internal bool HasIntersectingLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
         {
             if (isLocationWithinSpan(Location, tree, filterSpanWithinTree))
@@ -497,7 +501,6 @@ namespace Microsoft.CodeAnalysis
 
             return false;
 
-            // Local functions
             static bool isLocationWithinSpan(Location location, SyntaxTree tree, TextSpan? filterSpan)
             {
                 if (location.SourceTree != tree)
