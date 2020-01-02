@@ -13,18 +13,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
-    internal class DiscardSyntaxClassifier : AbstractNameSyntaxClassifier
+    internal class DiscardSyntaxClassifier : AbstractSyntaxClassifier
     {
-        protected override int? GetRightmostNameArity(SyntaxNode node)
-        {
-            return null;
-        }
-
-        protected override bool IsParentAnAttribute(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.Attribute);
-        }
-
         public override void AddClassifications(
            Workspace workspace,
            SyntaxNode syntax,
@@ -85,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(lambda, cancellationToken);
-            var symbol = TryGetSymbol(lambda, symbolInfo, semanticModel) as IMethodSymbol;
+            var symbol = symbolInfo.Symbol as IMethodSymbol;
 
             if (symbol == null)
             {
@@ -121,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifySymbol(SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
-            var symbol = TryGetSymbol(syntax, symbolInfo, semanticModel);
+            var symbol = symbolInfo.Symbol;
 
             if (symbol?.Kind == SymbolKind.Discard)
             {
