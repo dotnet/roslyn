@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
                                         .Where(a => !AnalyzerService.IsAnalyzerSuppressed(a, project) && !a.IsOpenFileOnly(options));
@@ -188,9 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             var removeDiagnosticsOnDocumentClose = document.Project.Solution.Options.GetOption(ServiceFeatureOnOffOptions.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
 
-            // TODO: Remove the below hard-coded check for TypeScript once they update their code to explicitly set the above option.
-            if (document.Project.Language != "TypeScript" &&
-                !removeDiagnosticsOnDocumentClose)
+            if (!removeDiagnosticsOnDocumentClose)
             {
                 return;
             }

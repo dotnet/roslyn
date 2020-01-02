@@ -71,9 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        protected override bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet,
-            State state, CancellationToken cancellationToken)
+        protected override bool IsStylePreferred(in State state)
         {
             var stylePreferences = state.TypeStylePreference;
 

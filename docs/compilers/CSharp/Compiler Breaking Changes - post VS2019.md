@@ -100,3 +100,4 @@ could be different than the one that compiler used to find.
 
 16. In *Visual Studio 2019 version 16.5* and language version 8.0 and later, the compiler will no longer accept `throw null` when there is no type `System.Exception`.
 
+17. https://github.com/dotnet/roslyn/issues/39852 Previously the compiler would allow an invocation of an implicit index or range indexer to specify any named argument. In *Visual Studio 2019 version 16.5* argument names are no longer permitted for these invocations.
