@@ -3,7 +3,6 @@
 #nullable enable
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -477,22 +476,48 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool HasIntersectingLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
         {
-            var locations = this.GetDiagnosticLocationsWithinTree(tree);
-
-            foreach (var location in locations)
+            if (AdditionalLocations is null || AdditionalLocations.Count == 0)
             {
-                if (!filterSpanWithinTree.HasValue || filterSpanWithinTree.Value.IntersectsWith(location.SourceSpan))
+                // Fast path to avoid allocations.
+                // Test scenario: https://github.com/dotnet/roslyn/issues/26778
+                return Location.SourceTree == tree
+                    && isLocationWithinSpan(Location, filterSpanWithinTree);
+            }
+
+            foreach (var location in getDiagnosticLocationsWithinTree(Location, AdditionalLocations, tree))
+            {
+                if (isLocationWithinSpan(location, filterSpanWithinTree))
                 {
                     return true;
                 }
             }
 
             return false;
-        }
 
-        private DiagnosticLocationsWithinTreeEnumerable GetDiagnosticLocationsWithinTree(SyntaxTree tree)
-        {
-            return new DiagnosticLocationsWithinTreeEnumerable(this, tree);
+            // Local functions
+            static bool isLocationWithinSpan(Location location, TextSpan? filterSpan)
+            {
+                return !filterSpan.HasValue || filterSpan.GetValueOrDefault().IntersectsWith(location.SourceSpan);
+            }
+
+            static IEnumerable<Location> getDiagnosticLocationsWithinTree(Location location, IReadOnlyList<Location> additionalLocations, SyntaxTree tree)
+            {
+                if (location.SourceTree == tree)
+                {
+                    yield return location;
+                }
+
+                if (additionalLocations is object && additionalLocations.Count > 0)
+                {
+                    foreach (var additionalLocation in additionalLocations)
+                    {
+                        if (additionalLocation.SourceTree == tree)
+                        {
+                            yield return additionalLocation;
+                        }
+                    }
+                }
+            }
         }
 
         internal Diagnostic? WithReportDiagnostic(ReportDiagnostic reportAction)
@@ -565,112 +590,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsUnsuppressedError
             => Severity == DiagnosticSeverity.Error && !IsSuppressed;
-
-        /// <summary>
-        /// Implements the following enumerator without allocations:
-        ///
-        /// <code>
-        /// if (this.Location.SourceTree == tree)
-        /// {
-        ///     yield return this.Location;
-        /// }
-        /// 
-        /// if (this.AdditionalLocations != null)
-        /// {
-        ///     foreach (var additionalLocation in this.AdditionalLocations)
-        ///     {
-        ///         if (additionalLocation.SourceTree == tree)
-        ///         {
-        ///             yield return additionalLocation;
-        ///         }
-        ///     }
-        /// }
-        /// </code>
-        /// </summary>
-        private readonly struct DiagnosticLocationsWithinTreeEnumerable : IEnumerable<Location>
-        {
-            private readonly Diagnostic _diagnostic;
-            private readonly SyntaxTree _tree;
-
-            public DiagnosticLocationsWithinTreeEnumerable(Diagnostic diagnostic, SyntaxTree tree)
-            {
-                _diagnostic = diagnostic;
-                _tree = tree;
-            }
-
-            public Enumerator GetEnumerator()
-                => new Enumerator(this);
-
-            IEnumerator<Location> IEnumerable<Location>.GetEnumerator()
-                => GetEnumerator();
-
-            IEnumerator IEnumerable.GetEnumerator()
-                => GetEnumerator();
-
-            public struct Enumerator : IEnumerator<Location>
-            {
-                private readonly DiagnosticLocationsWithinTreeEnumerable _enumerable;
-
-                private Location? _current;
-                private IEnumerator<Location>? _additionalLocations;
-
-                public Enumerator(DiagnosticLocationsWithinTreeEnumerable enumerable)
-                {
-                    _enumerable = enumerable;
-                    _current = null;
-                    _additionalLocations = null;
-                }
-
-                public Location Current => _current!;
-                object IEnumerator.Current => Current;
-
-                public bool MoveNext()
-                {
-                    if (_additionalLocations is object)
-                    {
-                        while (true)
-                        {
-                            if (!_additionalLocations.MoveNext())
-                            {
-                                _current = null;
-                                return false;
-                            }
-
-                            _current = _additionalLocations.Current;
-                            if (_current.SourceTree == _enumerable._tree)
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                    else if (_current is object)
-                    {
-                        // Already reviewed _enumerable._diagnostic.Location. Initialize _additionalLocations and call
-                        // MoveNext() again.
-                        _additionalLocations = _enumerable._diagnostic.AdditionalLocations?.GetEnumerator() ?? SpecializedCollections.EmptyEnumerator<Location>();
-                        return MoveNext();
-                    }
-                    else
-                    {
-                        if (_enumerable._diagnostic.Location.SourceTree == _enumerable._tree)
-                        {
-                            _current = _enumerable._diagnostic.Location;
-                            return true;
-                        }
-                        else
-                        {
-                            // Skip straight to _additionalLocations and call MoveNext() again.
-                            _additionalLocations = _enumerable._diagnostic.AdditionalLocations?.GetEnumerator() ?? SpecializedCollections.EmptyEnumerator<Location>();
-                            return MoveNext();
-                        }
-                    }
-                }
-
-                void IDisposable.Dispose() { }
-
-                void IEnumerator.Reset() => throw new NotSupportedException();
-            }
-        }
     }
 
     /// <summary>
