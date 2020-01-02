@@ -257,17 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return node is ExpressionSyntax && node.Parent is CastExpressionSyntax;
         }
 
-        public static bool IsExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-        {
-            return node is ExpressionSyntax;
-        }
-
-        public static bool IsExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node, [NotNullWhen(true)] out ExpressionSyntax? expression)
-        {
-            expression = node as ExpressionSyntax;
-            return expression is object;
-        }
-
         public static bool IsObjectType(this ITypeSymbol? type)
         {
             return type == null || type.SpecialType == SpecialType.System_Object;

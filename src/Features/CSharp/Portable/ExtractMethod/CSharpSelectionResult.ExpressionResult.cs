@@ -48,44 +48,43 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                var node = this.GetContainingScope();
-                var model = this.SemanticDocument.SemanticModel;
-
-                if (!node.IsExpression(out var expression))
+                if (!(GetContainingScope() is ExpressionSyntax node))
                 {
-                    Contract.Fail("this shouldn't happen");
+                    throw ExceptionUtilities.Unreachable;
                 }
 
+                var model = this.SemanticDocument.SemanticModel;
+
                 // special case for array initializer and explicit cast
-                if (expression.IsArrayInitializer())
+                if (node.IsArrayInitializer())
                 {
-                    var variableDeclExpression = expression.GetAncestorOrThis<VariableDeclarationSyntax>();
+                    var variableDeclExpression = node.GetAncestorOrThis<VariableDeclarationSyntax>();
                     if (variableDeclExpression != null)
                     {
                         return model.GetTypeInfo(variableDeclExpression.Type).Type;
                     }
                 }
 
-                if (expression.IsExpressionInCast())
+                if (node.IsExpressionInCast())
                 {
                     // bug # 12774 and # 4780
                     // if the expression is under cast, we use the heuristic below
                     // 1. if regular binding returns a meaningful type, we use it as it is
                     // 2. if it doesn't, even if the cast itself wasn't included in the selection, we will treat it 
                     //    as it was in the selection
-                    var regularType = GetRegularExpressionType(model, expression);
+                    var regularType = GetRegularExpressionType(model, node);
                     if (regularType != null)
                     {
                         return regularType;
                     }
 
-                    if (expression.Parent is CastExpressionSyntax castExpression)
+                    if (node.Parent is CastExpressionSyntax castExpression)
                     {
                         return model.GetTypeInfo(castExpression).Type;
                     }
                 }
 
-                return GetRegularExpressionType(model, expression);
+                return GetRegularExpressionType(model, node);
             }
 
             private static ITypeSymbol? GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
