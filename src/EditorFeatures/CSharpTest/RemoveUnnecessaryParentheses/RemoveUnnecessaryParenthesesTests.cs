@@ -2374,5 +2374,36 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
     }
 }", new TestParameters(options: RemoveAllUnnecessaryParentheses), expectedDiagnostics);
         }
+
+        [WorkItem(27925, "https://github.com/dotnet/roslyn/issues/39363")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestUnnecessaryParenthesesInSwitchExpression()
+        {
+            await TestAsync(
+    @"class C
+{
+    void M(int x)
+    {
+            var result = x switch
+            {
+                1 => $$(5),
+                2 => 10 + 5,
+                _ => 100,
+            }
+    };
+}",
+    @"class C
+{
+    void M(int x)
+    {
+            var result = x switch
+            {
+                1 => 5,
+                2 => 10 + 5,
+                _ => 100,
+            }
+    };
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
     }
 }
