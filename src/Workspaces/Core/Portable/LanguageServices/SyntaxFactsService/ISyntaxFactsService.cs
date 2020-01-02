@@ -308,9 +308,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsMethodBody(SyntaxNode node);
 
-        #nullable enable
+#nullable enable
         bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node);
-        #nullable restore
+#nullable restore
 
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
