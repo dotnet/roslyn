@@ -742,6 +742,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from CSharp code.</exception>
         public static Conversion GetConversion(this IConversionOperation conversionExpression)
         {
+            if (conversionExpression is null)
+            {
+                throw new ArgumentNullException(nameof(conversionExpression));
+            }
+
             if (conversionExpression.Language == LanguageNames.CSharp)
             {
                 return (Conversion)((BaseConversionOperation)conversionExpression).ConversionConvertible;
