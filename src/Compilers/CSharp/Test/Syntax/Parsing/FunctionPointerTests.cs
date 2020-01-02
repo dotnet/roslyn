@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.StringKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "Goo");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.StringKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "Goo");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.StringKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "Goo");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                         }
                                         N(SyntaxKind.AsteriskToken);
                                     }
-                                    N(SyntaxKind.IdentifierToken, "");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.CommaToken);
                                 N(SyntaxKind.Parameter);
@@ -272,11 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                         }
                                         N(SyntaxKind.AsteriskToken);
                                     }
-                                    N(SyntaxKind.IdentifierToken, "");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -297,11 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                         }
                                         N(SyntaxKind.AsteriskToken);
                                     }
-                                    N(SyntaxKind.IdentifierToken, "");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 {
                                     N(SyntaxKind.IdentifierToken, "Goo");
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "Goo");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "Bar");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "Baz");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 }
                                 N(SyntaxKind.AsteriskToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -452,13 +452,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "bar");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -584,16 +584,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IdentifierToken, "bar");
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -623,13 +623,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -663,13 +663,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.IdentifierToken, "cdecl");
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -700,13 +700,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.IdentifierToken, "cdecl");
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -739,13 +739,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -778,13 +778,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -823,13 +823,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -865,13 +865,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -901,13 +901,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -1005,7 +1005,7 @@ class C
                                 {
                                     N(SyntaxKind.IntKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1014,7 +1014,7 @@ class C
                                 {
                                     N(SyntaxKind.StringKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1035,7 +1035,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "C");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Parameter);
@@ -1044,7 +1044,7 @@ class C
                                         {
                                             N(SyntaxKind.VoidKeyword);
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -1065,7 +1065,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "D");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -1105,7 +1105,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
@@ -1114,7 +1114,7 @@ class C
                         {
                             N(SyntaxKind.IdentifierToken, "C");
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.GreaterThanToken);
                 }
@@ -1150,7 +1150,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
@@ -1159,7 +1159,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.GreaterThanToken);
                 }
@@ -1190,7 +1190,7 @@ class C
                                 {
                                     N(SyntaxKind.IntKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1199,7 +1199,7 @@ class C
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1220,7 +1220,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierToken, "C");
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1229,7 +1229,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierToken, "D");
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1271,7 +1271,7 @@ class C
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1287,7 +1287,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierToken, "C");
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.CommaToken);
                             N(SyntaxKind.Parameter);
@@ -1296,7 +1296,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierToken, "D");
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1333,7 +1333,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
@@ -1344,7 +1344,7 @@ class C
                         {
                             N(SyntaxKind.IdentifierToken, "D");
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.GreaterThanToken);
                 }
@@ -1375,7 +1375,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierToken, "C");
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1430,7 +1430,7 @@ class C
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1452,7 +1452,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "C");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Parameter);
@@ -1461,7 +1461,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierToken, "D");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -1500,7 +1500,7 @@ class C
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1562,7 +1562,7 @@ public void M()
                                         {
                                             N(SyntaxKind.VoidKeyword);
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -1586,7 +1586,7 @@ public void M()
                                     {
                                         N(SyntaxKind.VoidKeyword);
                                     }
-                                    N(SyntaxKind.IdentifierToken, "");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
@@ -1617,7 +1617,7 @@ public void M()
                                         {
                                             N(SyntaxKind.VoidKeyword);
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -1658,7 +1658,7 @@ public void M()
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.GreaterThanToken);
                 }
@@ -1690,7 +1690,7 @@ public void M()
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -1742,7 +1742,7 @@ switch (o)
                                     {
                                         N(SyntaxKind.VoidKeyword);
                                     }
-                                    N(SyntaxKind.IdentifierToken, "");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
@@ -1774,7 +1774,7 @@ switch (o)
                                     {
                                         N(SyntaxKind.VoidKeyword);
                                     }
-                                    N(SyntaxKind.IdentifierToken, "");
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
@@ -1853,7 +1853,7 @@ o switch
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1884,7 +1884,7 @@ o switch
                                 {
                                     N(SyntaxKind.VoidKeyword);
                                 }
-                                N(SyntaxKind.IdentifierToken, "");
+                                M(SyntaxKind.IdentifierToken);
                             }
                             N(SyntaxKind.GreaterThanToken);
                         }
@@ -1953,7 +1953,7 @@ o switch
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2008,7 +2008,7 @@ o switch
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2059,7 +2059,7 @@ o switch
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2109,7 +2109,7 @@ o switch
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.GreaterThanToken);
                 }
@@ -2150,7 +2150,7 @@ o switch
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2198,7 +2198,7 @@ o switch
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken, "");
+                        M(SyntaxKind.IdentifierToken);
                     }
                     N(SyntaxKind.GreaterThanToken);
                 }
@@ -2232,7 +2232,7 @@ o switch
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -2241,7 +2241,7 @@ o switch
                             {
                                 N(SyntaxKind.StringKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.CommaToken);
                         N(SyntaxKind.Parameter);
@@ -2250,7 +2250,7 @@ o switch
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2286,13 +2286,13 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -2329,13 +2329,13 @@ o switch
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.IdentifierToken, "cdecl");
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -2365,13 +2365,13 @@ o switch
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.AsteriskToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2410,7 +2410,7 @@ o switch
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -2465,7 +2465,7 @@ async void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "async");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Parameter);
@@ -2474,7 +2474,7 @@ async void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "async");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -2533,7 +2533,7 @@ void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "async");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Parameter);
@@ -2542,7 +2542,7 @@ void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "async");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -2608,7 +2608,7 @@ async void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Parameter);
@@ -2617,7 +2617,7 @@ async void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -2676,7 +2676,7 @@ void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Parameter);
@@ -2685,7 +2685,7 @@ void M()
                                         {
                                             N(SyntaxKind.IdentifierToken, "await");
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -2727,13 +2727,13 @@ void M()
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.EndOfFileToken);
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -2770,13 +2770,13 @@ void M()
                         N(SyntaxKind.AsteriskToken);
                         N(SyntaxKind.IdentifierToken, "cdecl");
                         M(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -2818,7 +2818,7 @@ void M()
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -2864,7 +2864,7 @@ void M()
                             {
                                 N(SyntaxKind.VoidKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken, "");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -2929,13 +2929,13 @@ void C()
                                     N(SyntaxKind.AsteriskToken);
                                     N(SyntaxKind.IdentifierToken, convention);
                                     M(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    M(SyntaxKind.Parameter);
                                     {
                                         M(SyntaxKind.IdentifierName);
                                         {
                                             M(SyntaxKind.IdentifierToken);
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     M(SyntaxKind.GreaterThanToken);
                                 }
@@ -2998,13 +2998,13 @@ void C()
                                     N(SyntaxKind.DelegateKeyword);
                                     N(SyntaxKind.AsteriskToken);
                                     M(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.Parameter);
+                                    M(SyntaxKind.Parameter);
                                     {
                                         M(SyntaxKind.IdentifierName);
                                         {
                                             M(SyntaxKind.IdentifierToken);
                                         }
-                                        N(SyntaxKind.IdentifierToken, "");
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     M(SyntaxKind.GreaterThanToken);
                                 }

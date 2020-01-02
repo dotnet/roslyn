@@ -27,7 +27,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -68,11 +68,6 @@ namespace Microsoft.Cci
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
         ExplicitThis = SignatureAttributes.ExplicitThis,
-
-        /// <summary>
-        /// Represents an invalid calling convention.
-        /// </summary>
-        Invalid = int.MaxValue
     }
 
     /// <summary>

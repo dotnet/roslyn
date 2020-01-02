@@ -25,11 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return locations.Length != 0 ? locations[0] : symbol.ContainingSymbol.Locations[0];
         }
 
-        internal void ValidateParameterNameConflicts(
+        internal void ValidateParameterNameConflicts<TParameterSymbol>(
             ImmutableArray<TypeParameterSymbol> typeParameters,
-            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<TParameterSymbol> parameters,
             bool allowShadowingNames,
             DiagnosticBag diagnostics)
+            where TParameterSymbol : ParameterSymbol
         {
             PooledHashSet<string> tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)

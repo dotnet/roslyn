@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// reflect changes in the languages.
         /// </summary>
         public abstract Symbol? AssociatedSymbol { get; }
-#nullable disable
+#nullable restore
 
         /// <summary>
         /// Returns the original virtual or abstract method which a given method symbol overrides,
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is in an assembly with unified references,
             // we check if its definition depends on a type from a unified reference.
-            if (this.ContainingModule.HasUnifiedReferences)
+            if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
 

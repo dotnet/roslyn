@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#nullable enable
 
 using System.Linq;
 using Microsoft.Cci;
@@ -16,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(TypeKind.FunctionPointer, symbol.TypeKind);
             Assert.NotNull(symbol.Signature);
             Assert.Equal(MethodKind.FunctionPointerSignature, symbol.Signature.MethodKind);
+            Assert.Equal(string.Empty, symbol.Signature.Name);
+            foreach (var param in symbol.Signature.Parameters)
+            {
+                Assert.Equal(string.Empty, param.Name);
+            }
         }
 
         [InlineData("", RefKind.None)]
@@ -114,7 +120,7 @@ class C
 
         [InlineData("", CallingConvention.Default)]
         [InlineData("managed", CallingConvention.Default)]
-        [InlineData("cdecl", CallingConvention.C)]
+        [InlineData("cdecl", CallingConvention.CDecl)]
         [InlineData("stdcall", CallingConvention.Standard)]
         [InlineData("thiscall", CallingConvention.ThisCall)]
         // PROTOTYPE(func-ptr): unmanaged
@@ -153,7 +159,7 @@ class C
             var m = c.GetMethod("M");
             var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
             CommonVerifyFunctionPointer(pointerType);
-            Assert.Equal(CallingConvention.Invalid, pointerType.Signature.CallingConvention);
+            Assert.Equal(CallingConvention.Default, pointerType.Signature.CallingConvention);
         }
 
         [Fact]
@@ -261,8 +267,11 @@ class C
         delegate*<this string, void> p2,
         delegate*<readonly ref string, void> p3,
         delegate*<in out string, void> p4,
-        delegate*<in ref string, void> p5,
-        delegate*<out ref string, void> p6) {}
+        delegate*<out in string, void> p5,
+        delegate*<in ref string, void> p6,
+        delegate*<ref in string, void> p7,
+        delegate*<out ref string, void> p8,
+        delegate*<ref out string, void> p9) {}
         
 }", parseOptions: TestOptions.RegularPreview);
 
@@ -279,16 +288,63 @@ class C
                     // (8,22): error CS8328:  The parameter modifier 'out' cannot be used with 'in'
                     //         delegate*<in out string, void> p4,
                     Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "in").WithLocation(8, 22),
-                    // (9,22): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
-                    //         delegate*<in ref string, void> p5,
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(9, 22),
-                    // (10,23): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
-                    //         delegate*<out ref string, void> p6) {}
-                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(10, 23));
+                    // (9,23): error CS8328:  The parameter modifier 'in' cannot be used with 'out'
+                    //         delegate*<out in string, void> p5,
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "out").WithLocation(9, 23),
+                    // (10,22): error CS8328:  The parameter modifier 'ref' cannot be used with 'in'
+                    //         delegate*<in ref string, void> p6,
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "in").WithLocation(10, 22),
+                    // (11,23): error CS8328:  The parameter modifier 'in' cannot be used with 'ref'
+                    //         delegate*<ref in string, void> p7,
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "ref").WithLocation(11, 23),
+                    // (12,23): error CS8328:  The parameter modifier 'ref' cannot be used with 'out'
+                    //         delegate*<out ref string, void> p8,
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "out").WithLocation(12, 23),
+                    // (13,23): error CS8328:  The parameter modifier 'out' cannot be used with 'ref'
+                    //         delegate*<ref out string, void> p9) {}
+                    Diagnostic(ErrorCode.ERR_BadParameterModifiers, "out").WithArguments("out", "ref").WithLocation(13, 23));
+
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            var parameterTypes = m.Parameters;
+
+            var firstParam = getParam(0);
+            Assert.Equal(RefKind.None, firstParam.Parameters.Single().RefKind);
+
+            var secondParam = getParam(1);
+            Assert.Equal(RefKind.None, secondParam.Parameters.Single().RefKind);
+
+            var thirdParam = getParam(2);
+            Assert.Equal(RefKind.Ref, thirdParam.Parameters.Single().RefKind);
+
+            var fourthParam = getParam(3);
+            Assert.Equal(RefKind.In, fourthParam.Parameters.Single().RefKind);
+
+            var fifthParam = getParam(4);
+            Assert.Equal(RefKind.Out, fifthParam.Parameters.Single().RefKind);
+
+            var sixthParam = getParam(5);
+            Assert.Equal(RefKind.In, sixthParam.Parameters.Single().RefKind);
+
+            var seventhParam = getParam(6);
+            Assert.Equal(RefKind.Ref, seventhParam.Parameters.Single().RefKind);
+
+            var eightParam = getParam(7);
+            Assert.Equal(RefKind.Out, eightParam.Parameters.Single().RefKind);
+
+            var ninthParam = getParam(8);
+            Assert.Equal(RefKind.Ref, ninthParam.Parameters.Single().RefKind);
+
+            MethodSymbol getParam(int index)
+            {
+                var type = ((FunctionPointerTypeSymbol)parameterTypes[index].Type);
+                CommonVerifyFunctionPointer(type);
+                return type.Signature;
+            }
         }
 
         [Fact]
-        public void VoidInAsParameterType()
+        public void VoidAsParameterType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -296,11 +352,260 @@ class C
     void M(delegate*<void, void> p1) {}
 }", parseOptions: TestOptions.RegularPreview);
 
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                    // (4,22): error CS1536: Invalid parameter type 'void'
+                    //     void M(delegate*<void, void> p1) {}
+                    Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(4, 22));
+
             var c = comp.GetTypeByMetadataName("C");
             var m = c.GetMethod("M");
             var signature = ((FunctionPointerTypeSymbol)m.Parameters.Single().Type).Signature;
             Assert.True(signature.Parameters.Single().Type.IsVoidType());
+        }
+
+        [Fact]
+        public void Equality_ReturnVoid()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<void> p1,
+           delegate*<void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type, returnEquality: Equality.Equal, callingConventionEquality: Equality.Equal);
+        }
+
+        [Fact]
+        public void EqualityDifferingNullability()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    void M(delegate*<string, string, string?> p1,
+           delegate*<string, string?, string> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.DifferingNullability, callingConventionEquality: Equality.Equal,
+                Equality.Equal, Equality.DifferingNullability);
+
+        }
+
+        [Fact]
+        public void EqualityMultipleParameters()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<string, object, C, int, void> p1,
+           delegate*<string, object, C, int, void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.Equal, callingConventionEquality: Equality.Equal,
+                Equality.Equal, Equality.Equal, Equality.Equal, Equality.Equal);
+        }
+
+        [Fact]
+        public void EqualityNestedFunctionPointers()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<delegate*<string, object>, delegate*<C, int>> p1,
+           delegate*<delegate*<string, object>, delegate*<C, int>> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.Equal, callingConventionEquality: Equality.Equal,
+                Equality.Equal);
+        }
+
+        [Fact]
+        public void EqualityNestedFunctionPointersDifferingNullability()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+class C
+{
+    void M(delegate*<delegate*<string, object?>, delegate*<C?, int>> p1,
+           delegate*<delegate*<string?, object>, delegate*<C, int>> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.DifferingNullability, callingConventionEquality: Equality.Equal,
+                Equality.DifferingNullability);
+        }
+
+        [Fact]
+        public void Equality_ReturnNotEqual()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<string, object, C, int, string> p1,
+           delegate*<string, object, C, int, void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.NotEqual, callingConventionEquality: Equality.Equal,
+                Equality.Equal, Equality.Equal, Equality.Equal, Equality.Equal);
+        }
+
+        [Fact]
+        public void Equality_ParameterTypeNotEqual()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<string, object, C, object, void> p1,
+           delegate*<string, object, C, int, void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.Equal, callingConventionEquality: Equality.Equal,
+                Equality.Equal, Equality.Equal, Equality.Equal, Equality.NotEqual);
+        }
+
+        [Fact]
+        public void Equality_CallingConvetionNotEqual()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate* cdecl<string, object, C, object, void> p1,
+           delegate* thiscall<string, object, C, object, void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.Equal, callingConventionEquality: Equality.NotEqual,
+                Equality.Equal, Equality.Equal, Equality.Equal, Equality.Equal);
+        }
+
+        [Fact]
+        public void Equality_ParameterModifiersDifferent()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<ref string, object, C, object, void> p1,
+           delegate*<string, in object, out C, object, void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.Equal, callingConventionEquality: Equality.Equal,
+                Equality.NotEqual, Equality.NotEqual, Equality.NotEqual, Equality.Equal);
+        }
+
+        [Fact]
+        public void Equality_ReturnTypeDifferent()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<string, object, C, object, ref string> p1,
+           delegate*<string, object, C, object, ref readonly string> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.NotEqual, callingConventionEquality: Equality.Equal,
+                Equality.Equal, Equality.Equal, Equality.Equal, Equality.Equal);
+        }
+
+        enum Equality
+        {
+            Equal = 0,
+            DifferingNullability = 0b01,
+            NotEqual = 0b10
+        }
+
+        private void AssertEqualityAndHashCode(FunctionPointerTypeSymbol p1, FunctionPointerTypeSymbol p2, Equality returnEquality, Equality callingConventionEquality, params Equality[] parameterEqualities)
+        {
+            var overallEquality = returnEquality | callingConventionEquality | (parameterEqualities.Length > 0 ? parameterEqualities.Aggregate((acc, cur) => acc | cur) : 0);
+
+            assertSymbolEquality(p1, p2, overallEquality);
+            assertSymbolEquality(p1.Signature, p2.Signature, overallEquality);
+
+            var ret1 = p1.Signature.ReturnTypeWithAnnotations;
+            var ret2 = p2.Signature.ReturnTypeWithAnnotations;
+            if (hasFlag(returnEquality, Equality.NotEqual))
+            {
+                if (p1.Signature.RefKind == p2.Signature.RefKind)
+                {
+                    Assert.False(ret1.Equals(ret2, TypeCompareKind.ConsiderEverything));
+                    Assert.False(ret1.Equals(ret2, TypeCompareKind.AllNullableIgnoreOptions));
+                    Assert.NotEqual(ret1.GetHashCode(), ret2.GetHashCode());
+                }
+            }
+            else
+            {
+                Assert.Equal(p1.Signature.RefKind, p2.Signature.RefKind);
+                Assert.True(ret1.Equals(ret2, TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.Equal(ret1.GetHashCode(), ret2.GetHashCode());
+                Assert.Equal(returnEquality == Equality.Equal, ret1.Equals(ret2, TypeCompareKind.ConsiderEverything));
+            }
+
+            for (int i = 0; i < p1.Signature.ParameterCount; i++)
+            {
+                ParameterSymbol param1 = p1.Signature.Parameters[i];
+                ParameterSymbol param2 = p2.Signature.Parameters[i];
+                assertSymbolEquality(param1, param2, overallEquality);
+                if (parameterEqualities[i] == Equality.Equal)
+                {
+                    Assert.True(((FunctionPointerParameterSymbol)param1).EqualsContainingVerified((FunctionPointerParameterSymbol)param2,
+                                                                                                  TypeCompareKind.ConsiderEverything,
+                                                                                                  isValueTypeOverride: null));
+                }
+            }
+
+            static bool hasFlag(Equality eq, Equality flag) => (eq & flag) == flag;
+            static void assertSymbolEquality(Symbol s1, Symbol s2, Equality eq)
+            {
+                if (hasFlag(eq, Equality.NotEqual))
+                {
+                    Assert.False(s1.Equals(s2, TypeCompareKind.ConsiderEverything));
+                    Assert.False(s1.Equals(s2, TypeCompareKind.AllNullableIgnoreOptions));
+                    Assert.NotEqual(s1.GetHashCode(), s2.GetHashCode());
+                }
+                else
+                {
+                    Assert.True(s1.Equals(s2, TypeCompareKind.AllNullableIgnoreOptions));
+                    Assert.Equal(s1.GetHashCode(), s2.GetHashCode());
+                    Assert.Equal(eq == Equality.Equal, s1.Equals(s2, TypeCompareKind.ConsiderEverything));
+                }
+            }
         }
     }
 }
