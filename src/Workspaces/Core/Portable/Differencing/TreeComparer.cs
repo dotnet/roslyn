@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Returns a parent for the specified node.
         /// </summary>
-        protected internal abstract bool TryGetParent(TNode node, [NotNullWhen(true)][AllowNull] out TNode parent);
+        protected internal abstract bool TryGetParent(TNode node, [MaybeNullWhen(false)] out TNode parent);
 
         internal TNode GetParent(TNode node)
         {

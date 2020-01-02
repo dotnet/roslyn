@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
 #nullable enable
-        bool IsInvocationExpression(SyntaxNode? node);
+        bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node);
 #nullable restore
 
         bool IsExpressionOfInvocationExpression(SyntaxNode node);

@@ -819,7 +819,8 @@ namespace Microsoft.CodeAnalysis
                 .Parent
                 !.FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
-            SyntaxNode? cuRoot = node!.SyntaxTree?.GetRoot();
+            RoslynDebug.Assert(node is object);
+            SyntaxNode? cuRoot = node.SyntaxTree?.GetRoot();
 
             // Tie-breaking.
             if (!getInnermostNodeForTie)

@@ -249,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 // Handle nested Tuple deconstruction
                 while (parent.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
                 {
-                    // https://github.com/dotnet/roslyn/issues/40509
-                    parent = parent!.Parent;
+                    parent = parent.Parent;
                 }
 
                 // Checking for DeclarationExpression covers the following cases:

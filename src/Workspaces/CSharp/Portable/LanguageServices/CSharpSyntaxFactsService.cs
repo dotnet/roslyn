@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        public bool IsInvocationExpression(SyntaxNode? node)
+        public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             return node is InvocationExpressionSyntax;
         }

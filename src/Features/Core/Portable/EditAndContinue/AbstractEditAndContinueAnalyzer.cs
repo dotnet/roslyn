@@ -1756,7 +1756,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode? node, EditKind editKind)
         {
-            return 
+            return
                 node is object &&
                 editMap.TryGetValue(node, out var parentEdit) &&
                 parentEdit == editKind;

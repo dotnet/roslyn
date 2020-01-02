@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // regular case. always use ConvertedType to get implicit conversion right.
                 var expression = node.GetUnparenthesizedExpression();
-                RoslynDebug.Assert(expression is object);
 
                 var info = semanticModel.GetTypeInfo(expression);
                 var conv = semanticModel.GetConversion(expression);

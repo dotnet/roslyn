@@ -832,10 +832,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     if (leftCatch.Declaration == null && leftCatch.Filter == null &&
                         rightCatch.Declaration == null && rightCatch.Filter == null)
                     {
-                        var leftTry = (TryStatementSyntax?)leftCatch.Parent;
-                        var rightTry = (TryStatementSyntax?)rightCatch.Parent;
+                        RoslynDebug.Assert(leftCatch.Parent is object);
+                        RoslynDebug.Assert(rightCatch.Parent is object);
+                        var leftTry = (TryStatementSyntax)leftCatch.Parent;
+                        var rightTry = (TryStatementSyntax)rightCatch.Parent;
 
-                        distance = 0.5 * ComputeValueDistance(leftTry?.Block, rightTry?.Block) +
+                        distance = 0.5 * ComputeValueDistance(leftTry.Block, rightTry.Block) +
                                    0.5 * ComputeValueDistance(leftBlock, rightBlock);
                     }
                     else
