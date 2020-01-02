@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,9 +19,9 @@ namespace Microsoft.CodeAnalysis
     public readonly partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {
-        private readonly SyntaxNode _node;
+        private readonly SyntaxNode? _node;
 
-        internal SyntaxList(SyntaxNode node)
+        internal SyntaxList(SyntaxNode? node)
         {
             _node = node;
         }
@@ -28,8 +30,8 @@ namespace Microsoft.CodeAnalysis
         /// Creates a singleton list of syntax nodes.
         /// </summary>
         /// <param name="node">The single element node.</param>
-        public SyntaxList(TNode node)
-            : this((SyntaxNode)node)
+        public SyntaxList(TNode? node)
+            : this((SyntaxNode?)node)
         {
         }
 
@@ -37,12 +39,12 @@ namespace Microsoft.CodeAnalysis
         /// Creates a list of syntax nodes.
         /// </summary>
         /// <param name="nodes">A sequence of element nodes.</param>
-        public SyntaxList(IEnumerable<TNode> nodes)
-            : this(CreateNode(nodes))
+        public SyntaxList(IEnumerable<TNode>? nodes)
+            : this(CreateNode(nodes)!)
         {
         }
 
-        private static SyntaxNode CreateNode(IEnumerable<TNode> nodes)
+        private static SyntaxNode? CreateNode(IEnumerable<TNode>? nodes)
         {
             if (nodes == null)
             {
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToList().Node;
         }
 
-        internal SyntaxNode Node
+        internal SyntaxNode? Node
         {
             get
             {
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (unchecked((uint)index < (uint)_node.SlotCount))
                         {
-                            return (TNode)_node.GetNodeSlot(index);
+                            return (TNode)_node.GetNodeSlot(index)!;
                         }
                     }
                     else if (index == 0)
@@ -106,9 +108,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal SyntaxNode ItemInternal(int index)
+        internal SyntaxNode? ItemInternal(int index)
         {
-            if (_node.IsList)
+            if (_node?.IsList == true)
             {
                 return _node.GetNodeSlot(index);
             }
@@ -340,7 +342,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The first node in the list or default if the list is empty.
         /// </summary>
-        public TNode FirstOrDefault()
+        public TNode? FirstOrDefault()
         {
             if (this.Any())
             {
@@ -363,7 +365,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The last node in the list or default if the list is empty.
         /// </summary>
-        public TNode LastOrDefault()
+        public TNode? LastOrDefault()
         {
             if (this.Any())
             {

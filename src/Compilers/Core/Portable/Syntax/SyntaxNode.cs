@@ -643,6 +643,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets node at given node index. 
         /// This WILL force node creation if node has not yet been created.
+        /// Can still return null for invalid slot numbers
         /// </summary>
         internal abstract SyntaxNode? GetNodeSlot(int slot);
 
