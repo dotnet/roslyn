@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis
 
             var node = FindToken(span.Start, findInsideTrivia)
                 .Parent
-                .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
+                !.FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
             SyntaxNode? cuRoot = node!.SyntaxTree?.GetRoot();
 

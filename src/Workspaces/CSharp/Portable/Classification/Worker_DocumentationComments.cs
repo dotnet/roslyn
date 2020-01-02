@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
-                switch (token.Parent.Kind())
+                switch (token.Parent!.Kind())
                 {
                     case SyntaxKind.XmlText:
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentText);

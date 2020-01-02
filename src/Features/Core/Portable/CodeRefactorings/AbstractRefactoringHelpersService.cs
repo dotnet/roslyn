@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
             while (tokenToLeft != default)
             {
-                SyntaxNode? leftNode = tokenToLeft.Parent;
+                SyntaxNode? leftNode = tokenToLeft.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             if (tokenToRightOrIn != default)
             {
-                SyntaxNode? rightNode = tokenToRightOrIn.Parent;
+                SyntaxNode? rightNode = tokenToRightOrIn.Parent!;
                 do
                 {
                     // Consider either a Node that is:

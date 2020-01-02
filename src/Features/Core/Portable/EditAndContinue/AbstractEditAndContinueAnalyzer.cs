@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var oldAncestors = GetExceptionHandlingAncestors(oldStatementSyntax, isNonLeaf);
-            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax, isNonLeaf);
+            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax!, isNonLeaf);
 
             if (oldAncestors.Count > 0 || newAncestors.Count > 0)
             {
@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var textSpan = text.Lines.GetTextSpanSafe(activeStatementSpan);
             var token = syntaxRoot.FindToken(textSpan.Start);
-            var ancestors = GetExceptionHandlingAncestors(token.Parent, isNonLeaf);
+            var ancestors = GetExceptionHandlingAncestors(token.Parent!, isNonLeaf);
             return GetExceptionRegions(ancestors, text, out isCovered);
         }
 

@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static string? GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
-            => identifier.Parent.Kind() switch
+            => identifier.Parent!.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
                 SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,

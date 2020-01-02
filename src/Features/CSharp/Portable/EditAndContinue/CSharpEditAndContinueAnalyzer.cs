@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    from node in root.DescendantNodesAndSelf()
                    where node.IsKind(SyntaxKind.IdentifierName)
                    let nameSyntax = (IdentifierNameSyntax)node
-                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name &&
+                   where (string?)nameSyntax.Identifier.Value == localOrParameter.Name &&
                          (model.GetSymbolInfo(nameSyntax, cancellationToken).Symbol?.Equals(localOrParameter) ?? false)
                    select node;
         }
@@ -302,9 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 partner = null;
             }
 
-            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
+            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node!) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
             {
-                node = node.Parent!;
+                node = node!.Parent;
                 if (partner != null)
                 {
                     partner = partner.Parent;
@@ -314,12 +314,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (node!.Kind())
             {
                 case SyntaxKind.Block:
-                    statementPart = (int)GetStatementPart((BlockSyntax)node, position);
+                    statementPart = (int)GetStatementPart((BlockSyntax)node!, position);
                     break;
 
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachVariableStatement:
-                    statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node, position);
+                    statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node!, position);
                     break;
 
                 case SyntaxKind.VariableDeclaration:
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // 
                     // The compiler places sequence points after each local variable initialization.
                     // The TypeSyntax is considered to be part of the first sequence span.
-                    node = ((VariableDeclarationSyntax)node).Variables.First();
+                    node = ((VariableDeclarationSyntax)node!).Variables.First();
 
                     if (partner != null)
                     {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     break;
             }
 
-            return node;
+            return node!;
         }
 
         private static BlockPart GetStatementPart(BlockSyntax node, int position)
