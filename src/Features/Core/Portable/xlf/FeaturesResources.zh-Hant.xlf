@@ -82,6 +82,16 @@
         <target state="translated">請避免在您的程式碼中使用參數。如果無法移除參數，請變更其名稱，使其以底線開頭，並可選擇在後面接著整數，例如 '_'、'_1'、'_2' 等。這些會視為特殊的捨棄符號名稱。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">無法套用變更 -- 未預期的錯誤: '{0}'</target>
@@ -1646,16 +1656,6 @@ Do you want to continue?</source>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
         <target state="translated">&lt;暫止&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">傳回等待的工作</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">沒有值。</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
