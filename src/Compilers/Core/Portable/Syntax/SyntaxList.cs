@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             }
         }
 
-        protected override SyntaxTree SyntaxTreeCore => this.Parent?.SyntaxTree;
+        protected override SyntaxTree? SyntaxTreeCore => this.Parent?.SyntaxTree;
 
         protected internal override SyntaxNode ReplaceCore<TNode>(IEnumerable<TNode>? nodes = null, Func<TNode, TNode, SyntaxNode>? computeReplacementNode = null, IEnumerable<SyntaxToken>? tokens = null, Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken = null, IEnumerable<SyntaxTrivia>? trivia = null, Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia = null)
         {
