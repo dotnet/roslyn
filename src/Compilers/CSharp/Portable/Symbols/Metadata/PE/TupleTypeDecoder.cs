@@ -326,14 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return default;
             }
 
-            var builder = ArrayBuilder<string?>.GetInstance(numberOfElements);
-
-            for (int i = 0; i < numberOfElements; i++)
-            {
-                builder.Add(_elementNames[start + i]);
-            }
-
-            return builder.ToImmutableAndFree();
+            return ImmutableArray.Create(_elementNames, start, numberOfElements);
         }
     }
 }

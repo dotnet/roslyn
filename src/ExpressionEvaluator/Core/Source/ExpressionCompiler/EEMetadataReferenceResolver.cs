@@ -45,6 +45,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return (PortableExecutableReference?)result.Reference;
         }
 
+        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
+            => throw ExceptionUtilities.Unreachable;
+
+        public override bool Equals(object other)
+            => throw ExceptionUtilities.Unreachable;
+
+        public override int GetHashCode()
+            => throw ExceptionUtilities.Unreachable;
+
         private (AssemblyIdentity? Identity, MetadataReference? Reference) GetBestMatch(
             ImmutableArray<(AssemblyIdentity Identity, MetadataReference Reference)> references,
             AssemblyIdentity referenceIdentity)
@@ -73,14 +82,5 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             return best;
         }
-
-        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
-            => throw ExceptionUtilities.Unreachable;
-
-        public override bool Equals(object other)
-            => throw ExceptionUtilities.Unreachable;
-
-        public override int GetHashCode()
-            => throw ExceptionUtilities.Unreachable;
     }
 }

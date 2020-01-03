@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct ImportRecord
+    internal readonly struct ImportRecord
     {
         public readonly ImportTargetKind TargetKind;
         public readonly string? Alias;

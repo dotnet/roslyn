@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // is tied to the expression syntax in VB.)
             var synthesizedTypes = syntaxNodes.SelectAsArray(
                 (syntax, i, _) => (NamedTypeSymbol)CreateSynthesizedType(syntax, typeNameBase + i, methodName, ImmutableArray<Alias>.Empty),
-                arg: 0);
+                arg: (object?)null);
 
             if (synthesizedTypes.Length == 0)
             {

@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal struct CSharpMetadataContext
+    internal readonly struct CSharpMetadataContext
     {
         internal readonly CSharpCompilation Compilation;
         internal readonly EvaluationContext? EvaluationContext;

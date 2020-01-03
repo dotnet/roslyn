@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Find placeholder Windows.winmd assembly (created
                 // in MetadataUtilities.MakeAssemblyReferences).
                 var assemblies = Module.GetReferencedAssemblySymbols();
-                index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), arg: 0);
+                index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), arg: (object?)null);
                 if (index >= 0)
                 {
                     // Find module in Windows.winmd matching identity.

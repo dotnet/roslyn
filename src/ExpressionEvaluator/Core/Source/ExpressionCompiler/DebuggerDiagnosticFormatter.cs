@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal class DebuggerDiagnosticFormatter : DiagnosticFormatter
     {
-        public override string Format(Diagnostic? diagnostic, IFormatProvider? formatter = null)
+        public override string Format(Diagnostic diagnostic, IFormatProvider? formatter = null)
         {
             if (diagnostic == null)
             {
