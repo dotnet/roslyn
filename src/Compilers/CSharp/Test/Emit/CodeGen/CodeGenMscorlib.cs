@@ -964,6 +964,7 @@ namespace System
     public struct Int32 { }
     public struct Char { }
     public struct Boolean { }
+    public class Exception { }
 
     public class String 
     { 
@@ -1071,6 +1072,7 @@ namespace System
     public struct Int32 { }
     public struct Char { }
     public struct Boolean { }
+    public class Exception { }
 
     public class String 
     { 

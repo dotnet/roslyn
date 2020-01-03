@@ -447,19 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public NamedTypeSymbol Retarget(NamedTypeSymbol type, RetargetOptions options)
             {
-                if (type.IsTupleType)
-                {
-                    var newUnderlyingType = Retarget(type.TupleUnderlyingType, options);
-                    if (newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(type.TupleElementTypesWithAnnotations.Length))
-                    {
-                        return ((TupleTypeSymbol)type).WithUnderlyingType(newUnderlyingType);
-                    }
-                    else
-                    {
-                        return newUnderlyingType;
-                    }
-                }
-
                 NamedTypeSymbol originalDefinition = type.OriginalDefinition;
 
                 NamedTypeSymbol newDefinition = RetargetNamedTypeDefinition(originalDefinition, options);
@@ -557,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     TypeMap substitution = new TypeMap(newParameters.ToImmutableAndFree(), newArguments.ToImmutable());
 
-                    constructedType = substitution.SubstituteNamedType(newDefinition);
+                    constructedType = substitution.SubstituteNamedType(newDefinition).WithTupleDataFrom(type);
                 }
 
                 newArguments.Free();
@@ -638,11 +625,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     case SymbolKind.NamedType:
 
                         var namedType = (NamedTypeSymbol)symbol;
-                        if (namedType.IsTupleType)
-                        {
-                            namedType = namedType.TupleUnderlyingType;
-                        }
-
                         if ((object)symbol.OriginalDefinition.ContainingModule == (object)_retargetingModule.UnderlyingModule &&
                             namedType.IsExplicitDefinitionOfNoPiaLocalType)
                         {

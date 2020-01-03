@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     foreach (var namedType in SymbolAnnotation.GetSymbols(annotation, model.Compilation).OfType<INamedTypeSymbol>())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        if (namedType.OriginalDefinition.IsSpecialType() || namedType.IsNullable())
+                        if (namedType.OriginalDefinition.IsSpecialType() || namedType.IsNullable() || namedType.IsTupleType)
                         {
                             continue;
                         }

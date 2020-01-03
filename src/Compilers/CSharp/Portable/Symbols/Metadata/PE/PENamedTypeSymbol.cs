@@ -1279,12 +1279,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Sort the types based on row id.
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
-                var membersInDeclarationOrder = members.ToImmutable();
-
 #if DEBUG
                 Symbol previous = null;
 
-                foreach (var s in membersInDeclarationOrder)
+                foreach (var s in members)
                 {
                     if (previous == null)
                     {
@@ -1298,6 +1296,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 #endif
+
+                if (IsTupleType)
+                {
+                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    Debug.Assert(members is object);
+                }
+
+                var membersInDeclarationOrder = members.ToImmutable();
 
                 if (!ImmutableInterlocked.InterlockedInitialize(ref _lazyMembersInDeclarationOrder, membersInDeclarationOrder))
                 {
@@ -2283,6 +2289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override int Arity
             {
                 get
@@ -2341,6 +2350,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _genericParameterHandles = genericParameterHandles;
                 _mangleName = mangleName;
             }
+
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
             {

@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
 
-                var refactoringTask = SpecializedTasks.Default<string?>();
+                var refactoringTask = SpecializedTasks.Null<string>();
                 if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     refactoringTask = Task.Run(

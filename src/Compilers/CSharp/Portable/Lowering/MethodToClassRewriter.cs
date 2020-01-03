@@ -520,39 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (method.IsTupleMethod)
-            {
-                //  Method of a tuple type
-                var oldType = method.ContainingType;
-                var constructedFrom = method.ConstructedFrom;
-                Debug.Assert(oldType.IsTupleType);
-
-                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(oldType).AsTypeSymbolOnly();
-                if ((object)newType == oldType)
-                {
-                    //  tuple type symbol was not rewritten
-                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
-                }
-
-                Debug.Assert(newType.IsTupleType);
-                Debug.Assert(oldType.TupleElementTypesWithAnnotations.Length == newType.TupleElementTypesWithAnnotations.Length);
-
-                //  get a new method by position
-                var oldMembers = oldType.GetMembers();
-                var newMembers = newType.GetMembers();
-                Debug.Assert(oldMembers.Length == newMembers.Length);
-
-                for (int i = 0; i < oldMembers.Length; i++)
-                {
-                    if ((object)constructedFrom == oldMembers[i])
-                    {
-                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable;
-            }
-            else if (method.ContainingType.IsAnonymousType)
+            if (method.ContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();

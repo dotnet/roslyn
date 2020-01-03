@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     //   method attempting to create a default ExportProvider which did not match the one assigned to
                     //   the test.
                     // * A test attempted to perform multiple test sequences in the context of a single test method,
-                    //   rather than break up the test into distict tests for each case.
+                    //   rather than break up the test into distinct tests for each case.
                     // * A test referenced different predefined ExportProvider instances within the context of a test.
                     //   Each test is expected to use the same ExportProvider throughout the test.
                     throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created in the context of a single test.");

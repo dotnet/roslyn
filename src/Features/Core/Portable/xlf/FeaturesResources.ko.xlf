@@ -82,6 +82,16 @@
         <target state="translated">코드에 사용되지 않는 매개 변수를 사용하지 않도록 합니다. 매개 변수를 제거할 수 없는 경우 이름을 변경하여 밑줄로 시작하고 필요에 따라 뒤에 정수가 있도록 합니다(예: '_', '_1', '_2' 등). 해당 이름은 특수 무시 기호 이름으로 처리됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">변경 내용을 적용할 수 없음 -- 예기치 않은 오류: '{0}'</target>
@@ -327,6 +337,11 @@
         <target state="translated">인덱싱은 단순화될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">상수 지정</target>
@@ -520,6 +535,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">편집 다시 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1636,16 +1656,6 @@ Do you want to continue?</source>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
         <target state="translated">&lt;보류 중&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">대기된 작업 반환</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">값이 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">

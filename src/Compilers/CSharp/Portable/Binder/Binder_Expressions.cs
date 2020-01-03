@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             var discardedDiagnostics = DiagnosticBag.GetInstance();
             var result =
-                (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
+                !expression.NeedsToBeConverted() ? expression :
                 type is null ? BindToNaturalType(expression, discardedDiagnostics, reportDefaultMissingType: false) :
                 GenerateConversionForAssignment(type, expression, discardedDiagnostics);
             discardedDiagnostics.Free();
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
-                        var tupleType = TupleTypeSymbol.Create(
+                        var tupleType = NamedTypeSymbol.CreateTuple(
                             locationOpt: null,
                             subExpressions.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                             elementLocations: default,
@@ -888,13 +888,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
+                tupleTypeOpt = NamedTypeSymbol.CreateTuple(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
                     includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
-                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
+                NamedTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
             }
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = syntax.TryGetInferredMemberName();
 
             // Reserved names are never candidates to be inferred names, at any position
-            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
+            if (name == null || NamedTypeSymbol.IsTupleElementNameReserved(name) != -1)
             {
                 return null;
             }
@@ -2269,7 +2269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypesWithAnnotations) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypesWithAnnotations) &&
                             targetElementTypesWithAnnotations.Length == tuple.Arguments.Length)
                         {
                             GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypesWithAnnotations);
@@ -7278,7 +7278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryBindIndexOrRangeIndexer(
                     node,
                     expr,
-                    analyzedArguments.Arguments,
+                    analyzedArguments,
                     diagnostics,
                     out var patternIndexerAccess))
                 {
@@ -7452,7 +7452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryBindIndexOrRangeIndexer(
                         syntax,
                         receiverOpt,
-                        analyzedArguments.Arguments,
+                        analyzedArguments,
                         diagnostics,
                         out var patternIndexerAccess))
                     {
@@ -7552,7 +7552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryBindIndexOrRangeIndexer(
             SyntaxNode syntax,
             BoundExpression receiverOpt,
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments arguments,
             DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
@@ -7562,12 +7562,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
-            if (arguments.Count != 1)
+            if (arguments.Arguments.Count != 1)
             {
                 return false;
             }
 
-            var argType = arguments[0].Type;
+            var argument = arguments.Arguments[0];
+
+            var argType = argument.Type;
             bool argIsIndex = TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything);
@@ -7638,7 +7640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 property,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 property.Type);
                             break;
                         }
@@ -7657,7 +7659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         lengthOrCountProperty,
                         substring,
-                        BindToNaturalType(arguments[0], diagnostics),
+                        BindToNaturalType(argument, diagnostics),
                         substring.ReturnType);
                     checkWellKnown(WellKnownMember.System_Range__get_Start);
                     checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7698,7 +7700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 method,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 method.ReturnType);
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7716,6 +7718,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
+            if (arguments.Names.Count > 0)
+            {
+                diagnostics.Add(
+                    argIsRange
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
+                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
+                    arguments.Names[0].GetLocation());
+            }
             return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

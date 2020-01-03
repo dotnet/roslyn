@@ -40,7 +40,7 @@ This document provides guidance for thinking about language interactions and tes
     - events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
-- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`)
+- Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
 - Literals

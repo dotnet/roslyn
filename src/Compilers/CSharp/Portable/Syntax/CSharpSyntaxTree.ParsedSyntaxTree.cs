@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode root,
                 Syntax.InternalSyntax.DirectiveStack directives,
                 ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
-                bool cloneRoot = true)
+                bool? isGeneratedCode,
+                bool cloneRoot)
             {
                 Debug.Assert(root != null);
                 Debug.Assert(options != null);
@@ -48,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
                 _hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
                 _diagnosticOptions = diagnosticOptions ?? EmptyDiagnosticOptions;
+                if (isGeneratedCode is bool b)
+                {
+                    _isGenerationConfigured = true;
+                    _lazyIsGeneratedCode = b.ToThreeState();
+                }
 
                 this.SetDirectiveStack(directives);
             }
@@ -133,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (CSharpSyntaxNode)root,
                     _directives,
                     _diagnosticOptions,
+                    isGeneratedCode: _isGenerationConfigured
+                        ? (bool?)_lazyIsGeneratedCode.Value()
+                        : null,
                     cloneRoot: true);
             }
 
@@ -152,6 +161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _root,
                     _directives,
                     _diagnosticOptions,
+                    isGeneratedCode: _isGenerationConfigured
+                        ? (bool?)_lazyIsGeneratedCode.Value()
+                        : null,
                     cloneRoot: true);
             }
 
@@ -176,6 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _root,
                     _directives,
                     options,
+                    isGeneratedCode: _isGenerationConfigured
+                        ? (bool?)_lazyIsGeneratedCode.Value()
+                        : null,
                     cloneRoot: true);
             }
         }
