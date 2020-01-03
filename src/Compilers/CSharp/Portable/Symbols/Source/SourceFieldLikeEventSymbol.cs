@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
                    nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
-            _name = declaratorSyntax.Identifier.ValueText;
+            _name = declaratorSyntax.Identifier.ValueText ?? "";
 
             var declaratorDiagnostics = DiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;

@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 .OfType<NamespaceDeclarationSyntax>().Any();
         }
 
-        private static string? GetAliasQualifier(SyntaxNode name)
+        private static string? GetAliasQualifier(SyntaxNode? name)
         {
             while (true)
             {
