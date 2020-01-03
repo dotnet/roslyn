@@ -258,11 +258,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Public Overrides Function ChangeSignature(document As Document, declarationSymbol As ISymbol, potentiallyUpdatedNode As SyntaxNode, originalNode As SyntaxNode, updatedSignature As SignatureChange, cancellationToken As CancellationToken) As SyntaxNode
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
-
-            If Not declarationSymbol.GetParameters().Any() Then
-                Return vbnode
-            End If
-
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse
                vbnode.IsKind(SyntaxKind.FunctionStatement) OrElse
                vbnode.IsKind(SyntaxKind.SubNewStatement) OrElse
@@ -428,15 +423,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
+            Dim numAddedParameters = 0
+
             Dim newParameters = New List(Of T)
-            For Each newParam In reorderedParameters
-                Dim pos = originalParameters.IndexOf(newParam)
-                Dim param = list(pos)
-                newParameters.Add(param)
+            For index = 0 To reorderedParameters.Count - 1
+                Dim newParam = reorderedParameters(index)
+                Dim pos = originalParameters.IndexOf(Function(p) p.Symbol Is newParam.Symbol)
+
+                If pos = -1 Then
+                    ' Added parameter
+                    numAddedParameters += 1
+
+                    Dim newParameter = SyntaxFactory.Parameter(
+                        attributeLists:=SyntaxFactory.List(Of AttributeListSyntax),
+                        modifiers:=SyntaxFactory.TokenList(),
+                        identifier:=SyntaxFactory.ModifiedIdentifier(TryCast(newParam, AddedParameter).Name),
+                        asClause:=SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(TryCast(newParam, AddedParameter).TypeName)),
+                        [default]:=Nothing)
+
+                    newParameters.Add(TryCast(newParameter, T))
+                Else
+                    Dim param = list(pos)
+
+                    ' Copy whitespace trivia from original position
+                    param = TransferLeadingWhitespaceTrivia(param, list(index - numAddedParameters))
+
+                    newParameters.Add(param)
+                End If
             Next
 
-            Dim numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count
+            Dim numSeparatorsToSkip As Integer
+            If originalParameters.Count = 0 Then
+                ' () 
+                ' Adding X parameters, need to add X-1 separators.
+                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1
+            Else
+                ' (a,b,c)
+                ' Adding X parameters, need to add X separators.
+                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count
+            End If
+
             Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip))
+        End Function
+
+        Private Shared Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(ByVal newArgument As T, ByVal oldArgument As SyntaxNode) As T
+            Dim oldTrivia = oldArgument.GetLeadingTrivia()
+            Dim oldOnlyHasWhitespaceTrivia = oldTrivia.All(Function(type) type.IsKind(SyntaxKind.WhitespaceTrivia))
+            Dim newTrivia = newArgument.GetLeadingTrivia()
+            Dim newOnlyHasWhitespaceTrivia = newTrivia.All(Function(type) type.IsKind(SyntaxKind.WhitespaceTrivia))
+
+            If oldOnlyHasWhitespaceTrivia AndAlso newOnlyHasWhitespaceTrivia Then
+                newArgument = newArgument.WithLeadingTrivia(oldTrivia)
+            End If
+
+            Return newArgument
         End Function
 
         Private Function UpdateParamNodesInLeadingTrivia(node As VisualBasicSyntaxNode, declarationSymbol As ISymbol, updatedSignature As SignatureChange) As List(Of SyntaxTrivia)
@@ -469,6 +509,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return Nothing
             End If
 
+            If declaredParameters.Length = 0 Then
+                Return Nothing
+            End If
+
             Dim dictionary = New Dictionary(Of String, XmlElementSyntax)()
             Dim i = 0
             For Each paramNode In paramNodes
@@ -487,9 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Next
 
             ' Everything lines up, so permute them.
-
             Dim permutedParams = New List(Of XmlElementSyntax)()
-
             For Each parameter In reorderedParameters
                 permutedParams.Add(dictionary(parameter.Name))
             Next
@@ -546,10 +588,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return updatedLeadingTrivia
         End Function
 
-        Private Shared Function GetSeparators(Of T As SyntaxNode)(arguments As SeparatedSyntaxList(Of T), Optional numSeparatorsToSkip As Integer = 0) As List(Of SyntaxToken)
-            Dim separators = New List(Of SyntaxToken)
-            For i = 0 To arguments.SeparatorCount - 1 - numSeparatorsToSkip
-                separators.Add(arguments.GetSeparator(i))
+        Private Shared Function GetSeparators(Of T As SyntaxNode)(ByVal arguments As SeparatedSyntaxList(Of T), ByVal Optional numSeparatorsToSkip As Integer = 0) As List(Of SyntaxToken)
+            Dim separators = New List(Of SyntaxToken)()
+
+            For i = 0 To arguments.SeparatorCount - numSeparatorsToSkip - 1
+
+                ' TODO
+                If i >= arguments.SeparatorCount Then
+                    separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken))
+                Else
+                    separators.Add(arguments.GetSeparator(i))
+                End If
             Next
 
             Return separators
