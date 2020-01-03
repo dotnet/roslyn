@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 // Check if the type of the expression is a nullable INamedTypeSymbol
-                // if the type is both nullable and an INamedTypeSymbol extact the type argument from the nullable
+                // if the type is both nullable and an INamedTypeSymbol extract the type argument from the nullable
                 // and check if it is of enum type
                 switchExpression?.Type.IsNullable(out switchExpressionType);
             }
