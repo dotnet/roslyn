@@ -864,8 +864,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                     method.IsCollectionAddMethod(CollectionNamedTypes))
                 {
                     // FxCop compat: The object added to a collection is considered escaped.
-                    var lastArgument = visitedArguments[visitedArguments.Length - 1];
-                    HandleEscapingOperation(originalOperation, lastArgument.Value);
+                    foreach (var argument in visitedArguments)
+                    {
+                        HandleEscapingOperation(argument, argument.Value);
+                    }
                 }
 
                 var value = VisitInvocationCommon(originalOperation, visitedInstance);
