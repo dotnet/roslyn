@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -60,7 +62,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
             var messageArguments = new string[] { analyzerPath };
-            if (DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, projectId, _workspace, out var diagnostic))
+
+            var project = _workspace.CurrentSolution.GetProject(projectId);
+            if (project != null && DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, project, out var diagnostic))
             {
                 _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
             }

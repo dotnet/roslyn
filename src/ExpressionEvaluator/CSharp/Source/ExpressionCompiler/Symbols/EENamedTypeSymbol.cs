@@ -90,6 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _methods = getMethods(currentFrame, this);
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable;
+
         internal ImmutableArray<MethodSymbol> Methods
         {
             get { return _methods; }
@@ -233,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override bool IsSerializable
         {
             get { return false; }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return true; }
         }
 
         internal override TypeLayout Layout

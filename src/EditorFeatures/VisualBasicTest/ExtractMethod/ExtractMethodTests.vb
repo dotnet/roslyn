@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Using workspace = TestWorkspace.CreateVisualBasic(New String() {codeWithMarker}, metadataReferences:=metadataReferences, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
                 Dim document = workspace.Documents.First()
-                Dim subjectBuffer = document.TextBuffer
+                Dim subjectBuffer = document.GetTextBuffer()
                 Dim textSpan = document.SelectedSpans.First()
 
                 Dim tree = Await ExtractMethodAsync(workspace, workspace.Documents.First(), textSpan, allowMovingDeclaration:=allowMovingDeclaration, dontPutOutOrRefOnStruct:=dontPutOutOrRefOnStruct)
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
                                               Optional succeeded As Boolean = True,
                                               Optional allowMovingDeclaration As Boolean = True,
                                               Optional dontPutOutOrRefOnStruct As Boolean = True) As Tasks.Task(Of SyntaxNode)
-            Dim snapshotSpan = textSpan.ToSnapshotSpan(testDocument.TextBuffer.CurrentSnapshot)
+            Dim snapshotSpan = textSpan.ToSnapshotSpan(testDocument.GetTextBuffer().CurrentSnapshot)
 
             Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
             Assert.NotNull(document)

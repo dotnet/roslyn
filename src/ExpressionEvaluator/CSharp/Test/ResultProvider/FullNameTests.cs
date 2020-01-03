@@ -299,7 +299,7 @@ public class @if : @struct
 
             var root = FormatResult("o", value, new DkmClrType((TypeImpl)declaredType));
             Verify(GetChildren(root),
-                EvalResult("m", "{if}", "struct {if}", "((@namespace)o).m", DkmEvaluationResultFlags.None));
+                EvalResult("m", "{if}", "struct {if}", "((@namespace)o).m", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -349,7 +349,7 @@ public class @struct
 
             var root = FormatResult("o", value);
             Verify(GetChildren(root),
-                EvalResult("@true", "0", "int", "o.@true"));
+                EvalResult("@true", "0", "int", "o.@true", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -436,7 +436,7 @@ namespace @namespace
             var root = FormatResult("o", value);
             Verify(GetChildren(root),
                 EvalResult("x (<>Mangled)", "0", "int", null),
-                EvalResult("x", "0", "int", "o.x"));
+                EvalResult("x", "0", "int", "o.x", DkmEvaluationResultFlags.CanFavorite));
         }
 
         [Fact]
@@ -552,7 +552,7 @@ namespace @namespace
 
             var root = FormatResult("instance", value);
             Verify(GetChildren(root),
-                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("P", "1", "int", "instance.P", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
                 EvalResult("abstract.I<>Mangled.P", "1", "int", null, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private));
         }
 
@@ -600,7 +600,7 @@ namespace @namespace
             var root = FormatResult("o", value);
             var children = GetChildren(root);
             Verify(children,
-                EvalResult("array", "{<>Mangled[1]}", "System.Collections.Generic.IEnumerable<<>Mangled> {<>Mangled[]}", "o.array", DkmEvaluationResultFlags.Expandable));
+                EvalResult("array", "{<>Mangled[1]}", "System.Collections.Generic.IEnumerable<<>Mangled> {<>Mangled[]}", "o.array", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
             Verify(GetChildren(children.Single()),
                 EvalResult("[0]", "null", "<>Mangled", null));
         }

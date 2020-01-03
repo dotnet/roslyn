@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
+        internal override CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
             _reducedFrom.Parameters[0].TypeWithAnnotations.ToPublicAnnotation();
 
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
@@ -320,6 +320,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override DllImportData GetDllImportData()
         {
             return _reducedFrom.GetDllImportData();
+        }
+
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation

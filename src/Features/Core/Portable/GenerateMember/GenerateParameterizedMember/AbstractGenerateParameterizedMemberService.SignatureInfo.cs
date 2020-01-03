@@ -124,8 +124,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var reservedParameterNames = DetermineParameterNames(cancellationToken)
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
+
                 var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                    method.TypeParameters.Select(t => t.Name).ToList(), n => !reservedParameterNames.Contains(n));
+                    method.TypeParameters.SelectAsArray(t => t.Name),
+                    n => !reservedParameterNames.Contains(n));
 
                 return method.RenameTypeParameters(newTypeParameterNames);
             }
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // IEnumerable<string> with T, we want to replace IEnumerable<string?> whenever it appears in an argument or return type, partly because
                 // there's no way to represent something like T-with-only-the-inner-thing-nullable. We could leave the entire argument as is, but we're suspecting
                 // this is closer to the user's desire, even if it might require some tweaking after the fact.
-                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+                var result = new Dictionary<ITypeSymbol, ITypeParameterSymbol>(SymbolEqualityComparer.Default);
 
                 for (var i = 0; i < typeArguments.Length; i++)
                 {

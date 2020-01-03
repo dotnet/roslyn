@@ -220,8 +220,9 @@ End Class",
                 Return 5
             Case 20
                 Return 6
+            Case Else
+                Return 7
         End Select
-        Return 7
     End Function
 End Class")
         End Function

@@ -3,12 +3,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,9 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable, IFeatureController
-        where TPackage : AbstractPackage<TPackage, TLanguageService>
-        where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
+    internal class DebuggerIntelliSenseFilter : AbstractVsTextViewFilter, IDisposable, IFeatureController
     {
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private AbstractDebuggerIntelliSenseContext _context;
@@ -28,11 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         private IFeatureDisableToken _completionDisabledToken;
 
         public DebuggerIntelliSenseFilter(
-            AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
-            IVsEditorAdaptersFactoryService adapterFactory,
+            IComponentModel componentModel,
             IFeatureServiceFactory featureServiceFactory)
-            : base(languageService, wpfTextView, adapterFactory)
+            : base(wpfTextView, componentModel)
         {
             _featureServiceFactory = featureServiceFactory;
         }
@@ -78,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             {
                 // Chain in editor command handler service. It will execute all our command handlers migrated to the modern editor commanding
                 // on the same text view and buffer as this.CurrentHandlers.
-                var componentModel = (IComponentModel)LanguageService.SystemServiceProvider.GetService(typeof(SComponentModel));
-                var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
+                var vsCommandHandlerServiceAdapterFactory = ComponentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
                 var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(ConvertTextView(),
                     GetSubjectBufferContainingCaret(), // our override doesn't actually check the caret and always returns _context.Buffer
                     nextCommandFilter);

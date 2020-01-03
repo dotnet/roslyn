@@ -54,6 +54,9 @@ namespace Roslyn.Utilities
             }
         }
 
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
+            AllowImplicitBoxing = false)]
         public EventHandlerSet<TEventHandler> GetEventHandlers<TEventHandler>(string eventName)
             where TEventHandler : class
         {
@@ -89,7 +92,7 @@ namespace Roslyn.Utilities
             _eventNameToRegistries[eventName] = registries;
         }
 
-        private class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>>
+        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>>
             where TEventHandler : class
         {
             private TEventHandler _handler;
@@ -154,9 +157,9 @@ namespace Roslyn.Utilities
         {
             private ImmutableArray<Registry<TEventHandler>> _registries;
 
-            internal EventHandlerSet(object registries)
+            internal EventHandlerSet(ImmutableArray<Registry<TEventHandler>> registries)
             {
-                _registries = (ImmutableArray<Registry<TEventHandler>>)registries;
+                _registries = registries;
             }
 
             public bool HasHandlers

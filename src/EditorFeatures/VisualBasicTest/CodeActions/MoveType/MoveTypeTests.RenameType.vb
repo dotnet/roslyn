@@ -69,5 +69,20 @@ End Class
 
             Await TestRenameTypeToMatchFileAsync(code, codeAfterRenamingType)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")>
+        Public Async Function NothingOfferedWhenTypeHasNoNameYet1() As Task
+            Dim code = "Class[||]"
+            Await TestMissingAsync(code)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        <WorkItem(40043, "https://github.com/dotnet/roslyn/issues/40043")>
+        Public Async Function NothingOfferedWhenTypeHasNoNameYet() As Task
+            Dim code = "Class[||]
+End Class"
+            Await TestMissingAsync(code)
+        End Function
     End Class
 End Namespace

@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 lastTokenAnnotation)
         End Sub
 
-        Protected Overrides Function UnderAsyncAnonymousMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
+        Protected Overrides Function UnderAnonymousOrLocalMethod(token As SyntaxToken, firstToken As SyntaxToken, lastToken As SyntaxToken) As Boolean
             Dim current = token.Parent
 
             While current IsNot Nothing
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' use FormattableString if conversion between String And FormattableString
-            If info.Type?.SpecialType = SpecialType.System_String AndAlso
+            If (info.Type?.SpecialType = SpecialType.System_String).GetValueOrDefault() AndAlso
                info.ConvertedType?.IsFormattableString() Then
 
                 Return info.ConvertedType

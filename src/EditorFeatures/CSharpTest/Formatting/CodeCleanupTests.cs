@@ -278,8 +278,8 @@ namespace M
             Assert.Equal(expected, actual.ToString());
         }
 
-        [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
-        private class CodeCleanupAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
+        [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
+        private class CodeCleanupAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
         {
             private readonly HostDiagnosticAnalyzerPackage _info;
 
@@ -300,9 +300,9 @@ namespace M
                 return FromFileLoader.Instance;
             }
 
-            public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
+            public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
             {
-                yield return _info;
+                return ImmutableArray.Create(_info);
             }
 
             public class FromFileLoader : IAnalyzerAssemblyLoader
