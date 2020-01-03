@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
@@ -31,7 +32,7 @@ class C
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
@@ -85,7 +86,7 @@ class C
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
