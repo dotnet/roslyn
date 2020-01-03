@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return type.IsNullableType();
             }
-            return type.IsValueType && !type.IsTupleType;
+            return type.IsValueType;
         }
 
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)

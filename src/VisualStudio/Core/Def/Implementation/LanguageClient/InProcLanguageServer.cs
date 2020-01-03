@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Code = diagnostic.Id,
                 Message = diagnostic.Message,
                 Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diagnostic.Severity),
-                Range = ProtocolConversions.TextSpanToRange(diagnostic.GetExistingOrCalculatedTextSpan(text), text),
+                Range = ProtocolConversions.TextSpanToRange(DiagnosticData.GetExistingOrCalculatedTextSpan(diagnostic.DataLocation, text), text),
                 // Only the unnecessary diagnostic tag is currently supported via LSP.
                 Tags = diagnostic.CustomTags.Contains("Unnecessary") ? new DiagnosticTag[] { DiagnosticTag.Unnecessary } : Array.Empty<DiagnosticTag>()
             }).ToArray();

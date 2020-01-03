@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -165,8 +164,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DataLocation?.OriginalStartColumn);
         }
 
-        public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-            => HasTextSpan ? EnsureInBounds(GetTextSpan(), text) : GetTextSpan(DataLocation, text);
+        public static TextSpan GetExistingOrCalculatedTextSpan(DiagnosticDataLocation? diagnosticLocation, SourceText text)
+        {
+            if (diagnosticLocation?.SourceSpan != null)
+            {
+                return EnsureInBounds(diagnosticLocation.SourceSpan.Value, text);
+            }
+            else
+            {
+                return GetTextSpan(diagnosticLocation, text);
+            }
+        }
 
         private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
             => TextSpan.FromBounds(
