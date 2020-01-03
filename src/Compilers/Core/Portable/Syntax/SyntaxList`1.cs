@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="nodes">A sequence of element nodes.</param>
         public SyntaxList(IEnumerable<TNode>? nodes)
-            : this(CreateNode(nodes)!)
+            : this(CreateNode(nodes))
         {
         }
 
