@@ -2750,7 +2750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            IEnumerable<Symbol> getMembers(TypeSymbol type)
+            static IEnumerable<Symbol> getMembers(TypeSymbol type)
             {
                 // First, return the direct members
                 foreach (var member in type.GetMembers())
@@ -2768,13 +2768,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 yield break;
 
-                NamedTypeSymbol effectiveBase(TypeSymbol type) => type switch
+                static NamedTypeSymbol effectiveBase(TypeSymbol type) => type switch
                 {
                     TypeParameterSymbol tp => tp.EffectiveBaseClassNoUseSiteDiagnostics,
                     var t => t.BaseTypeNoUseSiteDiagnostics,
                 };
 
-                ImmutableArray<NamedTypeSymbol> inheritedInterfaces(TypeSymbol type) => type switch
+                static ImmutableArray<NamedTypeSymbol> inheritedInterfaces(TypeSymbol type) => type switch
                 {
                     TypeParameterSymbol tp => tp.AllEffectiveInterfacesNoUseSiteDiagnostics,
                     { TypeKind: TypeKind.Interface } => type.AllInterfacesNoUseSiteDiagnostics,
