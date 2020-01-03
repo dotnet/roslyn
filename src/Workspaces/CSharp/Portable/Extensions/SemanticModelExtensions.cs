@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
@@ -312,10 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
-                arguments.Select(a => a.NameColon != null)).ToList();
+                arguments.Select(a => a.NameColon != null)).ToImmutableArray();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToList();
+                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
 
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }
@@ -331,27 +332,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
-                arguments.Select(a => a.NameColon != null)).ToList();
+                arguments.Select(a => a.NameColon != null)).ToImmutableArray();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToList();
+                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
 
             return GenerateNames(reservedNames, isFixed, parameterNames, parameterNamingRule);
         }
 
-        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, List<bool> isFixed, List<string> parameterNames)
-        {
-            return NameGenerator.EnsureUniqueness(parameterNames, isFixed)
-                                .Select((name, index) => new ParameterName(name, isFixed[index]))
-                                .Skip(reservedNames.Count).ToImmutableArray();
-        }
+        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames)
+            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
+                .Select((name, index) => new ParameterName(name, isFixed[index]))
+                .Skip(reservedNames.Count).ToImmutableArray();
 
-        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, List<bool> isFixed, List<string> parameterNames, NamingRule parameterNamingRule)
-        {
-            return NameGenerator.EnsureUniqueness(parameterNames, isFixed)
+        private static ImmutableArray<ParameterName> GenerateNames(IList<string> reservedNames, ImmutableArray<bool> isFixed, ImmutableArray<string> parameterNames, NamingRule parameterNamingRule)
+            => NameGenerator.EnsureUniqueness(parameterNames, isFixed)
                 .Select((name, index) => new ParameterName(name, isFixed[index], parameterNamingRule))
                 .Skip(reservedNames.Count).ToImmutableArray();
-        }
 
         public static ImmutableArray<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
@@ -363,10 +360,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
-                arguments.Select(a => a.NameEquals != null)).ToList();
+                arguments.Select(a => a.NameEquals != null)).ToImmutableArray();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToList();
+                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
 
             return GenerateNames(reservedNames, isFixed, parameterNames);
         }
@@ -382,10 +379,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // We can't change the names of named parameters.  Any other names we're flexible on.
             var isFixed = reservedNames.Select(s => true).Concat(
-                arguments.Select(a => a.NameEquals != null)).ToList();
+                arguments.Select(a => a.NameEquals != null)).ToImmutableArray();
 
             var parameterNames = reservedNames.Concat(
-                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToList();
+                arguments.Select(a => semanticModel.GenerateNameForArgument(a, cancellationToken))).ToImmutableArray();
 
             return GenerateNames(reservedNames, isFixed, parameterNames, parameterNamingRule);
         }

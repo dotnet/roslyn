@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _exposingModule = exposingModule;
             _underlyingSymbol = underlyingSymbol;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
         }
 
         internal override bool MangleName

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static IEnumerable<Lazy<T, TMetadata>> SelectMatchingExtensions<T, TMetadata>(
             this HostLanguageServices serviceProvider,
-            IEnumerable<Lazy<T, TMetadata>> items)
+            IEnumerable<Lazy<T, TMetadata>>? items)
             where TMetadata : ILanguageMetadata
         {
             if (items == null)

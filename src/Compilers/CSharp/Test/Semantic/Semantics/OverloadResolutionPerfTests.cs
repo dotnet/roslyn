@@ -280,5 +280,29 @@ static class Ext
             var comp = CreateCompilation(new[] { NotNullAttributeDefinition, source });
             comp.VerifyDiagnostics();
         }
+
+        [ConditionalFactAttribute(typeof(IsRelease))]
+        [WorkItem(40495, "https://github.com/dotnet/roslyn/issues/40495")]
+        public void NestedLambdas()
+        {
+            var source =
+@"#nullable enable
+using System.Linq;
+class Program
+{
+    static void Main()
+    {
+        Enumerable.Range(0, 1).Sum(a =>
+            Enumerable.Range(0, 1).Sum(b =>
+            Enumerable.Range(0, 1).Sum(c =>
+            Enumerable.Range(0, 1).Sum(d =>
+            Enumerable.Range(0, 1).Sum(e =>
+            Enumerable.Range(0, 1).Sum(f =>
+            Enumerable.Range(0, 1).Count(g => true)))))));
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
     }
 }

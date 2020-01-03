@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
 {
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Diagnostics
             return DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
         }
 
-        public bool OpenFileOnly(Workspace workspace)
+        public bool OpenFileOnly(OptionSet options)
         {
             return true;
         }

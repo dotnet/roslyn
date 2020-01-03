@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
             Dim startToken = node.GetFirstToken()
             Dim endToken = GetEndToken(node)
 
-            Dim firstComment = startToken.LeadingTrivia.FirstOrNullable(Function(t) t.Kind = SyntaxKind.CommentTrivia)
+            Dim firstComment = startToken.LeadingTrivia.FirstOrNull(Function(t) t.Kind = SyntaxKind.CommentTrivia)
 
             Dim startPosition = If(firstComment.HasValue,
                                    firstComment.Value.SpanStart,

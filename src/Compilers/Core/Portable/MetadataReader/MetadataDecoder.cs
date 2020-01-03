@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -68,11 +69,11 @@ namespace Microsoft.CodeAnalysis
 
     internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
         TypeNameDecoder<ModuleSymbol, TypeSymbol>
-        where ModuleSymbol : class
-        where TypeSymbol : class, Symbol, ITypeSymbol
-        where MethodSymbol : class, Symbol, IMethodSymbol
-        where FieldSymbol : class, Symbol, IFieldSymbol
-        where Symbol : class, ISymbol
+        where ModuleSymbol : class, IModuleSymbolInternal
+        where TypeSymbol : class, Symbol, ITypeSymbolInternal
+        where MethodSymbol : class, Symbol, IMethodSymbolInternal
+        where FieldSymbol : class, Symbol, IFieldSymbolInternal
+        where Symbol : class, ISymbolInternal
     {
         public readonly PEModule Module;
 
@@ -475,7 +476,7 @@ namespace Microsoft.CodeAnalysis
             if (cache != null && !isNoPiaLocalType)
             {
                 TypeSymbol result1 = cache.GetOrAdd(typeRef, result);
-                Debug.Assert(result1.Equals(result, SymbolEqualityComparer.ConsiderEverything));
+                Debug.Assert(result1.Equals(result, TypeCompareKind.ConsiderEverything));
             }
 
             return result;
@@ -997,7 +998,7 @@ tryAgain:
                 else if (sigReader.RemainingBytes == 0)
                 {
                     // default(T)
-                    value = (type.IsReferenceType || type is IPointerTypeSymbol) ? ConstantValue.Null : ConstantValue.Bad;
+                    value = (type.IsReferenceType || type.TypeKind == TypeKind.Pointer) ? ConstantValue.Null : ConstantValue.Bad;
                 }
                 else
                 {
@@ -2411,7 +2412,7 @@ tryAgain:
                 {
                     return false;
                 }
-                if (!param2.Type.Equals(param1.Type, SymbolEqualityComparer.ConsiderEverything))
+                if (!param2.Type.Equals(param1.Type, TypeCompareKind.ConsiderEverything))
                 {
                     return false;
                 }

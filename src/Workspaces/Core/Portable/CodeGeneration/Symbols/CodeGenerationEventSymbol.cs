@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationEventSymbol : CodeGenerationSymbol, IEventSymbol
     {
         public ITypeSymbol Type { get; }
-        public NullableAnnotation NullableAnnotation => Type.GetNullability();
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
 
         public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 

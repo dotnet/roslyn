@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string targetString;
             if (CustomDebugInfoReader.TryParseCSharpImportString(importString, out alias, out externAlias, out targetString, out targetKind))
             {
-                ITypeSymbol type = null;
+                ITypeSymbolInternal type = null;
                 if (targetKind == ImportTargetKind.Type)
                 {
                     type = symbolProvider.GetTypeSymbolForSerializedType(targetString);

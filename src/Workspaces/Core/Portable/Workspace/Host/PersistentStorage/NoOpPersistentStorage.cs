@@ -20,31 +20,31 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Checksum>();
+            => SpecializedTasks.Null<Checksum>();
 
         public Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Checksum>();
+            => SpecializedTasks.Null<Checksum>();
 
         public Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Checksum>();
+            => SpecializedTasks.Null<Checksum>();
 
         public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Stream>();
+            => SpecializedTasks.Null<Stream>();
 
         public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Stream>();
+            => SpecializedTasks.Null<Stream>();
 
         public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Stream>();
+            => SpecializedTasks.Null<Stream>();
 
         public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Stream>();
+            => SpecializedTasks.Null<Stream>();
 
         public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Stream>();
+            => SpecializedTasks.Null<Stream>();
 
         public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<Stream>();
+            => SpecializedTasks.Null<Stream>();
 
         public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken)
             => SpecializedTasks.False;

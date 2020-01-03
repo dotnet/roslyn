@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared { get { return true; } }
 
+        public override bool IsDiscard { get { return false; } }
+
         #region Not used by MethodSignatureComparer
 
         internal override bool IsMetadataIn { get { throw ExceptionUtilities.Unreachable; } }

@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class NamespaceOrTypeSymbol
         Inherits Symbol
-        Implements INamespaceOrTypeSymbol
+        Implements INamespaceOrTypeSymbol, INamespaceOrTypeSymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.

@@ -42,6 +42,14 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+
+    <!-- 
+        When markup compilation is involved, WPF generates .g.cs files via the GenerateTemporaryTargetAssembly task. 
+        These do not always have the correct full-paths to their respective .xaml files annotated in them in the #line directives.
+        This can cause compile errors if these files are included in Source Link. 
+        https://github.com/dotnet/wpf/issues/1718
+    -->
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
   </PropertyGroup>
 
   <!-- 

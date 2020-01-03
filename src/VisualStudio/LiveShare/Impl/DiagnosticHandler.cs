@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 Code = diag.Id,
                 Message = diag.Message,
                 Severity = ProtocolConversions.DiagnosticSeverityToLspDiagnositcSeverity(diag.Severity),
-                Range = ProtocolConversions.TextSpanToRange(diag.GetExistingOrCalculatedTextSpan(text), text),
+                Range = ProtocolConversions.TextSpanToRange(DiagnosticData.GetExistingOrCalculatedTextSpan(diag.DataLocation, text), text),
                 Tags = diag.CustomTags.Where(s => s == "Unnecessary").ToArray()
             }).ToArray();
         }

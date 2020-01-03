@@ -198,9 +198,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, diagnostics);
+                    DiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations)
+                                                       ? diagnostics
+                                                       : new DiagnosticBag();
+                    disposeMethodOpt = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
                     if (disposeMethodOpt is object)
                     {
+                        MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
                         if (hasAwait)
                         {
                             awaitableTypeOpt = disposeMethodOpt.ReturnType;

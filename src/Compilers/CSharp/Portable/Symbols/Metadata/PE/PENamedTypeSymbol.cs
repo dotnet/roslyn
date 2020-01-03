@@ -1279,12 +1279,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Sort the types based on row id.
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
-                var membersInDeclarationOrder = members.ToImmutable();
-
 #if DEBUG
-                ISymbol previous = null;
+                Symbol previous = null;
 
-                foreach (var s in membersInDeclarationOrder)
+                foreach (var s in members)
                 {
                     if (previous == null)
                     {
@@ -1292,12 +1290,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                     else
                     {
-                        ISymbol current = s;
+                        Symbol current = s;
                         Debug.Assert(previous.Kind.ToSortOrder() <= current.Kind.ToSortOrder());
                         previous = current;
                     }
                 }
 #endif
+
+                if (IsTupleType)
+                {
+                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    Debug.Assert(members is object);
+                }
+
+                var membersInDeclarationOrder = members.ToImmutable();
 
                 if (!ImmutableInterlocked.InterlockedInitialize(ref _lazyMembersInDeclarationOrder, membersInDeclarationOrder))
                 {
@@ -1569,6 +1575,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _flags;
             }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         public override bool MightContainExtensionMethods
@@ -2278,6 +2289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             public override int Arity
             {
                 get
@@ -2336,6 +2350,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _genericParameterHandles = genericParameterHandles;
                 _mangleName = mangleName;
             }
+
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
 
             public override int Arity
             {
