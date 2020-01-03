@@ -1181,5 +1181,223 @@ namespace A.Extensions
     }
 }");
         }
+
+        [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExtensionGetAwaiterOverload()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Runtime.CompilerServices;
+
+namespace A
+{
+    public class Foo
+    {
+        async void M(Foo foo)
+        {
+            [|await foo|];
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static Extension.FooAwaiter GetAwaiter(this string s) => default;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static FooAwaiter GetAwaiter(this Foo foo) => default;
+    }
+
+    public struct FooAwaiter : INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+
+        public void OnCompleted(Action continuation)
+        {
+        }
+
+        public void GetResult()
+        {
+        }
+    }
+}
+",
+@"
+using System;
+using System.Runtime.CompilerServices;
+using A.Extension;
+
+namespace A
+{
+    public class Foo
+    {
+        async void M(Foo foo)
+        {
+            await foo;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static Extension.FooAwaiter GetAwaiter(this string s) => default;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static FooAwaiter GetAwaiter(this Foo foo) => default;
+    }
+
+    public struct FooAwaiter : INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+
+        public void OnCompleted(Action continuation)
+        {
+        }
+
+        public void GetResult()
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExtensionSelectOverload()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            _ = [|from x in foo|] select x;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static IEnumerable<int> Select(this string foo, Func<int, int> f) => null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static IEnumerable<int> Select(this Foo foo, Func<int, int> f) => null;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+using A.Extension;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            _ = from x in foo select x;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static IEnumerable<int> Select(this string foo, Func<int, int> f) => null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static IEnumerable<int> Select(this Foo foo, Func<int, int> f) => null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExtensionDeconstructOverload()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            var (x, y) = [|foo|];
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static void Deconstruct(this string foo, out int a, out int b) => throw null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static void Deconstruct(this Foo foo, out int a, out int b) => throw null;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+using A.Extension;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            var (x, y) = foo;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static void Deconstruct(this string foo, out int a, out int b) => throw null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static void Deconstruct(this Foo foo, out int a, out int b) => throw null;
+    }
+}
+",
+parseOptions: null);
+        }
     }
 }

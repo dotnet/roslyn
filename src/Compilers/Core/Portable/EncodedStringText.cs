@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         internal static SourceText Create(Stream stream,
-            Encoding defaultEncoding = null,
+            Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
         {
@@ -81,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         private static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
-            Encoding defaultEncoding = null,
+            Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.CanRead && stream.CanSeek);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(stream.CanRead && stream.CanSeek);
 
             bool detectEncoding = defaultEncoding == null;
             if (detectEncoding)
@@ -129,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Text
             bool throwIfBinaryDetected = false,
             bool canBeEmbedded = false)
         {
-            Debug.Assert(data != null);
-            Debug.Assert(encoding != null);
+            RoslynDebug.Assert(data != null);
+            RoslynDebug.Assert(encoding != null);
 
             data.Seek(0, SeekOrigin.Begin);
 
@@ -188,8 +190,8 @@ namespace Microsoft.CodeAnalysis.Text
         private static bool TryGetBytesFromFileStream(FileStream stream,
                                                       out ArraySegment<byte> bytes)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.Position == 0);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(stream.Position == 0);
 
             int length = (int)stream.Length;
             if (length == 0)

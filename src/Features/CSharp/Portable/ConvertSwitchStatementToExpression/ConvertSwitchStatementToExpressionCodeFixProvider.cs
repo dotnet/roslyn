@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
@@ -59,9 +59,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
                 var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                SyntaxNode declaratorToRemoveNodeOpt = null;
+                ITypeSymbol declaratorToRemoveTypeOpt = null;
+
+                if (declaratorToRemoveLocationOpt != default)
+                {
+                    declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
+                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
+                }
 
                 var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
-                var switchExpression = Rewriter.Rewrite(switchStatement, nodeToGenerate,
+                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
                     shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
                     generateDeclaration: declaratorToRemoveLocationOpt is object);
 
@@ -80,8 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     editor.RemoveNode(nextStatement);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

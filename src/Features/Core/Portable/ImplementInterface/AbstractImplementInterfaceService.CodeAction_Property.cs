@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -41,9 +42,11 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     compilation, property, accessibility, generateAbstractly, useExplicitInterfaceSymbol,
                     propertyGenerationBehavior, attributesToRemove, cancellationToken);
 
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+
                 var parameterNames = NameGenerator.EnsureUniqueness(
-                    property.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+                    property.Parameters.SelectAsArray(p => p.Name),
+                    isCaseSensitive: syntaxFacts.IsCaseSensitive);
 
                 var updatedProperty = property.RenameParameters(parameterNames);
 
@@ -145,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
                 }
 
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
                 if (ThroughMember != null)
                 {
                     var throughExpression = CreateThroughExpression(factory);
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return default;
                 }
 
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.Project.LanguageServices.GetRequiredService<SyntaxGenerator>();
                 if (ThroughMember != null)
                 {
                     var throughExpression = CreateThroughExpression(factory);

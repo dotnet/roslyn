@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// A simple class to implement IGrouping.
     /// </summary>
     internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+        where TKey : notnull
     {
         public TKey Key { get; }
         private readonly IEnumerable<TElement> _elements;

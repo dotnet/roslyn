@@ -32,10 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             rawInfos.Free();
         }
 
+#nullable enable
         private static void GetRawDiagnosticInfos(bool isNullableEnabled, CSharpSyntaxTree tree, ArrayBuilder<DiagnosticInfo> infos)
         {
             const MessageID featureId = MessageID.IDS_FeatureNullableReferenceTypes;
-            var info = featureId.GetFeatureAvailabilityDiagnosticInfoOpt(tree.Options);
+            var info = featureId.GetFeatureAvailabilityDiagnosticInfo(tree.Options);
             if (info is object)
             {
                 infos.Add(info);
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 infos.Add(new CSDiagnosticInfo(code));
             }
         }
+#nullable restore
 
         private static bool IsNullableReference(TypeSymbol type)
             => type is null || !(type.IsValueType || type.IsErrorType());

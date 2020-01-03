@@ -7377,7 +7377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Failed to emit module &apos;{0}&apos;..
+        '''  Looks up a localized string similar to Failed to emit module &apos;{0}&apos;: {1}.
         '''</summary>
         Friend ReadOnly Property ERR_ModuleEmitFailure() As String
             Get
@@ -12977,6 +12977,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property WRN_AttributeIgnoredWhenPublicSigning_Title() As String
             Get
                 Return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is not supported in VB..
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeNotSupportedInVB() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeNotSupportedInVB", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Attribute is not supported in VB.
+        '''</summary>
+        Friend ReadOnly Property WRN_AttributeNotSupportedInVB_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AttributeNotSupportedInVB_Title", resourceCulture)
             End Get
         End Property
         

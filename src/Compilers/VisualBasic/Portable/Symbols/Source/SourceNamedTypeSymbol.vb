@@ -2169,7 +2169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DefaultEventAttribute) Then
                         If attrData.CommonConstructorArguments.Length = 1 AndAlso attrData.CommonConstructorArguments(0).Kind = TypedConstantKind.Primitive Then
-                            Dim eventName = TryCast(attrData.CommonConstructorArguments(0).Value, String)
+                            Dim eventName = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
 
                             If eventName IsNot Nothing AndAlso eventName.Length > 0 AndAlso Not FindDefaultEvent(eventName) Then
                                 arguments.Diagnostics.Add(ERRID.ERR_DefaultEventNotFound1, arguments.AttributeSyntaxOpt.GetLocation(), eventName)
@@ -2186,15 +2186,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim argument As TypedConstant = attrData.CommonConstructorArguments(0)
 
                         Debug.Assert(argument.Kind = TypedConstantKind.Type)
-                        Debug.Assert(argument.Type IsNot Nothing)
-                        Debug.Assert(argument.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)))
+                        Debug.Assert(argument.TypeInternal IsNot Nothing)
+                        Debug.Assert(DirectCast(argument.TypeInternal, TypeSymbol).Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything))
 
                         ' Note that 'argument.Value' may be Nothing in which case Roslyn will 
                         ' generate an error as if CoClassAttribute attribute was not defined on 
                         ' the interface; this behavior matches Dev11, but we should probably 
                         ' revise it later
                         Interlocked.CompareExchange(Me._lazyCoClassType,
-                                                    DirectCast(argument.Value, TypeSymbol),
+                                                    DirectCast(argument.ValueInternal, TypeSymbol),
                                                     DirectCast(ErrorTypeSymbol.UnknownResultType, TypeSymbol))
 
                         decoded = True

@@ -181,12 +181,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
-            protected override void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position)
-            {
-                AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
-            }
-
             protected override void AddCaptures(ISymbol symbol)
             {
                 if (symbol is IMethodSymbol method && method.ContainingSymbol.IsKind(SymbolKind.Method))

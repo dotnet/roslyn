@@ -49,26 +49,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        <Obsolete("This SettingStore option has now been deprecated in favor of BasicClosedFileDiagnostics")>
+        <Obsolete("ClosedFileDiagnostics has been deprecated")>
         Public Property ClosedFileDiagnostics As Boolean
             Get
-                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.VisualBasic)
+                Return False
             End Get
             Set(value As Boolean)
-                ' Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
-                ' So, we invoke the setter only for value = False.
-                If Not value Then
-                    SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value:=0)
-                End If
             End Set
         End Property
 
+        <Obsolete("BasicClosedFileDiagnostics has been deprecated")>
         Public Property BasicClosedFileDiagnostics As Integer
             Get
-                Return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+                Return 0
             End Get
             Set(value As Integer)
-                SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value)
             End Set
         End Property
 
@@ -198,16 +193,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-
-        Public Property Style_PreferThrowExpression As String
-            Get
-                Return GetXmlOption(CodeStyleOptions.PreferThrowExpression)
-            End Get
-            Set(value As String)
-                SetXmlOption(CodeStyleOptions.PreferThrowExpression, value)
-            End Set
-        End Property
-
         Public Property Style_PreferObjectInitializer As String
             Get
                 Return GetXmlOption(CodeStyleOptions.PreferObjectInitializer)
@@ -241,15 +226,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions.PreferNullPropagation, value)
-            End Set
-        End Property
-
-        Public Property Style_PreferInlinedVariableDeclaration As String
-            Get
-                Return GetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration)
-            End Get
-            Set(value As String)
-                SetXmlOption(CodeStyleOptions.PreferInlinedVariableDeclaration, value)
             End Set
         End Property
 

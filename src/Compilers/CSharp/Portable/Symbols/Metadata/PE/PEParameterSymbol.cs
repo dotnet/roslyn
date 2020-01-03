@@ -217,10 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (handle.IsNil)
             {
                 refKind = isByRef ? RefKind.Ref : RefKind.None;
-
-                typeWithAnnotations = TupleTypeSymbol.TryTransformToTuple(typeWithAnnotations.Type, out TupleTypeSymbol tuple) ?
-                    TypeWithAnnotations.Create(tuple) :
-                    typeWithAnnotations;
                 byte? value = nullableContext.GetNullableContextValue();
                 if (value.HasValue)
                 {
@@ -406,6 +402,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return _ordinal;
+            }
+        }
+
+        public override bool IsDiscard
+        {
+            get
+            {
+                return false;
             }
         }
 

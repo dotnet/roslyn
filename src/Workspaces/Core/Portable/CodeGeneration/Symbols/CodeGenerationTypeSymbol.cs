@@ -15,10 +15,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            SpecialType specialType)
+            SpecialType specialType,
+            NullableAnnotation nullableAnnotation)
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.SpecialType = specialType;
+            this.NullableAnnotation = nullableAnnotation;
         }
 
         public abstract TypeKind TypeKind { get; }
@@ -80,5 +82,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
         bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
+
+        public NullableAnnotation NullableAnnotation { get; }
+
+        public ITypeSymbol WithNullableAnnotation(NullableAnnotation nullableAnnotation)
+        {
+            if (this.NullableAnnotation == nullableAnnotation)
+            {
+                return this;
+            }
+
+            return CloneWithNullableAnnotation(nullableAnnotation);
+        }
+
+        protected sealed override CodeGenerationSymbol Clone()
+        {
+            return CloneWithNullableAnnotation(this.NullableAnnotation);
+        }
+
+        protected abstract CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation);
     }
 }

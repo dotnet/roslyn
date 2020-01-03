@@ -669,4 +669,13 @@
   <data name="SuppressionDiagnosticDescriptorMessage" xml:space="preserve">
     <value>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</value>
   </data>
+  <data name="ModuleHasInvalidAttributes" xml:space="preserve">
+    <value>Module has invalid attributes.</value>
+  </data>
+  <data name="UnableToDetermineSpecificCauseOfFailure" xml:space="preserve">
+    <value>Unable to determine specific cause of the failure.</value>
+  </data>
+  <data name="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging" xml:space="preserve">
+    <value>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</value>
+  </data>
 </root>

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -273,7 +274,7 @@ namespace N1
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
-                            var method = symbol as Symbols.MethodSymbol;
+                            var method = symbol.GetSymbol() as Symbols.MethodSymbol;
                             Assert.NotNull(method);
 
                             var isPartialMethod = method.PartialDefinitionPart != null ||

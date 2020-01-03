@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasAllInformation => Attributes.HasAllInformation;
 
         /// <summary>
+        /// True if we should run analyzers for this project.
+        /// </summary>
+        internal bool RunAnalyzers => Attributes.RunAnalyzers;
+
+        /// <summary>
         /// The initial compilation options for the project, or null if the default options should be used.
         /// </summary>
         public CompilationOptions? CompilationOptions { get; }
@@ -177,7 +182,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo>? analyzerConfigDocuments,
             bool isSubmission,
             Type? hostObjectType,
-            bool hasAllInformation)
+            bool hasAllInformation,
+            bool runAnalyzers)
         {
             return new ProjectInfo(
                 new ProjectAttributes(
@@ -191,7 +197,8 @@ namespace Microsoft.CodeAnalysis
                     outputRefFilePath,
                     defaultNamespace,
                     isSubmission,
-                    hasAllInformation),
+                    hasAllInformation,
+                    runAnalyzers),
                 compilationOptions,
                 parseOptions,
                 documents,
@@ -229,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
-                isSubmission, hostObjectType, hasAllInformation: true);
+                isSubmission, hostObjectType, hasAllInformation: true, runAnalyzers: true);
         }
 
         /// <summary>
@@ -258,7 +265,7 @@ namespace Microsoft.CodeAnalysis
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments, analyzerConfigDocuments: null,
-                isSubmission, hostObjectType, hasAllInformation: true);
+                isSubmission, hostObjectType, hasAllInformation: true, runAnalyzers: true);
         }
 
         private ProjectInfo With(
@@ -393,6 +400,11 @@ namespace Microsoft.CodeAnalysis
             return With(attributes: Attributes.With(hasAllInformation: hasAllInformation));
         }
 
+        internal ProjectInfo WithRunAnalyzers(bool runAnalyzers)
+        {
+            return With(attributes: Attributes.With(runAnalyzers: runAnalyzers));
+        }
+
         internal string GetDebuggerDisplay()
         {
             return nameof(ProjectInfo) + " " + Name + (!string.IsNullOrWhiteSpace(FilePath) ? " " + FilePath : "");
@@ -461,6 +473,11 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public bool HasAllInformation { get; }
 
+            /// <summary>
+            /// True if we should run analyzers for this project.
+            /// </summary>
+            public bool RunAnalyzers { get; }
+
             public ProjectAttributes(
                 ProjectId id,
                 VersionStamp version,
@@ -472,7 +489,8 @@ namespace Microsoft.CodeAnalysis
                 string? outputRefFilePath,
                 string? defaultNamespace,
                 bool isSubmission,
-                bool hasAllInformation)
+                bool hasAllInformation,
+                bool runAnalyzers)
             {
                 Id = id ?? throw new ArgumentNullException(nameof(id));
                 Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -486,6 +504,7 @@ namespace Microsoft.CodeAnalysis
                 DefaultNamespace = defaultNamespace;
                 IsSubmission = isSubmission;
                 HasAllInformation = hasAllInformation;
+                RunAnalyzers = runAnalyzers;
             }
 
             public ProjectAttributes With(
@@ -498,7 +517,8 @@ namespace Microsoft.CodeAnalysis
                 Optional<string?> outputRefPath = default,
                 Optional<string?> defaultNamespace = default,
                 Optional<bool> isSubmission = default,
-                Optional<bool> hasAllInformation = default)
+                Optional<bool> hasAllInformation = default,
+                Optional<bool> runAnalyzers = default)
             {
                 var newVersion = version.HasValue ? version.Value : Version;
                 var newName = name ?? Name;
@@ -510,6 +530,7 @@ namespace Microsoft.CodeAnalysis
                 var newDefaultNamespace = defaultNamespace.HasValue ? defaultNamespace.Value : DefaultNamespace;
                 var newIsSubmission = isSubmission.HasValue ? isSubmission.Value : IsSubmission;
                 var newHasAllInformation = hasAllInformation.HasValue ? hasAllInformation.Value : HasAllInformation;
+                var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
 
                 if (newVersion == Version &&
                     newName == Name &&
@@ -520,7 +541,8 @@ namespace Microsoft.CodeAnalysis
                     newOutputRefPath == OutputRefFilePath &&
                     newDefaultNamespace == DefaultNamespace &&
                     newIsSubmission == IsSubmission &&
-                    newHasAllInformation == HasAllInformation)
+                    newHasAllInformation == HasAllInformation &&
+                    newRunAnalyzers == RunAnalyzers)
                 {
                     return this;
                 }
@@ -536,7 +558,8 @@ namespace Microsoft.CodeAnalysis
                     newOutputRefPath,
                     newDefaultNamespace,
                     newIsSubmission,
-                    newHasAllInformation);
+                    newHasAllInformation,
+                    newRunAnalyzers);
             }
 
             bool IObjectWritable.ShouldReuseInSerialization => true;
@@ -557,6 +580,7 @@ namespace Microsoft.CodeAnalysis
                 writer.WriteString(DefaultNamespace);
                 writer.WriteBoolean(IsSubmission);
                 writer.WriteBoolean(HasAllInformation);
+                writer.WriteBoolean(RunAnalyzers);
 
                 // TODO: once CompilationOptions, ParseOptions, ProjectReference, MetadataReference, AnalyzerReference supports
                 //       serialization, we should include those here as well.
@@ -576,8 +600,9 @@ namespace Microsoft.CodeAnalysis
                 var defaultNamespace = reader.ReadString();
                 var isSubmission = reader.ReadBoolean();
                 var hasAllInformation = reader.ReadBoolean();
+                var runAnalyzers = reader.ReadBoolean();
 
-                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, defaultNamespace, isSubmission, hasAllInformation);
+                return new ProjectAttributes(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath, outputRefFilePath, defaultNamespace, isSubmission, hasAllInformation, runAnalyzers);
             }
 
             private Checksum? _lazyChecksum;

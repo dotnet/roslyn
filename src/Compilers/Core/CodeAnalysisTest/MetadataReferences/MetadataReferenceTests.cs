@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var corlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).
                 GetReference(display: "corlib", documentation: docProvider);
 
-            var comp = CS.CSharpCompilation.Create("goo",
+            var comp = (Compilation)CS.CSharpCompilation.Create("goo",
                 syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 

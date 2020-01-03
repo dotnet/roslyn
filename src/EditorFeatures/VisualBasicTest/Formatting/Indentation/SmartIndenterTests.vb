@@ -2995,7 +2995,7 @@ end class"
                 expectedIndentation As Integer)
             Using workspace = TestWorkspace.CreateVisualBasic(markup)
                 Dim subjectDocument = workspace.Documents.Single()
-                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents, LanguageNames.CSharp)
+                Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents)
 
                 Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
                                     TestFormattingRuleFactoryServiceFactory.Factory)
@@ -3004,8 +3004,8 @@ end class"
                     factory.TextSpan = subjectDocument.SelectedSpans.Single()
                 End If
 
-                Dim indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
-                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
+                Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
+                Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
 
                 TestIndentation(
                     point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)

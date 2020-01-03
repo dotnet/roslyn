@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
             }
 
-            protected override bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
+            protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
             {
                 throw new InvalidOperationException();
             }

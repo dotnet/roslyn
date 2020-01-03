@@ -3,6 +3,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -27,12 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return TypeKind.Class; }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {
             get { return true; }
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return _topLevelMethod; }
         }

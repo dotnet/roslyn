@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
@@ -43,100 +42,80 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
-        private readonly object _currentRemoteWorkspaceNotificationTaskGate = new object();
-        private Task _currentRemoteWorkspaceNotificationTask = Task.CompletedTask;
-
-        public static async Task<RemoteHostClient> CreateAsync(
-            Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            try
+            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
             {
-                using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
-                {
-                    var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                    var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
-
-                    // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
-                    // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
-                    // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
-                    var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
-                        workspace, () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
-
-                    instance.Started();
-
-                    // return instance
-                    return instance;
-                }
-            }
-            catch (SoftCrashException)
-            {
-                // at this point, we should have shown info bar (RemoteHostCrashInfoBar.ShowInfoBar) to users
-                // returning null here will disable OOP for this VS session. 
-                // * Note * this is not trying to recover the exception. but giving users to time
-                // to clean up before restart VS
-                return null;
-            }
-        }
-
-        public static async Task<ServiceHubRemoteHostClient> CreateWorkerAsync(Workspace workspace, HubClient primary, TimeSpan timeout, CancellationToken cancellationToken)
-        {
-            ServiceHubRemoteHostClient client = null;
-            try
-            {
-                // let each client to have unique id so that we can distinguish different clients when service is restarted
-                var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-
-                var hostGroup = new HostGroup(current);
-
-                // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
-                var remotableDataRpc = new RemotableDataJsonRpc(
-                                          workspace, primary.Logger,
-                                          await Connections.RequestServiceAsync(workspace, primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
-
-                var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
-
+                var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
                 var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
                 var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
 
-                var connectionManager = new ConnectionManager(primary, hostGroup, enableConnectionPool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+                // let each client to have unique id so that we can distinguish different clients when service is restarted
+                var clientId = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
-                client = new ServiceHubRemoteHostClient(workspace, primary.Logger, connectionManager, remoteHostStream);
+                var hostGroup = new HostGroup(clientId);
+                var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-                var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
-                var cultureLCID = CultureInfo.CurrentCulture.LCID;
+                ServiceHubRemoteHostClient? client = null;
+                try
+                {
+                    // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
+                    var snapshotServiceStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
+                    var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
-                // make sure connection is done right
-                var host = await client._rpc.InvokeWithCancellationAsync<string>(
-                    nameof(IRemoteHostService.Connect), new object[] { current, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
+                    var remotableDataRpc = new RemotableDataJsonRpc(workspace, primary.Logger, snapshotServiceStream);
+                    var connectionManager = new ConnectionManager(primary, hostGroup, enableConnectionPool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
 
-                return client;
-            }
-            catch (ConnectionLostException ex)
-            {
-                RemoteHostCrashInfoBar.ShowInfoBar(workspace, ex);
+                    client = new ServiceHubRemoteHostClient(workspace, primary.Logger, connectionManager, remoteHostStream);
 
-                Shutdown(client, ex, cancellationToken);
+                    var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
+                    var cultureLCID = CultureInfo.CurrentCulture.LCID;
 
-                // dont crash VS because OOP is failed to start. we will show info bar telling users to restart
-                // but never physically crash VS.
-                throw new SoftCrashException("Connection Lost", ex, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                Shutdown(client, ex, cancellationToken);
-                throw;
-            }
+                    // make sure connection is done right
+                    var host = await client._rpc.InvokeWithCancellationAsync<string>(
+                        nameof(IRemoteHostService.Connect), new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
 
-            static void Shutdown(ServiceHubRemoteHostClient client, Exception ex, CancellationToken cancellationToken)
-            {
-                // make sure we shutdown client if initializing client has failed.
-                client?.Shutdown();
+                    client.Started();
 
-                // translate to our own cancellation if it is raised.
-                cancellationToken.ThrowIfCancellationRequested();
+                    return client;
+                }
+                catch (ConnectionLostException ex)
+                {
+                    RemoteHostCrashInfoBar.ShowInfoBar(workspace, ex);
 
-                // otherwise, report watson
-                ex.ReportServiceHubNFW("ServiceHub creation failed");
+                    Shutdown(ex);
+
+                    // dont crash VS because OOP is failed to start. we will show info bar telling users to restart
+                    // but never physically crash VS.
+                    return null;
+                }
+                catch (SoftCrashException ex)
+                {
+                    Shutdown(ex);
+
+                    // at this point, we should have shown info bar (RemoteHostCrashInfoBar.ShowInfoBar) to users
+                    // returning null here will disable OOP for this VS session. 
+                    // * Note * this is not trying to recover the exception. but giving users to time
+                    // to clean up before restart VS
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    Shutdown(ex);
+                    throw;
+                }
+
+                void Shutdown(Exception ex)
+                {
+                    // make sure we shutdown client if initializing client has failed.
+                    client?.Shutdown();
+
+                    // translate to our own cancellation if it is raised.
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // otherwise, report watson
+                    ex.ReportServiceHubNFW("ServiceHub creation failed");
+                }
             }
         }
 
@@ -161,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public override string ClientId => _connectionManager.HostGroup.Id;
 
-        public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override Task<Connection?> TryCreateConnectionAsync(string serviceName, object? callbackTarget, CancellationToken cancellationToken)
         {
             return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
         }
@@ -169,7 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected override void OnStarted()
         {
             RegisterGlobalOperationNotifications();
-            RegisterPersistentStorageLocationServiceChanges();
         }
 
         protected override void OnStopped()
@@ -183,7 +161,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // the Disconnected event we subscribe is to detect #2 case. and this method is for #1 case. so when we are willingly disconnecting
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
-            UnregisterPersistentStorageLocationServiceChanges();
 
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
@@ -300,50 +277,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
-        }
-
-        private void RegisterPersistentStorageLocationServiceChanges()
-        {
-            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            if (persistentStorageLocationService != null)
-            {
-                persistentStorageLocationService.StorageLocationChanging += OnPersistentStorageLocationServiceStorageLocationChanging;
-
-                EnqueueStorageLocationChange(Workspace.CurrentSolution.Id, persistentStorageLocationService.TryGetStorageLocation(Workspace.CurrentSolution.Id));
-            }
-        }
-
-        private void OnPersistentStorageLocationServiceStorageLocationChanging(object sender, PersistentStorageLocationChangingEventArgs e)
-        {
-            EnqueueStorageLocationChange(e.SolutionId, e.NewStorageLocation);
-
-            if (e.MustUseNewStorageLocationImmediately)
-            {
-                _currentRemoteWorkspaceNotificationTask.Wait();
-            }
-        }
-
-        private void EnqueueStorageLocationChange(SolutionId solutionId, string storageLocation)
-        {
-            lock (_currentRemoteWorkspaceNotificationTaskGate)
-            {
-                _currentRemoteWorkspaceNotificationTask = _currentRemoteWorkspaceNotificationTask.SafeContinueWithFromAsync(_ =>
-                {
-                    return RpcInvokeAsync(nameof(IRemoteHostService.UpdateSolutionStorageLocation), new object[] { solutionId, storageLocation });
-                }, _shutdownCancellationTokenSource.Token, TaskScheduler.Default);
-            }
-        }
-
-        private void UnregisterPersistentStorageLocationServiceChanges()
-        {
-            var persistentStorageLocationService = this.Workspace.Services.GetService<IPersistentStorageLocationService>();
-            if (persistentStorageLocationService != null)
-            {
-                persistentStorageLocationService.StorageLocationChanging -= OnPersistentStorageLocationServiceStorageLocationChanging;
-            }
-
-            // Wait for any remaining tasks to be cleared, otherwise we might have OOP being torn down while we are still running
-            _currentRemoteWorkspaceNotificationTask.Wait();
         }
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

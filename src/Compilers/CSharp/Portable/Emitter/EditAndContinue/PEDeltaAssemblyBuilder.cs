@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             _previousDefinitions = new CSharpDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious);
             _previousGeneration = previousGeneration;
-            _changes = new SymbolChanges(_previousDefinitions, edits, isAddedSymbol);
+            _changes = new CSharpSymbolChanges(_previousDefinitions, edits, isAddedSymbol);
 
             // Workaround for https://github.com/dotnet/roslyn/issues/3192.
             // When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
-        internal override bool TryGetAnonymousTypeName(IAnonymousTypeTemplateSymbolInternal template, out string name, out int index)
+        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
             return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);

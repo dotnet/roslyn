@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
-using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructorFrom
     public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+            => new CSharpGenerateConstructorFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
@@ -1037,7 +1037,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1072,7 +1072,7 @@ class Z
 chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1113,7 +1113,7 @@ chosenSymbols: new string[] { "a", "b" },
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),
-    options: Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
+    options: Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]

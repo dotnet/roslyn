@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,9 +18,9 @@ namespace Microsoft.CodeAnalysis
 
             private readonly string _fixedString;
 
-            public static FixedLocalizableString Create(string fixedResource)
+            public static FixedLocalizableString Create(string? fixedResource)
             {
-                if (string.IsNullOrEmpty(fixedResource))
+                if (RoslynString.IsNullOrEmpty(fixedResource))
                 {
                     return s_empty;
                 }
@@ -30,12 +33,12 @@ namespace Microsoft.CodeAnalysis
                 _fixedString = fixedResource;
             }
 
-            protected override string GetText(IFormatProvider formatProvider)
+            protected override string GetText(IFormatProvider? formatProvider)
             {
                 return _fixedString;
             }
 
-            protected override bool AreEqual(object other)
+            protected override bool AreEqual(object? other)
             {
                 var fixedStr = other as FixedLocalizableString;
                 return fixedStr != null && string.Equals(_fixedString, fixedStr._fixedString);
