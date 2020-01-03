@@ -269,8 +269,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
+                    await RoslynServices.SolutionService.UpdatePrimaryWorkspaceAsync(checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -281,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
+                    var assets = await RoslynServices.AssetProvider.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
 
                     foreach (var asset in assets)
                     {

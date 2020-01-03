@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _scopeId = scopeId;
 
-            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
-            SolutionService = new SolutionService(AssetService);
+            AssetProvider = new AssetProvider(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
+            SolutionService = new SolutionService(AssetProvider);
             CompilationService = new CompilationService(SolutionService);
         }
 
-        public AssetService AssetService { get; }
+        public AssetProvider AssetProvider { get; }
         public SolutionService SolutionService { get; }
         public CompilationService CompilationService { get; }
 

@@ -23,17 +23,6 @@ namespace Microsoft.CodeAnalysis.Remote
     //       right now, tightly coupled to service hub
     internal abstract class ServiceHubServiceBase : ServiceBase
     {
-        /// <summary>
-        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
-        /// can use to find matching caller and callee while exchanging data
-        /// 
-        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
-        /// 
-        /// this flag will be passed down to solution controller to help
-        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
-        /// 
-        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
-        /// </summary>
         private PinnedSolutionInfo? _solutionInfo;
 
         private RoslynServices? _lazyRoslynServices;
@@ -70,13 +59,18 @@ namespace Microsoft.CodeAnalysis.Remote
             // must be initialized
             Contract.ThrowIfNull(_solutionInfo);
 
-            return GetSolutionAsync(RoslynServices, _solutionInfo, cancellationToken);
+            return GetSolutionAsync(RoslynServices.SolutionService, _solutionInfo, cancellationToken);
         }
 
-        private static Task<Solution> GetSolutionAsync(RoslynServices roslynService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
-            var solutionController = (ISolutionController)roslynService.SolutionService;
-            return solutionController.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
+            return GetSolutionAsync(localRoslynService.SolutionService, solutionInfo, cancellationToken);
+        }
+
+        private static Task<Solution> GetSolutionAsync(SolutionService solutionService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            return solutionService.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
         }
     }
 
