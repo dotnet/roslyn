@@ -15,28 +15,29 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
-    internal abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
+    public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
         protected override ParseOptions GetScriptOptions()
         {
             throw new NotSupportedException();
         }
 
-        public async Task TestChangeSignatureViaCodeActionAsync(
+        internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
             bool expectedCodeAction = true,
             bool isCancelled = false,
             int[] updatedSignature = null,
             string expectedCode = null,
             int index = 0)
-            => await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction, isCancelled,
-                updatedSignature.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(), expectedCode, index).ConfigureAwait(false);
+            => await TestChangeSignatureViaCodeActionAsync(
+                markup, updatedSignature?.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
+                expectedCodeAction, isCancelled, expectedCode, index).ConfigureAwait(false);
 
-        public async Task TestChangeSignatureViaCodeActionAsync(
+        internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
+            AddedParameterOrExistingIndex[] updatedSignature,
             bool expectedCodeAction = true,
             bool isCancelled = false,
-            AddedParameterOrExistingIndex[] updatedSignature = null,
             string expectedCode = null,
             int index = 0)
         {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        public async Task TestChangeSignatureViaCommandAsync(
+        internal async Task TestChangeSignatureViaCommandAsync(
             string languageName,
             string markup,
             bool expectedSuccess = true,
@@ -75,20 +76,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool verifyNoDiagnostics = false,
             ParseOptions parseOptions = null,
             int expectedSelectedIndex = -1)
-            => await TestChangeSignatureViaCommandAsync(languageName, markup, expectedSuccess,
-                updatedSignature.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
-                expectedUpdatedInvocationDocumentCode,
+            => await TestChangeSignatureViaCommandAsync(languageName, markup,
+                updatedSignature?.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
+                expectedSuccess, expectedUpdatedInvocationDocumentCode,
                 expectedErrorText,
                 totalParameters,
                 verifyNoDiagnostics,
                 parseOptions,
                 expectedSelectedIndex);
 
-        public async Task TestChangeSignatureViaCommandAsync(
+        internal async Task TestChangeSignatureViaCommandAsync(
             string languageName,
             string markup,
+            AddedParameterOrExistingIndex[] updatedSignature,
             bool expectedSuccess = true,
-            AddedParameterOrExistingIndex[] updatedSignature = null,
             string expectedUpdatedInvocationDocumentCode = null,
             string expectedErrorText = null,
             int? totalParameters = null,
