@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class CollectionsExtensions
     {
-        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ICollection<T>? hashSet)
+        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ICollection<T>? collection)
         {
-            return hashSet == null || hashSet.Count == 0;
+            return collection == null || collection.Count == 0;
         }
 
-        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this IReadOnlyCollection<T>? hashSet)
+        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this IReadOnlyCollection<T>? collection)
         {
-            return hashSet == null || hashSet.Count == 0;
+            return collection == null || collection.Count == 0;
         }
 
         internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ImmutableHashSet<T>? hashSet)

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    // PROTOTYPE(UsedAssemblyReferences): Mesure performace impact of collecting more information during binding by using this class.
+    // PROTOTYPE(UsedAssemblyReferences): Measure performance impact of collecting more information during binding by using this class.
     internal abstract class BindingDiagnosticBag<TAssemblySymbol> : BindingDiagnosticBag
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
