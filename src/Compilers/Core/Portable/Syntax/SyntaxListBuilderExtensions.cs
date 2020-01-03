@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 {
     internal static class SyntaxListBuilderExtensions
     {
-        public static SyntaxTokenList ToTokenList(this SyntaxListBuilder builder)
+        public static SyntaxTokenList ToTokenList(this SyntaxListBuilder? builder)
         {
             if (builder == null || builder.Count == 0)
             {
@@ -16,35 +16,38 @@ namespace Microsoft.CodeAnalysis.Syntax
             return new SyntaxTokenList(null, builder.ToListNode(), 0, 0);
         }
 
-        public static SyntaxList<SyntaxNode> ToList(this SyntaxListBuilder builder)
+        public static SyntaxList<SyntaxNode> ToList(this SyntaxListBuilder? builder)
         {
-            if (builder == null || builder.Count == 0)
+            var listNode = builder?.ToListNode();
+            if (listNode is null)
             {
-                return default(SyntaxList<SyntaxNode>);
+                return default;
             }
 
-            return new SyntaxList<SyntaxNode>(builder.ToListNode()!.CreateRed());
+            return new SyntaxList<SyntaxNode>(listNode.CreateRed());
         }
 
-        public static SyntaxList<TNode> ToList<TNode>(this SyntaxListBuilder builder)
+        public static SyntaxList<TNode> ToList<TNode>(this SyntaxListBuilder? builder)
             where TNode : SyntaxNode
         {
-            if (builder == null || builder.Count == 0)
+            var listNode = builder?.ToListNode();
+            if (listNode is null)
             {
-                return new SyntaxList<TNode>();
+                return default;
             }
 
-            return new SyntaxList<TNode>(builder.ToListNode()!.CreateRed());
+            return new SyntaxList<TNode>(listNode.CreateRed());
         }
 
-        public static SeparatedSyntaxList<TNode> ToSeparatedList<TNode>(this SyntaxListBuilder builder) where TNode : SyntaxNode
+        public static SeparatedSyntaxList<TNode> ToSeparatedList<TNode>(this SyntaxListBuilder? builder) where TNode : SyntaxNode
         {
-            if (builder == null || builder.Count == 0)
+            var listNode = builder?.ToListNode();
+            if (listNode is null)
             {
-                return default(SeparatedSyntaxList<TNode>);
+                return default;
             }
 
-            return new SeparatedSyntaxList<TNode>(new SyntaxNodeOrTokenList(builder.ToListNode()!.CreateRed(), 0));
+            return new SeparatedSyntaxList<TNode>(new SyntaxNodeOrTokenList(listNode.CreateRed(), 0));
         }
     }
 }

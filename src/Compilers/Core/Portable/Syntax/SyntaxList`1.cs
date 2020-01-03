@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                         return (TNode)_node;
                     }
                 }
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
