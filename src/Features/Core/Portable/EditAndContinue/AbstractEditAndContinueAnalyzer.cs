@@ -238,21 +238,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected virtual TextSpan GetBodyDiagnosticSpan(SyntaxNode node, EditKind editKind)
         {
-            var initialNode = node;
-
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    return initialNode.Span;
+                    return node.Span;
                 }
 
-                var span = TryGetDiagnosticSpan(node, editKind);
+                var span = TryGetDiagnosticSpan(current, editKind);
                 if (span != null)
                 {
                     return span.Value;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -267,20 +267,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         protected virtual string GetBodyDisplayName(SyntaxNode node, EditKind editKind = EditKind.Update)
         {
-            var initialNode = node;
+            var current = node.Parent;
             while (true)
             {
-                node = node.Parent;
-                if (node == null)
+                if (current == null)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(initialNode.GetType().Name);
+                    throw ExceptionUtilities.UnexpectedValue(node.GetType().Name);
                 }
 
-                var displayName = TryGetDisplayName(node, editKind);
+                var displayName = TryGetDisplayName(current, editKind);
                 if (displayName != null)
                 {
                     return displayName;
                 }
+
+                current = current.Parent;
             }
         }
 
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool ContainsLambda(SyntaxNode declaration);
         internal abstract SyntaxNode GetLambda(SyntaxNode lambdaBody);
         internal abstract IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken);
-        internal abstract SyntaxNode GetContainingQueryExpression(SyntaxNode node);
+        internal abstract SyntaxNode? GetContainingQueryExpression(SyntaxNode node);
         internal abstract bool QueryClauseLambdasTypeEquivalent(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, CancellationToken cancellationToken);
 
         /// <summary>
@@ -743,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // The tracking span might have been moved outside of lambda.
                         // It is not an error to move the statement - we just ignore it.
-                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent);
+                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent!);
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, trackedStatement);
                         if (oldEnclosingLambdaBody == newEnclosingLambdaBody)
                         {
@@ -1224,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var oldAncestors = GetExceptionHandlingAncestors(oldStatementSyntax, isNonLeaf);
-            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax, isNonLeaf);
+            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax!, isNonLeaf);
 
             if (oldAncestors.Count > 0 || newAncestors.Count > 0)
             {
@@ -1567,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var textSpan = text.Lines.GetTextSpanSafe(activeStatementSpan);
             var token = syntaxRoot.FindToken(textSpan.Start);
-            var ancestors = GetExceptionHandlingAncestors(token.Parent, isNonLeaf);
+            var ancestors = GetExceptionHandlingAncestors(token.Parent!, isNonLeaf);
             return GetExceptionRegions(ancestors, text, out isCovered);
         }
 
@@ -1680,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Finds the inner-most ancestor of the specified node that has a matching node in the new tree.
         /// </summary>
-        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
+        private static bool TryGetMatchingAncestor(IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap, SyntaxNode? oldNode, [NotNullWhen(true)]out SyntaxNode? newAncestor)
         {
             while (oldNode != null)
             {
@@ -1753,9 +1754,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return HasEdit(editMap, node.Parent, edit.Kind);
         }
 
-        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode node, EditKind editKind)
+        protected static bool HasEdit(Dictionary<SyntaxNode, EditKind> editMap, SyntaxNode? node, EditKind editKind)
         {
-            return editMap.TryGetValue(node, out var parentEdit) && parentEdit == editKind;
+            return
+                node is object &&
+                editMap.TryGetValue(node, out var parentEdit) &&
+                parentEdit == editKind;
         }
 
         #endregion
@@ -1954,16 +1958,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector)
         {
             List<SyntaxNode?>? list = null;
+            SyntaxNode? current = node;
 
-            while (node != root)
+            while (current is object && current != root)
             {
-                if (nodeSelector(node))
+                if (nodeSelector(current))
                 {
                     list ??= new List<SyntaxNode?>();
-                    list.Add(node);
+                    list.Add(current);
                 }
 
-                node = node.Parent;
+                current = current.Parent;
             }
 
             list?.Reverse();
@@ -3812,9 +3817,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return memberBody;
             }
 
-            var node = GetSymbolSyntax(localOrParameter, cancellationToken);
+            SyntaxNode? node = GetSymbolSyntax(localOrParameter, cancellationToken);
             while (true)
             {
+                RoslynDebug.Assert(node is object);
                 if (IsClosureScope(node))
                 {
                     return node;
