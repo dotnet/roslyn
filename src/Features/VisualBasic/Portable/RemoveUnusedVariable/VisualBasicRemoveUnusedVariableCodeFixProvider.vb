@@ -41,9 +41,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
         Protected Overrides Function GetVariables(localDeclarationStatement As LocalDeclarationStatementSyntax) As SeparatedSyntaxList(Of SyntaxNode)
             Return localDeclarationStatement.Declarators
         End Function
-
-        Protected Overrides Function GetCandidateLocalDeclarationForRemoval(declarator As ModifiedIdentifierSyntax) As LocalDeclarationStatementSyntax
-            Return Nothing
-        End Function
     End Class
 End Namespace

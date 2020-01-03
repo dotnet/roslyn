@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             {
                 // Parents of the variable declarator could be candaditaes for removal for example 
                 // if all declarators in a declaration will be removed.
-                var candidate = GetCandidateLocalDeclarationForRemoval(variableDeclarator);
-                if (candidate != null)
+
+                if (variableDeclarator.Parent?.Parent is TLocalDeclarationStatement candidate)
                 {
                     candidateLocalDeclarationsToRemove.Add(candidate);
                 }
@@ -185,8 +185,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                 }
             }
         }
-
-        protected abstract TLocalDeclarationStatement GetCandidateLocalDeclarationForRemoval(TVariableDeclarator declarator);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
