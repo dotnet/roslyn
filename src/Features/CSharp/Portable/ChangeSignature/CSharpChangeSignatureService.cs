@@ -390,11 +390,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     isReducedExtensionMethod = true;
                 }
 
-
                 SignatureChange signaturePermutationWithoutAddedParameters = signaturePermutation.WithoutAddedParameters();
 
                 var newArguments = PermuteArgumentList(document, declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, isReducedExtensionMethod);
-                newArguments = AddNewArgumentsToList(document, declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod);
+                newArguments = AddNewArgumentsToList(newArguments, signaturePermutation);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -449,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return null;
         }
 
-        private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(Document document, ISymbol declarationSymbol, SeparatedSyntaxList<ArgumentSyntax> newArguments, SignatureChange signaturePermutation, bool isReducedExtensionMethod)
+        private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(SeparatedSyntaxList<ArgumentSyntax> newArguments, SignatureChange signaturePermutation)
         {
             List<ArgumentSyntax> fullList = new List<ArgumentSyntax>();
 
@@ -473,12 +472,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 }
                 else
                 {
-                    if (newArguments[indexInExistingList].NameColon != default)
+                    if (indexInExistingList < newArguments.Count)
                     {
-                        seenNameEquals = true;
-                    }
+                        if (newArguments[indexInExistingList].NameColon != default)
+                        {
+                            seenNameEquals = true;
+                        }
 
-                    fullList.Add(newArguments[indexInExistingList++]);
+                        fullList.Add(newArguments[indexInExistingList++]);
+                    }
                 }
             }
 
