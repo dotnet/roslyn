@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _signature = signature;
         }
 
-        private FunctionPointerMethodSymbol _signature;
+        private readonly FunctionPointerMethodSymbol _signature;
         public MethodSymbol Signature => _signature;
 
         public override bool IsReferenceType => false;
@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool Equals(TypeSymbol t2, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
+            if (ReferenceEquals(this, t2))
+            {
+                return true;
+            }
+
             if (!(t2 is FunctionPointerTypeSymbol other))
             {
                 return false;
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int GetHashCode()
         {
-            return 19 * _signature.GetHashCode();
+            return Hash.Combine(1, _signature.GetHashCode());
         }
 
         protected override ISymbol CreateISymbol()

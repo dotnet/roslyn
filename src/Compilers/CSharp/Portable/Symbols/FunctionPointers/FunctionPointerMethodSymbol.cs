@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class FunctionPointerMethodSymbol : MethodSymbol
     {
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
-        private DiagnosticInfo? _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo;
 
         public static FunctionPointerMethodSymbol CreateMethodFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
@@ -123,12 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool Equals(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
         {
-            return EqualsParametersVerified(other, compareKind, isValueTypeOverride)
-                && _parameters.SequenceEqual(other._parameters, (compareKind, isValueTypeOverride),
-                    (param1, param2, args) => param1.EqualsContainingVerified(param2, args.compareKind, args.isValueTypeOverride));
+            return ReferenceEquals(this, other) ||
+                (EqualsNoParameters(other, compareKind, isValueTypeOverride)
+                 && _parameters.SequenceEqual(other._parameters, (compareKind, isValueTypeOverride),
+                     (param1, param2, args) => param1.MethodEqualityChecks(param2, args.compareKind, args.isValueTypeOverride)));
         }
 
-        private bool EqualsParametersVerified(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        private bool EqualsNoParameters(FunctionPointerMethodSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
             => CallingConvention == other.CallingConvention
                && RefKind == other.RefKind
                && ReturnTypeWithAnnotations.Equals(other.ReturnTypeWithAnnotations, compareKind, isValueTypeOverride);
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var currentHash = GetHashCodeNoParameters();
             foreach (var param in _parameters)
             {
-                currentHash = Hash.Combine(param.GetHashCodeNoContaining(), currentHash);
+                currentHash = Hash.Combine(param.MethodHashCode(), currentHash);
             }
             return currentHash;
         }
@@ -158,14 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
-            if (_lazyUseSiteDiagnostic == CSDiagnosticInfo.EmptyErrorInfo)
-            {
-                DiagnosticInfo? info = null;
-                CalculateUseSiteDiagnostic(ref info);
-                _lazyUseSiteDiagnostic = info;
-            }
-
-            return _lazyUseSiteDiagnostic;
+            DiagnosticInfo? info = null;
+            CalculateUseSiteDiagnostic(ref info);
+            return info;
         }
 
         internal bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo? result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
@@ -189,12 +184,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override Accessibility DeclaredAccessibility => Accessibility.NotApplicable;
-        public override bool IsStatic => true;
+        public override bool IsStatic => false;
         public override bool IsVirtual => false;
         public override bool IsOverride => false;
         public override bool IsAbstract => false;
-        public override bool IsSealed => true;
+        public override bool IsSealed => false;
         public override bool IsExtern => false;
+        public override bool IsImplicitlyDeclared => true;
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
         internal override bool HasSpecialName => false;
         internal override MethodImplAttributes ImplementationAttributes => default;
@@ -202,17 +198,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation => null;
         internal override bool RequiresSecurityObject => false;
         internal override bool IsDeclaredReadOnly => false;
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => throw ExceptionUtilities.Unreachable;
-        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => throw ExceptionUtilities.Unreachable;
-        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => throw ExceptionUtilities.Unreachable;
-        public override FlowAnalysisAnnotations FlowAnalysisAnnotations => throw ExceptionUtilities.Unreachable;
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;
         public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable;
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => throw ExceptionUtilities.Unreachable;
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => throw ExceptionUtilities.Unreachable;
     }
 }

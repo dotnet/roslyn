@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,14 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly FunctionPointerMethodSymbol _containingSymbol;
 
-        public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers, ImmutableArray<Location> locations)
+        public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers)
         {
             TypeWithAnnotations = typeWithAnnotations;
             RefKind = refKind;
             Ordinal = ordinal;
             _containingSymbol = containingSymbol;
             RefCustomModifiers = refCustomModifiers;
-            Locations = locations;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations { get; }
@@ -27,11 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Ordinal { get; }
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
-        public override ImmutableArray<Location> Locations { get; }
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => GetDeclaringSyntaxReferenceHelper<ParameterSyntax>(Locations);
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
         {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             if (!(other is FunctionPointerParameterSymbol param))
             {
                 return false;
@@ -41,28 +42,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool Equals(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
-            => EqualsContainingVerified(other, compareKind, isValueTypeOverride)
+            => other.Ordinal == Ordinal
                && _containingSymbol.Equals(other._containingSymbol, compareKind, isValueTypeOverride);
 
-        internal bool EqualsContainingVerified(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        internal bool MethodEqualityChecks(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
             => RefKind == other.RefKind
-               && Ordinal == other.Ordinal
                && RefCustomModifiers.Equals(other.RefCustomModifiers)
                && TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind, isValueTypeOverride);
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_containingSymbol.GetHashCode(), GetHashCodeNoContaining());
+            return Hash.Combine(_containingSymbol.GetHashCode(), Ordinal + 1);
         }
 
-        internal int GetHashCodeNoContaining()
+        internal int MethodHashCode()
             => Hash.Combine(TypeWithAnnotations.GetHashCode(),
                Hash.Combine(RefKind.GetHashCode(),
                Hash.Combine(Ordinal.GetHashCode(),
                Hash.CombineValues(RefCustomModifiers))));
 
+        public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsDiscard => false;
         public override bool IsParams => false;
+        public override bool IsImplicitlyDeclared => true;
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => null;
         internal override bool IsMetadataOptional => false;
         internal override bool IsMetadataIn => RefKind == RefKind.In;

@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKind,
                         syntax.Identifier,
                         ordinal,
-                        (paramsKeyword.Kind() != SyntaxKind.None),
-                        ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
+                        isParams: paramsKeyword.Kind() != SyntaxKind.None,
+                        isExtensionMethodThis: ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
                         addRefReadOnlyModifier,
                         declarationDiagnostics);
                 }
@@ -78,15 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         DiagnosticBag diagnostics) =>
                 {
 
-                    var locations = ImmutableArray.Create<Location>(new SourceLocation(syntax.Type));
-                    var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
                     var customModifiers = addRefReadOnlyModifier && refKind == RefKind.In ?
-                        ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)) :
+                        CreateInModifiers(binder, diagnostics, syntax) :
                         ImmutableArray<CustomModifier>.Empty;
 
                     if (parameterType.IsVoidType())
                     {
-                        diagnostics.Add(ErrorCode.ERR_NoVoidParameter, locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_NoVoidParameter, syntax.Type.Location);
                     }
 
                     return new FunctionPointerParameterSymbol(
@@ -94,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKind,
                         ordinal,
                         owner,
-                        customModifiers,
-                        locations);
+                        customModifiers);
                 },
                 parsingFunctionPointer: true);
         }
@@ -206,7 +203,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
                 methodOwner?.MethodKind == MethodKind.LocalFunction;
 
-            binder.ValidateParameterNameConflicts(typeParameters, parameters, allowShadowingNames, diagnostics);
+            if (parsingFunctionPointer)
+            {
+                binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
+            }
+
             return parameters;
         }
 
@@ -685,6 +686,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return refKind;
+        }
+
+        internal static ImmutableArray<CustomModifier> CreateInModifiers(Binder binder, DiagnosticBag diagnostics, SyntaxNode syntax)
+        {
+            var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax);
+            return ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
         }
     }
 }

@@ -13,14 +13,112 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private void CommonVerifyFunctionPointer(FunctionPointerTypeSymbol symbol)
         {
-            Assert.Equal(SymbolKind.FunctionPointer, symbol.Kind);
-            Assert.Equal(TypeKind.FunctionPointer, symbol.TypeKind);
-            Assert.NotNull(symbol.Signature);
-            Assert.Equal(MethodKind.FunctionPointerSignature, symbol.Signature.MethodKind);
-            Assert.Equal(string.Empty, symbol.Signature.Name);
+            verifyPointerType(symbol);
+            verifySignature(symbol.Signature);
             foreach (var param in symbol.Signature.Parameters)
             {
-                Assert.Equal(string.Empty, param.Name);
+                verifyParameter(param, symbol.Signature);
+            }
+
+            static void verifyPointerType(FunctionPointerTypeSymbol symbol)
+            {
+                Assert.Equal(SymbolKind.FunctionPointer, symbol.Kind);
+                Assert.Equal(TypeKind.FunctionPointer, symbol.TypeKind);
+
+                Assert.False(symbol.IsReferenceType);
+                Assert.False(symbol.IsRefLikeType);
+                Assert.False(symbol.IsReadOnly);
+                Assert.False(symbol.IsStatic);
+                Assert.False(symbol.IsAbstract);
+                Assert.False(symbol.IsSealed);
+
+                Assert.True(symbol.IsValueType);
+
+                Assert.Null(symbol.ContainingSymbol);
+                Assert.Null(symbol.BaseTypeNoUseSiteDiagnostics);
+                Assert.Null(symbol.ObsoleteAttributeData);
+
+                Assert.Empty(symbol.Locations);
+                Assert.Empty(symbol.DeclaringSyntaxReferences);
+                Assert.Empty(symbol.GetMembers());
+                Assert.Empty(symbol.GetTypeMembers());
+                Assert.Empty(symbol.InterfacesNoUseSiteDiagnostics());
+            }
+
+            static void verifySignature(MethodSymbol symbol)
+            {
+                Assert.NotNull(symbol);
+
+                Assert.Equal(MethodKind.FunctionPointerSignature, symbol.MethodKind);
+                Assert.Equal(string.Empty, symbol.Name);
+                Assert.Equal(0, symbol.Arity);
+                Assert.Equal(default, symbol.ImplementationAttributes);
+                Assert.Equal(Accessibility.NotApplicable, symbol.DeclaredAccessibility);
+                Assert.Equal(FlowAnalysisAnnotations.None, symbol.ReturnTypeFlowAnalysisAnnotations);
+                Assert.Equal(FlowAnalysisAnnotations.None, symbol.FlowAnalysisAnnotations);
+
+                Assert.False(symbol.IsExtensionMethod);
+                Assert.False(symbol.HidesBaseMethodsByName);
+                Assert.False(symbol.IsStatic);
+                Assert.False(symbol.IsAsync);
+                Assert.False(symbol.IsVirtual);
+                Assert.False(symbol.IsOverride);
+                Assert.False(symbol.IsAbstract);
+                Assert.False(symbol.IsExtern);
+                Assert.False(symbol.IsExtensionMethod);
+                Assert.False(symbol.IsSealed);
+                Assert.False(symbol.IsExtern);
+                Assert.False(symbol.HasSpecialName);
+                Assert.False(symbol.HasDeclarativeSecurity);
+                Assert.False(symbol.RequiresSecurityObject);
+                Assert.False(symbol.IsDeclaredReadOnly);
+                Assert.False(symbol.IsMetadataNewSlot(true));
+                Assert.False(symbol.IsMetadataNewSlot(false));
+                Assert.False(symbol.IsMetadataVirtual(true));
+                Assert.False(symbol.IsMetadataVirtual(false));
+
+                Assert.True(symbol.IsImplicitlyDeclared);
+
+                Assert.Null(symbol.ContainingSymbol);
+                Assert.Null(symbol.AssociatedSymbol);
+                Assert.Null(symbol.ReturnValueMarshallingInformation);
+
+                Assert.Empty(symbol.TypeParameters);
+                Assert.Empty(symbol.ExplicitInterfaceImplementations);
+                Assert.Empty(symbol.Locations);
+                Assert.Empty(symbol.DeclaringSyntaxReferences);
+                Assert.Empty(symbol.TypeArgumentsWithAnnotations);
+                Assert.Empty(symbol.GetAppliedConditionalSymbols());
+                Assert.Empty(symbol.ReturnNotNullIfParameterNotNull);
+            }
+
+            static void verifyParameter(ParameterSymbol symbol, MethodSymbol containing)
+            {
+                Assert.NotNull(symbol);
+
+                Assert.Same(symbol.ContainingSymbol, containing);
+
+                Assert.Equal(string.Empty, symbol.Name);
+                Assert.Equal(FlowAnalysisAnnotations.None, symbol.FlowAnalysisAnnotations);
+
+                Assert.False(symbol.IsDiscard);
+                Assert.False(symbol.IsParams);
+                Assert.False(symbol.IsMetadataOptional);
+                Assert.False(symbol.IsIDispatchConstant);
+                Assert.False(symbol.IsIUnknownConstant);
+                Assert.False(symbol.IsCallerFilePath);
+                Assert.False(symbol.IsCallerLineNumber);
+                Assert.False(symbol.IsCallerFilePath);
+                Assert.False(symbol.IsCallerMemberName);
+
+                Assert.True(symbol.IsImplicitlyDeclared);
+
+                Assert.Null(symbol.MarshallingInformation);
+                Assert.Null(symbol.ExplicitDefaultConstantValue);
+
+                Assert.Empty(symbol.Locations);
+                Assert.Empty(symbol.DeclaringSyntaxReferences);
+                Assert.Empty(symbol.NotNullIfParameterNotNull);
             }
         }
 
@@ -566,7 +664,6 @@ class C
                 {
                     Assert.False(ret1.Equals(ret2, TypeCompareKind.ConsiderEverything));
                     Assert.False(ret1.Equals(ret2, TypeCompareKind.AllNullableIgnoreOptions));
-                    Assert.NotEqual(ret1.GetHashCode(), ret2.GetHashCode());
                 }
             }
             else
@@ -584,9 +681,17 @@ class C
                 assertSymbolEquality(param1, param2, overallEquality);
                 if (parameterEqualities[i] == Equality.Equal)
                 {
-                    Assert.True(((FunctionPointerParameterSymbol)param1).EqualsContainingVerified((FunctionPointerParameterSymbol)param2,
-                                                                                                  TypeCompareKind.ConsiderEverything,
-                                                                                                  isValueTypeOverride: null));
+                    Assert.True(((FunctionPointerParameterSymbol)param1).MethodEqualityChecks((FunctionPointerParameterSymbol)param2,
+                                                                                              TypeCompareKind.ConsiderEverything,
+                                                                                              isValueTypeOverride: null));
+                }
+
+                for (int j = 0; j < p1.Signature.ParameterCount; j++)
+                {
+                    if (j == i) continue;
+
+                    assertSymbolEquality(param1, p2.Signature.Parameters[j], Equality.NotEqual);
+                    assertSymbolEquality(param2, p1.Signature.Parameters[j], Equality.NotEqual);
                 }
             }
 
@@ -597,7 +702,6 @@ class C
                 {
                     Assert.False(s1.Equals(s2, TypeCompareKind.ConsiderEverything));
                     Assert.False(s1.Equals(s2, TypeCompareKind.AllNullableIgnoreOptions));
-                    Assert.NotEqual(s1.GetHashCode(), s2.GetHashCode());
                 }
                 else
                 {
@@ -606,6 +710,35 @@ class C
                     Assert.Equal(eq == Equality.Equal, s1.Equals(s2, TypeCompareKind.ConsiderEverything));
                 }
             }
+        }
+
+        [Fact]
+        public void NoInAttribute_NoInParameter()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<string, void> p1) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NoInAttribute_InParameter()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<in string, void> p1) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_InteropServices_InAttribute);
+            comp.VerifyDiagnostics(
+                    // (4,22): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                    //     void M(delegate*<in string, void> p1) {}
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in string").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 22));
         }
     }
 }
