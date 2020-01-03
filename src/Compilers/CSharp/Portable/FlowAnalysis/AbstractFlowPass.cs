@@ -2769,7 +2769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        private BoundNode VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase node)
         {
             VisitRvalue(node.Count);
 
@@ -2784,10 +2784,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            return VisitStackAllocArrayCreationBase(node);
+        }
+
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
-            VisitStackAllocArrayCreation(node);
-            return null;
+            return VisitStackAllocArrayCreationBase(node);
         }
 
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
