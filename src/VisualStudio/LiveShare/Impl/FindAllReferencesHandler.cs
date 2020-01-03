@@ -20,10 +20,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    /// <summary>
-    /// TODO - This should move to the ILanguageClient when we remove the UI thread dependency.
-    /// https://github.com/dotnet/roslyn/issues/38477
-    /// </summary>
+    // TODO - This should move to the ILanguageClient when we remove the UI thread dependency.
+    // https://github.com/dotnet/roslyn/issues/38477
     internal class FindAllReferencesHandler : ILspRequestHandler<LSP.ReferenceParams, object[], Solution>
     {
         private readonly IThreadingContext _threadingContext;

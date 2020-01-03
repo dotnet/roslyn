@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.References
 
         public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
         {
+            // Find implementations is now handled by the VS LSP client.
             return Task.CompletedTask;
         }
 

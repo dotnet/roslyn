@@ -173,8 +173,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
-        <source>LiveShare C#/Visual Basic Language Server Client</source>
-        <target state="new">LiveShare C#/Visual Basic Language Server Client</target>
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
         <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
