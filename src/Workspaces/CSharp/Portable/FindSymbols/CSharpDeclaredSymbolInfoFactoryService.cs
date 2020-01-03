@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo)
         {
             switch (node.Kind())
             {
@@ -492,5 +492,100 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         private bool IsExtensionMethod(MethodDeclarationSyntax method)
             => method.ParameterList.Parameters.Count > 0 &&
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
+
+        // Root namespace is a VB only concept, which basically means root namespace is always global in C#.
+        public override string GetRootNamespace(CompilationOptions compilationOptions)
+            => string.Empty;
+
+        public override bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases)
+        {
+            if (node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null)
+            {
+                if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName) &&
+                    TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name))
+                {
+                    aliases = ImmutableArray.Create<(string, string)>((aliasName, name));
+                    return true;
+                }
+            }
+
+            aliases = default;
+            return false;
+        }
+
+        public override string GetTargetTypeName(SyntaxNode node)
+        {
+            var methodDeclaration = (MethodDeclarationSyntax)node;
+            Debug.Assert(IsExtensionMethod(methodDeclaration));
+
+            var typeParameterNames = methodDeclaration.TypeParameterList?.Parameters.SelectAsArray(p => p.Identifier.Text);
+            TryGetSimpleTypeName(methodDeclaration.ParameterList.Parameters[0].Type, typeParameterNames, out var targetTypeName);
+            return targetTypeName;
+        }
+
+        private static bool TryGetSimpleTypeName(SyntaxNode node, ImmutableArray<string>? typeParameterNames, out string simpleTypeName)
+        {
+            if (node is TypeSyntax typeNode)
+            {
+                switch (typeNode)
+                {
+                    case IdentifierNameSyntax identifierNameNode:
+                        // We consider it a complex method if the receiver type is a type parameter.
+                        var text = identifierNameNode.Identifier.Text;
+                        simpleTypeName = typeParameterNames?.Contains(text) == true ? null : text;
+                        return simpleTypeName != null;
+
+                    case GenericNameSyntax genericNameNode:
+                        var name = genericNameNode.Identifier.Text;
+                        var arity = genericNameNode.Arity;
+                        simpleTypeName = arity == 0 ? name : name + GetMetadataAritySuffix(arity);
+                        return true;
+
+                    case PredefinedTypeSyntax predefinedTypeNode:
+                        simpleTypeName = GetSpecialTypeName(predefinedTypeNode);
+                        return simpleTypeName != null;
+
+                    case AliasQualifiedNameSyntax aliasQualifiedNameNode:
+                        return TryGetSimpleTypeName(aliasQualifiedNameNode.Name, typeParameterNames, out simpleTypeName);
+
+                    case QualifiedNameSyntax qualifiedNameNode:
+                        // For an identifier to the right of a '.', it can't be a type parameter,
+                        // so we don't need to check for it further.
+                        return TryGetSimpleTypeName(qualifiedNameNode.Right, typeParameterNames: null, out simpleTypeName);
+
+                    case NullableTypeSyntax nullableNode:
+                        // Ignore nullability, becase nullable reference type might not be enabled universally.
+                        // In the worst case we just include more methods to check in out filter.
+                        return TryGetSimpleTypeName(nullableNode.ElementType, typeParameterNames, out simpleTypeName);
+                }
+            }
+
+            simpleTypeName = null;
+            return false;
+        }
+
+        private static string GetSpecialTypeName(PredefinedTypeSyntax predefinedTypeNode)
+        {
+            var kind = predefinedTypeNode.Keyword.Kind();
+            return kind switch
+            {
+                SyntaxKind.BoolKeyword => "Boolean",
+                SyntaxKind.ByteKeyword => "Byte",
+                SyntaxKind.SByteKeyword => "SByte",
+                SyntaxKind.ShortKeyword => "Int16",
+                SyntaxKind.UShortKeyword => "UInt16",
+                SyntaxKind.IntKeyword => "Int32",
+                SyntaxKind.UIntKeyword => "UInt32",
+                SyntaxKind.LongKeyword => "Int64",
+                SyntaxKind.ULongKeyword => "UInt64",
+                SyntaxKind.DoubleKeyword => "Double",
+                SyntaxKind.FloatKeyword => "Single",
+                SyntaxKind.DecimalKeyword => "Decimal",
+                SyntaxKind.StringKeyword => "String",
+                SyntaxKind.CharKeyword => "Char",
+                SyntaxKind.ObjectKeyword => "Object",
+                _ => null,
+            };
+        }
     }
 }

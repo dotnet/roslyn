@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected readonly NamedTypeSymbol _underlyingType;
 
-        public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType)
+        public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType, TupleExtraData tupleData)
+            : base(tupleData)
         {
             Debug.Assert((object)underlyingType != null);
             _underlyingType = underlyingType;
@@ -123,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (IsTupleType)
+                {
+                    return TupleData.Locations;
+                }
+
                 return _underlyingType.Locations;
             }
         }
@@ -131,6 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (IsTupleType)
+                {
+                    return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(TupleData.Locations);
+                }
+
                 return _underlyingType.DeclaringSyntaxReferences;
             }
         }

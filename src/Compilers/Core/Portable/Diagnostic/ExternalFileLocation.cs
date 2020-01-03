@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A program location in source code.
     /// </summary>
-    internal sealed class ExternalFileLocation : Location, IEquatable<ExternalFileLocation>
+    internal sealed class ExternalFileLocation : Location, IEquatable<ExternalFileLocation?>
     {
         private readonly TextSpan _sourceSpan;
         private readonly FileLinePositionSpan _lineSpan;
@@ -46,12 +48,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ExternalFileLocation);
         }
 
-        public bool Equals(ExternalFileLocation obj)
+        public bool Equals(ExternalFileLocation? obj)
         {
             if (ReferenceEquals(obj, this))
             {

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed partial class DynamicTypeSymbol : TypeSymbol, IDynamicTypeSymbol
+    internal sealed partial class DynamicTypeSymbol : TypeSymbol
     {
         internal static readonly DynamicTypeSymbol Instance = new DynamicTypeSymbol();
 
@@ -229,27 +229,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             return this;
         }
 
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
+        protected override ISymbol CreateISymbol()
         {
-            visitor.VisitDynamicType(this);
+            return new PublicModel.DynamicTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitDynamicType(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.DynamicTypeSymbol(this, nullableAnnotation);
         }
-
-        #endregion
     }
 }

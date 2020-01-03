@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RuntimeOptions.FullSolutionAnalysis,
-            RuntimeOptions.FullSolutionAnalysisInfoBarShown);
+            RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown);
     }
 }

@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.Text
@@ -83,7 +82,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 project,
                 hierarchy,
                 itemid,
-                Me, SourceCodeKind.Regular)
+                Me.LanguageServiceId)
         End Function
     End Class
 End Namespace

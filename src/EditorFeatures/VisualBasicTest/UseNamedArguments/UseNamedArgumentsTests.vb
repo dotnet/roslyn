@@ -331,12 +331,18 @@ End Class")
 
         <WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
-        Public Async Function TestMissingOnTuple() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnTuple() As Task
+            Await TestInRegularAndScript1Async(
 "Imports System.Linq
 Class C
     Sub M(arr as Integer())
         arr.Zip(arr, Function(p1, p2) ([||]p1, p2))
+    End Sub
+End Class",
+"Imports System.Linq
+Class C
+    Sub M(arr as Integer())
+        arr.Zip(arr, resultSelector:=Function(p1, p2) (p1, p2))
     End Sub
 End Class")
         End Function

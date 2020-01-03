@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
                         return false;
-                    }, typePredicateOpt: null, arg: (container, isValueTypeOverride), canDigThroughNullable: false, useDefaultType: true);
+                    }, typePredicate: null, arg: (container, isValueTypeOverride), canDigThroughNullable: false, useDefaultType: true);
                 }
             }
         }

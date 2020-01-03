@@ -233,6 +233,17 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported in DEBUG";
     }
 
+    public class IsDebug : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => false;
+#else
+        public override bool ShouldSkip => true;
+#endif
+
+        public override string SkipReason => "Test not supported in RELEASE";
+    }
+
     public class WindowsOnly : ExecutionCondition
     {
         public override bool ShouldSkip => !ExecutionConditionUtil.IsWindows;

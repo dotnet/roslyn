@@ -39,7 +39,7 @@ public partial class C
                 .OfType<MethodDeclarationSyntax>()
                 .ElementAt(1);
 
-            var gooDef = model.GetDeclaredSymbol(node) as SourceOrdinaryMethodSymbol;
+            var gooDef = model.GetDeclaredSymbol(node).GetSymbol<SourceOrdinaryMethodSymbol>();
             Assert.NotNull(gooDef);
             Assert.True(gooDef.IsPartial);
             Assert.True(gooDef.IsPartialDefinition);
@@ -77,7 +77,7 @@ class Program
             var program = global.GetTypeMember("Program");
             var field = program.GetMember<SourceFieldSymbol>("F");
 
-            Assert.Equal(field, semanticSymbol);
+            Assert.Equal(field, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -117,7 +117,7 @@ class C
 
             var info = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
             Assert.NotNull(info);
-            var sym = Assert.IsType<SourcePropertySymbol>(info.Symbol);
+            var sym = Assert.IsType<SourcePropertySymbol>(info.Symbol.GetSymbol());
             var c = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal(c.GetMember<SourcePropertySymbol>("P"), sym);
         }
@@ -202,7 +202,7 @@ class C
 }");
             Assert.NotNull(semanticInfo);
             var sym = semanticInfo.Symbol;
-            var accessor = Assert.IsType<SourcePropertyAccessorSymbol>(sym.ContainingSymbol);
+            var accessor = Assert.IsType<SourcePropertyAccessorSymbol>(sym.ContainingSymbol.GetSymbol());
             var prop = accessor.AssociatedSymbol;
             Assert.IsType<SourcePropertySymbol>(prop);
         }
@@ -229,7 +229,7 @@ class Program
             var method = program.GetMember<SourceOrdinaryMethodSymbol>("M");
             var i = method.Parameters[0];
 
-            Assert.Equal(i, semanticSymbol);
+            Assert.Equal(i, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -255,11 +255,11 @@ class C
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("T", semanticInfo.Type.Name);
             Assert.Equal("t", semanticInfo.Symbol.Name);
-            var m = semanticInfo.Symbol.ContainingSymbol as SourceOrdinaryMethodSymbol;
+            var m = semanticInfo.Symbol.ContainingSymbol.GetSymbol<SourceOrdinaryMethodSymbol>();
             Assert.Equal(1, m.TypeParameters.Length);
-            Assert.Equal(m.TypeParameters[0], semanticInfo.Type);
+            Assert.Equal(m.TypeParameters[0], semanticInfo.Type.GetSymbol());
             Assert.Equal(m.TypeParameters[0], m.ReturnType);
-            Assert.Equal(m, semanticInfo.Type.ContainingSymbol);
+            Assert.Equal(m, semanticInfo.Type.ContainingSymbol.GetSymbol());
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind);
         }
 
@@ -285,7 +285,7 @@ class Program
             var method = program.GetMember<SourceUserDefinedOperatorSymbol>("op_Increment");
             var p = method.Parameters[0];
 
-            Assert.Equal(p, semanticSymbol);
+            Assert.Equal(p, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
@@ -318,7 +318,7 @@ class C
             var method = program.GetMember<SourceUserDefinedConversionSymbol>("op_Explicit");
             var p = method.Parameters[0];
 
-            Assert.Equal(p, semanticSymbol);
+            Assert.Equal(p, semanticSymbol.GetSymbol());
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);

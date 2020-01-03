@@ -56,7 +56,7 @@ namespace Microsoft.Cci
 
         public TypeParameterVariance Variance
         {
-            get { return _parentParameter.Variance; }
+            get { return _inheritingType.IsInterface || _inheritingType.IsDelegate ? _parentParameter.Variance : TypeParameterVariance.NonVariant; }
         }
 
         #endregion
