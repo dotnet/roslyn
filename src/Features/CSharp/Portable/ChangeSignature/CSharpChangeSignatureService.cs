@@ -150,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
 
-            // TODO should we error process this?
             if (parameters == null) { return 0; }
 
             if (parameters.Parameters.Count > 0 &&
@@ -739,7 +738,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
-                // TODO
                 if (i >= arguments.SeparatorCount)
                 {
                     separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));

@@ -38,5 +38,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override bool HasExplicitDefaultValue => false;
         public override string Name => ParameterName;
         public override IParameterSymbol Symbol => null;
+
+        // For test purposes.
+        public override string ToString() => $"{TypeName} {Name} ({CallsiteValue})";
     }
 }

@@ -36,11 +36,11 @@
             </Grid.RowDefinitions>
             <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Type Name:" />
             <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="5,5,5,5">
-                <ContentControl x:Name="TypeContentControl" Focusable="True" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown"/>
+                <ContentControl x:Name="TypeContentControl" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown"/>
             </Border>
             <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Content="Parameter Name:" />
             <Border Grid.Row="3" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="5,5,5,5">
-                <ContentControl x:Name="NameContentControl" Focusable="True" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown"/>
+                <ContentControl x:Name="NameContentControl" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown"/>
             </Border>
             <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="If this is an optional parameter, enter its default value:" />
             <TextBox Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" />
