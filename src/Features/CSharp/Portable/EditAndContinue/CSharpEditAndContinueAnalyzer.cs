@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // TODO: The logic is similar to BreakpointSpans.TryCreateSpanForVariableDeclaration. Can we abstract it?
 
                 var declarator = node;
-                var fieldDeclaration = (BaseFieldDeclarationSyntax?)declarator.Parent!.Parent;
-                var variableDeclaration = fieldDeclaration!.Declaration;
+                var fieldDeclaration = (BaseFieldDeclarationSyntax)declarator.Parent!.Parent!;
+                var variableDeclaration = fieldDeclaration.Declaration;
 
                 if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
                 {
@@ -267,8 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // No need to special case property initializers here, the active statement always spans the initializer expression.
 
-                RoslynDebug.Assert(declarationBody.Parent is object);
-                if (declarationBody.Parent.Kind() == SyntaxKind.ConstructorDeclaration)
+                if (declarationBody.Parent!.Kind() == SyntaxKind.ConstructorDeclaration)
                 {
                     var constructor = (ConstructorDeclarationSyntax)declarationBody.Parent;
                     var partnerConstructor = (ConstructorDeclarationSyntax?)partnerDeclarationBody?.Parent;
@@ -483,18 +482,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return LambdaUtilities.IsClosureScope(node);
         }
 
-        protected override SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode? node)
+        protected override SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node)
         {
             var root = GetEncompassingAncestor(container);
 
-            while (node != root && node != null)
+            SyntaxNode? current = node;
+            while (current != root && current != null)
             {
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out var body))
+                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(current, out var body))
                 {
                     return body;
                 }
 
-                node = node.Parent;
+                current = current.Parent;
             }
 
             return null;
@@ -541,8 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 static SyntaxNode GetMatchingRoot(SyntaxNode body)
                 {
-                    RoslynDebug.Assert(body.Parent is object);
-                    var parent = body.Parent;
+                    var parent = body.Parent!;
                     // We could apply this change across all ArrowExpressionClause consistently not just for ones with LocalFunctionStatement parents
                     // but it would require an essential refactoring. 
                     return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
@@ -1295,8 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.BracketedParameterList:
                     if (editKind == EditKind.Delete)
                     {
-                        RoslynDebug.Assert(node.Parent is object);
-                        return TryGetDiagnosticSpanImpl(node.Parent, editKind);
+                        return TryGetDiagnosticSpanImpl(node.Parent!, editKind);
                     }
                     else
                     {
@@ -2155,13 +2153,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyFieldInsert(VariableDeclaratorSyntax fieldVariable)
             {
-                RoslynDebug.Assert(fieldVariable.Parent is object);
-                ClassifyFieldInsert((VariableDeclarationSyntax)fieldVariable.Parent);
+                ClassifyFieldInsert((VariableDeclarationSyntax)fieldVariable.Parent!);
             }
 
             private void ClassifyFieldInsert(VariableDeclarationSyntax fieldVariable)
             {
-                RoslynDebug.Assert(fieldVariable.Parent is object);
                 ClassifyFieldInsert((BaseFieldDeclarationSyntax)fieldVariable.Parent!);
             }
 
@@ -2512,8 +2508,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                 }
 
-                var typeDeclaration = (TypeDeclarationSyntax?)oldNode.Parent!.Parent!.Parent;
-                if (typeDeclaration!.Arity > 0)
+                var typeDeclaration = (TypeDeclarationSyntax?)oldNode.Parent!.Parent!.Parent!;
+                if (typeDeclaration.Arity > 0)
                 {
                     ReportError(RudeEditKind.GenericTypeInitializerUpdate);
                     return;
@@ -3197,7 +3193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 diagnostics.Add(new RudeEditDiagnostic(
                     RudeEditKind.Insert,
-                    newLocalDeclaration!.AwaitKeyword.Span,
+                    newLocalDeclaration.AwaitKeyword.Span,
                     newLocalDeclaration,
                     new[] { newLocalDeclaration.AwaitKeyword.ToString() }));
 

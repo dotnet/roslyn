@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or null if the node isn't contained in a lambda. If a node is returned it must uniquely represent the lambda,
         /// i.e. be no two distinct nodes may represent the same lambda.
         /// </summary>
-        protected abstract SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode? node);
+        protected abstract SyntaxNode? FindEnclosingLambdaBody(SyntaxNode? container, SyntaxNode node);
 
         /// <summary>
         /// Given a node that represents a lambda body returns all nodes of the body in a syntax list.
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // The tracking span might have been moved outside of lambda.
                         // It is not an error to move the statement - we just ignore it.
-                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent);
+                        var oldEnclosingLambdaBody = FindEnclosingLambdaBody(oldBody, oldMember.FindToken(adjustedOldStatementStart).Parent!);
                         var newEnclosingLambdaBody = FindEnclosingLambdaBody(newBody, trackedStatement);
                         if (oldEnclosingLambdaBody == newEnclosingLambdaBody)
                         {
