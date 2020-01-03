@@ -4,7 +4,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
         public bool IsCancelled = true;
-        public int[] UpdatedSignature = null;
+        public AddedParameterOrExistingIndex[] UpdatedSignature = null;
 
         [ImportingConstructor]
         public TestChangeSignatureOptionsService()
@@ -29,13 +29,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             Document document)
         {
             var list = parameters.ToListOfParameters();
+            var updateParameters = UpdatedSignature.Select(item => item.IsExisting
+            ? list[item.OldIndex]
+            : item.AddedParameter).ToList();
 
             return new ChangeSignatureOptionsResult
             {
                 IsCancelled = IsCancelled,
                 UpdatedSignature = new SignatureChange(
                     parameters,
-                    UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null, selectedIndex: 0))
+                    UpdatedSignature == null
+                    ? parameters
+                    : ParameterConfiguration.Create(
+                        updateParameters,
+                        parameters.ThisParameter != null,
+                        selectedIndex: 0))
             };
         }
     }

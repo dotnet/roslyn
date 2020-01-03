@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
-    public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
+    internal abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
     {
         protected override ParseOptions GetScriptOptions()
         {
@@ -26,6 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             bool expectedCodeAction = true,
             bool isCancelled = false,
             int[] updatedSignature = null,
+            string expectedCode = null,
+            int index = 0)
+            => await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction, isCancelled,
+                updatedSignature.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(), expectedCode, index).ConfigureAwait(false);
+
+        public async Task TestChangeSignatureViaCodeActionAsync(
+            string markup,
+            bool expectedCodeAction = true,
+            bool isCancelled = false,
+            AddedParameterOrExistingIndex[] updatedSignature = null,
             string expectedCode = null,
             int index = 0)
         {
@@ -58,6 +69,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             string markup,
             bool expectedSuccess = true,
             int[] updatedSignature = null,
+            string expectedUpdatedInvocationDocumentCode = null,
+            string expectedErrorText = null,
+            int? totalParameters = null,
+            bool verifyNoDiagnostics = false,
+            ParseOptions parseOptions = null,
+            int expectedSelectedIndex = -1)
+            => await TestChangeSignatureViaCommandAsync(languageName, markup, expectedSuccess,
+                updatedSignature.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
+                expectedUpdatedInvocationDocumentCode,
+                expectedErrorText,
+                totalParameters,
+                verifyNoDiagnostics,
+                parseOptions,
+                expectedSelectedIndex);
+
+        public async Task TestChangeSignatureViaCommandAsync(
+            string languageName,
+            string markup,
+            bool expectedSuccess = true,
+            AddedParameterOrExistingIndex[] updatedSignature = null,
             string expectedUpdatedInvocationDocumentCode = null,
             string expectedErrorText = null,
             int? totalParameters = null,
@@ -113,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             }
         }
 
-        private string CreateDiagnosticsString(ImmutableArray<Diagnostic> diagnostics, int[] permutation, int? totalParameters, string fileContents)
+        private string CreateDiagnosticsString(ImmutableArray<Diagnostic> diagnostics, AddedParameterOrExistingIndex[] permutation, int? totalParameters, string fileContents)
         {
             if (diagnostics.Length == 0)
             {
@@ -127,15 +158,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 fileContents);
         }
 
-        private string GetSignatureDescriptionString(int[] signature, int? totalParameters)
+        private string GetSignatureDescriptionString(AddedParameterOrExistingIndex[] signature, int? totalParameters)
         {
+            var existingParametersKept = signature.Where(p => p.IsExisting).Select(p => p.OldIndex).ToArray();
             var removeDescription = string.Empty;
             if (totalParameters.HasValue)
             {
                 var removed = new List<int>();
                 for (var i = 0; i < totalParameters; i++)
                 {
-                    if (!signature.Contains(i))
+                    if (!existingParametersKept.Contains(i))
                     {
                         removed.Add(i);
                     }
@@ -144,7 +176,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 removeDescription = removed.Any() ? string.Format(", Removed: {{{0}}}", string.Join(", ", removed)) : string.Empty;
             }
 
-            return string.Format("Parameters: <{0}>{1}", string.Join(", ", signature), removeDescription);
+            var newParametersString = string.Join(",", signature.Where(p => !p.IsExisting).Select(p => p.AddedParameter));
+            var addDescription = !newParametersString.IsEmpty() ? string.Format(", Added {{{0}}}", newParametersString) : string.Empty;
+
+            return string.Format("Parameters: <{0}>{1}{2}", string.Join(", ", signature.Select(item => item.ToString())), removeDescription, addDescription);
         }
 
         /// <summary>
