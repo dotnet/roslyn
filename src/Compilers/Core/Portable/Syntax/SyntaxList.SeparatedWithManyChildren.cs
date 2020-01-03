@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.Syntax
     {
         internal class SeparatedWithManyChildren : SyntaxList
         {
-            private readonly ArrayElement<SyntaxNode>[] _children;
+            private readonly ArrayElement<SyntaxNode?>[] _children;
 
             internal SeparatedWithManyChildren(InternalSyntax.SyntaxList green, SyntaxNode? parent, int position)
                 : base(green, parent, position)
             {
-                _children = new ArrayElement<SyntaxNode>[(green.SlotCount + 1) >> 1];
+                _children = new ArrayElement<SyntaxNode?>[(green.SlotCount + 1) >> 1];
             }
 
             internal override SyntaxNode? GetNodeSlot(int i)
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                     return null;
                 }
 
-                return this.GetRedElement(ref _children[i >> 1].Value!, i);
+                return this.GetRedElement(ref _children[i >> 1].Value, i);
             }
 
             internal override SyntaxNode? GetCachedSlot(int i)
