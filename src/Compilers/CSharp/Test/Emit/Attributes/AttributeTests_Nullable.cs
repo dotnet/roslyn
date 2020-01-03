@@ -3228,7 +3228,7 @@ class Program
             static void validate(ModuleSymbol module)
             {
                 var globalNamespace = module.GlobalNamespace;
-                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F0").TypeWithAnnotations, new byte[] { 0 }, new byte[] { 0 }, "System.ValueTuple");
+                VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F0").TypeWithAnnotations, new byte[] { 0 }, new byte[] { }, "System.ValueTuple");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F1").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0 }, "(int, int)");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F2").TypeWithAnnotations, new byte[] { 0, 0, 0, 0, 0, 0 }, new byte[] { 0 }, "(int?, int?)?");
                 VerifyBytes(globalNamespace.GetMember<FieldSymbol>("Program.F3").TypeWithAnnotations, new byte[] { 0, 0, 0 }, new byte[] { 0, 0 }, "(int, object)");

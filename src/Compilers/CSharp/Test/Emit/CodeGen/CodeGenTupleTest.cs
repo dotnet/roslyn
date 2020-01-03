@@ -5850,6 +5850,7 @@ namespace System
             TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var vt1 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).Construct(intType);
             var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt1, ImmutableArray.Create(new[] { (string)null }));
+            Assert.Same(vt1, ((Symbols.PublicModel.NonErrorNamedTypeSymbol)tupleWithoutNames).UnderlyingNamedTypeSymbol);
 
             Assert.True(tupleWithoutNames.IsTupleType);
             Assert.Equal("System.ValueTuple<System.Int32>", tupleWithoutNames.ToTestDisplayString());
