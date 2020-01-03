@@ -448,9 +448,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return null;
         }
 
-        private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(SeparatedSyntaxList<ArgumentSyntax> newArguments, SignatureChange signaturePermutation)
+        private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(
+            SeparatedSyntaxList<ArgumentSyntax> newArguments,
+            SignatureChange signaturePermutation)
         {
             List<ArgumentSyntax> fullList = new List<ArgumentSyntax>();
+            List<SyntaxToken> separators = new List<SyntaxToken>();
 
             var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
 
@@ -468,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                             seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
                             refKindKeyword: default,
                             expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
+                        separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
                     }
                 }
                 else
@@ -479,12 +483,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                             seenNameEquals = true;
                         }
 
+                        if (indexInExistingList < newArguments.SeparatorCount)
+                        {
+                            separators.Add(newArguments.GetSeparator(indexInExistingList));
+                        }
+
                         fullList.Add(newArguments[indexInExistingList++]);
                     }
                 }
             }
 
-            return SyntaxFactory.SeparatedList(fullList);
+            // Add the rest of existing parameters, e.g. from the params argument.
+            while (indexInExistingList < newArguments.Count)
+            {
+                if (indexInExistingList < newArguments.SeparatorCount)
+                {
+                    separators.Add(newArguments.GetSeparator(indexInExistingList));
+                }
+
+                fullList.Add(newArguments[indexInExistingList++]);
+            }
+
+            return SyntaxFactory.SeparatedList(fullList, separators);
         }
 
         private SeparatedSyntaxList<T> PermuteDeclaration<T>(SeparatedSyntaxList<T> list, SignatureChange updatedSignature) where T : SyntaxNode

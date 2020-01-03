@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -425,17 +426,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Private Function PermuteDeclaration(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), updatedSignature As SignatureChange) As SeparatedSyntaxList(Of T)
-            Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
+            Dim originalParameterSymbols = updatedSignature.OriginalConfiguration.ToListOfParameters().Select(Function(p) p.Symbol).ToArray()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim newParameters = New List(Of T)
             For Each newParam In reorderedParameters
-                Dim pos = originalParameters.IndexOf(newParam)
-                Dim param = list(pos)
-                newParameters.Add(param)
+                Dim existingParam = TryCast(newParam, ExistingParameter)
+                If existingParam IsNot Nothing Then
+                    Dim pos = originalParameterSymbols.IndexOf(existingParam.Symbol)
+                    Dim param = list(pos)
+                    newParameters.Add(param)
+                End If
             Next
 
-            Dim numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count
+            Dim numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count
             Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip))
         End Function
 
