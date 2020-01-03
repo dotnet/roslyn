@@ -584,7 +584,7 @@ class D : B
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)
 
                 ' Perform the edit in the buffer
-                Using edit = cursorDocument.TextBuffer.CreateEdit()
+                Using edit = cursorDocument.GetTextBuffer().CreateEdit()
                     edit.Replace(token.SpanStart, token.Span.Length, newName)
                     edit.Apply()
                 End Using

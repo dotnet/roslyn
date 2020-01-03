@@ -22,7 +22,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    [Export(typeof(ISuggestedActionCallback))]
+    // Temporarily disabled due to noise: https://github.com/dotnet/roslyn/issues/39818
+    //[Export(typeof(ISuggestedActionCallback))]
     internal class FxCopAnalyzersSuggestedActionCallback : ForegroundThreadAffinitizedObject, ISuggestedActionCallback
     {
         private const string AnalyzerVsixHyperlink = @"https://marketplace.visualstudio.com/items?itemName=VisualStudioPlatformTeam.MicrosoftCodeAnalysis2019";
@@ -186,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private bool IsCandidate(SuggestedAction action)
         {
-            // Candidates fill the following critera:
+            // Candidates fill the following criteria:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days or if this is a code quality suggested action.
 

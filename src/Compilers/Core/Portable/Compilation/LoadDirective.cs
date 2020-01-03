@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,16 +10,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct LoadDirective : IEquatable<LoadDirective>
+    internal readonly struct LoadDirective : IEquatable<LoadDirective>
     {
-        public readonly string ResolvedPath;
+        public readonly string? ResolvedPath;
         public readonly ImmutableArray<Diagnostic> Diagnostics;
 
-        public LoadDirective(string resolvedPath, ImmutableArray<Diagnostic> diagnostics)
+        public LoadDirective(string? resolvedPath, ImmutableArray<Diagnostic> diagnostics)
         {
-            Debug.Assert((resolvedPath != null) || !diagnostics.IsEmpty);
-            Debug.Assert(!diagnostics.IsDefault);
-            Debug.Assert(diagnostics.IsEmpty || diagnostics.All(d => d.Severity == DiagnosticSeverity.Error));
+            RoslynDebug.Assert((resolvedPath != null) || !diagnostics.IsEmpty);
+            RoslynDebug.Assert(!diagnostics.IsDefault);
+            RoslynDebug.Assert(diagnostics.IsEmpty || diagnostics.All(d => d.Severity == DiagnosticSeverity.Error));
 
             ResolvedPath = resolvedPath;
             Diagnostics = diagnostics;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(this.Diagnostics.GetHashCode(), this.ResolvedPath.GetHashCode());
+            return Hash.Combine(this.Diagnostics.GetHashCode(), this.ResolvedPath?.GetHashCode() ?? 0);
         }
     }
 }

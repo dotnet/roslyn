@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public InteractiveHostTests()
         {
-            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1);
+            _host = new InteractiveHost(typeof(CSharpReplServiceProvider), ".", millisecondsTimeout: -1, joinOutputWritingThreadsOnDisposal: true);
 
             RedirectOutput();
 

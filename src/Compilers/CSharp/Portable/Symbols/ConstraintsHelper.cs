@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static void CheckConstraints(
-            this TupleTypeSymbol tuple,
+            this NamedTypeSymbol tuple,
             ConversionsBase conversions,
             bool includeNullability,
             SyntaxNode typeSyntax,
@@ -443,8 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnosticsOpt,
             DiagnosticBag nullabilityDiagnosticsOpt)
         {
-            NamedTypeSymbol type = tuple.TupleUnderlyingType;
-            if (!RequiresChecking(type))
+            Debug.Assert(tuple.IsTupleType);
+            if (!RequiresChecking(tuple))
             {
                 return;
             }
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var nullabilityDiagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain);
+            NamedTypeSymbol.GetUnderlyingTypeChain(tuple, underlyingTupleTypeChain);
 
             int offset = 0;
             foreach (var underlyingTuple in underlyingTupleTypeChain)
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 populateDiagnosticsAndClear(diagnosticsBuilder, diagnosticsOpt);
                 populateDiagnosticsAndClear(nullabilityDiagnosticsBuilder, nullabilityDiagnosticsOpt);
 
-                offset += TupleTypeSymbol.RestIndex;
+                offset += NamedTypeSymbol.ValueTupleRestIndex;
 
                 void populateDiagnosticsAndClear(ArrayBuilder<TypeParameterDiagnosticInfo> builder, DiagnosticBag bag)
                 {
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // If this is the TRest type parameter, we report it on 
                         // the entire type syntax as it does not map to any tuple element.
-                        var location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
+                        var location = ordinal == NamedTypeSymbol.ValueTupleRestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
                         bag.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
                     }
 
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             nullabilityDiagnosticsBuilder.Free();
         }
 
-        public static bool CheckConstraintsForNonTuple(
+        public static bool CheckConstraintsForNamedType(
             this NamedTypeSymbol type,
             ConversionsBase conversions,
             bool includeNullability,
@@ -513,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConsList<TypeSymbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(!type.IsTupleType);
             Debug.Assert(typeArgumentsSyntax.Count == 0 /*omitted*/ || typeArgumentsSyntax.Count == type.Arity);
 
             if (!RequiresChecking(type))
@@ -557,12 +556,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             Debug.Assert(currentCompilation is object);
-
-            // We do not report element locations in method parameters and return types
-            // so we will simply unwrap the type if it was a tuple. We are relying on
-            // TypeSymbolExtensions.VisitType to dig into the "Rest" tuple so that they
-            // will be recursively unwrapped as well.
-            type = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();
 
             if (!RequiresChecking(type))
             {
@@ -642,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 // some implemented interfaces are related
 // will have to instantiate interfaces and check
 hasRelatedInterfaces:
-            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
         }
 
         public static bool CheckConstraints(
@@ -888,7 +881,7 @@ hasRelatedInterfaces:
                     // extension method to be applicable, but then when you try to use it the IDE tells you to upgrade your language version.
                     if (!(currentCompilation is null))
                     {
-                        var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfoOpt(currentCompilation);
+                        var csDiagnosticInfo = MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(currentCompilation);
                         if (csDiagnosticInfo != null)
                         {
                             var typeParameterDiagnosticInfo = new TypeParameterDiagnosticInfo(typeParameter, csDiagnosticInfo);

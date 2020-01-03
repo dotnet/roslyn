@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class CommonTypedConstantTests : TestBase
     {
         private readonly CSharp.CSharpCompilation _compilation;
-        private readonly ITypeSymbol _intType;
-        private readonly ITypeSymbol _stringType;
-        private readonly ITypeSymbol _enumString1;
-        private readonly ITypeSymbol _enumString2;
+        private readonly ITypeSymbolInternal _intType;
+        private readonly ITypeSymbolInternal _stringType;
+        private readonly ITypeSymbolInternal _enumString1;
+        private readonly ITypeSymbolInternal _enumString2;
 
         public CommonTypedConstantTests()
         {

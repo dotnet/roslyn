@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an event.
     /// </summary>
-    internal abstract partial class EventSymbol : Symbol, IEventSymbol
+    internal abstract partial class EventSymbol : Symbol
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -318,105 +318,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        /// <summary>
-        /// Is this an event of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleEvent
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return false;
-            }
+            return new PublicModel.EventSymbol(this);
         }
-
-        /// <summary>
-        /// If this is an event of a tuple type, return corresponding underlying event from the
-        /// tuple underlying type. Otherwise, null. 
-        /// </summary>
-        public virtual EventSymbol TupleUnderlyingEvent
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        #region IEventSymbol Members
-
-        ITypeSymbol IEventSymbol.Type
-        {
-            get
-            {
-                return this.Type;
-            }
-        }
-
-        CodeAnalysis.NullableAnnotation IEventSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
-
-        IMethodSymbol IEventSymbol.AddMethod
-        {
-            get
-            {
-                return this.AddMethod;
-            }
-        }
-
-        IMethodSymbol IEventSymbol.RemoveMethod
-        {
-            get
-            {
-                return this.RemoveMethod;
-            }
-        }
-
-        IMethodSymbol IEventSymbol.RaiseMethod
-        {
-            get
-            {
-                // C# doesn't have raise methods for events.
-                return null;
-            }
-        }
-
-        IEventSymbol IEventSymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        IEventSymbol IEventSymbol.OverriddenEvent
-        {
-            get
-            {
-                return this.OverriddenEvent;
-            }
-        }
-
-        ImmutableArray<IEventSymbol> IEventSymbol.ExplicitInterfaceImplementations
-        {
-            get
-            {
-                return this.ExplicitInterfaceImplementations.Cast<EventSymbol, IEventSymbol>();
-            }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitEvent(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitEvent(this);
-        }
-
-        #endregion
 
         #region Equality
 

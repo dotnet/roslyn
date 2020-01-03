@@ -332,6 +332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the version of an assembly reference is not allowed during debugging: &apos;{0}&apos; changed version to &apos;{1}&apos;..
+        /// </summary>
+        internal static string ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging {
+            get {
+                return ResourceManager.GetString("ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to class.
         /// </summary>
         internal static string Class1 {
@@ -1000,6 +1009,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Module has invalid attributes..
+        /// </summary>
+        internal static string ModuleHasInvalidAttributes {
+            get {
+                return ResourceManager.GetString("ModuleHasInvalidAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently..
         /// </summary>
         internal static string MultithreadedAnalyzerExecutionNote {
@@ -1599,6 +1617,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TypeParameter {
             get {
                 return ResourceManager.GetString("TypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine specific cause of the failure..
+        /// </summary>
+        internal static string UnableToDetermineSpecificCauseOfFailure {
+            get {
+                return ResourceManager.GetString("UnableToDetermineSpecificCauseOfFailure", resourceCulture);
             }
         }
         

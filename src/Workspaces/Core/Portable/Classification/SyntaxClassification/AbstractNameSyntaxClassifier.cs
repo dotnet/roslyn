@@ -1,4 +1,8 @@
-﻿using Microsoft.CodeAnalysis.PooledObjects;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#nullable enable
+
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         protected abstract int? GetRightmostNameArity(SyntaxNode node);
         protected abstract bool IsParentAnAttribute(SyntaxNode node);
 
-        protected ISymbol TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo, SemanticModel semanticModel)
+        protected ISymbol? TryGetSymbol(SyntaxNode node, SymbolInfo symbolInfo, SemanticModel semanticModel)
         {
             var symbol = symbolInfo.Symbol;
 
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         }
 
         protected void TryClassifyStaticSymbol(
-            ISymbol symbol,
+            ISymbol? symbol,
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {

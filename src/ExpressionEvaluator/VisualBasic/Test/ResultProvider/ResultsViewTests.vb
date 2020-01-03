@@ -44,7 +44,7 @@ End Class"
                         "{Length=2}",
                         "System.Collections.IEnumerable {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",
@@ -95,7 +95,7 @@ End Class"
                         "{Length=2}",
                         "System.Collections.Generic.IEnumerable(Of Integer) {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",
@@ -178,7 +178,7 @@ End Class"
                         "{Length=2}",
                         "System.Collections.IEnumerable {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable))
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
             End Using
         End Sub
 

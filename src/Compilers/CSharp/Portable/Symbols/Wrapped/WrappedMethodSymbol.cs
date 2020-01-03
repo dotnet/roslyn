@@ -78,6 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                return UnderlyingMethod.AreLocalsZeroed;
+            }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get

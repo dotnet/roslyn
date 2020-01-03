@@ -618,8 +618,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Parallel.For(0, trees.Count, options,
                     UICultureUtilities.WithCurrentUICulture(
                         Sub(i As Integer)
-                            cancellationToken.ThrowIfCancellationRequested()
-                            TryGetSourceFile(trees(i)).GenerateAllDeclarationErrors()
+                            Try
+                                cancellationToken.ThrowIfCancellationRequested()
+                                TryGetSourceFile(trees(i)).GenerateAllDeclarationErrors()
+                            Catch e As Exception When FatalError.ReportUnlessCanceled(e)
+                                Throw ExceptionUtilities.Unreachable
+                            End Try
                         End Sub))
                 trees.Free()
             Else
@@ -738,7 +742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each attrData In assembly.GetAttributes()
                     If attrData.IsTargetAttribute(assembly, AttributeDescription.GuidAttribute) Then
                         If attrData.CommonConstructorArguments.Length = 1 Then
-                            Dim value = attrData.CommonConstructorArguments(0).Value
+                            Dim value = attrData.CommonConstructorArguments(0).ValueInternal
                             If value Is Nothing OrElse TypeOf value Is String Then
                                 hasGuidAttribute = True
                             End If

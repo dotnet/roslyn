@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the identity of this assembly.
         /// </summary>
         public abstract AssemblyIdentity Identity { get; }
+
+        AssemblyIdentity IAssemblySymbolInternal.Identity => Identity;
 
         /// <summary>
         /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
@@ -902,24 +905,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ImmutableArray<byte> PublicKey { get; }
 
-        #region IAssemblySymbol Members
-
-        INamespaceSymbol IAssemblySymbol.GlobalNamespace
-        {
-            get
-            {
-                return this.GlobalNamespace;
-            }
-        }
-
-        IEnumerable<IModuleSymbol> IAssemblySymbol.Modules
-        {
-            get
-            {
-                return this.Modules;
-            }
-        }
-
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
@@ -927,63 +912,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract AssemblyMetadata? GetMetadata();
 
-        INamedTypeSymbol? IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
+        protected override ISymbol CreateISymbol()
         {
-            return ResolveForwardedType(fullyQualifiedMetadataName);
+            return new PublicModel.NonSourceAssemblySymbol(this);
         }
-
-        bool IAssemblySymbol.GivesAccessTo(IAssemblySymbol assemblyWantingAccess)
-        {
-            if (Equals(this, assemblyWantingAccess))
-            {
-                return true;
-            }
-
-            var myKeys = GetInternalsVisibleToPublicKeys(assemblyWantingAccess.Name);
-
-            // We have an easy out here. Suppose the assembly wanting access is 
-            // being compiled as a module. You can only strong-name an assembly. So we are going to optimistically 
-            // assume that it is going to be compiled into an assembly with a matching strong name, if necessary.
-            if (myKeys.Any() && assemblyWantingAccess.IsNetModule())
-            {
-                return true;
-            }
-
-            foreach (var key in myKeys)
-            {
-                IVTConclusion conclusion = this.Identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key);
-                Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);
-                if (conclusion == IVTConclusion.Match || conclusion == IVTConclusion.OneSignedOneNot)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        INamedTypeSymbol? IAssemblySymbol.GetTypeByMetadataName(string metadataName)
-        {
-            return this.GetTypeByMetadataName(metadataName);
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitAssembly(this);
-        }
-
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitAssembly(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-        }
-
-        #endregion
     }
 }

@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
         public async Task<string> GetHostGroupIdAsync(CancellationToken cancellationToken)
         {
-            var client = await _workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 // exception is handled by code lens engine

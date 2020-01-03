@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass. Any fix to
-    // one should be applied to the other.
     internal abstract class AbstractRegionControlFlowPass : ControlFlowPass
     {
         internal AbstractRegionControlFlowPass(
@@ -28,21 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Control flow analysis does not normally scan the body of a lambda, but region analysis does.
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            return VisitLocalFunctionOrLambda(node.Body);
-        }
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-        {
-            return VisitLocalFunctionOrLambda(node.Body);
-        }
-
-        private BoundNode VisitLocalFunctionOrLambda(BoundBlock body)
-        {
             var oldPending = SavePending(); // We do not support branches *into* a lambda.
             LocalState finalState = this.State;
             this.State = TopState();
             var oldPending2 = SavePending();
-            VisitAlways(body);
+            VisitAlways(node.Body);
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
             RestorePending(oldPending);

@@ -6260,7 +6260,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.PropertyDeclaration);
                     {
@@ -6268,7 +6268,7 @@ class C
                         {
                             N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "A");
                         N(SyntaxKind.AccessorList);
                         {
                             N(SyntaxKind.OpenBraceToken);
@@ -6284,17 +6284,21 @@ class C
                                         N(SyntaxKind.SimpleMemberAccessExpression);
                                         {
                                             N(SyntaxKind.ThisExpression);
-                                            N(SyntaxKind.ThisKeyword);
+                                            {
+                                                N(SyntaxKind.ThisKeyword);
+                                            }
                                             N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                         }
-                                        N(SyntaxKind.SemicolonToken);
+                                        M(SyntaxKind.SemicolonToken);
                                     }
-                                    N(SyntaxKind.CloseBraceToken);
+                                    M(SyntaxKind.CloseBraceToken);
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
                         }
                     }
                     N(SyntaxKind.FieldDeclaration);
@@ -6308,7 +6312,7 @@ class C
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "B");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -6317,6 +6321,7 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]

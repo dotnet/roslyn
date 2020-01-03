@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -113,7 +114,9 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions =>
                     ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
-                bool Cci.IMethodBody.LocalsAreZeroed => false;
+                bool Cci.IMethodBody.HasStackalloc => false;
+
+                bool Cci.IMethodBody.AreLocalsZeroed => false;
 
                 ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables =>
                     ImmutableArray<Cci.ILocalDefinition>.Empty;
@@ -293,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbol)UnderlyingMethod).ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return ((ISymbolInternal)UnderlyingMethod).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

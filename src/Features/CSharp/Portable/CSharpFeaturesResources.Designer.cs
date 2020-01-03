@@ -485,11 +485,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; expression.
         /// </summary>
-        internal static string Convert_to_switch {
+        internal static string Convert_to_switch_expression {
             get {
-                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_switch_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos; statement.
+        /// </summary>
+        internal static string Convert_to_switch_statement {
+            get {
+                return ResourceManager.GetString("Convert_to_switch_statement", resourceCulture);
             }
         }
         
@@ -1133,6 +1142,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reverse &apos;for&apos; statement.
+        /// </summary>
+        internal static string Reverse_for_statement {
+            get {
+                return ResourceManager.GetString("Reverse_for_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to select clause.
         /// </summary>
         internal static string select_clause {
@@ -1555,15 +1573,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Warning_colon_Moving_using_directives_may_change_code_meaning {
             get {
                 return ResourceManager.GetString("Warning_colon_Moving_using_directives_may_change_code_meaning", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warning: Extracting a local function reference may produce invalid code.
-        /// </summary>
-        internal static string Warning_Extracting_a_local_function_reference_may_produce_invalid_code {
-            get {
-                return ResourceManager.GetString("Warning_Extracting_a_local_function_reference_may_produce_invalid_code", resourceCulture);
             }
         }
         

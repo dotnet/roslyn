@@ -702,8 +702,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("(MyTask, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, MyTask<T>)", type.ToTestDisplayString());
             Assert.Equal("(System.Threading.Tasks.Task, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.UInt64, System.Char, System.Byte, System.Int16, System.UInt16, System.Int32, System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", normalized.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, MyTask<T>>", GetUnderlyingTupleTypeRest(type).ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.UInt32, System.Int64, System.Threading.Tasks.Task<T>>", GetUnderlyingTupleTypeRest(normalized).ToTestDisplayString());
+            Assert.Equal("(System.UInt32, System.Int64, MyTask<T>)", GetUnderlyingTupleTypeRest(type).ToTestDisplayString());
+            Assert.Equal("(System.UInt32, System.Int64, System.Threading.Tasks.Task<T>)", GetUnderlyingTupleTypeRest(normalized).ToTestDisplayString());
         }
 
         // Return the underlying type of the most-nested part of the TupleTypeSymbol.
@@ -711,11 +711,10 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             while (type.IsTupleType)
             {
-                var underlyingType = type.TupleUnderlyingType;
-                var typeArgs = underlyingType.TypeArguments();
+                var typeArgs = ((NamedTypeSymbol)type).TypeArguments();
                 if (typeArgs.Length < 8)
                 {
-                    return underlyingType;
+                    return (NamedTypeSymbol)type;
                 }
                 type = typeArgs[7];
             }
@@ -7164,9 +7163,9 @@ public class Derived : Base
             var model = comp.GetSemanticModel(tree);
 
             var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
+            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
-            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArgumentsWithAnnotations.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
         }
 
         [Fact]

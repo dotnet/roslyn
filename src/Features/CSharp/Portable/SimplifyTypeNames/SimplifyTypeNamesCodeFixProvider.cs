@@ -43,7 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
 
         protected override SyntaxNode AddSimplificationAnnotationTo(SyntaxNode expressionSyntax)
         {
-            var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+            // Add the DoNotAllowVarAnnotation annotation.  All the code fixer
+            // does is pass the tagged node to the simplifier.  And we do *not*
+            // ever want the simplifier to produce 'var' in the 'Simplify type
+            // names' fixer.  only the 'Use var' fixer should produce 'var'.
+            var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(
+                Simplifier.Annotation, Formatter.Annotation, DoNotAllowVarAnnotation.Annotation);
 
             if (annotatedexpressionSyntax.Kind() == SyntaxKind.IsExpression || annotatedexpressionSyntax.Kind() == SyntaxKind.AsExpression)
             {

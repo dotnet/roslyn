@@ -109,14 +109,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
         }
 
-        private async Task<Document> SimplifyTypeNameAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            return document.WithSyntaxRoot(
-                root.ReplaceNode(node, AddSimplificationAnnotationTo(node)));
-        }
-
         private bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
         {
             diagnosticId = null;

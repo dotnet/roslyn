@@ -97,6 +97,7 @@ namespace BuildBoss
             allGood &= ProcessTargets(repositoryDirectory);
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
             allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
+            allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration);
 
             if (!allGood)
             {
@@ -147,6 +148,12 @@ namespace BuildBoss
         {
             var util = new PackageContentsChecker(repositoryDirectory, artifactsDirectory, configuration);
             return CheckCore(util, $"NuPkg and VSIX files");
+        }
+
+        private static bool ProcessOptProf(string repositoryDirectory, string artifactsDirectory, string configuration)
+        {
+            var util = new OptProfCheckerUtil(repositoryDirectory, artifactsDirectory, configuration);
+            return CheckCore(util, $"OptProf inputs");
         }
     }
 }

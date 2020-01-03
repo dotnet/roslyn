@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -14,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="s">The version string to parse.</param>
         /// <param name="version">If parsing succeeds, the parsed version. Otherwise a version that represents as much of the input as could be parsed successfully.</param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
-        internal static bool TryParse(string s, out Version version)
+        internal static bool TryParse([NotNullWhen(true)] string? s, out Version version)
         {
             return TryParse(s, allowWildcard: false, maxValue: ushort.MaxValue, allowPartialParse: true, version: out version);
         }
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="s"/> contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
         /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
-        internal static bool TryParseAssemblyVersion(string s, bool allowWildcard, out Version version)
+        internal static bool TryParseAssemblyVersion([NotNullWhen(true)] string? s, bool allowWildcard, out Version version)
         {
             return TryParse(s, allowWildcard: allowWildcard, maxValue: ushort.MaxValue - 1, allowPartialParse: false, version: out version);
         }
@@ -48,11 +52,11 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="s"/> contains * and wildcard is allowed the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
         /// </param>
         /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
-        private static bool TryParse(string s, bool allowWildcard, ushort maxValue, bool allowPartialParse, out Version version)
+        private static bool TryParse([NotNullWhen(true)] string? s, bool allowWildcard, ushort maxValue, bool allowPartialParse, out Version version)
         {
             Debug.Assert(!allowWildcard || maxValue < ushort.MaxValue);
 
-            if (string.IsNullOrWhiteSpace(s))
+            if (RoslynString.IsNullOrWhiteSpace(s))
             {
                 version = AssemblyIdentity.NullVersion;
                 return false;
@@ -169,7 +173,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If build and/or revision numbers are 65535 they are replaced with time-based values.
         /// </summary>
-        public static Version GenerateVersionFromPatternAndCurrentTime(DateTime time, Version pattern)
+        [return: NotNullIfNotNull("pattern")]
+        public static Version? GenerateVersionFromPatternAndCurrentTime(DateTime time, Version? pattern)
         {
             if (pattern == null || pattern.Revision != ushort.MaxValue)
             {

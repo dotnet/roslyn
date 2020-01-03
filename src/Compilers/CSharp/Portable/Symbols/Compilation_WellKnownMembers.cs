@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!type.IsErrorType())
                 {
-                    result = GetRuntimeMember(type, ref descriptor, WellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
+                    result = GetRuntimeMember(type, descriptor, WellKnownMemberSignatureComparer, accessWithinOpt: this.Assembly);
                 }
 
                 Interlocked.CompareExchange(ref _lazyWellKnownTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -194,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsAttributeType(ITypeSymbol type)
         {
-            return IsAttributeType((TypeSymbol)type);
+            return IsAttributeType(type.EnsureCSharpSymbolOrNull(nameof(type)));
         }
 
         internal bool IsExceptionType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -221,28 +222,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
-        internal override bool IsSystemTypeReference(ITypeSymbol type)
+        internal override bool IsSystemTypeReference(ITypeSymbolInternal type)
         {
             return TypeSymbol.Equals((TypeSymbol)type, GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything2);
         }
 
-        internal override ISymbol CommonGetWellKnownTypeMember(WellKnownMember member)
+        internal override ISymbolInternal CommonGetWellKnownTypeMember(WellKnownMember member)
         {
             return GetWellKnownTypeMember(member);
         }
 
-        internal override ITypeSymbol CommonGetWellKnownType(WellKnownType wellknownType)
+        internal override ITypeSymbolInternal CommonGetWellKnownType(WellKnownType wellknownType)
         {
             return GetWellKnownType(wellknownType);
         }
 
-        internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, ref MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        internal static Symbol GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
         {
-            Symbol result = null;
+            var members = declaringType.GetMembers(descriptor.Name);
+            return GetRuntimeMember(members, descriptor, comparer, accessWithinOpt);
+        }
+
+        internal static Symbol GetRuntimeMember(ImmutableArray<Symbol> members, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        {
             SymbolKind targetSymbolKind;
             MethodKind targetMethodKind = MethodKind.Ordinary;
             bool isStatic = (descriptor.Flags & MemberFlags.Static) != 0;
 
+            Symbol result = null;
             switch (descriptor.Flags & MemberFlags.KindMask)
             {
                 case MemberFlags.Constructor:
@@ -273,9 +280,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(descriptor.Flags);
             }
 
-            foreach (var member in declaringType.GetMembers(descriptor.Name))
+            foreach (var member in members)
             {
-                Debug.Assert(member.Name.Equals(descriptor.Name));
+                if (!member.Name.Equals(descriptor.Name))
+                {
+                    continue;
+                }
 
                 if (member.Kind != targetSymbolKind || member.IsStatic != isStatic ||
                     !(member.DeclaredAccessibility == Accessibility.Public || ((object)accessWithinOpt != null && Symbol.IsSymbolAccessible(member, accessWithinOpt))))
@@ -347,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 result = member;
             }
+
             return result;
         }
 

@@ -695,7 +695,7 @@ End Class
             Dim compilation2 = CreateCompilationWithMscorlib40AndReferences(source2, {New VisualBasicCompilationReference(compilation1)})
             CompilationUtils.AssertTheseDiagnostics(compilation2.Emit(New MemoryStream()).Diagnostics,
 <expected>
-BC36970: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa829.dll'.
+BC36970: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa829.dll': Unable to determine specific cause of the failure.
 </expected>)
         End Sub
 

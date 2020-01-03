@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 // This can happen in cases where the user has already applied the fix and light bulb has already been dismissed,
                 // but platform hasn't cancelled the preview operation yet. Since the light bulb has already been dismissed at
                 // this point, the preview that we return will never be displayed to the user. So returning null here is harmless.
-                return SpecializedTasks.Default<object>();
+                return SpecializedTasks.Null<object>();
             }
 
             var originalBuffer = _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(

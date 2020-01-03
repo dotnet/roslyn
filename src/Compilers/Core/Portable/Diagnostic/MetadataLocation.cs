@@ -1,20 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A program location in metadata.
     /// </summary>
-    internal sealed class MetadataLocation : Location, IEquatable<MetadataLocation>
+    internal sealed class MetadataLocation : Location, IEquatable<MetadataLocation?>
     {
-        private readonly IModuleSymbol _module;
+        private readonly IModuleSymbolInternal _module;
 
-        internal MetadataLocation(IModuleSymbol module)
+        internal MetadataLocation(IModuleSymbolInternal module)
         {
-            Debug.Assert(module != null);
+            RoslynDebug.Assert(module != null);
             _module = module;
         }
 
@@ -23,7 +27,7 @@ namespace Microsoft.CodeAnalysis
             get { return LocationKind.MetadataFile; }
         }
 
-        public override IModuleSymbol MetadataModule
+        internal override IModuleSymbolInternal MetadataModuleInternal
         {
             get { return _module; }
         }
@@ -33,14 +37,14 @@ namespace Microsoft.CodeAnalysis
             return _module.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as MetadataLocation);
         }
 
-        public bool Equals(MetadataLocation other)
+        public bool Equals(MetadataLocation? other)
         {
-            return other != null && other._module == _module;
+            return other is object && other._module == _module;
         }
     }
 }

@@ -248,6 +248,7 @@ End Class
     <files>
         <file id="1" name="b:\base\line.vb" language="VB"/>
         <file id="2" name="q:\absolute\line.vb" language="VB"/>
+        <file id="3" name="b:\base\b.vb" language="VB" checksumAlgorithm="SHA1" checksum="F9-90-00-9D-9E-45-97-F2-3D-67-1C-D8-47-A8-9B-DA-4A-91-AA-7F"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -312,6 +313,7 @@ End Class
         <file id="3" name="b:\base\c.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DC"/>
         <file id="4" name="b:\base\d.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DD"/>
         <file id="5" name="b:\base\e.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DE"/>
+        <file id="6" name="b:\base\file.vb" language="VB" checksumAlgorithm="SHA1" checksum="C2-46-C6-34-F6-20-D3-FE-28-B9-D8-62-0F-A9-FB-2F-89-E7-48-23"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -363,6 +365,7 @@ End Class
         <file id="1" name="a.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a79a" checksum="AB-00-7F-1D-23-DA"/>
         <file id="2" name="./a.vb" language="VB"/>
         <file id="3" name="b.vb" language="VB"/>
+        <file id="4" name="file.vb" language="VB" checksumAlgorithm="SHA1" checksum="23-C1-6B-94-B0-D4-06-26-C8-D2-82-21-63-07-53-11-4D-5A-02-BC"/>
     </files>
     <methods>
         <method containingType="C" name="M">

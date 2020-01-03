@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         {
         }
 
-        public override bool OpenFileOnly(Workspace workspace)
+        public override bool OpenFileOnly(OptionSet options)
         {
-            var qualifyFieldAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
-            var qualifyPropertyAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
-            var qualifyMethodAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
-            var qualifyEventAccessOption = workspace.Options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
+            var qualifyFieldAccessOption = options.GetOption(CodeStyleOptions.QualifyFieldAccess, GetLanguageName()).Notification;
+            var qualifyPropertyAccessOption = options.GetOption(CodeStyleOptions.QualifyPropertyAccess, GetLanguageName()).Notification;
+            var qualifyMethodAccessOption = options.GetOption(CodeStyleOptions.QualifyMethodAccess, GetLanguageName()).Notification;
+            var qualifyEventAccessOption = options.GetOption(CodeStyleOptions.QualifyEventAccess, GetLanguageName()).Notification;
 
             return !(qualifyFieldAccessOption == NotificationOption.Warning || qualifyFieldAccessOption == NotificationOption.Error ||
                      qualifyPropertyAccessOption == NotificationOption.Warning || qualifyPropertyAccessOption == NotificationOption.Error ||
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
             // accesses to static members.  
-            if (IsStaticMemberOrTargetMethod(operation))
+            if (IsStaticMemberOrIsLocalFunction(operation))
             {
                 return;
             }
@@ -147,16 +147,21 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
         }
 
-        private bool IsStaticMemberOrTargetMethod(IOperation operation)
+        private bool IsStaticMemberOrIsLocalFunction(IOperation operation)
         {
             switch (operation)
             {
                 case IMemberReferenceOperation memberReferenceOperation:
-                    return memberReferenceOperation.Member == null || memberReferenceOperation.Member.IsStatic;
+                    return IsStaticMemberOrIsLocalFunctionHelper(memberReferenceOperation.Member);
                 case IInvocationOperation invocationOperation:
-                    return invocationOperation.TargetMethod == null || invocationOperation.TargetMethod.IsStatic;
+                    return IsStaticMemberOrIsLocalFunctionHelper(invocationOperation.TargetMethod);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(operation);
+            }
+
+            static bool IsStaticMemberOrIsLocalFunctionHelper(ISymbol symbol)
+            {
+                return symbol == null || symbol.IsStatic || symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction };
             }
         }
     }

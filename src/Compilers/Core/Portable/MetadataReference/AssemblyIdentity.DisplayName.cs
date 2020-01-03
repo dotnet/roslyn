@@ -723,6 +723,11 @@ namespace Microsoft.CodeAnalysis
 
         private static void EscapeName(StringBuilder result, string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                return;
+            }
+
             bool quoted = false;
             if (IsWhiteSpace(name[0]) || IsWhiteSpace(name[name.Length - 1]))
             {
