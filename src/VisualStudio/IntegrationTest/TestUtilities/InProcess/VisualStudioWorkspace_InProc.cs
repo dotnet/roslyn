@@ -30,17 +30,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public static VisualStudioWorkspace_InProc Create()
-        {
-            // TOOD: revert try-catch added for non-serializable CompositionFailedException diagnosis.
-            try
-            {
-                return new VisualStudioWorkspace_InProc();
-            }
-            catch (Composition.CompositionFailedException ex)
-            {
-                throw new Exception(ex.ToString());
-            }
-        }
+            => new VisualStudioWorkspace_InProc();
 
         public void SetOptionInfer(string projectName, bool value)
             => InvokeOnUIThread(cancellationToken =>
