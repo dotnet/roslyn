@@ -1420,7 +1420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     Case SyntaxKind.IdentifierName
                         Dim identifier = DirectCast(name, IdentifierNameSyntax).Identifier
-                        TryReduceAttributeSuffix(name, identifier, semanticModel, False, True, replacementNode, issueSpan, cancellationToken)
+                        TryReduceAttributeSuffix(name, identifier, semanticModel, False, replacementNode, issueSpan, cancellationToken)
                 End Select
             End If
 
