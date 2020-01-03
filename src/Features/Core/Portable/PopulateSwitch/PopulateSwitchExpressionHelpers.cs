@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 // and check if it is of enum type
                 switchExpression?.Type.IsNullable(out switchExpressionType);
             }
+
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
                 if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||
