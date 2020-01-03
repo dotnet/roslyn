@@ -42,7 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (typeParameter.HasReferenceTypeConstraint)
             {
-                constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+                var questionMarkToken = typeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.Annotated
+                                        ? SyntaxFactory.Token(SyntaxKind.QuestionToken)
+                                        : default;
+
+                constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint, SyntaxFactory.Token(SyntaxKind.ClassKeyword), questionMarkToken));
             }
             else if (typeParameter.HasUnmanagedTypeConstraint)
             {
