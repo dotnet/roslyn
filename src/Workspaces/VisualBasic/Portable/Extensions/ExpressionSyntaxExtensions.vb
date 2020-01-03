@@ -1297,7 +1297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             ' check if the alias name ends with an Attribute suffix that can be omitted.
                             Dim replacementNodeWithoutAttributeSuffix As ExpressionSyntax = Nothing
                             Dim issueSpanWithoutAttributeSuffix As TextSpan = Nothing
-                            If TryReduceAttributeSuffix(name, identifierToken, semanticModel, aliasReplacement IsNot Nothing, True, replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
+                            If TryReduceAttributeSuffix(name, identifierToken, semanticModel, aliasReplacement IsNot Nothing, replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
                                 If name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken) Then
                                     replacementNode = replacementNode.CopyAnnotationsTo(replacementNodeWithoutAttributeSuffix)
                                     issueSpan = issueSpanWithoutAttributeSuffix
@@ -1493,7 +1493,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             identifierToken As SyntaxToken,
             semanticModel As SemanticModel,
             isIdentifierNameFromAlias As Boolean,
-            preferAliasToQualification As Boolean,
             <Out()> ByRef replacementNode As ExpressionSyntax,
             <Out()> ByRef issueSpan As TextSpan,
             cancellationToken As CancellationToken
@@ -1502,8 +1501,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 ' When the replacement is an Alias we don't want the "Attribute" Suffix to be removed because this will result in symbol change
                 Dim aliasSymbol = semanticModel.GetAliasInfo(name, cancellationToken)
-                If (aliasSymbol IsNot Nothing AndAlso preferAliasToQualification AndAlso
-                    String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0) Then
+                If aliasSymbol IsNot Nothing AndAlso
+                   String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0 Then
                     Return False
                 End If
 
