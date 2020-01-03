@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             throw new NotImplementedException();
         }
 
-        public SerializableOptionSet GetForceComputedOptions(ImmutableHashSet<string> languages)
+        public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages)
         {
             throw new NotImplementedException();
         }

@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
-        // Can be null for tests.
-        private readonly IOptionService? _optionService;
+        private readonly IOptionService _optionService;
 
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
@@ -67,8 +66,8 @@ namespace Microsoft.CodeAnalysis
 
             _services = host.CreateWorkspaceServices(this);
 
-            _optionService = _services.GetService<IOptionService>();
-            _optionService?.RegisterWorkspace(this);
+            _optionService = _services.GetRequiredService<IOptionService>();
+            _optionService.RegisterWorkspace(this);
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -122,8 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal Solution CreateSolution(SolutionInfo solutionInfo)
         {
-            var options = _optionService?.GetForceComputedOptions(solutionInfo.GetProjectLanguages())
-                ?? (SerializableOptionSet)this.CurrentSolution.Options;
+            var options = _optionService.GetSerializableOptionsSnapshot(solutionInfo.GetProjectLanguages());
             return CreateSolution(solutionInfo, options);
         }
 
@@ -215,12 +213,11 @@ namespace Microsoft.CodeAnalysis
         /// NOTE: This method also updates <see cref="CurrentSolution"/> to a new solution instance with updated <see cref="Solution.Options"/>.
         /// </summary>
         internal void SetOptions(OptionSet options)
-            => _optionService?.SetOptions(options);
+            => _optionService.SetOptions(options);
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            RoslynDebug.Assert(_optionService != null);
-            var newOptions = _optionService.GetForceComputedOptions(this.CurrentSolution.State.GetProjectLanguages());
+            var newOptions = _optionService.GetSerializableOptionsSnapshot(this.CurrentSolution.State.GetProjectLanguages());
             this.SetCurrentSolution(this.CurrentSolution.WithOptions(newOptions));
         }
 
@@ -330,7 +327,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             (_optionService as IWorkspaceOptionService)?.OnWorkspaceDisposed(this);
-            _optionService?.UnregisterWorkspace(this);
+            _optionService.UnregisterWorkspace(this);
         }
 
         #region Host API

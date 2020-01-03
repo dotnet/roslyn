@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
     /// Serializable implementation of <see cref="OptionSet"/> for <see cref="Solution.Options"/>.
-    /// It contains prepopulated fetched option values for all serializable options and values, and delegates to WorkspaceOptionSet for non-serializable values.
+    /// It contains prepopulated fetched option values for all serializable options and values, and delegates to <see cref="WorkspaceOptionSet"/> for non-serializable values.
     /// It ensures a contract that values are immutable from this instance once observed.
     /// </summary>
     internal sealed partial class SerializableOptionSet : OptionSet
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         internal SerializableOptionSet(
             ImmutableHashSet<string> languages,
-            IOptionService? optionService,
+            IOptionService optionService,
             ImmutableHashSet<IOption> serializableOptions,
             ImmutableDictionary<OptionKey, object?> values)
             : this(languages, new WorkspaceOptionSet(optionService), serializableOptions, values, changedOptionKeys: ImmutableHashSet<OptionKey>.Empty)
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Options
                 return this;
             }
 
-            return _workspaceOptionSet.OptionService!.GetForceComputedOptions(languages);
+            return _workspaceOptionSet.OptionService.GetSerializableOptionsSnapshot(languages);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
@@ -200,23 +199,22 @@ namespace Microsoft.CodeAnalysis.Options
                             break;
 
                         default:
-                            var typeInfo = value.GetType().GetTypeInfo();
-                            if (typeInfo.IsEnum)
+                            var type = value.GetType();
+                            if (type.IsEnum)
                             {
                                 kind = OptionValueKind.Enum;
                                 valueToWrite = (int)value;
                                 break;
                             }
-                            else if (optionKey.Option.Type.IsSerializable)
+
+                            if (optionKey.Option.Type.IsSerializable)
                             {
                                 kind = OptionValueKind.Serializable;
                                 valueToWrite = value;
                                 break;
                             }
-                            else
-                            {
-                                continue;
-                            }
+
+                            continue;
                     }
                 }
 

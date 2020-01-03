@@ -21,15 +21,14 @@ namespace Microsoft.CodeAnalysis.Options
         {
             private ImmutableDictionary<OptionKey, object?> _values;
 
-            internal WorkspaceOptionSet(IOptionService? service)
+            internal WorkspaceOptionSet(IOptionService service)
                 : this(service, ImmutableDictionary<OptionKey, object?>.Empty)
             {
             }
 
-            // Can be null in tests.
-            public IOptionService? OptionService { get; }
+            public IOptionService OptionService { get; }
 
-            private WorkspaceOptionSet(IOptionService? service, ImmutableDictionary<OptionKey, object?> values)
+            private WorkspaceOptionSet(IOptionService service, ImmutableDictionary<OptionKey, object?> values)
             {
                 OptionService = service;
                 _values = values;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Options
                     return value;
                 }
 
-                value = OptionService != null ? OptionService.GetOption(optionKey) : optionKey.Option.DefaultValue;
+                value = OptionService.GetOption(optionKey);
                 return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
             }
 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Options
             /// </summary>
             internal IEnumerable<OptionKey> GetChangedOptions()
             {
-                var optionSet = OptionService?.GetOptions();
+                var optionSet = OptionService.GetOptions();
                 return GetChangedOptions(optionSet);
             }
 

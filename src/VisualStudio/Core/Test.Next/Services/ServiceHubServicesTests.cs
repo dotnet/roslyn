@@ -273,7 +273,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
                 var remoteWorkspace = new RemoteWorkspace(workspaceKind: "test");
-                var options = new SerializableOptionSet(languages, optionService: null, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
+                var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
+                var options = new SerializableOptionSet(languages, optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty);
 
                 // this shouldn't throw exception
                 remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion: 1, options, out var solution);

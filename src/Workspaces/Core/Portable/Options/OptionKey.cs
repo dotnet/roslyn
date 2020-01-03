@@ -8,7 +8,7 @@ using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public struct OptionKey : IEquatable<OptionKey>
+    public readonly struct OptionKey : IEquatable<OptionKey>
     {
         public IOption Option { get; }
         public string Language { get; }

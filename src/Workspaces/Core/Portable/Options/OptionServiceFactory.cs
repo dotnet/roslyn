@@ -115,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             // Simple forwarding functions.
-            public SerializableOptionSet GetOptions() => GetForceComputedOptions(ImmutableHashSet<string>.Empty);
-            public SerializableOptionSet GetForceComputedOptions(ImmutableHashSet<string> languages) => _globalOptionService.GetForceComputedOptions(languages, this);
+            public SerializableOptionSet GetOptions() => GetSerializableOptionsSnapshot(ImmutableHashSet<string>.Empty);
+            public SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages) => _globalOptionService.GetSerializableOptionsSnapshot(languages, this);
             public object? GetOption(OptionKey optionKey) => _globalOptionService.GetOption(optionKey);
             [return: MaybeNull] public T GetOption<T>(Option<T> option) => _globalOptionService.GetOption(option);
             [return: MaybeNull] public T GetOption<T>(PerLanguageOption<T> option, string? languageName) => _globalOptionService.GetOption(option, languageName);

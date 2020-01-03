@@ -8,15 +8,15 @@ namespace Microsoft.CodeAnalysis.Options
 {
     internal sealed class OptionChangedEventArgs : EventArgs
     {
+        public IOption Option { get; }
+        public string? Language { get; }
+        public object? Value { get; }
+
         internal OptionChangedEventArgs(OptionKey optionKey, object? value)
         {
             Option = optionKey.Option;
             Language = optionKey.Language;
             Value = value;
         }
-
-        public IOption Option { get; }
-        public string? Language { get; }
-        public object? Value { get; }
     }
 }
