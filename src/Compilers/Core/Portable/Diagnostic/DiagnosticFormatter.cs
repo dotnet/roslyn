@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="diagnostic">The diagnostic.</param>
         /// <param name="formatter">The formatter; or null to use the default formatter.</param>
         /// <returns>The formatted message.</returns>
-        public virtual string Format(Diagnostic diagnostic, IFormatProvider formatter = null)
+        public virtual string Format(Diagnostic diagnostic, IFormatProvider? formatter = null)
         {
             if (diagnostic == null)
             {
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                         goto default;
                     }
 
-                    string path, basePath;
+                    string? path, basePath;
                     if (mappedSpan.HasMappedPath)
                     {
                         path = mappedSpan.Path;
@@ -64,13 +66,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal virtual string FormatSourcePath(string path, string basePath, IFormatProvider formatter)
+        internal virtual string FormatSourcePath(string path, string? basePath, IFormatProvider? formatter)
         {
             // ignore base path
             return path;
         }
 
-        internal virtual string FormatSourceSpan(LinePositionSpan span, IFormatProvider formatter)
+        internal virtual string FormatSourceSpan(LinePositionSpan span, IFormatProvider? formatter)
         {
             return string.Format("({0},{1})", span.Start.Line + 1, span.Start.Character + 1);
         }

@@ -155,16 +155,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                Location errorLocation = iterator.Locations[0];
                 if (iterator.IsVararg)
                 {
                     // error CS1636: __arglist is not allowed in the parameter list of iterators
-                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, iterator.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_VarargsIterator, errorLocation);
                 }
 
                 if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
                     && Compilation.Options.AllowUnsafe) // Don't cascade
                 {
-                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, iterator.Locations[0]);
+                    diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+                }
+
+                var returnType = iterator.ReturnType;
+                RefKind refKind = iterator.RefKind;
+                TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation, diagnostics);
+
+                if (elementType.IsDefault)
+                {
+                    if (refKind != RefKind.None)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadIteratorReturnRef, errorLocation, iterator);
+                    }
+                    else if (!returnType.IsErrorType())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
+                    }
+                }
+
+                bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(Compilation, refKind, returnType);
+                if (asyncInterface && !iterator.IsAsync)
+                {
+                    diagnostics.Add(ErrorCode.ERR_IteratorMustBeAsync, errorLocation, iterator, returnType);
                 }
             }
         }

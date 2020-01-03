@@ -10,9 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     public class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
         internal override IHighlighter CreateHighlighter()
-        {
-            return new ConditionalPreprocessorHighlighter();
-        }
+            => new ConditionalPreprocessorHighlighter();
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestExample1_1()

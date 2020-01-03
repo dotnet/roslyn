@@ -1347,24 +1347,24 @@ static void Main(string[] args)
             const string code =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 	///     hello world$$
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             const string expected =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 	///     hello world
 	///     $$
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             VerifyPressingEnter(code, expected, useTabs: true);
@@ -1820,11 +1820,11 @@ $$
 @"class C
 {
 		  /// <summary>
-    /// $$stuff
-    /// </summary>
-    void M()
-    {
-    }
+	/// $$stuff
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             const string expected =
@@ -1832,11 +1832,11 @@ $$
 {
 		  /// <summary>
 		  /// $$
-    /// stuff
-    /// </summary>
-    void M()
-    {
-    }
+	/// stuff
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             VerifyOpenLineAbove(code, expected, useTabs: true);
@@ -1929,24 +1929,24 @@ $$
             const string code =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 		  /// $$stuff
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             const string expected =
 @"class C
 {
-    /// <summary>
+	/// <summary>
 		  /// stuff
 		  /// $$
-    /// </summary>
-    void M()
-    {
-    }
+	/// </summary>
+	void M()
+	{
+	}
 }";
 
             VerifyOpenLineBelow(code, expected, useTabs: true);

@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
         }
 
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public bool OpenFileOnly(OptionSet options) => false;
 
         public override void Initialize(AnalysisContext context)
         {

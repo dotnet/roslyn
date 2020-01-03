@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly int arity;
         protected readonly bool mangleName;
 
-        private MissingMetadataTypeSymbol(string name, int arity, bool mangleName)
+        private MissingMetadataTypeSymbol(string name, int arity, bool mangleName, TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
             RoslynDebug.Assert(name != null);
 
@@ -134,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private int _lazyTypeId = -1;
 
-            public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName)
-                : base(name, arity, mangleName)
+            public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName, TupleExtraData? tupleData = null)
+                : base(name, arity, mangleName, tupleData)
             {
                 RoslynDebug.Assert((object)module != null);
                 RoslynDebug.Assert(@namespace != null);
@@ -172,6 +173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        mangleName ? fullName.InferredArity : fullName.ForcedArity,
                        mangleName)
             {
+            }
+
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            {
+                return new TopLevel(_containingModule, _namespaceName, Name, Arity, MangleName, newData);
             }
 
             /// <summary>
@@ -407,6 +413,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return SpecialType.None; // do not have nested types among CORE types yet.
                 }
+            }
+
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override int GetHashCode()

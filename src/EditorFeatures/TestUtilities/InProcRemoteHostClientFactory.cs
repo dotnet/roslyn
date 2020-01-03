@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
                 return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             }
 
-            return SpecializedTasks.Default<RemoteHostClient>();
+            return SpecializedTasks.Null<RemoteHostClient>();
         }
     }
 }

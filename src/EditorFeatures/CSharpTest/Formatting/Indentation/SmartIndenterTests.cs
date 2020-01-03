@@ -2848,7 +2848,7 @@ return;
                 var subjectDocument = workspace.Documents.Single();
 
                 var projectedDocument =
-                    workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents, LanguageNames.CSharp);
+                    workspace.CreateProjectionBufferDocument(HtmlMarkup, workspace.Documents);
 
                 if (workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>() is TestFormattingRuleFactoryServiceFactory.Factory provider)
                 {
@@ -2856,8 +2856,8 @@ return;
                     provider.TextSpan = subjectDocument.SelectedSpans.Single();
                 }
 
-                var indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
-                var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
+                var indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
+                var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor);
 
                 TestIndentation(
                     point.Value, expectedIndentation,

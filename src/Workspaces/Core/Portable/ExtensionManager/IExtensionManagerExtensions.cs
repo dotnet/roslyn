@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Extensions
         public static async Task PerformActionAsync(
             this IExtensionManager extensionManager,
             object extension,
-            Func<Task> function)
+            Func<Task?> function)
         {
             try
             {
@@ -84,22 +86,23 @@ namespace Microsoft.CodeAnalysis.Extensions
         public static async Task<T> PerformFunctionAsync<T>(
             this IExtensionManager extensionManager,
             object extension,
-            Func<Task<T>> function,
+            Func<Task<T>?> function,
             T defaultValue)
         {
+            if (extensionManager.IsDisabled(extension))
+            {
+                return defaultValue;
+            }
+
             try
             {
-                if (!extensionManager.IsDisabled(extension))
+                var task = function();
+                if (task != null)
                 {
-                    var task = function() ?? SpecializedTasks.Default<T>();
                     return await task.ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
+            catch (Exception e) when (!(e is OperationCanceledException) && extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }

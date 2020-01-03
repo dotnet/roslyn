@@ -330,6 +330,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var doc = originalSolution.GetDocument(docId)!;
                 var updater = doc.Project.LanguageServices.GetRequiredService<AbstractChangeSignatureService>();
                 var root = doc.GetSyntaxRootSynchronously(CancellationToken.None);
+                if (root is null)
+                {
+                    throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+                }
 
                 var nodes = nodesToUpdate[docId];
 

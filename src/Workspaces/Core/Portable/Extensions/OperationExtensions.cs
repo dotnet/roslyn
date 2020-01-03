@@ -22,21 +22,23 @@ namespace Microsoft.CodeAnalysis
         public static ValueUsageInfo GetValueUsageInfo(this IOperation operation)
         {
             /*
-            |    code         | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
-            | x.Prop = 1      |      |  ✔️   |             |             |                 |
-            | x.Prop += 1     |  ✔️  |  ✔️   |             |             |                 |
-            | x.Prop++        |  ✔️  |  ✔️   |             |             |                 |
-            | Foo(x.Prop)     |  ✔️  |       |             |             |                 |
-            | Foo(x.Prop),    |      |       |     ✔️      |             |                 |
+            |    code                  | Read | Write | ReadableRef | WritableRef | NonReadWriteRef |
+            | x.Prop = 1               |      |  ✔️   |             |             |                 |
+            | x.Prop += 1              |  ✔️  |  ✔️   |             |             |                 |
+            | x.Prop++                 |  ✔️  |  ✔️   |             |             |                 |
+            | Foo(x.Prop)              |  ✔️  |       |             |             |                 |
+            | Foo(x.Prop),             |      |       |     ✔️      |             |                 |
                where void Foo(in T v)
-            | Foo(out x.Prop) |      |       |             |     ✔️      |                 |
-            | Foo(ref x.Prop) |      |       |     ✔️      |     ✔️      |                 |
-            | nameof(x)       |      |       |             |             |       ✔️        | ️
-            | sizeof(x)       |      |       |             |             |       ✔️        | ️
-            | typeof(x)       |      |       |             |             |       ✔️        | ️
-            | out var x       |      |  ✔️   |             |             |                 | ️
-            | case X x:       |      |  ✔️   |             |             |                 | ️
-            | obj is X x      |      |  ✔️   |             |             |                 |
+            | Foo(out x.Prop)          |      |       |             |     ✔️      |                 |
+            | Foo(ref x.Prop)          |      |       |     ✔️      |     ✔️      |                 |
+            | nameof(x)                |      |       |             |             |       ✔️        | ️
+            | sizeof(x)                |      |       |             |             |       ✔️        | ️
+            | typeof(x)                |      |       |             |             |       ✔️        | ️
+            | out var x                |      |  ✔️   |             |             |                 | ️
+            | case X x:                |      |  ✔️   |             |             |                 | ️
+            | obj is X x               |      |  ✔️   |             |             |                 |
+            | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
+            | ref readonly var x =     |      |       |     ✔️      |             |                 |
 
             */
             if (operation is ILocalReferenceOperation localReference &&
@@ -68,6 +70,16 @@ namespace Microsoft.CodeAnalysis
                         //      {
                         //          (X x) => ...
                         //      };
+                        //
+                        return ValueUsageInfo.Write;
+
+                    case ISwitchExpressionArmOperation _:
+                        // A declaration pattern within a switch expression arm is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj' below:
+                        //      obj switch
+                        //      {
+                        //          X x => ...
                         //
                         return ValueUsageInfo.Write;
 
@@ -143,6 +155,20 @@ namespace Microsoft.CodeAnalysis
             else if (operation.IsInLeftOfDeconstructionAssignment(out _))
             {
                 return ValueUsageInfo.Write;
+            }
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            {
+                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                {
+                    switch (variableDeclaratorOperation.Symbol.RefKind)
+                    {
+                        case RefKind.Ref:
+                            return ValueUsageInfo.ReadableWritableReference;
+
+                        case RefKind.RefReadOnly:
+                            return ValueUsageInfo.ReadableReference;
+                    }
+                }
             }
 
             return ValueUsageInfo.Read;

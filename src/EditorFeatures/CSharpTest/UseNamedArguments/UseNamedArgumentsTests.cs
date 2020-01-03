@@ -462,13 +462,19 @@ class C
 
         [WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
-        public async Task TestMissingOnTuple()
+        public async Task TestOnTuple()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Linq;
 class C
 {
-    void M(int[] arr) => arr.Zip(arr, (p1, p2) =>  ([||]p1, p2));
+    void M(int[] arr) => arr.Zip(arr, (p1, p2) => ([||]p1, p2));
+}
+",
+@"using System.Linq;
+class C
+{
+    void M(int[] arr) => arr.Zip(arr, resultSelector: (p1, p2) => (p1, p2));
 }
 ");
         }

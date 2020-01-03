@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if a given field is a nondefault tuple element
+        /// Returns true if a given field is a default tuple element
         /// </summary>
         internal static bool IsDefaultTupleElement(this IFieldSymbol field)
         {

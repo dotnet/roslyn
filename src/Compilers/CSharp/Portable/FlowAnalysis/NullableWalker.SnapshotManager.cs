@@ -162,7 +162,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 /// need any more information to serve as a key.
                 /// All other symbol types are stored mapped to exactly the same type as was provided.
                 /// </remarks>
-                private readonly ImmutableDictionary<(BoundNode?, Symbol), Symbol>.Builder _updatedSymbolMap = ImmutableDictionary.CreateBuilder<(BoundNode?, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, SymbolEqualityComparer.ConsiderEverything);
+                private readonly ImmutableDictionary<(BoundNode?, Symbol), Symbol>.Builder _updatedSymbolMap = ImmutableDictionary.CreateBuilder<(BoundNode?, Symbol), Symbol>(ExpressionAndSymbolEqualityComparer.Instance, Symbols.SymbolEqualityComparer.ConsiderEverything);
 
                 /// <summary>
                 /// Shared walker states are the parts of the walker state that are not unique at a single position,

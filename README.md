@@ -65,7 +65,7 @@ See [what's new with the C# and VB compilers](https://github.com/dotnet/roslyn/w
 ### Source code
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
-* [Enhanced source view](http://source.roslyn.io/), powered by Roslyn 
+* [Enhanced source view](http://sourceroslyn.io/), powered by Roslyn 
 * [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
 
 ### Get started

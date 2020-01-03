@@ -38,9 +38,8 @@ namespace AnalyzerRunner
 
             workspace.Options = workspace.Options
                 .WithChangedOption(StorageOptions.SolutionSizeThreshold, _options.UsePersistentStorage ? 0 : int.MaxValue)
-                .WithChangedOption(RuntimeOptions.FullSolutionAnalysis, _options.FullSolutionAnalysis)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, _options.FullSolutionAnalysis)
-                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, _options.FullSolutionAnalysis);
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope);
 
             if (!string.IsNullOrEmpty(_options.ProfileRoot))
             {

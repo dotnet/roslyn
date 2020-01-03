@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Differencing
 {
     // Based on general algorithm described in  
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Returns a match map of <paramref name="oldRoot"/> descendants to <paramref name="newRoot"/> descendants.
         /// </summary>
-        public Match<TNode> ComputeMatch(TNode oldRoot, TNode newRoot, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches = null)
+        public Match<TNode> ComputeMatch(TNode oldRoot, TNode newRoot, IEnumerable<KeyValuePair<TNode, TNode>>? knownMatches = null)
         {
             return new Match<TNode>(oldRoot, newRoot, this, knownMatches);
         }
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// May return null if the <paramref name="node"/> is a leaf.
         /// </summary>
-        protected internal abstract IEnumerable<TNode> GetChildren(TNode node);
+        protected internal abstract IEnumerable<TNode>? GetChildren(TNode node);
 
         /// <summary>
         /// Enumerates all descendant nodes of the given node in depth-first prefix order.

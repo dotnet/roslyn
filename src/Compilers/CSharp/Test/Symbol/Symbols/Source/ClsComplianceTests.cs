@@ -475,7 +475,7 @@ namespace System
     [CLSCompliant(true)]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -485,7 +485,7 @@ namespace System
     [CLSCompliant(false)]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 

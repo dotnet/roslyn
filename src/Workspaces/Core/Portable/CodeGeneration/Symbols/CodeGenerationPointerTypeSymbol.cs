@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -10,13 +9,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ITypeSymbol PointedAtType { get; }
 
         public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
-            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None)
+            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None)
         {
             this.PointedAtType = pointedAtType;
         }
 
-        protected override CodeGenerationSymbol Clone()
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
+            // We ignore the nullableAnnotation parameter because pointer types can't be nullable.
             return new CodeGenerationPointerTypeSymbol(this.PointedAtType);
         }
 

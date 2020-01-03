@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -192,7 +193,7 @@ namespace Roslyn.Test.Utilities
 
             foreach (var document in workspace.Documents)
             {
-                var text = document.TextBuffer.AsTextContainer().CurrentText;
+                var text = solution.GetDocument(document.Id).GetTextSynchronously(CancellationToken.None);
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     locations.GetOrAdd(kvp.Key, CreateLocation)

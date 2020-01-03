@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!type.IsErrorType())
                 {
-                    result = CSharpCompilation.GetRuntimeMember(type, ref descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: null);
+                    result = CSharpCompilation.GetRuntimeMember(type, descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: null);
                 }
 
                 Interlocked.CompareExchange(ref _lazySpecialTypeMembers[(int)member], result, ErrorTypeSymbol.UnknownResultType);
@@ -236,5 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
             }
         }
+
+        internal virtual bool IsNetModule() => false;
     }
 }

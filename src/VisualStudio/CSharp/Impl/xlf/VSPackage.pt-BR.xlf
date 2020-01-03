@@ -316,7 +316,7 @@ Mostrar sugestões de nomes;</target>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Disposição</target>
+        <target state="translated">Quebra de linha</target>
         <note />
       </trans-unit>
       <trans-unit id="111">

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     createBuilderMethod: createBuilderMethod,
                     taskProperty: null,
                     setException: null, // unused
-                    setResult: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
+                    setResult: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete, // AsyncIteratorMethodBuilder.Complete is the corresponding method to AsyncTaskMethodBuilder.SetResult
                     awaitOnCompleted: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitOnCompleted,
                     awaitUnsafeOnCompleted: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__AwaitUnsafeOnCompleted,
                     start: WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var descriptor = WellKnownMembers.GetDescriptor(memberValue);
                 var sym = CSharpCompilation.GetRuntimeMember(
                     builderType.OriginalDefinition,
-                    ref descriptor,
+                    descriptor,
                     F.Compilation.WellKnownMemberSignatureComparer,
                     accessWithinOpt: null);
                 if ((object)sym != null)

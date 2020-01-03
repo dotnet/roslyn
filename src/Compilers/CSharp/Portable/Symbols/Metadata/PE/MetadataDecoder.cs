@@ -234,11 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     do
                     {
-                        if (namedType.IsTupleType)
-                        {
-                            return IsOrClosedOverATypeFromAssemblies(namedType.TupleUnderlyingType, assemblies);
-                        }
-
                         var arguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
                         int count = arguments.Length;
 
@@ -522,14 +517,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
                     !(targetTypeSymbol.IsInterfaceType()
-                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, TypeSymbol.EqualsCLRSignatureComparer) != -1
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, SymbolEqualityComparer.CLRSignature) != -1
                         : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteDiagnostics: ref useSiteDiagnostics)))
                 {
                     return null;
                 }
             }
 
-            if (!targetTypeSymbol.IsTupleCompatible())
+            if (!targetTypeSymbol.IsTupleType)
             {
                 targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
             }

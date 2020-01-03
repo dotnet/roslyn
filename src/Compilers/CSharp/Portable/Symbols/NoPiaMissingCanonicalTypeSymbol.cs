@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -30,13 +31,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string fullTypeName,
             string guid,
             string scope,
-            string identifier)
+            string identifier,
+            TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
             _fullTypeName = fullTypeName;
             _guid = guid;
             _scope = scope;
             _identifier = identifier;
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier, newData);
         }
 
         public AssemblySymbol EmbeddingAssembly

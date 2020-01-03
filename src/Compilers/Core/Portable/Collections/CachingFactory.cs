@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -30,6 +33,7 @@ namespace Microsoft.CodeAnalysis
     //                  to set valueFactory to null and use TryGetValue/Add pattern instead of GetOrMakeValue.
     //
     internal class CachingFactory<TKey, TValue> : CachingBase<CachingFactory<TKey, TValue>.Entry>
+        where TKey : notnull
     {
         internal struct Entry
         {
@@ -63,7 +67,7 @@ namespace Microsoft.CodeAnalysis
             entries[idx].value = value;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
         {
             int hash = GetKeyHash(key);
             int idx = hash & mask;
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            value = default(TValue);
+            value = default!;
             return false;
         }
 
@@ -125,7 +129,7 @@ namespace Microsoft.CodeAnalysis
         where TKey : class
     {
         private readonly Func<TKey, TValue> _valueFactory;
-        private readonly ObjectPool<CachingIdentityFactory<TKey, TValue>> _pool;
+        private readonly ObjectPool<CachingIdentityFactory<TKey, TValue>>? _pool;
 
         internal struct Entry
         {
@@ -154,7 +158,7 @@ namespace Microsoft.CodeAnalysis
             entries[idx].value = value;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
         {
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
@@ -166,7 +170,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = default(TValue);
+            value = default!;
             return false;
         }
 
@@ -191,9 +195,9 @@ namespace Microsoft.CodeAnalysis
         // if someone needs to create a pool;
         public static ObjectPool<CachingIdentityFactory<TKey, TValue>> CreatePool(int size, Func<TKey, TValue> valueFactory)
         {
-            ObjectPool<CachingIdentityFactory<TKey, TValue>> pool = null;
-            pool = new ObjectPool<CachingIdentityFactory<TKey, TValue>>(
-                () => new CachingIdentityFactory<TKey, TValue>(size, valueFactory, pool), Environment.ProcessorCount * 2);
+            var pool = new ObjectPool<CachingIdentityFactory<TKey, TValue>>(
+                pool => new CachingIdentityFactory<TKey, TValue>(size, valueFactory, pool),
+                Environment.ProcessorCount * 2);
 
             return pool;
         }

@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool SupportsThrowExpression(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsLocalFunctionDeclaration(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -199,6 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.IsParentKind(SyntaxKind.UsingDirective) &&
                 ((UsingDirectiveSyntax)node.Parent).Name == node;
         }
+
+        public bool IsUsingAliasDirective(SyntaxNode node)
+            => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
 
         public bool IsForEachStatement(SyntaxNode node)
             => node is ForEachStatementSyntax;
@@ -1264,6 +1270,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
+        public SyntaxNode GetLeftSideOfDot(SyntaxNode node, bool allowImplicitTarget)
+        {
+            return (node as QualifiedNameSyntax)?.Left ??
+                (node as MemberAccessExpressionSyntax)?.Expression;
+        }
+
         public bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node)
             => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
 
@@ -1422,15 +1434,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
-        public void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode,
-            out SyntaxNode newRoot, out SyntaxNode newContextNode)
+        public void AddFirstMissingCloseBrace<TContextNode>(
+            SyntaxNode root, TContextNode contextNode,
+            out SyntaxNode newRoot, out TContextNode newContextNode) where TContextNode : SyntaxNode
         {
-            // First, annotate the context node in the tree so that we can find it again
-            // after we've done all the rewriting.
-            // var currentRoot = root.ReplaceNode(contextNode, contextNode.WithAdditionalAnnotations(s_annotation));
             newRoot = new AddFirstMissingCloseBraceRewriter(contextNode).Visit(root);
-            newContextNode = newRoot.GetAnnotatedNodes(s_annotation).Single();
+            newContextNode = (TContextNode)newRoot.GetAnnotatedNodes(s_annotation).Single();
         }
 
         public SyntaxNode GetObjectCreationInitializer(SyntaxNode node)

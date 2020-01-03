@@ -27,6 +27,11 @@
         <target state="translated">ドキュメント '{0}' の変更はサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0">
+        <source>Compilation is required to accomplish the task but is not supported by project {0}.</source>
+        <target state="new">Compilation is required to accomplish the task but is not supported by project {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
         <target state="translated">コア EditorConfig オプション</target>
@@ -35,6 +40,16 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">DateTimeKind は Utc にする必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_type_must_be_a_0_1_2_or_3_but_given_one_is_4">
+        <source>Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</source>
+        <target state="new">Destination type must be a {0}, {1}, {2} or {3}, but given one is {4}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">ドキュメントでは構文ツリーがサポートされません</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_level_preferences">
@@ -64,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="translated">命名規則</target>
+        <target state="translated">名前付けルール</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_styles">
@@ -95,6 +110,11 @@
       <trans-unit id="Prefix_0_is_not_expected">
         <source>Prefix '{0}' is not expected</source>
         <target state="translated">プレフィックス '{0}' は予期されていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_of_ID_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_solution">
+        <source>Project of ID {0} is required to accomplish the task but is not available from the solution</source>
+        <target state="new">Project of ID {0} is required to accomplish the task but is not available from the solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -421,7 +441,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
 	named or numbered groups of the form (?&lt;name&gt; subexpression).
     x	Exclude unescaped white space from the pattern, and enable comments
 	after a number sign (#).</source>
-        <target state="translated">このグループ化コンストラクトは、部分式内の指定されたオプションを適用するか無効にします。有効にするオプションは疑問符の後に指定し、無効にするオプションはマイナス記号の後に指定します。許可されているオプションは次のとおりです。
+        <target state="translated">このグループ化構成体は、部分式内の指定されたオプションを適用するか無効にします。有効にするオプションは疑問符の後に指定し、無効にするオプションはマイナス記号の後に指定します。許可されているオプションは次のとおりです。
 
     i	大文字と小文字を区別しない一致を使用します。
     m	^ と $ は、(入力文字列の先頭および末尾ではなく)
@@ -446,7 +466,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_hexadecimal_escape_short">
         <source>hexadecimal escape</source>
-        <target state="needs-review-translation">16 進数のエスケープ</target>
+        <target state="translated">16 進数のエスケープ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_inline_comment_long">
@@ -496,7 +516,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_letter_modifier">
         <source>letter, modifier</source>
-        <target state="translated">文字、修飾</target>
+        <target state="translated">文字、修飾子</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_letter_other">
@@ -651,7 +671,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_long">
         <source>This grouping construct captures a matched 'subexpression', where 'subexpression' is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.</source>
-        <target state="translated">このグループ化コンストラクトは、一致した 'subexpression' をキャプチャします。ここで、'subexpression' は任意の有効な正規表現パターンです。かっこを使用するキャプチャでは、正規表現の左かっこの順序に従って、左から右へ自動的に 1 から番号が付けられます。番号が 0 のキャプチャは、正規表現パターン全体に一致するテキストです。</target>
+        <target state="translated">このグループ化構成体は、一致した 'subexpression' をキャプチャします。ここで、'subexpression' は任意の有効な正規表現パターンです。かっこを使用するキャプチャでは、正規表現の左かっこの順序に従って、左から右へ自動的に 1 から番号が付けられます。番号が 0 のキャプチャは、正規表現パターン全体に一致するテキストです。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_matched_subexpression_short">
@@ -821,7 +841,7 @@ If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]
     Lu	文字、大文字
     Lt	文字、タイトル文字
     Lo	文字、その他
-    Lm	文字、修飾
+    Lm	文字、修飾子
     Mn	結合文字、幅なし
     Nd	数字、10 進数字
     Pc	句読点、接続
@@ -858,7 +878,7 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
 
 非キャプチャ グループのコンストラクトは通常、量指定子がグループに適用されても、グループによってキャプチャされた部分文字列が対象にならない場合に使用されます。
 
-正規表現に、入れ子になったグループ化コンストラクトが含まれている場合、外部の非キャプチャ グループ コンストラクトは内部の入れ子になったグループ コンストラクトに適用されません。</target>
+正規表現に、入れ子になったグループ化構成体が含まれている場合、外部の非キャプチャ グループ コンストラクトは内部の入れ子になったグループ コンストラクトに適用されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_noncapturing_group_short">
@@ -1027,7 +1047,7 @@ There is an ambiguity between octal escape codes (such as \16) and \number backr
       </trans-unit>
       <trans-unit id="Regex_symbol_modifier">
         <source>symbol, modifier</source>
-        <target state="translated">記号、修飾</target>
+        <target state="translated">記号、修飾子</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_symbol_other">
@@ -1143,7 +1163,7 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
     Lu	文字、大文字
     Lt	文字、タイトル文字
     Lo	文字、その他
-    Lm	文字、修飾
+    Lm	文字、修飾子
     Mn	結合文字、幅なし
     Nd	数字、10 進数字
     Pc	句読点、接続
@@ -1307,6 +1327,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">記号の仕様</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0">
+        <source>Syntax tree is required to accomplish the task but is not supported by document {0}.</source>
+        <target state="new">Syntax tree is required to accomplish the task but is not supported by document {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Visual_Basic_files">
         <source>Visual Basic files</source>
         <target state="translated">Visual Basic ファイル</target>
@@ -1314,7 +1339,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
-        <target state="new">Adding imports will bring an extension method into scope with the same name as '{0}'</target>
+        <target state="translated">インポートを追加すると、'{0}' と同じ名前の拡張メソッドがスコープに取り込まれます</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
@@ -1785,11 +1810,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="This_workspace_does_not_support_opening_and_closing_documents">
         <source>This workspace does not support opening and closing documents.</source>
         <target state="translated">このワークスペースではドキュメントの開閉をサポートしません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Usage_colon">
-        <source>Usage:</source>
-        <target state="translated">使用法:</target>
         <note />
       </trans-unit>
       <trans-unit id="Exceptions_colon">

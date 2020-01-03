@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -94,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Protected Overrides Function CreateAssemblyDataForFile(assembly As PEAssembly,
-                                                                   cachedSymbols As WeakList(Of IAssemblySymbol),
+                                                                   cachedSymbols As WeakList(Of IAssemblySymbolInternal),
                                                                    documentationProvider As DocumentationProvider,
                                                                    sourceAssemblySimpleName As String,
                                                                    importOptions As MetadataImportOptions,
@@ -242,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If map.TryGetValue(identity, symbol, Function(v1, v2, s) True) Then
                     ' TODO: https://github.com/dotnet/roslyn/issues/9004
-                    Throw New NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}")
+                    Throw New NotSupportedException(String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging, identity, symbol.Identity.Version))
                 End If
 
                 Return New MissingAssemblySymbol(identity)
@@ -797,7 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ''' <summary>
                 ''' Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 ''' </summary>
-                Public ReadOnly CachedSymbols As WeakList(Of IAssemblySymbol)
+                Public ReadOnly CachedSymbols As WeakList(Of IAssemblySymbolInternal)
 
                 Public ReadOnly DocumentationProvider As DocumentationProvider
 
@@ -816,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private _internalsPotentiallyVisibleToCompilation As Boolean = False
 
                 Public Sub New(assembly As PEAssembly,
-                               cachedSymbols As WeakList(Of IAssemblySymbol),
+                               cachedSymbols As WeakList(Of IAssemblySymbolInternal),
                                embedInteropTypes As Boolean,
                                documentationProvider As DocumentationProvider,
                                sourceAssemblySimpleName As String,
