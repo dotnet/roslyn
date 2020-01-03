@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
         // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, Task<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, Task<SyntaxContext>>();
+        private static readonly ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, AsyncLazy<SyntaxContext>>();
         private static int s_cachedPosition;
         private static readonly object s_cacheGate = new object();
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // It's fairly likely that we'll only have to check the first document, unless someone
                 // specially constructed a Solution with mismatched linked files.
                 if (s_cachedPosition != position ||
-                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out var value)))
+                    !relatedDocuments.All((Document d) => s_cachedDocuments.TryGetValue(d, out _)))
                 {
                     s_cachedPosition = position;
                     foreach (var related in relatedDocuments)
@@ -419,7 +419,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             lock (s_cacheGate)
             {
-                return s_cachedDocuments.GetValue(document, d => CreateContext(d, position, cancellationToken));
+                var lazyContext = s_cachedDocuments.GetValue(document, d => new AsyncLazy<SyntaxContext>(ct => CreateContext(d, position, ct), cacheResult: true));
+                return lazyContext.GetValueAsync(cancellationToken);
             }
         }
 
