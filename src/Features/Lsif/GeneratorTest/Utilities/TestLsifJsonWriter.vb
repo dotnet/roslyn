@@ -41,8 +41,11 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests.Utilities
                     _edgesByOutVertex.Add(outVertex, edgesForOutVertex)
                 End If
 
-                If (edgesForOutVertex.Any(Function(e) e.Label = edge.Label)) Then
-                    Throw New InvalidOperationException($"The outVertex {outVertex} already has an edge with label {edge.Label}.")
+                ' It's possible to have more than one item edge, but for anything else we really only expect one.
+                If edge.Label <> "item" Then
+                    If (edgesForOutVertex.Any(Function(e) e.Label = edge.Label)) Then
+                        Throw New InvalidOperationException($"The outVertex {outVertex} already has an edge with label {edge.Label}.")
+                    End If
                 End If
 
                 edgesForOutVertex.Add(edge)
