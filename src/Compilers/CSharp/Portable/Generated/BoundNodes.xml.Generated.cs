@@ -6214,9 +6214,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundStackAllocArrayCreation : BoundExpression
+    internal abstract partial class BoundStackAllocArrayCreationBase : BoundExpression
     {
-        protected BoundStackAllocArrayCreation(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
+        protected BoundStackAllocArrayCreationBase(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
@@ -6228,24 +6228,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.InitializerOpt = initializerOpt;
         }
 
-        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
-        {
 
-            Debug.Assert(elementType is object, "Field 'elementType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            Debug.Assert(count is object, "Field 'count' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.ElementType = elementType;
-            this.Count = count;
-            this.InitializerOpt = initializerOpt;
-        }
-
+        public new TypeSymbol? Type => base.Type!;
 
         public TypeSymbol ElementType { get; }
 
         public BoundExpression Count { get; }
 
         public BoundArrayInitialization? InitializerOpt { get; }
+    }
+
+    internal sealed partial class BoundStackAllocArrayCreation : BoundStackAllocArrayCreationBase
+    {
+        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.StackAllocArrayCreation, syntax, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
+        {
+
+            Debug.Assert(elementType is object, "Field 'elementType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            Debug.Assert(count is object, "Field 'count' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public new TypeSymbol? Type => base.Type!;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitStackAllocArrayCreation(this);
 
@@ -6261,7 +6266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
+    internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreationBase
     {
         public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ConvertedStackAllocExpression, syntax, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
@@ -6278,7 +6283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitConvertedStackAllocExpression(this);
 
-        public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol type)
+        public BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol type)
         {
             if (!TypeSymbol.Equals(elementType, this.ElementType, TypeCompareKind.ConsiderEverything) || count != this.Count || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {

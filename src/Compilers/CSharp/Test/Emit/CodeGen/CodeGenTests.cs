@@ -10673,6 +10673,7 @@ public class MyClass {
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
         [Fact]
         public void DecimalLiteral_BreakingChange()
         {
