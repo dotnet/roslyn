@@ -27,21 +27,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _typeArgumentsWithAnnotations;
             }
         }
-
-        public override bool IsTupleMethod
-        {
-            get
-            {
-                return ConstructedFrom.IsTupleMethod;
-            }
-        }
-
-        public override MethodSymbol TupleUnderlyingMethod
-        {
-            get
-            {
-                return ConstructedFrom.TupleUnderlyingMethod?.Construct(_typeArgumentsWithAnnotations);
-            }
-        }
     }
 }

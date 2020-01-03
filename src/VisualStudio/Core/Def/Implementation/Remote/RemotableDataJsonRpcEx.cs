@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
-            var remotableData = _remotableDataService.GetRemotableData(scopeId, checksum, cancellationToken) ?? RemotableData.Null;
+            var remotableData = (await _remotableDataService.GetRemotableDataAsync(scopeId, checksum, cancellationToken).ConfigureAwait(false)) ?? RemotableData.Null;
             writer.WriteInt32(1);
 
             checksum.WriteTo(writer);
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task WriteMultipleAssetsAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            var remotableDataMap = _remotableDataService.GetRemotableData(scopeId, checksums, cancellationToken);
+            var remotableDataMap = await _remotableDataService.GetRemotableDataAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
             writer.WriteInt32(remotableDataMap.Count);
 
             foreach (var (checksum, remotableData) in remotableDataMap)

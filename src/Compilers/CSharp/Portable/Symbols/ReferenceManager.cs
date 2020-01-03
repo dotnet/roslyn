@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override AssemblyData CreateAssemblyDataForFile(
                 PEAssembly assembly,
-                WeakList<IAssemblySymbol> cachedSymbols,
+                WeakList<IAssemblySymbolInternal> cachedSymbols,
                 DocumentationProvider documentationProvider,
                 string sourceAssemblySimpleName,
                 MetadataImportOptions importOptions,
@@ -287,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (map.TryGetValue(identity, out symbol, (v1, v2, s) => true))
                 {
                     // TODO: https://github.com/dotnet/roslyn/issues/9004
-                    throw new NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}");
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging, identity, symbol.Identity.Version));
                 }
 
                 return new MissingAssemblySymbol(identity);
@@ -920,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 /// <summary>
                 /// Guarded by <see cref="CommonReferenceManager.SymbolCacheAndReferenceManagerStateGuard"/>.
                 /// </summary>
-                public readonly WeakList<IAssemblySymbol> CachedSymbols;
+                public readonly WeakList<IAssemblySymbolInternal> CachedSymbols;
 
                 public readonly DocumentationProvider DocumentationProvider;
 
@@ -940,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public AssemblyDataForFile(
                     PEAssembly assembly,
-                    WeakList<IAssemblySymbol> cachedSymbols,
+                    WeakList<IAssemblySymbolInternal> cachedSymbols,
                     bool embedInteropTypes,
                     DocumentationProvider documentationProvider,
                     string sourceAssemblySimpleName,

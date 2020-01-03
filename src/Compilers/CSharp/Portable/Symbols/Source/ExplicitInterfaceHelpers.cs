@@ -207,13 +207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // interface in its base class list that contains a member ..."
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
             int setCount = set.Count;
-            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsObliviousNullableModifierMatchesAny))
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, Symbols.SymbolEqualityComparer.ObliviousNullableModifierMatchesAny))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
-                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsIgnoringNullableComparer))
+                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, Symbols.SymbolEqualityComparer.IgnoringNullable))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, location);
                 }
@@ -223,6 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //do a lookup anyway
+            }
+
+            // Do not look in itself
+            if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
+            {
+                // An error will be reported elsewhere.
+                // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
+                return null;
             }
 
             var hasParamsParam = implementingMember.HasParamsParameter();

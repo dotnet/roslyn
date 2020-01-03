@@ -5,10 +5,11 @@ using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal sealed class SymbolChanges
+    internal abstract class SymbolChanges
     {
         /// <summary>
         /// Maps definitions being emitted to the corresponding definitions defined in the previous generation (metadata or source).
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
-        public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
+        protected SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
             Debug.Assert(definitionMap != null);
             Debug.Assert(edits != null);
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 Debug.Assert(synthesizedDef.Method != null);
 
                 var generator = synthesizedDef.Method;
-                var synthesizedSymbol = (ISymbol)synthesizedDef;
+                ISymbolInternal synthesizedSymbol = synthesizedDef;
 
                 var change = GetChange((IDefinition)generator);
                 switch (change)
@@ -137,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            if (def is ISymbol symbol)
+            if (def is ISymbolInternal symbol)
             {
-                return GetChange(symbol);
+                return GetChange(symbol.GetISymbol());
             }
 
             // If the def existed in the previous generation, the def is unchanged
@@ -179,13 +180,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 case SymbolChange.Updated:
                 case SymbolChange.ContainsChanges:
-                    if (symbol is IDefinition definition)
+                    ISymbolInternal symbolInternal = GetISymbolInternalOrNull(symbol);
+
+                    if (symbolInternal is IDefinition definition)
                     {
                         // If the definition did not exist in the previous generation, it was added.
                         return _definitionMap.DefinitionExists(definition) ? SymbolChange.None : SymbolChange.Added;
                     }
 
-                    if (symbol is INamespace @namespace)
+                    if (symbolInternal is INamespace @namespace)
                     {
                         // If the namespace did not exist in the previous generation, it was added.
                         // Otherwise the namespace may contain changes.
@@ -199,11 +202,13 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        protected abstract ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol);
+
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {
             foreach (var symbol in _changes.Keys)
             {
-                var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                var namespaceTypeDef = (GetISymbolInternalOrNull(symbol) as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
                 if (namespaceTypeDef != null)
                 {
                     yield return namespaceTypeDef;

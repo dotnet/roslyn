@@ -170,7 +170,7 @@ bar();
                             N(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
                 }
 
                 N(SyntaxKind.GlobalStatement);
@@ -209,7 +209,7 @@ bar();
                             N(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
                 }
 
                 N(SyntaxKind.FieldDeclaration);
@@ -1553,6 +1553,45 @@ public partial bool this[int index] {}
             var tree = UsingTree(@"
 new public bool this[int index] { get; }
 ");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IndexerDeclaration);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.BoolKeyword);
+                    }
+                    N(SyntaxKind.ThisKeyword);
+                    N(SyntaxKind.BracketedParameterList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "index");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -1561,6 +1600,45 @@ new public bool this[int index] { get; }
             var tree = UsingTree(@"
 new public bool this[int index] { get; }
 ");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IndexerDeclaration);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.BoolKeyword);
+                    }
+                    N(SyntaxKind.ThisKeyword);
+                    N(SyntaxKind.BracketedParameterList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "index");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -2318,7 +2396,7 @@ delegate D();
                     {
                         N(SyntaxKind.IdentifierToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.IdentifierToken);
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -2517,19 +2595,20 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.AsteriskToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -2550,13 +2629,13 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.GenericName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                     N(SyntaxKind.TypeArgumentList);
                                     {
                                         N(SyntaxKind.LessThanToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "t");
                                         }
                                         N(SyntaxKind.GreaterThanToken);
                                     }
@@ -2564,7 +2643,7 @@ fixed int x[10];
                                 N(SyntaxKind.DotToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "n");
                                 }
                             }
                             N(SyntaxKind.AsteriskToken);
@@ -2572,7 +2651,7 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "f");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -2581,18 +2660,19 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "x");
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         #endregion
@@ -2852,24 +2932,25 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.VariableDeclarator);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken).IsMissing.ShouldBe(true);
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -2886,32 +2967,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                             N(SyntaxKind.EqualsValueClause);
                             {
                                 N(SyntaxKind.EqualsToken);
                                 N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken);
+                                    N(SyntaxKind.NumericLiteralToken, "1");
                                 }
                             }
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.VariableDeclarator);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         // properties //
@@ -2928,19 +3010,20 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -2955,7 +3038,7 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
@@ -2963,19 +3046,20 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                         N(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "b");
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -2990,7 +3074,7 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
@@ -2998,28 +3082,29 @@ fixed int x[10];
                     {
                         N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                             N(SyntaxKind.TypeArgumentList);
                             {
                                 N(SyntaxKind.LessThanToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
                         }
                         N(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "b");
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3034,7 +3119,7 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
@@ -3044,7 +3129,7 @@ fixed int x[10];
                         {
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
@@ -3052,7 +3137,7 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "T");
                                         }
                                         N(SyntaxKind.QuestionToken);
                                     }
@@ -3062,13 +3147,13 @@ fixed int x[10];
                             N(SyntaxKind.DotToken);
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "S");
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
@@ -3076,15 +3161,16 @@ fixed int x[10];
                         }
                         N(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "c");
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         // methods //
@@ -3101,11 +3187,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3114,11 +3200,12 @@ fixed int x[10];
                     N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3133,11 +3220,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3146,23 +3233,24 @@ fixed int x[10];
                     N(SyntaxKind.TypeParameterConstraintClause);
                     {
                         N(SyntaxKind.WhereKeyword);
-                        N(SyntaxKind.IdentifierName).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken).IsMissing.ShouldBe(true);
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.ColonToken).IsMissing.ShouldBe(true);
-                        N(SyntaxKind.TypeConstraint);
+                        M(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
                         {
-                            N(SyntaxKind.IdentifierName).IsMissing.ShouldBe(true);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken).IsMissing.ShouldBe(true);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3177,11 +3265,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3189,16 +3277,17 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
-                        N(SyntaxKind.CloseParenToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3213,7 +3302,7 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
@@ -3221,11 +3310,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                         N(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "b");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3233,16 +3322,17 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "c");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3257,7 +3347,7 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
@@ -3265,26 +3355,26 @@ fixed int x[10];
                     {
                         N(SyntaxKind.GenericName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                             N(SyntaxKind.TypeArgumentList);
                             {
                                 N(SyntaxKind.LessThanToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
                         }
                         N(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "b");
                     N(SyntaxKind.TypeParameterList);
                     {
                         N(SyntaxKind.LessThanToken);
                         N(SyntaxKind.TypeParameter);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "B");
                         }
                         N(SyntaxKind.GreaterThanToken);
                     }
@@ -3295,16 +3385,17 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "C");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "c");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3319,11 +3410,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3336,23 +3427,24 @@ fixed int x[10];
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "Attr");
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
                             }
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "C");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "c");
                         }
-                        N(SyntaxKind.CloseParenToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3367,11 +3459,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3384,7 +3476,7 @@ fixed int x[10];
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "Attr");
                                     }
                                     N(SyntaxKind.AttributeArgumentList);
                                     {
@@ -3395,13 +3487,13 @@ fixed int x[10];
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "a");
                                                 }
                                                 N(SyntaxKind.EqualsToken);
                                             }
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                         }
                                         N(SyntaxKind.CloseParenToken);
@@ -3411,16 +3503,17 @@ fixed int x[10];
                             }
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "c");
                             }
-                            N(SyntaxKind.IdentifierToken).IsMissing.ShouldBe(true);
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CloseParenToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3435,11 +3528,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3448,16 +3541,17 @@ fixed int x[10];
                             N(SyntaxKind.OutKeyword);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "C");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "c");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3472,11 +3566,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3486,7 +3580,7 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "C");
                                 }
                                 N(SyntaxKind.ArrayRankSpecifier);
                                 {
@@ -3498,14 +3592,15 @@ fixed int x[10];
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3520,29 +3615,30 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.ParamsKeyword);
-                            N(SyntaxKind.IdentifierName).IsMissing.ShouldBe(true);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken).IsMissing.ShouldBe(true);
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken).IsMissing.ShouldBe(true);
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CloseParenToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3557,11 +3653,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3572,18 +3668,19 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3598,11 +3695,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3613,18 +3710,19 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3639,11 +3737,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3654,18 +3752,19 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
-                        N(SyntaxKind.CloseParenToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3680,11 +3779,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3697,7 +3796,7 @@ fixed int x[10];
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "Attr");
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
@@ -3706,18 +3805,19 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3732,11 +3832,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3746,27 +3846,28 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
+                        M(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3781,11 +3882,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3795,18 +3896,19 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.QuestionToken);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "b");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3821,11 +3923,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3833,16 +3935,17 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "c");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3857,11 +3960,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3870,16 +3973,17 @@ fixed int x[10];
                             N(SyntaxKind.ThisKeyword);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "c");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "d");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3894,11 +3998,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3908,16 +4012,17 @@ fixed int x[10];
                             N(SyntaxKind.OutKeyword);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3932,11 +4037,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3946,14 +4051,15 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -3968,11 +4074,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -3983,14 +4089,15 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4005,11 +4112,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -4017,24 +4124,25 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                             N(SyntaxKind.EqualsValueClause);
                             {
                                 N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4049,11 +4157,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -4063,7 +4171,7 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "T");
                                 }
                                 N(SyntaxKind.ArrayRankSpecifier);
                                 {
@@ -4080,14 +4188,15 @@ fixed int x[10];
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4102,11 +4211,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -4118,7 +4227,7 @@ fixed int x[10];
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "T");
                                     }
                                     N(SyntaxKind.QuestionToken);
                                 }
@@ -4127,19 +4236,20 @@ fixed int x[10];
                                     N(SyntaxKind.OpenBracketToken);
                                     N(SyntaxKind.NumericLiteralExpression);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken);
+                                        N(SyntaxKind.NumericLiteralToken, "10");
                                     }
                                     N(SyntaxKind.CloseBracketToken);
                                 }
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         /// <summary>
@@ -4157,11 +4267,11 @@ fixed int x[10];
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "T");
                         }
                         N(SyntaxKind.QuestionToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "m");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -4169,30 +4279,31 @@ fixed int x[10];
                         {
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "b");
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "c");
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
                             }
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "d");
                         }
                         N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         // expressions //
@@ -4211,24 +4322,25 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.NumericLiteralExpression);
                             {
-                                N(SyntaxKind.NumericLiteralToken);
+                                N(SyntaxKind.NumericLiteralToken, "1");
+                            }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4245,24 +4357,25 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4279,32 +4392,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleMemberAccessExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4321,32 +4435,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.ElementAccessExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.BracketedArgumentList);
                                 {
                                     N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.CloseBracketToken);
+                                    M(SyntaxKind.CloseBracketToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4363,32 +4478,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.LessThanExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4405,32 +4521,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.LessThanExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.LessThanToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4447,33 +4564,34 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "b");
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4490,38 +4608,39 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.GenericName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "b");
                                     }
                                     N(SyntaxKind.CommaToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "c");
                                     }
                                     N(SyntaxKind.GreaterThanToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4538,41 +4657,42 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleMemberAccessExpression);
                             {
                                 N(SyntaxKind.GenericName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                     N(SyntaxKind.TypeArgumentList);
                                     {
                                         N(SyntaxKind.LessThanToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "b");
                                         }
                                         N(SyntaxKind.GreaterThanToken);
                                     }
                                 }
                                 N(SyntaxKind.DotToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4589,20 +4709,20 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleMemberAccessExpression);
                             {
                                 N(SyntaxKind.GenericName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                     N(SyntaxKind.TypeArgumentList);
                                     {
                                         N(SyntaxKind.LessThanToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "b");
                                         }
                                         N(SyntaxKind.GreaterThanToken);
                                     }
@@ -4610,20 +4730,21 @@ fixed int x[10];
                                 N(SyntaxKind.DotToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "c");
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4640,7 +4761,7 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
@@ -4649,13 +4770,13 @@ fixed int x[10];
                                 {
                                     N(SyntaxKind.GenericName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "a");
                                         N(SyntaxKind.TypeArgumentList);
                                         {
                                             N(SyntaxKind.LessThanToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                             N(SyntaxKind.GreaterThanToken);
                                         }
@@ -4663,26 +4784,27 @@ fixed int x[10];
                                     N(SyntaxKind.DotToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "c");
                                     }
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4699,32 +4821,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4741,7 +4864,7 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
@@ -4750,31 +4873,32 @@ fixed int x[10];
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "a");
                                     }
                                     N(SyntaxKind.DotToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "b");
                                     }
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4791,14 +4915,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -4807,23 +4931,24 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4840,14 +4965,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -4856,31 +4981,32 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4897,14 +5023,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -4915,29 +5041,30 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                             N(SyntaxKind.ColonToken);
                                         }
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -4954,14 +5081,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -4972,34 +5099,35 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                             N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierToken);
                                             }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.ColonToken);
+                                            M(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5016,14 +5144,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5034,34 +5162,35 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "a");
                                             }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.ColonToken);
+                                            M(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5078,14 +5207,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5096,42 +5225,43 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.SimpleAssignmentExpression);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "a");
                                                 }
                                                 N(SyntaxKind.EqualsToken);
-                                                N(SyntaxKind.IdentifierName);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    M(SyntaxKind.IdentifierToken);
                                                 }
                                             }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.ColonToken);
+                                            M(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5148,14 +5278,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5166,55 +5296,56 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.SimpleAssignmentExpression);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "a");
                                                 }
                                                 N(SyntaxKind.EqualsToken);
                                                 N(SyntaxKind.ConditionalExpression);
                                                 {
                                                     N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "b");
                                                     }
                                                     N(SyntaxKind.QuestionToken);
-                                                    N(SyntaxKind.IdentifierName);
+                                                    M(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        M(SyntaxKind.IdentifierToken);
                                                     }
-                                                    N(SyntaxKind.ColonToken);
-                                                    N(SyntaxKind.IdentifierName);
+                                                    M(SyntaxKind.ColonToken);
+                                                    M(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        M(SyntaxKind.IdentifierToken);
                                                     }
                                                 }
                                             }
+                                            M(SyntaxKind.ColonToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
                                         }
                                     }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5231,14 +5362,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5246,17 +5377,18 @@ fixed int x[10];
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5273,14 +5405,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5289,23 +5421,24 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "a");
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5322,14 +5455,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5337,17 +5470,18 @@ fixed int x[10];
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5364,14 +5498,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5380,23 +5514,24 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "a");
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
-                        }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5413,14 +5548,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5431,29 +5566,30 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "x");
                                             }
                                             N(SyntaxKind.ColonToken);
                                         }
                                         N(SyntaxKind.NumericLiteralExpression);
                                         {
-                                            N(SyntaxKind.NumericLiteralToken);
+                                            N(SyntaxKind.NumericLiteralToken, "1");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5470,14 +5606,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5488,13 +5624,13 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "x");
                                             }
                                             N(SyntaxKind.ColonToken);
                                         }
                                         N(SyntaxKind.NumericLiteralExpression);
                                         {
-                                            N(SyntaxKind.NumericLiteralToken);
+                                            N(SyntaxKind.NumericLiteralToken, "1");
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
@@ -5504,7 +5640,7 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "y");
                                             }
                                             N(SyntaxKind.ColonToken);
                                         }
@@ -5512,34 +5648,35 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "a");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                             N(SyntaxKind.ColonToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5556,14 +5693,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleLambdaExpression);
                             {
                                 N(SyntaxKind.Parameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "u");
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.Block);
@@ -5577,7 +5714,7 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.Parameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "v");
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.Block);
@@ -5587,11 +5724,12 @@ fixed int x[10];
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5608,14 +5746,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleLambdaExpression);
                             {
                                 N(SyntaxKind.Parameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "u");
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.InvocationExpression);
@@ -5627,19 +5765,19 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "d");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.SimpleLambdaExpression);
                                             {
                                                 N(SyntaxKind.Parameter);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "e");
                                                 }
                                                 N(SyntaxKind.EqualsGreaterThanToken);
                                                 N(SyntaxKind.NumericLiteralExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken);
+                                                    N(SyntaxKind.NumericLiteralToken, "1");
                                                 }
                                             }
                                             N(SyntaxKind.ColonToken);
@@ -5647,12 +5785,12 @@ fixed int x[10];
                                             {
                                                 N(SyntaxKind.Parameter);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "f");
                                                 }
                                                 N(SyntaxKind.EqualsGreaterThanToken);
                                                 N(SyntaxKind.NumericLiteralExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken);
+                                                    N(SyntaxKind.NumericLiteralToken, "2");
                                                 }
                                             }
                                         }
@@ -5665,7 +5803,7 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
-                                                N(SyntaxKind.NumericLiteralToken);
+                                                N(SyntaxKind.NumericLiteralToken, "3");
                                             }
                                         }
                                         N(SyntaxKind.CloseParenToken);
@@ -5677,20 +5815,21 @@ fixed int x[10];
                             {
                                 N(SyntaxKind.Parameter);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "c");
                                 }
                                 N(SyntaxKind.EqualsGreaterThanToken);
                                 N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken);
+                                    N(SyntaxKind.NumericLiteralToken, "2");
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5707,37 +5846,38 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.ConditionalExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.QuestionToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
-                                N(SyntaxKind.ColonToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.ColonToken);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5754,30 +5894,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleAssignmentExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5794,32 +5937,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleAssignmentExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.EqualsToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5836,32 +5980,33 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.SimpleAssignmentExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.EqualsToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "b");
                                 }
                             }
                             N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5878,14 +6023,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5895,23 +6040,24 @@ fixed int x[10];
                                         N(SyntaxKind.OutKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5928,14 +6074,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5945,23 +6091,24 @@ fixed int x[10];
                                         N(SyntaxKind.RefKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -5978,14 +6125,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -5993,34 +6140,35 @@ fixed int x[10];
                                     N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.OutKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6037,14 +6185,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6052,34 +6200,35 @@ fixed int x[10];
                                     N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.OutKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "c");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6096,14 +6245,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6115,20 +6264,21 @@ fixed int x[10];
                                             N(SyntaxKind.ThisKeyword);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6145,14 +6295,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6166,24 +6316,27 @@ fixed int x[10];
                                                 N(SyntaxKind.ThisKeyword);
                                             }
                                             N(SyntaxKind.DotToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6200,14 +6353,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6221,26 +6374,27 @@ fixed int x[10];
                                                 N(SyntaxKind.ThisKeyword);
                                             }
                                             N(SyntaxKind.LessThanToken);
-                                            N(SyntaxKind.IdentifierName);
+                                            M(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.IdentifierToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6257,14 +6411,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6280,24 +6434,25 @@ fixed int x[10];
                                             N(SyntaxKind.BracketedArgumentList);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
-                                                N(SyntaxKind.CloseBracketToken);
+                                                M(SyntaxKind.CloseBracketToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6314,14 +6469,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6333,28 +6488,29 @@ fixed int x[10];
                                             N(SyntaxKind.ThisKeyword);
                                         }
                                     }
-                                    N(SyntaxKind.CommaToken);
+                                    M(SyntaxKind.CommaToken);
                                     N(SyntaxKind.Argument);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "a");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6371,14 +6527,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6394,22 +6550,25 @@ fixed int x[10];
                                             N(SyntaxKind.ArgumentList);
                                             {
                                                 N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
+                                                M(SyntaxKind.CloseParenToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6426,14 +6585,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6444,29 +6603,30 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "T");
                                             }
                                             N(SyntaxKind.BracketedArgumentList);
                                             {
                                                 N(SyntaxKind.OpenBracketToken);
-                                                N(SyntaxKind.CloseBracketToken);
+                                                M(SyntaxKind.CloseBracketToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6483,14 +6643,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6501,7 +6661,7 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "T");
                                             }
                                             N(SyntaxKind.BracketedArgumentList);
                                             {
@@ -6510,27 +6670,28 @@ fixed int x[10];
                                                 {
                                                     N(SyntaxKind.NumericLiteralExpression);
                                                     {
-                                                        N(SyntaxKind.NumericLiteralToken);
+                                                        N(SyntaxKind.NumericLiteralToken, "1");
                                                     }
                                                 }
-                                                N(SyntaxKind.CloseBracketToken);
+                                                M(SyntaxKind.CloseBracketToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6547,14 +6708,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6565,7 +6726,7 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "T");
                                             }
                                             N(SyntaxKind.BracketedArgumentList);
                                             {
@@ -6574,27 +6735,28 @@ fixed int x[10];
                                                 {
                                                     N(SyntaxKind.NumericLiteralExpression);
                                                     {
-                                                        N(SyntaxKind.NumericLiteralToken);
+                                                        N(SyntaxKind.NumericLiteralToken, "1");
                                                     }
                                                 }
                                                 N(SyntaxKind.CloseBracketToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6611,14 +6773,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6629,42 +6791,43 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "T");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.SimpleAssignmentExpression);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "a");
                                                 }
                                                 N(SyntaxKind.EqualsToken);
-                                                N(SyntaxKind.IdentifierName);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    M(SyntaxKind.IdentifierToken);
                                                 }
+                                            }
+                                            M(SyntaxKind.ColonToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.ColonToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6681,14 +6844,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6697,21 +6860,24 @@ fixed int x[10];
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "T");
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6728,14 +6894,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6752,24 +6918,25 @@ fixed int x[10];
                                             N(SyntaxKind.DotToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "MaxValue");
                                             }
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6786,14 +6953,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6803,29 +6970,32 @@ fixed int x[10];
                                         N(SyntaxKind.RefKeyword);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "a");
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6842,47 +7012,48 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
                                     N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
                                     N(SyntaxKind.CommaToken);
-                                    N(SyntaxKind.Argument);
+                                    M(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6899,14 +7070,14 @@ fixed int x[10];
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "a");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -6917,14 +7088,14 @@ fixed int x[10];
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "T");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.ElementAccessExpression);
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "b");
                                                 }
                                                 N(SyntaxKind.BracketedArgumentList);
                                                 {
@@ -6933,7 +7104,7 @@ fixed int x[10];
                                                     {
                                                         N(SyntaxKind.NumericLiteralExpression);
                                                         {
-                                                            N(SyntaxKind.NumericLiteralToken);
+                                                            N(SyntaxKind.NumericLiteralToken, "1");
                                                         }
                                                     }
                                                     N(SyntaxKind.CloseBracketToken);
@@ -6944,7 +7115,7 @@ fixed int x[10];
                                             {
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "b");
                                                 }
                                                 N(SyntaxKind.BracketedArgumentList);
                                                 {
@@ -6953,7 +7124,7 @@ fixed int x[10];
                                                     {
                                                         N(SyntaxKind.NumericLiteralExpression);
                                                         {
-                                                            N(SyntaxKind.NumericLiteralToken);
+                                                            N(SyntaxKind.NumericLiteralToken, "2");
                                                         }
                                                     }
                                                     N(SyntaxKind.CloseBracketToken);
@@ -6964,17 +7135,18 @@ fixed int x[10];
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -6993,14 +7165,14 @@ T ? f(a ? b : c)
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "f");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -7011,34 +7183,35 @@ T ? f(a ? b : c)
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "a");
                                             }
                                             N(SyntaxKind.QuestionToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                             N(SyntaxKind.ColonToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                         }
                                     }
                                     N(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         /// <summary>
@@ -7058,14 +7231,14 @@ T ? f(a ? b : c)
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "m");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -7076,12 +7249,12 @@ T ? f(a ? b : c)
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "a");
                                             }
                                             N(SyntaxKind.LessThanToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                         }
                                     }
@@ -7092,12 +7265,12 @@ T ? f(a ? b : c)
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                             N(SyntaxKind.GreaterThanToken);
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "d");
                                             }
                                         }
                                     }
@@ -7105,16 +7278,17 @@ T ? f(a ? b : c)
                                 }
                             }
                             N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7164,24 +7338,25 @@ T ? from
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "from");
+                            }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7200,7 +7375,7 @@ T ? from x
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.QueryExpression);
@@ -7210,36 +7385,39 @@ T ? from x
                                     N(SyntaxKind.FromKeyword);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
-                                    N(SyntaxKind.IdentifierToken);
-                                    N(SyntaxKind.InKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.InKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
-                                N(SyntaxKind.QueryBody);
+                                M(SyntaxKind.QueryBody);
                                 {
-                                    N(SyntaxKind.SelectClause);
+                                    M(SyntaxKind.SelectClause);
                                     {
-                                        N(SyntaxKind.SelectKeyword);
-                                        N(SyntaxKind.IdentifierName);
+                                        M(SyntaxKind.SelectKeyword);
+                                        M(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            M(SyntaxKind.IdentifierToken);
                                         }
                                     }
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        N(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7258,14 +7436,14 @@ T ? f(from
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "f");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -7274,23 +7452,24 @@ T ? f(from
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "from");
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         /// <summary>
@@ -7312,14 +7491,14 @@ T ? f(from x
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "T");
                             }
                             N(SyntaxKind.QuestionToken);
                             N(SyntaxKind.InvocationExpression);
                             {
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "f");
                                 }
                                 N(SyntaxKind.ArgumentList);
                                 {
@@ -7333,42 +7512,43 @@ T ? f(from x
                                                 N(SyntaxKind.FromKeyword);
                                                 N(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    N(SyntaxKind.IdentifierToken, "x");
                                                 }
-                                                N(SyntaxKind.IdentifierToken);
-                                                N(SyntaxKind.InKeyword);
-                                                N(SyntaxKind.IdentifierName);
+                                                M(SyntaxKind.IdentifierToken);
+                                                M(SyntaxKind.InKeyword);
+                                                M(SyntaxKind.IdentifierName);
                                                 {
-                                                    N(SyntaxKind.IdentifierToken);
+                                                    M(SyntaxKind.IdentifierToken);
                                                 }
                                             }
-                                            N(SyntaxKind.QueryBody);
+                                            M(SyntaxKind.QueryBody);
                                             {
-                                                N(SyntaxKind.SelectClause);
+                                                M(SyntaxKind.SelectClause);
                                                 {
-                                                    N(SyntaxKind.SelectKeyword);
-                                                    N(SyntaxKind.IdentifierName);
+                                                    M(SyntaxKind.SelectKeyword);
+                                                    M(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        M(SyntaxKind.IdentifierToken);
                                                     }
                                                 }
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
+                            M(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
-                        N(SyntaxKind.ColonToken);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         #endregion
@@ -7387,13 +7567,14 @@ T ? f(from x
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "from");
                         }
-                        N(SyntaxKind.SemicolonToken).IsMissing.ShouldBe(true);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7416,7 +7597,7 @@ T ? f(from x
                             N(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -7435,22 +7616,23 @@ T ? f(from x
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "from");
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "x");
                         }
                         N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.VariableDeclarator);
+                        M(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7492,25 +7674,26 @@ T ? f(from x
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "from");
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "x");
                             N(SyntaxKind.EqualsValueClause);
                             {
                                 N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7526,11 +7709,11 @@ T ? f(from x
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "from");
                         }
                         N(SyntaxKind.VariableDeclarator);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "x");
                             N(SyntaxKind.BracketedArgumentList);
                             {
                                 N(SyntaxKind.OpenBracketToken);
@@ -7541,14 +7724,15 @@ T ? f(from x
                                         N(SyntaxKind.OmittedArraySizeExpressionToken);
                                     }
                                 }
-                                N(SyntaxKind.CloseBracketToken);
+                                M(SyntaxKind.CloseBracketToken);
                             }
                         }
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7561,18 +7745,19 @@ T ? f(from x
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "from");
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "c");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7586,27 +7771,28 @@ T ? f(from x
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "from");
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "a");
                     N(SyntaxKind.TypeParameterList);
                     {
                         N(SyntaxKind.LessThanToken);
-                        N(SyntaxKind.TypeParameter);
+                        M(SyntaxKind.TypeParameter);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.GreaterThanToken);
                     }
-                    N(SyntaxKind.ParameterList);
+                    M(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7620,26 +7806,27 @@ T ? f(from x
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "from");
                     }
                     N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
                         N(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.ParameterList);
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7653,26 +7840,27 @@ T ? f(from x
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "from");
                     }
                     N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "a");
                         }
-                        N(SyntaxKind.DotToken);
+                        M(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.ParameterList);
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7686,26 +7874,27 @@ T ? f(from x
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "from");
                     }
                     N(SyntaxKind.ExplicitInterfaceSpecifier);
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "global");
                         }
-                        N(SyntaxKind.DotToken);
+                        M(SyntaxKind.DotToken);
                     }
-                    N(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.ParameterList);
+                    M(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
+                    M(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7718,17 +7907,18 @@ T ? f(from x
                 {
                     N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "from");
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "c");
                     N(SyntaxKind.AccessorList);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7748,32 +7938,33 @@ T ? f(from x
                                 N(SyntaxKind.FromKeyword);
                                 N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    N(SyntaxKind.IdentifierToken, "c");
                                 }
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.InKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "d");
+                                M(SyntaxKind.InKeyword);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.QueryBody);
+                            M(SyntaxKind.QueryBody);
                             {
-                                N(SyntaxKind.SelectClause);
+                                M(SyntaxKind.SelectClause);
                                 {
-                                    N(SyntaxKind.SelectKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.SelectKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7796,34 +7987,35 @@ T ? f(from x
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
                                     N(SyntaxKind.AsteriskToken);
                                 }
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.InKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "a");
+                                M(SyntaxKind.InKeyword);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.QueryBody);
+                            M(SyntaxKind.QueryBody);
                             {
-                                N(SyntaxKind.SelectClause);
+                                M(SyntaxKind.SelectClause);
                                 {
-                                    N(SyntaxKind.SelectKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.SelectKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7846,34 +8038,35 @@ T ? f(from x
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
                                     N(SyntaxKind.QuestionToken);
                                 }
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.InKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "a");
+                                M(SyntaxKind.InKeyword);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.QueryBody);
+                            M(SyntaxKind.QueryBody);
                             {
-                                N(SyntaxKind.SelectClause);
+                                M(SyntaxKind.SelectClause);
                                 {
-                                    N(SyntaxKind.SelectKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.SelectKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7896,7 +8089,7 @@ T ? f(from x
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "x");
                                     }
                                     N(SyntaxKind.ArrayRankSpecifier);
                                     {
@@ -7908,30 +8101,31 @@ T ? f(from x
                                         N(SyntaxKind.CloseBracketToken);
                                     }
                                 }
-                                N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.InKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.IdentifierToken, "a");
+                                M(SyntaxKind.InKeyword);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.QueryBody);
+                            M(SyntaxKind.QueryBody);
                             {
-                                N(SyntaxKind.SelectClause);
+                                M(SyntaxKind.SelectClause);
                                 {
-                                    N(SyntaxKind.SelectKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.SelectKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7949,30 +8143,31 @@ T ? f(from x
                             N(SyntaxKind.FromClause);
                             {
                                 N(SyntaxKind.FromKeyword);
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "goo");
                                 N(SyntaxKind.InKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.QueryBody);
+                            M(SyntaxKind.QueryBody);
                             {
-                                N(SyntaxKind.SelectClause);
+                                M(SyntaxKind.SelectClause);
                                 {
-                                    N(SyntaxKind.SelectKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.SelectKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -7994,38 +8189,39 @@ T ? f(from x
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "goo");
                                     }
                                     N(SyntaxKind.DotToken);
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "bar");
                                     }
                                 }
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                                 N(SyntaxKind.InKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                             }
-                            N(SyntaxKind.QueryBody);
+                            M(SyntaxKind.QueryBody);
                             {
-                                N(SyntaxKind.SelectClause);
+                                M(SyntaxKind.SelectClause);
                                 {
-                                    N(SyntaxKind.SelectKeyword);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.SelectKeyword);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                 }
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         #endregion
@@ -8049,15 +8245,15 @@ T ? f(from x
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.LessThanToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.GlobalStatement);
@@ -8068,19 +8264,20 @@ T ? f(from x
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "c");
                             }
                             N(SyntaxKind.DotToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -8100,15 +8297,15 @@ void goo() { }
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.LessThanToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.MethodDeclaration);
@@ -8117,7 +8314,7 @@ void goo() { }
                     {
                         N(SyntaxKind.VoidKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "goo");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -8131,6 +8328,7 @@ void goo() { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -8150,15 +8348,15 @@ void goo() { }
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.LessThanToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.MethodDeclaration);
@@ -8167,7 +8365,7 @@ void goo() { }
                     {
                         N(SyntaxKind.VoidKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "goo");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -8181,6 +8379,7 @@ void goo() { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -8200,15 +8399,15 @@ void goo() { }
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.LessThanToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.MethodDeclaration);
@@ -8217,7 +8416,7 @@ void goo() { }
                     {
                         N(SyntaxKind.VoidKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "goo");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -8231,6 +8430,7 @@ void goo() { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -8251,15 +8451,15 @@ void goo() { }
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
                             N(SyntaxKind.LessThanToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.MethodDeclaration);
@@ -8268,7 +8468,7 @@ void goo() { }
                     {
                         N(SyntaxKind.VoidKeyword);
                     }
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "goo");
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
@@ -8282,6 +8482,7 @@ void goo() { }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]

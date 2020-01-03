@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// An ArrayTypeSymbol represents an array type, such as int[] or object[,].
     /// </summary>
-    internal abstract partial class ArrayTypeSymbol : TypeSymbol, IArrayTypeSymbol
+    internal abstract partial class ArrayTypeSymbol : TypeSymbol
     {
         private readonly TypeWithAnnotations _elementTypeWithAnnotations;
         private readonly NamedTypeSymbol _baseType;
@@ -407,10 +407,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithElementType(transform(ElementTypeWithAnnotations));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
+        internal override TypeSymbol MergeEquivalentTypes(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeWithAnnotations elementType = ElementTypeWithAnnotations.MergeNullability(((ArrayTypeSymbol)other).ElementTypeWithAnnotations, variance);
+            TypeWithAnnotations elementType = ElementTypeWithAnnotations.MergeEquivalentTypes(((ArrayTypeSymbol)other).ElementTypeWithAnnotations, variance);
             return WithElementType(elementType);
         }
 
@@ -471,46 +471,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        #region IArrayTypeSymbol Members
-
-        ITypeSymbol IArrayTypeSymbol.ElementType
+        protected sealed override ISymbol CreateISymbol()
         {
-            get { return this.ElementType; }
+            return new PublicModel.ArrayTypeSymbol(this, DefaultNullableAnnotation);
         }
 
-        CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
+        protected sealed override ITypeSymbol CreateITypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            get => ElementTypeWithAnnotations.ToPublicAnnotation();
+            Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
+            return new PublicModel.ArrayTypeSymbol(this, nullableAnnotation);
         }
-
-        ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers
-        {
-            get { return this.ElementTypeWithAnnotations.CustomModifiers; }
-        }
-
-        bool IArrayTypeSymbol.Equals(IArrayTypeSymbol? symbol)
-        {
-            return this.Equals(symbol as ArrayTypeSymbol, SymbolEqualityComparer.Default.CompareKind);
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitArrayType(this);
-        }
-
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitArrayType(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-        }
-
-        #endregion
 
         /// <summary>
         /// Represents SZARRAY - zero-based one-dimensional array 

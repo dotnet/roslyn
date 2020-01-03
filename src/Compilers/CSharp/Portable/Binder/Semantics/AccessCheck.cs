@@ -287,11 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             failedThroughTypeCheck = false;
 
-            if (containingType.IsTupleType)
-            {
-                containingType = containingType.TupleUnderlyingType;
-            }
-
             // easy case - members of containing type are accessible.
             if ((object)containingType == (object)within)
             {

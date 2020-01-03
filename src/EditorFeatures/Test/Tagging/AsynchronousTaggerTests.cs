@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 notificationService);
 
             var document = workspace.Documents.First();
-            var textBuffer = document.TextBuffer;
+            var textBuffer = document.GetTextBuffer();
             var snapshot = textBuffer.CurrentSnapshot;
             var tagger = taggerProvider.CreateTagger<TestTag>(textBuffer);
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             var document = workspace.Documents.First();
-            var textBuffer = document.TextBuffer;
+            var textBuffer = document.GetTextBuffer();
             var tagger = tagProvider.CreateTagger<IOutliningRegionTag>(textBuffer);
 
             using var disposable = (IDisposable)tagger;

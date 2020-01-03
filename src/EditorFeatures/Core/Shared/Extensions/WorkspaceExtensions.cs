@@ -49,29 +49,5 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var newText = oldText.WithChanges(textChanges);
             return solution.WithDocumentText(id, newText, PreservationMode.PreserveIdentity);
         }
-
-        internal static void GetLanguageAndProjectType(this Workspace workspace, ProjectId projectId, out string language, out string projectType)
-        {
-            language = string.Empty;
-            projectType = string.Empty;
-
-            if (workspace == null)
-            {
-                return;
-            }
-
-            var projectTypeLookup = workspace.Services.GetService<IProjectTypeLookupService>();
-
-            projectType = projectTypeLookup.GetProjectType(workspace, projectId);
-
-            // if projectId doesn't exist, not much we need to do.
-            if (projectId == null)
-            {
-                return;
-            }
-
-            var project = workspace.CurrentSolution.GetProject(projectId);
-            language = project?.Language ?? string.Empty;
-        }
     }
 }

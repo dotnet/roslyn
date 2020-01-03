@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -47,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         End If
 
                         Dim name = identifierNode.Identifier.ValueText
-                        Return If(name IsNot Nothing AndAlso name.Length > 0, MakeMethodName("Get", name), methodName)
+                        Return If(name IsNot Nothing AndAlso name.Length > 0, MakeMethodName("Get", name, camelCase:=False), methodName)
                     End If
 
                     If TypeOf expression Is MemberAccessExpressionSyntax Then
@@ -57,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     If TypeOf expression Is NameSyntax Then
                         Dim lastDottedName = CType(expression, NameSyntax).GetLastDottedName()
                         Dim plainName = CType(lastDottedName, SimpleNameSyntax).Identifier.ValueText
-                        Return If(plainName IsNot Nothing AndAlso plainName.Length > 0, MakeMethodName("Get", plainName), methodName)
+                        Return If(plainName IsNot Nothing AndAlso plainName.Length > 0, MakeMethodName("Get", plainName, camelCase:=False), methodName)
                     End If
 
                     Return methodName

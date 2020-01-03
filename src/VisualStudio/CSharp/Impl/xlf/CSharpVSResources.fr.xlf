@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, retour à la ligne, espacement)</target>
+        <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, enveloppement, espacement)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -20,11 +20,6 @@
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
         <target state="translated">Règles de formatage C#</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_language_server_client">
-        <source>C# Language Server Client</source>
-        <target state="translated">Client du serveur de langage C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -126,9 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
 
+        // Closures in the same method share the same SynthesizedClosureEnvironment. We must
+        // always return true because two closures in the same method might have different
+        // AreLocalsZeroed flags.
+        public sealed override bool AreLocalsZeroed => true;
+
         // The lambda method contains user code from the lambda
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
     }
 }

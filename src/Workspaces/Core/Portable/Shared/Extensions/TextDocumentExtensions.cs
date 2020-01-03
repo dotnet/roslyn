@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TextDocument WithAdditionalDocumentText(this TextDocument textDocument, SourceText text)
         {
             Contract.ThrowIfFalse(textDocument is AdditionalDocument);
-            return textDocument.Project.Solution.WithAdditionalDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id);
+            return textDocument.Project.Solution.WithAdditionalDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id)!;
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TextDocument WithAnalyzerConfigDocumentText(this TextDocument textDocument, SourceText text)
         {
             Contract.ThrowIfFalse(textDocument is AnalyzerConfigDocument);
-            return textDocument.Project.Solution.WithAnalyzerConfigDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id);
+            return textDocument.Project.Solution.WithAnalyzerConfigDocumentText(textDocument.Id, text, PreservationMode.PreserveIdentity).GetTextDocument(textDocument.Id)!;
         }
     }
 }

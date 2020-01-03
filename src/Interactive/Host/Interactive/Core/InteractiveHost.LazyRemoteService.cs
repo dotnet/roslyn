@@ -30,17 +30,16 @@ namespace Microsoft.CodeAnalysis.Interactive
                 SkipInitialization = skipInitialization;
             }
 
-            public void Dispose(bool joinThreads)
+            public void Dispose()
             {
                 // Cancel the creation of the process if it is in progress.
                 // If it is the cancellation will clean up all resources allocated during the creation.
                 CancellationSource.Cancel();
 
                 // If the value has been calculated already, dispose the service.
-                InitializedRemoteService initializedService;
-                if (InitializedService.TryGetValue(out initializedService) && initializedService.ServiceOpt != null)
+                if (InitializedService.TryGetValue(out var initializedService))
                 {
-                    initializedService.ServiceOpt.Dispose(joinThreads);
+                    initializedService.ServiceOpt?.Dispose();
                 }
             }
 
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         if (initializing)
                         {
                             // kill the process without triggering auto-reset:
-                            remoteService.Dispose(joinThreads: false);
+                            remoteService.Dispose();
                         }
                     });
 
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     if (!initializationResult.Success)
                     {
                         Host.ReportProcessExited(remoteService.Process);
-                        remoteService.Dispose(joinThreads: false);
+                        remoteService.Dispose();
 
                         return default;
                     }

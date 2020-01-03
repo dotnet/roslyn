@@ -10,33 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private readonly CpsDiagnosticItemSource _source;
 
-        public CpsDiagnosticItem(CpsDiagnosticItemSource source, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity)
-            : base(descriptor, effectiveSeverity)
+        public CpsDiagnosticItem(CpsDiagnosticItemSource source, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, string language)
+            : base(descriptor, effectiveSeverity, language)
         {
             _source = source;
         }
 
-        protected override Microsoft.CodeAnalysis.Workspace Workspace
-        {
-            get { return _source.Workspace; }
-        }
-
-        public override ProjectId ProjectId
-        {
-            get { return _source.ProjectId; }
-        }
-
-        protected override AnalyzerReference AnalyzerReference
-        {
-            get { return _source.AnalyzerReference; }
-        }
-
-        public override IContextMenuController ContextMenuController
-        {
-            get
-            {
-                return _source.DiagnosticItemContextMenuController;
-            }
-        }
+        public override ProjectId ProjectId => _source.ProjectId;
+        protected override AnalyzerReference AnalyzerReference => _source.AnalyzerReference;
+        public override IContextMenuController ContextMenuController => _source.DiagnosticItemContextMenuController;
     }
 }

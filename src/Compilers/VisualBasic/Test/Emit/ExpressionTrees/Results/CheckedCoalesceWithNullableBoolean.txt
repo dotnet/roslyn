@@ -239,27 +239,20 @@ Lambda(
   body {
     Convert(
       Conditional(
-        Coalesce(
-          AndAlso(
-            Convert(
-              Parameter(
-                x
-                type: System.Boolean
-              )
-              Lifted
-              LiftedToNull
-              type: System.Nullable`1[System.Boolean]
-            )
+        AndAlso(
+          Parameter(
+            x
+            type: System.Boolean
+          )
+          Coalesce(
             Parameter(
               y
               type: System.Nullable`1[System.Boolean]
             )
-            Lifted
-            LiftedToNull
-            type: System.Nullable`1[System.Boolean]
-          )
-          Constant(
-            False
+            Constant(
+              False
+              type: System.Boolean
+            )
             type: System.Boolean
           )
           type: System.Boolean

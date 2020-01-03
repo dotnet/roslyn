@@ -371,6 +371,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute != true && ContainingType.AreLocalsZeroed;
+            }
+        }
+
         #region Flags
 
         public override bool ReturnsVoid
@@ -1241,6 +1250,10 @@ done:
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                attribute.DecodeSkipLocalsInitAttribute<MethodWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DoesNotReturnAttribute))
             {
                 arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasDoesNotReturnAttribute = true;
@@ -1458,7 +1471,7 @@ done:
                 switch (namedArg.Key)
                 {
                     case "EntryPoint":
-                        importName = namedArg.Value.Value as string;
+                        importName = namedArg.Value.ValueInternal as string;
                         if (!MetadataHelpers.IsValidMetadataIdentifier(importName))
                         {
                             // Dev10 reports CS0647: "Error emitting attribute ..."

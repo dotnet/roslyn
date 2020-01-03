@@ -15,16 +15,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim namespaceBlock = node.GetAncestor(Of NamespaceBlockSyntax)()
             If namespaceBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
 
             With namespaceBlock
-                Return { .NamespaceStatement.NamespaceKeyword.Span,
-                        .EndNamespaceStatement.Span}
+                highlights.Add(.NamespaceStatement.NamespaceKeyword.Span)
+                highlights.Add(.EndNamespaceStatement.Span)
             End With
-        End Function
+        End Sub
     End Class
 End Namespace

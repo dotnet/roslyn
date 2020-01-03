@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents an anonymous type template's property symbol.
         /// </summary>
-        private sealed class AnonymousTypePropertySymbol : PropertySymbol
+        internal sealed class AnonymousTypePropertySymbol : PropertySymbol
         {
             private readonly NamedTypeSymbol _containingType;
             private readonly TypeWithAnnotations _typeWithAnnotations;

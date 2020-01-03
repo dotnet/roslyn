@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // it may be better if local does not have a name as will restrict reuse of locals when we do it.
 
         //Local symbol, currently used by edit and continue and for the location.
-        private readonly ILocalSymbol? _symbolOpt;
+        private readonly ILocalSymbolInternal? _symbolOpt;
 
         private readonly string? _nameOpt;
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <param name="dynamicTransformFlags">The synthesized dynamic attributes of the local.</param>
         /// <param name="tupleElementNames">Tuple element names of the local.</param>
         public LocalDefinition(
-            ILocalSymbol? symbolOpt,
+            ILocalSymbolInternal? symbolOpt,
             string? nameOpt,
             Cci.ITypeReference type,
             int slot,
@@ -83,16 +84,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal string GetDebuggerDisplay()
             => $"{_slot}: {_nameOpt ?? "<unnamed>"} ({_type})";
 
-        public ILocalSymbol? SymbolOpt => _symbolOpt;
+        public ILocalSymbolInternal? SymbolOpt => _symbolOpt;
 
         public Location Location
         {
             get
             {
-                ISymbol? symbol = _symbolOpt as ISymbol;
-                if (symbol != null)
+                if (_symbolOpt != null)
                 {
-                    ImmutableArray<Location> locations = symbol.Locations;
+                    ImmutableArray<Location> locations = _symbolOpt.Locations;
                     if (!locations.IsDefaultOrEmpty)
                     {
                         return locations[0];

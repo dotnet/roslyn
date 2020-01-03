@@ -137,8 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             => diagnosticId == CS8129;
 
         protected override bool CanAddImportForGetAwaiter(string diagnosticId, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
-            => diagnosticId == CS1061 &&
-            AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
+            => (diagnosticId == CS1061 || // Regular cases
+                diagnosticId == CS4036 || // WinRT async interfaces
+                diagnosticId == CS1929) && // An extension `GetAwaiter()` is in scope, but for another type
+                AncestorOrSelfIsAwaitExpression(syntaxFactsService, node);
 
         protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
@@ -147,14 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override bool CanAddImportForQuery(string diagnosticId, SyntaxNode node)
-        {
-            if (diagnosticId != CS1935)
-            {
-                return false;
-            }
-
-            return node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
-        }
+            => (diagnosticId == CS1935 || // Regular cases
+                diagnosticId == CS1929) && // An extension method is in scope, but for another type
+                node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
 
         protected override bool CanAddImportForType(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {

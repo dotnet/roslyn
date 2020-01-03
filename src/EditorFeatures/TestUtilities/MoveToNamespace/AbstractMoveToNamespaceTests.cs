@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                             checkedCodeActions.Add(codeAction);
                         }
                     }
-
                 }
 
                 if (!optionCancelled && !string.IsNullOrEmpty(targetNamespace))

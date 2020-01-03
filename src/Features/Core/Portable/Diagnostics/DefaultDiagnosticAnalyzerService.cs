@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -123,24 +124,57 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private async Task AnalyzeForKind(Document document, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                var diagnosticData = await _service._analyzerService.GetDiagnosticsAsync(document, GetAnalyzers(), kind, cancellationToken).ConfigureAwait(false);
+                var diagnosticData = await GetDiagnosticsAsync(document, kind, cancellationToken).ConfigureAwait(false);
 
                 _service.RaiseDiagnosticsUpdated(
                     DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, kind, document.Id),
-                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData.ToImmutableArrayOrEmpty()));
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+            }
 
-                IEnumerable<DiagnosticAnalyzer> GetAnalyzers()
+            /// <summary>
+            /// Get diagnostics for the given document.
+            /// 
+            /// This is a simple API to get all diagnostics for the given document.
+            /// 
+            /// The intended audience for this API is for ones that pefer simplicity over performance such as document that belong to misc project.
+            /// this doesn't cache nor use cache for anything. it will re-caculate new diagnostics every time for the given document.
+            /// it will not persist any data on disk nor use OOP to calcuate the data.
+            /// 
+            /// This should never be used when performance is a big concern. for such context, use much complex API from IDiagnosticAnalyzerService
+            /// that provide all kinds of knobs/cache/persistency/OOP to get better perf over simplicity.
+            /// </summary>
+            private async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+               Document document, AnalysisKind kind, CancellationToken cancellationToken)
+            {
+                // given service must be DiagnosticAnalyzerService
+                var diagnosticService = (DiagnosticAnalyzerService)_service._analyzerService;
+
+                var analyzers = GetAnalyzers(diagnosticService, document.Project);
+
+                var compilationWithAnalyzers = await diagnosticService.CreateCompilationWithAnalyzers(
+                    document.Project, analyzers, includeSuppressedDiagnostics: false, logAggregator: null, cancellationToken).ConfigureAwait(false);
+
+                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+                foreach (var analyzer in analyzers)
                 {
-                    // C# or VB document that supports compiler
-                    var compilerAnalyzer = _service._analyzerService.GetCompilerDiagnosticAnalyzer(document.Project.Language);
-                    if (compilerAnalyzer != null)
-                    {
-                        return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
-                    }
-
-                    // document that doesn't support compiler diagnostics such as fsharp or typescript
-                    return _service._analyzerService.GetDiagnosticAnalyzers(document.Project);
+                    builder.AddRange(await diagnosticService.ComputeDiagnosticsAsync(
+                        compilationWithAnalyzers, document, analyzer, kind, spanOpt: null, logAggregator: null, cancellationToken).ConfigureAwait(false));
                 }
+
+                return builder.ToImmutableAndFree();
+            }
+
+            private static IEnumerable<DiagnosticAnalyzer> GetAnalyzers(DiagnosticAnalyzerService service, Project project)
+            {
+                // C# or VB document that supports compiler
+                var compilerAnalyzer = service.GetCompilerDiagnosticAnalyzer(project.Language);
+                if (compilerAnalyzer != null)
+                {
+                    return SpecializedCollections.SingletonEnumerable(compilerAnalyzer);
+                }
+
+                // document that doesn't support compiler diagnostics such as FSharp or TypeScript
+                return service.GetDiagnosticAnalyzers(project);
             }
 
             public void RemoveDocument(DocumentId documentId)
