@@ -187,7 +187,6 @@ class MyClass
             selectionChangedMonitor.VerifyExpectations()
             selectionChangedMonitor.Detach()
 
-
             VerifyAlteredState(
                 viewModelTestState,
                 canMoveUp:=True,

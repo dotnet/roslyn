@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -242,7 +243,7 @@ class C{i}
             // If a reference does not bind correctly, it will believe Ext is not an extension
             // method and remove the string argument instead of the int argument.
 
-            var updatedSignature = new[] { 0, 2 };
+            var updatedSignature = new[] { new AddedParameterOrExistingIndex(0), new AddedParameterOrExistingIndex(2) };
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.IsCancelled = false;
