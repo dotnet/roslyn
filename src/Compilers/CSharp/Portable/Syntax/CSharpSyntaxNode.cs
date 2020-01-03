@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -459,6 +457,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
 
         #region SyntaxNode members
+
+        internal override SyntaxDiffer GetDiffer(SyntaxNode newNode, bool computeNewText) =>
+            new CSharpSyntaxDiffer(this, newNode, computeNewText);
 
         /// <summary>
         /// Determine if this node is structurally equivalent to another.
