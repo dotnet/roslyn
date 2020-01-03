@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
                 // Check if the type of the expression is a nullable INamedTypeSymbol
                 // if the type is both nullable and an INamedTypeSymbol extact the type argument from the nullable
                 // and check if it is of enum type
-                switchExpression?.Type.IsNullable(out switchExpressionType);
+                switchExpressionType  = switchExpressionType.IsNullable(out underlyingType) ? underlyingType : switchExpressionType;
             }
 
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
