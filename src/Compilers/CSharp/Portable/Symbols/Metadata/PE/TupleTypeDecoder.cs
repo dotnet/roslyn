@@ -236,11 +236,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (decodedType.IsTupleType)
             {
                 int tupleCardinality = decodedType.TupleElementTypesWithAnnotations.Length;
-                var elementNames = EatElementNamesIfAvailable(tupleCardinality);
+                if (tupleCardinality > 0)
+                {
+                    var elementNames = EatElementNamesIfAvailable(tupleCardinality);
 
-                Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
+                    Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
-                decodedType = NamedTypeSymbol.CreateTuple(decodedType, elementNames);
+                    decodedType = NamedTypeSymbol.CreateTuple(decodedType, elementNames);
+                }
             }
 
             return decodedType;
