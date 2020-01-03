@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             var definitionTrackingContext = new DefinitionTrackingContext(context);
 
-            // Need ConfigureAwait(true) here so we get back to the UI thread before calling 
+            // Need ConfigureAwait(true) here so we get back to the UI thread before calling
             // GetThirdPartyDefinitions.  We need to call that on the UI thread to match behavior
             // of how the language service always worked in the past.
             //
@@ -71,18 +72,23 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             await FindLiteralOrSymbolReferencesAsync(
                 document, position, definitionTrackingContext).ConfigureAwait(true);
 
-            // After the FAR engine is done call into any third party extensions to see
-            // if they want to add results.
-            var thirdPartyDefinitions = GetThirdPartyDefinitions(
+            // When editor handles symbol search, we are running on background thread.
+            // Don't call into third party extensions which work on UI thread
+            if (!SymbolSearchPreviewUtility.EditorHandlesSymbolSearch(document.Project.Solution.Workspace))
+            {
+                // After the FAR engine is done call into any third party extensions to see
+                // if they want to add results.
+                var thirdPartyDefinitions = GetThirdPartyDefinitions(
                 document.Project.Solution, definitionTrackingContext.GetDefinitions(), context.CancellationToken);
 
-            // From this point on we can do ConfigureAwait(false) as we're not calling back 
-            // into third parties anymore.
+                // From this point on we can do ConfigureAwait(false) as we're not calling back
+                // into third parties anymore.
 
-            foreach (var definition in thirdPartyDefinitions)
-            {
-                // Don't need ConfigureAwait(true) here 
-                await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                foreach (var definition in thirdPartyDefinitions)
+                {
+                    // Don't need ConfigureAwait(true) here
+                    await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                }
             }
         }
 

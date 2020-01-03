@@ -1356,4 +1356,13 @@ I agree to all of the foregoing:</value>
   <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
   </data>
+  <data name="Symbol_search_current_solution" xml:space="preserve">
+    <value>Current Solution</value>
+  </data>
+  <data name="Symbol_search_known_solution" xml:space="preserve">
+    <value>'{0}' Solution</value>
+  </data>
+  <data name="Symbol_search_source_name" xml:space="preserve">
+    <value>Local language service</value>
+  </data>
 </root>

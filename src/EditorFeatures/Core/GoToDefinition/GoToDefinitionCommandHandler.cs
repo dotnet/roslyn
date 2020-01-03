@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -44,6 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             var subjectBuffer = args.SubjectBuffer;
             var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+
+            if (SymbolSearchPreviewUtility.EditorHandlesSymbolSearch(document.Project.Solution.Workspace))
+            {
+                return false;
+            }
+
             if (service != null)
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);

@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -53,6 +54,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         {
             var subjectBuffer = args.SubjectBuffer;
 
+            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            if (SymbolSearchPreviewUtility.EditorHandlesSymbolSearch(document.Project.Solution.Workspace))
+            {
+                return false;
+            }
+
             // Get the selection that user has in our buffer (this also works if there
             // is no selection and the caret is just at a single position).  If we 
             // can't get the selection, or there are multiple spans for it (i.e. a 
@@ -61,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             if (snapshotSpans.Count == 1)
             {
                 var selectedSpan = snapshotSpans[0];
-                var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
                 if (document != null)
                 {
                     // Do a find-refs at the *start* of the selection.  That way if the
