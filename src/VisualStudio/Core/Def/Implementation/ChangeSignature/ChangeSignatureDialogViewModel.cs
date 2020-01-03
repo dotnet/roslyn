@@ -221,7 +221,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(AllParameters));
             NotifyPropertyChanged(nameof(SignatureDisplay));
             NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
-            NotifyPropertyChanged(nameof(IsOkButtonEnabled));
             NotifyPropertyChanged(nameof(CanRemove));
             NotifyPropertyChanged(nameof(RemoveAutomationText));
             NotifyPropertyChanged(nameof(CanRestore));
@@ -425,25 +424,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(AllParameters));
             NotifyPropertyChanged(nameof(SignatureDisplay));
             NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
-            NotifyPropertyChanged(nameof(IsOkButtonEnabled));
         }
 
         internal bool TrySubmit()
         {
-            return IsOkButtonEnabled;
+            return AllParameters.Any(p => p.IsRemoved) ||
+                AllParameters.Any(p => p is AddedParameterViewModel) ||
+            !_parametersWithoutDefaultValues.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues.Cast<ExistingParameter>().Select(p => p.Symbol)) ||
+            !_parametersWithDefaultValues.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters.Cast<ExistingParameter>().Select(p => p.Symbol));
         }
 
         private bool IsDisabled(ParameterViewModel parameterViewModel)
         {
             return _disabledParameters.Contains(parameterViewModel);
-        }
-
-        public bool IsOkButtonEnabled
-        {
-            get
-            {
-                return true;
-            }
         }
 
         private int? _selectedIndex;
@@ -561,6 +554,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             internal abstract Parameter CreateParameter();
 
             public abstract string InitialIndex { get; }
+            public abstract string Modifier { get; }
+            public abstract string Default { get; }
+            public abstract IParameterSymbol ParameterSymbol { get; }
         }
 
         public class AddedParameterViewModel : ParameterViewModel
@@ -587,11 +583,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 => new AddedParameter(Type, Parameter, Callsite);
 
             public override string InitialIndex => "NEW";
+
+            // Newly added parameters cannot have modifiers yet
+            public override string Modifier => string.Empty;
+
+            // Only required parameters are supported currently
+            public override string Default => string.Empty;
+
+            // Use null as a marker that this is an added parameter
+            public override IParameterSymbol ParameterSymbol => null;
         }
 
         public class ExistingParameterViewModel : ParameterViewModel
         {
-            public IParameterSymbol ParameterSymbol { get; }
+            public override IParameterSymbol ParameterSymbol { get; }
 
             public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, Parameter parameter, int initialIndex)
                 : base(changeSignatureDialogViewModel)
@@ -611,7 +616,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string InitialIndex { get; }
 
-            public string Modifier
+            public override string Modifier
             {
                 get
                 {
@@ -656,7 +661,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string Parameter => ParameterSymbol.Name;
 
-            public string Default
+            public override string Default
             {
                 get
                 {

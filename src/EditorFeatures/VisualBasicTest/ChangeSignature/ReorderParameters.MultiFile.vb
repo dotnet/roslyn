@@ -52,7 +52,9 @@ class C
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
-                testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
+                testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation.Select(Function(i) As AddedParameterOrExistingIndex
+                                                                                                      Return New AddedParameterOrExistingIndex(i)
+                                                                                                  End Function).ToArray()
                 Dim result = testState.ChangeSignature()
 
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
@@ -106,7 +108,9 @@ class C
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
-                testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
+                testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation.Select(Function(i) As AddedParameterOrExistingIndex
+                                                                                                      Return New AddedParameterOrExistingIndex(i)
+                                                                                                  End Function).ToArray()
                 Dim result = testState.ChangeSignature()
 
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
