@@ -291,27 +291,27 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 position = declarationBody.SpanStart;
             }
 
-            SyntaxNode? node;
+            SyntaxNode node;
             if (partnerDeclarationBody != null)
             {
                 SyntaxUtilities.FindLeafNodeAndPartner(declarationBody, position, partnerDeclarationBody, out node, out partner);
             }
             else
             {
-                node = declarationBody.FindToken(position).Parent;
+                node = declarationBody.FindToken(position).Parent!;
                 partner = null;
             }
 
-            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node!) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
+            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
             {
-                node = node!.Parent;
+                node = node.Parent!;
                 if (partner != null)
                 {
                     partner = partner.Parent;
                 }
             }
 
-            switch (node!.Kind())
+            switch (node.Kind())
             {
                 case SyntaxKind.Block:
                     statementPart = (int)GetStatementPart((BlockSyntax)node!, position);
@@ -3218,7 +3218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 RoslynDebug.Assert(node is object);
                 RoslynDebug.Assert(node.Parent is object);
-                switch (node.Parent!.Kind())
+                switch (node.Parent.Kind())
                 {
                     case SyntaxKind.ForStatement:
                     case SyntaxKind.ForEachStatement:

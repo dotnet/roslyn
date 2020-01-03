@@ -1955,19 +1955,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return -1;
         }
 
-        private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode? node, Func<SyntaxNode, bool> nodeSelector)
+        private static List<SyntaxNode?>? GetAncestors(SyntaxNode? root, SyntaxNode node, Func<SyntaxNode, bool> nodeSelector)
         {
             List<SyntaxNode?>? list = null;
+            SyntaxNode? current = node;
 
-            while (node is object && node != root)
+            while (current is object && current != root)
             {
-                if (nodeSelector(node))
+                if (nodeSelector(current))
                 {
                     list ??= new List<SyntaxNode?>();
-                    list.Add(node);
+                    list.Add(current);
                 }
 
-                node = node.Parent;
+                current = current.Parent;
             }
 
             list?.Reverse();

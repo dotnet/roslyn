@@ -169,12 +169,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
             var usingDirective = contextNode.GetAncestor<TUsingOrAliasSyntax>();
 
-            SyntaxNode? node = contextNode;
-            if (usingDirective != null)
-            {
-                node = usingDirective.Parent!;
-            }
-
+            SyntaxNode? node = usingDirective != null ? usingDirective.Parent! : contextNode;
             return node.GetAncestor<TNamespaceDeclarationSyntax>() ??
                    (SyntaxNode?)node.GetAncestorOrThis<TCompilationUnitSyntax>();
         }
