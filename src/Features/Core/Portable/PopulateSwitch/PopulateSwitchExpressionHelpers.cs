@@ -21,13 +21,10 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var enumMembers = new Dictionary<long, ISymbol>();
 
-            if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                // Check if the type of the expression is a nullable INamedTypeSymbol
-                // if the type is both nullable and an INamedTypeSymbol extract the type argument from the nullable
-                // and check if it is of enum type
-                switchExpressionType = switchExpressionType.IsNullable(out underlyingType) ? underlyingType : switchExpressionType;
-            }
+            // Check if the type of the expression is a nullable INamedTypeSymbol
+            // if the type is both nullable and an INamedTypeSymbol extract the type argument from the nullable
+            // and check if it is of enum type
+            switchExpressionType = switchExpressionType.IsNullable(out underlyingType) ? underlyingType : switchExpressionType;
 
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
