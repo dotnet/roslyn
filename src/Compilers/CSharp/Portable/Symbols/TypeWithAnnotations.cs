@@ -285,8 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!IsSafeToResolve())
                 {
                     if (NullableAnnotation.IsAnnotated() &&
-                        (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) ||
-                            format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)))
+                        format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
                     {
                         return DefaultType.ToDisplayString(format) + "?";
                     }
@@ -299,8 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (format != null)
             {
                 if (NullableAnnotation.IsAnnotated() &&
-                    (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) ||
-                        format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)) &&
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                     (!HasType || (!IsNullableType() && !Type.IsValueType)))
                 {
                     return str + "?";

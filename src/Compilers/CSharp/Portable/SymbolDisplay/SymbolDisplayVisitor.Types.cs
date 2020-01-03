@@ -79,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.NullableAnnotation)
             {
                 case CodeAnalysis.NullableAnnotation.Annotated:
-                    if ((format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) ||
-                        format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)) &&
+                    if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                         !ITypeSymbolHelpers.IsNullableType(type) && !type.IsValueType)
                     {
                         return true;
@@ -799,8 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 switch (typeParam.ReferenceTypeConstraintNullableAnnotation)
                                 {
                                     case CodeAnalysis.NullableAnnotation.Annotated:
-                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) ||
-                                            format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier))
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier))
                                         {
                                             AddPunctuation(SyntaxKind.QuestionToken);
                                         }
