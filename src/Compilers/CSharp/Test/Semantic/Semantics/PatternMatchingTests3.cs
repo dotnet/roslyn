@@ -1663,6 +1663,9 @@ class C
         if (o is (1 or 2) or int y4) { }
         if (o is not int y5) { }
         if (o is not (1 and int y6)) { }
+        if (o is Point { X: var y7 } or Animal _) { }
+        if (o is Point(var y8, _) or Animal _) { }
+        if (o is object or (1 or var y9)) { }
     }
 
     void NotBad(object o)
@@ -1675,6 +1678,12 @@ class C
         if (o is not (1 and int _)) { }
     }
 }
+class Point
+{
+    public int X => 3;
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
+}
+class Animal { }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
@@ -1695,7 +1704,16 @@ class C
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(20, 26),
                 // (21,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is not (1 and int y6)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(21, 33)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(21, 33),
+                // (22,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point { X: var y7 } or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(22, 33),
+                // (23,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point(var y8, _) or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y8").WithLocation(23, 28),
+                // (24,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is object or (1 or var y9)) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y9").WithLocation(24, 38)
                 );
         }
     }
