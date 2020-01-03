@@ -1737,5 +1737,37 @@ class C
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 27)
                 );
         }
+
+        [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
+        [Fact]
+        public void SwitchExpressionWithAmbiguousImplicitConversion_04()
+        {
+            var source = @"
+class A
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class B
+{
+  public static implicit operator B(A a) => new B();
+}
+
+class C
+{
+  static void M(int i)
+  {
+    B x = i switch { _ => i switch { _ => new A() } };
+    x.ToString();
+  }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,43): error CS0457: Ambiguous user defined conversions 'A.implicit operator B(A)' and 'B.implicit operator B(A)' when converting from 'A' to 'B'
+                //     B x = i switch { _ => i switch { _ => new A() } };
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "new A()").WithArguments("A.implicit operator B(A)", "B.implicit operator B(A)", "A", "B").WithLocation(16, 43)
+                );
+        }
     }
 }
