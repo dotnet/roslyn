@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceLocation(in SyntaxToken token)
-            : this(token.SyntaxTree, token.Span)
+            : this(token.SyntaxTree!, token.Span)
         {
         }
 

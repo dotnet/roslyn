@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
 
             return nextToken.RawKind == 0
-                ? ((ICompilationUnitSyntax)token.Parent.SyntaxTree.GetRoot(CancellationToken.None)).EndOfFileToken
+                ? ((ICompilationUnitSyntax)token.Parent!.SyntaxTree!.GetRoot(CancellationToken.None)).EndOfFileToken
                 : nextToken;
         }
 
