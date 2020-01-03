@@ -2728,9 +2728,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we know for sure that a slot contains a null value, then we know for sure that dependent slots
         // are "unreachable" so we might as well treat them as not null.  That way when this state is merged
         // with another state, those dependent states won't pollute values from the other state.
-        private void MarkDependentSlotsNotNull(int slot, TypeSymbol expressionType, ref LocalState state)
+        private void MarkDependentSlotsNotNull(int slot, TypeSymbol expressionType, ref LocalState state, int depth = 2)
         {
-            foreach (var member in expressionType.GetMembers())
+            if (depth <= 0)
+                return;
+
+            foreach (var member in getMembers(expressionType))
             {
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
                 NamedTypeSymbol containingType = this._symbol?.ContainingType;
@@ -2742,9 +2745,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (childSlot > 0)
                     {
                         state[childSlot] = NullableFlowState.NotNull;
-                        MarkDependentSlotsNotNull(childSlot, member.GetTypeOrReturnType().Type, ref state);
+                        MarkDependentSlotsNotNull(childSlot, member.GetTypeOrReturnType().Type, ref state, depth - 1);
                     }
                 }
+            }
+
+            IEnumerable<Symbol> getMembers(TypeSymbol type)
+            {
+                // First, return the direct members
+                foreach (var member in type.GetMembers())
+                    yield return member;
+
+                // All types inherit members from their effective bases
+                for (NamedTypeSymbol baseType = effectiveBase(type); !(baseType is null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                    foreach (var member in baseType.GetMembers())
+                        yield return member;
+
+                // Interfaces and type parameters inherit from their effective interfaces
+                foreach (NamedTypeSymbol interfaceType in inheritedInterfaces(type))
+                    foreach (var member in interfaceType.GetMembers())
+                        yield return member;
+
+                yield break;
+
+                NamedTypeSymbol effectiveBase(TypeSymbol type) => type switch
+                {
+                    TypeParameterSymbol tp => tp.EffectiveBaseClassNoUseSiteDiagnostics,
+                    var t => t.BaseTypeNoUseSiteDiagnostics,
+                };
+
+                ImmutableArray<NamedTypeSymbol> inheritedInterfaces(TypeSymbol type) => type switch
+                {
+                    TypeParameterSymbol tp => tp.AllEffectiveInterfacesNoUseSiteDiagnostics,
+                    { TypeKind: TypeKind.Interface } => type.AllInterfacesNoUseSiteDiagnostics,
+                    _ => ImmutableArray<NamedTypeSymbol>.Empty,
+                };
             }
         }
 
