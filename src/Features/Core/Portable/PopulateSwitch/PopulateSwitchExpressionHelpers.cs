@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -20,13 +21,12 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
             var enumMembers = new Dictionary<long, ISymbol>();
 
-            if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
-                && switchExpressionType is INamedTypeSymbol)
+            if (switchExpressionType?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 // Check if the type of the expression is a nullable INamedTypeSymbol
                 // if the type is both nullable and an INamedTypeSymbol extact the type argument from the nullable
                 // and check if it is of enum type
-                switchExpressionType = ((INamedTypeSymbol)switchExpressionType).TypeArguments[0];
+                switchExpression?.Type.IsNullable(out switchExpressionType);
             }
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
