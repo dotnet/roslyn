@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
                 methodOwner?.MethodKind == MethodKind.LocalFunction;
 
-            if (parsingFunctionPointer)
+            if (!parsingFunctionPointer)
             {
                 binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
             }
