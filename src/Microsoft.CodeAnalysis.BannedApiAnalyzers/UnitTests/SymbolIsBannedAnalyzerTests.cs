@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-using VerifyVB = Test.Utilities.VisualBasicSecurityCodeFixVerifier<
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.BasicSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
