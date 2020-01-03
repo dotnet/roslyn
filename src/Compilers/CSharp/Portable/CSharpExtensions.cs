@@ -961,11 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If <paramref name="nameSyntax"/> resolves to an alias name, return the AliasSymbol corresponding
         /// to A. Otherwise return null.
         /// </summary>
-<<<<<<< HEAD
         public static IAliasSymbol? GetAliasInfo(this SemanticModel? semanticModel, IdentifierNameSyntax nameSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IAliasSymbol? GetAliasInfo(this SemanticModel semanticModel, IdentifierNameSyntax nameSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetAliasInfo(nameSyntax, cancellationToken);
@@ -975,11 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Binds the name in the context of the specified location and sees if it resolves to an
         /// alias name. If it does, return the AliasSymbol corresponding to it. Otherwise, return null.
         /// </summary>
-<<<<<<< HEAD
         public static IAliasSymbol? GetSpeculativeAliasInfo(this SemanticModel? semanticModel, int position, IdentifierNameSyntax nameSyntax, SpeculativeBindingOption bindingOption)
-=======
-        public static IAliasSymbol? GetSpeculativeAliasInfo(this SemanticModel semanticModel, int position, IdentifierNameSyntax nameSyntax, SpeculativeBindingOption bindingOption)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetSpeculativeAliasInfo(position, nameSyntax, bindingOption);
@@ -988,11 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyze control-flow within a part of a method body.
         /// </summary>
-<<<<<<< HEAD
         public static ControlFlowAnalysis? AnalyzeControlFlow(this SemanticModel? semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
-=======
-        public static ControlFlowAnalysis? AnalyzeControlFlow(this SemanticModel semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.AnalyzeControlFlow(firstStatement, lastStatement);
@@ -1001,11 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyze control-flow within a part of a method body.
         /// </summary>
-<<<<<<< HEAD
         public static ControlFlowAnalysis? AnalyzeControlFlow(this SemanticModel? semanticModel, StatementSyntax statement)
-=======
-        public static ControlFlowAnalysis? AnalyzeControlFlow(this SemanticModel semanticModel, StatementSyntax statement)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.AnalyzeControlFlow(statement);
@@ -1014,11 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyze data-flow within an expression.
         /// </summary>
-<<<<<<< HEAD
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
-=======
-        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel semanticModel, ExpressionSyntax expression)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.AnalyzeDataFlow(expression);
@@ -1027,11 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyze data-flow within a part of a method body.
         /// </summary>
-<<<<<<< HEAD
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
-=======
-        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.AnalyzeDataFlow(firstStatement, lastStatement);
@@ -1040,11 +1016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Analyze data-flow within a part of a method body.
         /// </summary>
-<<<<<<< HEAD
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, StatementSyntax statement)
-=======
-        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel semanticModel, StatementSyntax statement)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.AnalyzeDataFlow(statement);
@@ -1055,11 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given <paramref name="position"/> must lie within an existing method body of the Root syntax node for this SemanticModel.
         /// Locals and labels declared within this existing method body are not considered to be in scope of the speculated method body.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModelForMethodBody([NotNullWhen(true)] this SemanticModel? semanticModel, int position, BaseMethodDeclarationSyntax method, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModelForMethodBody(this SemanticModel semanticModel, int position, BaseMethodDeclarationSyntax method, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1078,11 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given <paramref name="position"/> must lie within an existing method body of the Root syntax node for this SemanticModel.
         /// Locals and labels declared within this existing method body are not considered to be in scope of the speculated method body.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModelForMethodBody([NotNullWhen(true)] this SemanticModel? semanticModel, int position, AccessorDeclarationSyntax accessor, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModelForMethodBody(this SemanticModel semanticModel, int position, AccessorDeclarationSyntax accessor, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1101,11 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of a type syntax that did not appear in source code.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, TypeSyntax type, [NotNullWhen(true)] out SemanticModel? speculativeModel, SpeculativeBindingOption bindingOption = SpeculativeBindingOption.BindAsExpression)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, TypeSyntax type, [NotNullWhen(true)] out SemanticModel? speculativeModel, SpeculativeBindingOption bindingOption = SpeculativeBindingOption.BindAsExpression)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1124,11 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of a cref syntax that did not appear in source code.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, CrefSyntax crefSyntax, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, CrefSyntax crefSyntax, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1147,11 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of a statement that did not appear in source code.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, StatementSyntax statement, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, StatementSyntax statement, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1170,11 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of a field initializer or default parameter value that did not appear in source code.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, EqualsValueClauseSyntax initializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, EqualsValueClauseSyntax initializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1193,11 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of an expression body that did not appear in source code.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, ArrowExpressionClauseSyntax expressionBody, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, ArrowExpressionClauseSyntax expressionBody, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1218,11 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// NOTE: This will only work in locations where there is already a constructor initializer.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, ConstructorInitializerSyntax constructorInitializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, ConstructorInitializerSyntax constructorInitializer, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1241,11 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this source code. This can be used to get detailed semantic information about sub-parts
         /// of an attribute that did not appear in source code.
         /// </summary>
-<<<<<<< HEAD
         public static bool TryGetSpeculativeSemanticModel([NotNullWhen(true)] this SemanticModel? semanticModel, int position, AttributeSyntax attribute, [NotNullWhen(true)] out SemanticModel? speculativeModel)
-=======
-        public static bool TryGetSpeculativeSemanticModel(this SemanticModel semanticModel, int position, AttributeSyntax attribute, [NotNullWhen(true)] out SemanticModel? speculativeModel)
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             if (csmodel != null)
@@ -1298,11 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a member declaration syntax, get the corresponding symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ISymbol? GetDeclaredSymbol(this SemanticModel semanticModel, MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1312,11 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
         /// the declaration assembly.
         /// </summary>
-<<<<<<< HEAD
         public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1325,11 +1253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a type declaration, get the corresponding type symbol.
         /// </summary>
-<<<<<<< HEAD
         public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1338,11 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a delegate declaration, get the corresponding type symbol.
         /// </summary>
-<<<<<<< HEAD
         public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, DelegateDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, DelegateDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1351,11 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a enum member declaration, get the corresponding field symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IFieldSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, EnumMemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IFieldSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, EnumMemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1364,11 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a base method declaration syntax, get the corresponding method symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1377,11 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node that declares a property, indexer or an event, get the corresponding declared symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, BasePropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ISymbol? GetDeclaredSymbol(this SemanticModel semanticModel, BasePropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1390,11 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node that declares a property, get the corresponding declared symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IPropertySymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, PropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IPropertySymbol? GetDeclaredSymbol(this SemanticModel semanticModel, PropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1403,11 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node that declares an indexer, get the corresponding declared symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IPropertySymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, IndexerDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IPropertySymbol? GetDeclaredSymbol(this SemanticModel semanticModel, IndexerDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1416,11 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node that declares a (custom) event, get the corresponding event symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IEventSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, EventDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IEventSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, EventDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1429,11 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node of anonymous object creation initializer, get the anonymous object property symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IPropertySymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, AnonymousObjectMemberDeclaratorSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IPropertySymbol? GetDeclaredSymbol(this SemanticModel semanticModel, AnonymousObjectMemberDeclaratorSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
@@ -1442,11 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node of anonymous object creation expression, get the anonymous object type symbol.
         /// </summary>
-<<<<<<< HEAD
         public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
@@ -1455,11 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node of tuple expression, get the tuple type symbol.
         /// </summary>
-<<<<<<< HEAD
         public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static INamedTypeSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, TupleExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
@@ -1468,11 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node of a tuple argument, get the tuple element symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ISymbol? GetDeclaredSymbol(this SemanticModel semanticModel, ArgumentSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
@@ -1481,11 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node that declares a property or member accessor, get the corresponding symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, AccessorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, AccessorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1494,11 +1370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, SingleVariableDesignationSyntax designationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ISymbol? GetDeclaredSymbol(this SemanticModel semanticModel, SingleVariableDesignationSyntax designationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(designationSyntax, cancellationToken);
@@ -1507,11 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a variable declarator syntax, get the corresponding symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ISymbol? GetDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1520,11 +1388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a tuple element syntax, get the corresponding symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ISymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ISymbol? GetDeclaredSymbol(this SemanticModel semanticModel, TupleElementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1533,11 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ILabelSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ILabelSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1546,11 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a switch label syntax, get the corresponding label symbol.
         /// </summary>
-<<<<<<< HEAD
         public static ILabelSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, SwitchLabelSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ILabelSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, SwitchLabelSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1559,11 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a using declaration get the corresponding symbol for the using alias that was introduced.
         /// </summary>
-<<<<<<< HEAD
         public static IAliasSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, UsingDirectiveSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IAliasSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, UsingDirectiveSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1572,11 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given an extern alias declaration get the corresponding symbol for the alias that was introduced.
         /// </summary>
-<<<<<<< HEAD
         public static IAliasSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ExternAliasDirectiveSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IAliasSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, ExternAliasDirectiveSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1585,11 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a parameter declaration syntax node, get the corresponding symbol.
         /// </summary>
-<<<<<<< HEAD
         public static IParameterSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ParameterSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IParameterSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
@@ -1598,11 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a type parameter declaration (field or method), get the corresponding symbol
         /// </summary>
-<<<<<<< HEAD
         public static ITypeParameterSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ITypeParameterSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(typeParameter, cancellationToken);
@@ -1611,11 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
-<<<<<<< HEAD
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
@@ -1624,21 +1460,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
         /// </summary>
-<<<<<<< HEAD
         public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static ILocalSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
         }
 
-<<<<<<< HEAD
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(queryClause, cancellationToken);
@@ -1647,11 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the query range variable declared in a join into clause.
         /// </summary>
-<<<<<<< HEAD
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, JoinIntoClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, JoinIntoClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);
@@ -1660,11 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get the query range variable declared in a query continuation clause.
         /// </summary>
-<<<<<<< HEAD
         public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
-=======
-        public static IRangeVariableSymbol? GetDeclaredSymbol(this SemanticModel semanticModel, QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
->>>>>>> Annotate SyntaxNode
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);

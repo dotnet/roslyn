@@ -199,7 +199,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
-        bool IsNameOfMemberAccessExpression(SyntaxNode node);
+#nullable enable
+        bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
@@ -239,7 +241,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAccessExpression(SyntaxNode node);
         void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
 
-        bool IsMemberBindingExpression(SyntaxNode node);
+#nullable enable
+        bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
         bool IsPostfixUnaryExpression(SyntaxNode node);
 
         bool IsParenthesizedExpression(SyntaxNode node);

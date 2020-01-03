@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (syntaxFacts.IsInvocationExpression(node.Parent))
                 node = node.Parent;
 
-            RoslynDebug.Assert(node is object);
             var operation = semanticModel.GetOperation(node);
             var instance = operation switch
             {

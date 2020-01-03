@@ -140,11 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.IsRightSideOfQualifiedName();
         }
 
-        public bool IsNameOfMemberAccessExpression(SyntaxNode node)
+#nullable enable
+        public bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsMemberAccessExpressionName();
         }
+#nullable restore
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
         {
@@ -559,8 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPostfixUnaryExpression(SyntaxNode node)
             => node is PostfixUnaryExpressionSyntax;
 
-        public bool IsMemberBindingExpression(SyntaxNode node)
+#nullable enable
+        public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberBindingExpressionSyntax;
+#nullable restore
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
