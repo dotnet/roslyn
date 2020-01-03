@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagEvaluation
     {
-        private static IEqualityComparer<ISymbol> s_ignoreEverythingComparer = SymbolEqualityComparer.IgnoreEverything;
-
         public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
         public virtual bool Equals([NotNullWhen(true)] BoundDagEvaluation? other)
         {
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetOriginalInput().GetHashCode(), s_ignoreEverythingComparer.GetHashCode(Symbol.GetPublicSymbol()));
+            return Hash.Combine(GetOriginalInput().GetHashCode(), Symbol.GetHashCode());
         }
 
         /// <summary>

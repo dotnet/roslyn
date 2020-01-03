@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagTemp
     {
-        private static IEqualityComparer<ISymbol> s_ignoreEverythingComparer = SymbolEqualityComparer.IgnoreEverything;
-
         /// <summary>
         /// Does this dag temp represent the original input of the pattern-matching operation?
         /// </summary>
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
-            return Hash.Combine(s_ignoreEverythingComparer.GetHashCode(this.Type.GetPublicSymbol()), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
+            return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
 
         public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
