@@ -30,14 +30,14 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function TestReorderMethodParameters_InsufficientParameters_None() As Task
+        Public Async Function TestReorderMethodParameters_NoExistingParameters() As Task
             Dim markup = <Text><![CDATA[
 Class C
     Sub $$M()
     End Sub
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.This_signature_does_not_contain_parameters_that_can_be_changed)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

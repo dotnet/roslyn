@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -420,7 +421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Private Function PermuteDeclaration(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), updatedSignature As SignatureChange) As SeparatedSyntaxList(Of T)
-            Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
+            Dim originalParameterSymbols = updatedSignature.OriginalConfiguration.ToListOfParameters().Select(Function(p) p.Symbol).ToArray()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim numAddedParameters = 0
@@ -428,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim newParameters = New List(Of T)
             For index = 0 To reorderedParameters.Count - 1
                 Dim newParam = reorderedParameters(index)
-                Dim pos = originalParameters.IndexOf(Function(p) p.Symbol Is newParam.Symbol)
+                Dim pos = originalParameterSymbols.IndexOf(Function(p) p.Symbol Is newParam.Symbol)
 
                 If pos = -1 Then
                     ' Added parameter
@@ -447,7 +448,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
                     ' Copy whitespace trivia from original position
                     param = TransferLeadingWhitespaceTrivia(param, list(index - numAddedParameters))
-
                     newParameters.Add(param)
                 End If
             Next
