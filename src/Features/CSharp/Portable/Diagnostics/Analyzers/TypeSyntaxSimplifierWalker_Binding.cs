@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 if (TryReplaceWithPredefinedType(node, identifier))
                     return;
 
-                INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, identifier, ref symbol))
+                if (TryReplaceWithAlias(node, identifier))
                     return;
             }
 
@@ -65,8 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             {
                 // A generic name is never a predefined type. So we don't need to check for that.
                 var identifier = node.Identifier.ValueText;
-                INamespaceOrTypeSymbol symbol = null;
-                if (TryReplaceWithAlias(node, identifier, ref symbol))
+                if (TryReplaceWithAlias(node, identifier))
                     return;
 
                 // Might be a reference to `Nullable<T>` that we can replace with `T?`
@@ -120,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return true;
 
             // Then see if there's something aliased to the name B.
-            INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithAlias(node, identifier, ref symbol))
+            if (TryReplaceWithAlias(node, identifier))
                 return true;
 
             // Then see if they explicitly wrote out `A.Nullable<T>` and replace with T?
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return true;
 
             // Finally, see if we can just reduce it to 'B'.
-            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, right, ref symbol))
+            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, right))
                 return true;
 
             return false;
@@ -303,8 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 current.Kind() == SyntaxKind.GenericName;
         }
 
-        private bool TryReplaceWithAlias(
-            SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
+        private bool TryReplaceWithAlias(SyntaxNode node, string typeName)
         {
             // See if we actually have an alias to something with our name.
             if (!_aliasedSymbolNames.Contains(typeName))
@@ -335,8 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(
-            ExpressionSyntax root, SimpleNameSyntax right, ref INamespaceOrTypeSymbol symbol)
+        private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(ExpressionSyntax root, SimpleNameSyntax right)
         {
             // We have a name like A.B or A::B.
 
