@@ -11,13 +11,22 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     /// <summary>
-    /// This walker sees if we can simplify types/namespaces that it encounters.
-    /// Importantly, it only checks types/namespaces in contexts that are known to
-    /// only allows types/namespaces only (i.e. declarations, casts, etc.).  It does
-    /// not check general expression contexts.
+    /// This walker sees if we can simplify types/namespaces that it encounters. Importantly, it
+    /// only checks types/namespaces in contexts that are known to only allows types/namespaces only
+    /// (i.e. declarations, casts, etc.).  It does not check general expression contexts.
+    /// <para/>
+    /// A core concept here is that we'd like to perform as little binding as possible. So this
+    /// walker builds up information as it walks the tree (like what names are in scope) so it can
+    /// avoid binding nodes it knows cannot be simplified at all.
     /// </summary>
     internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
     {
+        /// <summary>
+        /// This is the root helper that all other TrySimplify methods in this type must call
+        /// through once they think there is a good chance something is simplifiable.  It does the
+        /// work of actually going through the real simplification system to validate that the
+        /// simplification is legal and does not affect semantics.
+        /// </summary>
         private bool TrySimplify(SyntaxNode node)
         {
             if (!_analyzer.TrySimplify(_semanticModel, node, out var diagnostic, _optionSet, _cancellationToken))
@@ -146,18 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             this.Visit(node.Name);
         }
 
-        public override void VisitQualifiedCref(QualifiedCrefSyntax node)
-        {
-            // A qualified cref could be many different types of things.  It could be referencing a
-            // namespace, type or member (including static and instance members).  Because of this
-            // we basically have no avenues for bailing early and we have to try out all possible
-            // simplifications paths.
-            if (TrySimplify(node))
-                return;
-
-            base.VisitQualifiedCref(node);
-        }
-
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
         {
             if (TrySimplifyBaseAccessExpression(node))
@@ -193,10 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private bool TrySimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
         {
-            if (SimplifyStaticMemberAccessInScope(node))
+            if (TrySimplifyStaticMemberAccessInScope(node))
                 return true;
 
-            if (SimplifyStaticMemberAccessThroughDerivedType(node))
+            if (TrySimplifyStaticMemberAccessThroughDerivedType(node))
                 return true;
 
             return false;
@@ -207,22 +204,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (node.Expression.Kind() != SyntaxKind.BaseExpression)
                 return false;
 
-            // We have `base.SomeMember(...)`.  This is potentially simplifiable to `SomeMember` if
-            // certain conditions hold. First, `SomeMember` has to at least bind to the exact same
-            // member as before.  However, that's still not sufficient as the runtime behavior might
-            // be different (since base.SomeMember is a non-virtual call, and .SomeMember might not
-            // be).  To ensure we'll have the same runtime behavior either the member must be
-            // non-virtual, or we must be in a sealed type.  In the latter case, there can't be any
-            // derivations of us that are overriding the virtual member.
-
-            // Also, because we are making an instance call (and not a static), we have to use the
-            // more complex validation system that ensures no changed semantics.  That's because
-            // looking up through an instance may involve far more complex overload resolution (i.e.
-            // because of different instance members in scope, or extension methods).
+            // We have `base.SomeMember(...)`.  This is potentially simplifiable to `SomeMember`.
+            // However, this involves complex overload-instance-resolution logic.  So we fall-back
+            // to the full simplification analysis system.
             return TrySimplify(node);
         }
 
-        private bool SimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)
+        private bool TrySimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)
         {
             // see if we can just access this member using it's name alone here.
             var memberName = node.Name.Identifier.ValueText;
@@ -232,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool SimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
+        private bool TrySimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
         {
             var left = node.Expression;
             var right = node.Name;
@@ -257,6 +245,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
 
             return TrySimplify(node);
+        }
+
+        public override void VisitQualifiedCref(QualifiedCrefSyntax node)
+        {
+            // A qualified cref could be many different types of things.  It could be referencing a
+            // namespace, type or member (including static and instance members).  Because of this
+            // we basically have no avenues for bailing early and we have to try out all possible
+            // simplifications paths.
+            if (TrySimplify(node))
+                return;
+
+            base.VisitQualifiedCref(node);
         }
 
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
@@ -333,34 +333,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private bool TryReplaceWithPredefinedType(SyntaxNode node, string typeName)
         {
+            // No point even checking this if the user doesn't like using predefined types.
             if (!_preferPredefinedTypeInDecl && !_preferPredefinedTypeInMemberAccess)
                 return false;
 
+            // Only check if the name actually is the name of a built-in type.
             if (!s_predefinedTypeNames.Contains(typeName))
                 return false;
 
             return TrySimplify(node);
         }
 
-        private bool IsNameOfArgumentExpression(SyntaxNode node)
-            => node is ExpressionSyntax expr && expr.IsNameOfArgumentExpression();
-
         private bool TryReplaceWithNullable(SyntaxNode node, string typeName)
         {
+            // Only both checking this if the user referenced `Nullable`.
             if (typeName != nameof(Nullable))
                 return false;
 
             return TrySimplify(node);
         }
-
-        private (ExpressionSyntax left, SimpleNameSyntax right)? TryGetPartsOfQualifiedName(ExpressionSyntax node)
-            => node switch
-            {
-                QualifiedNameSyntax qualifiedName => (qualifiedName.Left, qualifiedName.Right),
-                MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression, memberAccess.Name),
-                AliasQualifiedNameSyntax aliasName => (aliasName.Alias, aliasName.Name),
-                _ => default((ExpressionSyntax, SimpleNameSyntax)?),
-            };
 
         private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(
             ExpressionSyntax root, SimpleNameSyntax right, ref INamespaceOrTypeSymbol symbol)
