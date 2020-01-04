@@ -160,6 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (TrySimplifyBaseAccessExpression(node))
                 return;
 
+            if (TrySimplifyObjectAccessExpression(node))
+                return;
+
             // Look for one of the following:
             //
             //      A.B.C
@@ -186,6 +189,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             base.VisitMemberAccessExpression(node);
+        }
+
+        private bool TrySimplifyObjectAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            // if we have a call like `object.Equals(...)` we may be able to reduce that to just
+            // `Equals(...)` since `object` member are in scope within us.
+
+            var expr = node.Expression;
+            if (!expr.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) ||
+                predefinedType.Keyword.Kind() != SyntaxKind.ObjectKeyword)
+            {
+                return false;
+            }
+
+            return TrySimplifyStaticMemberAccessInScope(node);
         }
 
         private bool TrySimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
@@ -268,20 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 continue;
             }
 
-            if (current.Kind() == SyntaxKind.AliasQualifiedName ||
+            return
+                current.Kind() == SyntaxKind.AliasQualifiedName ||
                 current.Kind() == SyntaxKind.IdentifierName ||
-                current.Kind() == SyntaxKind.GenericName)
-            {
-                return true;
-            }
-
-            if (current.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) &&
-                predefinedType.Keyword.Kind() == SyntaxKind.ObjectKeyword)
-            {
-                return true;
-            }
-
-            return false;
+                current.Kind() == SyntaxKind.GenericName;
         }
 
         private bool TryReplaceWithAlias(
