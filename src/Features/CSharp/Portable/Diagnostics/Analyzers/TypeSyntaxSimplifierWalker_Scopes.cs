@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly bool _preferPredefinedTypeInMemberAccess;
         private readonly CancellationToken _cancellationToken;
 
+        private readonly HashSet<string> _compilationTypeNames;
         private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
         private readonly List<HashSet<string>> _declarationNamesInScopeStack;
         private readonly List<HashSet<string>> _staticNamesInScopeStack;
@@ -50,6 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
             _preferPredefinedTypeInMemberAccess = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, semanticModel.Language).Value;
 
+            _compilationTypeNames = SharedPools.StringHashSet.Allocate();
+            _compilationTypeNames.AddAll(semanticModel.Compilation.Assembly.TypeNames);
+
             _aliasedSymbolNamesStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _declarationNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _staticNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
@@ -64,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public void Dispose()
         {
+            SharedPools.StringHashSet.ClearAndFree(_compilationTypeNames);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_aliasedSymbolNamesStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_declarationNamesInScopeStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_staticNamesInScopeStack);

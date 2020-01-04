@@ -240,6 +240,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private bool TrySimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
         {
+            // We have `Y.Z`.  It might be that `Z` is a static member actually declared through a
+            // base-type of `Y` called `X`.  This can be simplified to `X.Z`.
+            //
+            // To avoid having to call this on every `A.B` member access, we ensure that
+            // there's actually a type called `A` somewhere in our compilation. This helps
+            // avoid costly binding in many cases.
+
+            var exprName = node.Expression.GetRightmostName();
+            if (!_compilationTypeNames.Contains(exprName.Identifier.ValueText))
+                return false;
+
             // Member on the right of the dot needs to be a static member or another named type.
             var nameSymbol = _semanticModel.GetSymbolInfo(node.Name).Symbol;
             if (!IsNamedTypeOrStaticSymbol(nameSymbol))
