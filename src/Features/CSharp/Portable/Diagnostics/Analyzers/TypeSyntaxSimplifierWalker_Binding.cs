@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         private bool SimplifyQualifiedReferenceToNamespaceOrType(
-            SyntaxNode node, SimpleNameSyntax right)
+            NameSyntax node, SimpleNameSyntax right)
         {
             // We have a qualified name (like A.B).
 
@@ -147,20 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitQualifiedCref(QualifiedCrefSyntax node)
         {
-            // A qualified cref could be referencing a namespace, type or member.  Try simplifying
-            // all of those possibilities.
-
-            if (node.Member is NameMemberCrefSyntax nameMember &&
-                nameMember.Name is SimpleNameSyntax name &&
-                SimplifyQualifiedReferenceToNamespaceOrType(node, name))
-            {
+            // A qualified cref could be many different types of things.  It could be referencing a
+            // namespace, type or member (including static and instance members).  Because of this
+            // we basically have no avenues for bailing early and we have to try out all possible
+            // simplifications paths.
+            if (TrySimplify(node))
                 return;
-            }
-
-            if (SimplifyStaticMemberAccess(node))
-                return;
-
-            // TODO
 
             base.VisitQualifiedCref(node);
         }
@@ -200,18 +192,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             base.VisitMemberAccessExpression(node);
         }
 
-        private bool SimplifyStaticMemberAccess(SyntaxNode node)
+        private bool SimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
         {
-            var parts = TryGetPartsOfQualifiedName(node);
-            if (parts == null)
-                return false;
-
-            var (left, right) = parts.Value;
-
-            if (SimplifyStaticMemberAccessInScope(node, right))
+            if (SimplifyStaticMemberAccessInScope(node))
                 return true;
 
-            if (SimplifyStaticMemberAccessThroughDerivedType(node, left, right))
+            if (SimplifyStaticMemberAccessThroughDerivedType(node))
                 return true;
 
             return false;
@@ -238,19 +224,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         private bool SimplifyStaticMemberAccessInScope(
-            SyntaxNode node, SimpleNameSyntax right)
+            MemberAccessExpressionSyntax node)
         {
             // see if we can just access this member using it's name alone here.
-            var memberName = right.Identifier.ValueText;
+            var memberName = node.Name.Identifier.ValueText;
             if (!Peek(_staticNamesInScopeStack).Contains(memberName))
                 return false;
 
             return TrySimplify(node);
         }
 
-        private bool SimplifyStaticMemberAccessThroughDerivedType(
-            SyntaxNode node, ExpressionSyntax left, SimpleNameSyntax right)
+        private bool SimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
         {
+            var left = node.Expression;
+            var right = node.Name;
+
             // Member on the right of the dot needs to be a static member or another named type.
             var nameSymbol = _semanticModel.GetSymbolInfo(right).Symbol;
             if (!IsNamedTypeOrStaticSymbol(nameSymbol))
@@ -418,14 +406,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private (ExpressionSyntax left, SimpleNameSyntax right)? TryGetPartsOfQualifiedName(SyntaxNode node)
+        private (ExpressionSyntax left, SimpleNameSyntax right)? TryGetPartsOfQualifiedName(ExpressionSyntax node)
             => node switch
             {
                 QualifiedNameSyntax qualifiedName => (qualifiedName.Left, qualifiedName.Right),
                 MemberAccessExpressionSyntax memberAccess => (memberAccess.Expression, memberAccess.Name),
                 AliasQualifiedNameSyntax aliasName => (aliasName.Alias, aliasName.Name),
-                QualifiedCrefSyntax { Member: NameMemberCrefSyntax { Name: SimpleNameSyntax name } nameMember } qualifiedCref
-                    => (qualifiedCref.Container, name),
                 _ => default((ExpressionSyntax, SimpleNameSyntax)?),
             };
 

@@ -2871,11 +2871,11 @@ class A
 
         [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestNullableSimplificationInsideCref()
+        public async Task TestNullableSimplificationInsideCref_Indirect()
         {
             await TestInRegularAndScriptAsync(
 @"/// <summary>
-/// <see cref=""A.M([|System.Nullable{A}|])""/>
+/// <see cref=""[|A.M(System.Nullable{A})|]""/>
 /// </summary>
 struct A
 {
@@ -2884,7 +2884,32 @@ struct A
     }
 }",
 @"/// <summary>
-/// <see cref=""A.M(A?)""/>
+/// <see cref=""M(A?)""/>
+/// </summary>
+struct A
+{
+    public void M(A? x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNullableSimplificationInsideCref_Direct()
+        {
+            await TestInRegularAndScriptAsync(
+@"/// <summary>
+/// <see cref=""M([|System.Nullable{A}|])""/>
+/// </summary>
+struct A
+{
+    public void M(A? x)
+    {
+    }
+}",
+@"/// <summary>
+/// <see cref=""M(A?)""/>
 /// </summary>
 struct A
 {
@@ -2902,7 +2927,7 @@ struct A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M(List{[|Nullable{int}|]})""/>
+/// <see cref=""[|A.M(List{Nullable{int}})|]""/>
 /// </summary>
 class A
 {
@@ -2913,7 +2938,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M(List{int?})""/>
+/// <see cref=""M(List{int?})""/>
 /// </summary>
 class A
 {
@@ -2931,7 +2956,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{U}(List{[|Nullable{U}|]})""/>
+/// <see cref=""[|A.M{U}(List{Nullable{U}})|]""/>
 /// </summary>
 class A
 {
@@ -2942,7 +2967,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{U}(List{U?})""/>
+/// <see cref=""M{U}(List{U?})""/>
 /// </summary>
 class A
 {
@@ -2960,7 +2985,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{T}(List{Nullable{T}}, [|Nullable{T}|])""/>
+/// <see cref=""[|A.M{T}(List{Nullable{T}}, Nullable{T})|]""/>
 /// </summary>
 class A
 {
@@ -2971,7 +2996,7 @@ class A
 @"using System;
 using System.Collections.Generic;
 /// <summary>
-/// <see cref=""A.M{T}(List{Nullable{T}}, T?)""/>
+/// <see cref=""M{T}(List{T?}, T?)""/>
 /// </summary>
 class A
 {
@@ -5276,6 +5301,27 @@ class C
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInstanceMemberReferenceInCref1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    /// <see cref=""[|C.z|]""/>
+    public void z()
+    {
+    }
+}", @"
+class C
+{
+    /// <see cref=""z""/>
+    public void z()
+    {
+    }
+}");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
