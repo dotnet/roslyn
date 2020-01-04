@@ -12,10 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression stackAllocNode)
         {
-            return VisitStackAllocArrayCreation(stackAllocNode);
+            return VisitStackAllocArrayCreationBase(stackAllocNode);
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
+        {
+            return VisitStackAllocArrayCreationBase(stackAllocNode);
+        }
+
+        private BoundNode VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase stackAllocNode)
         {
             var rewrittenCount = VisitExpression(stackAllocNode.Count);
             var type = stackAllocNode.Type;

@@ -1385,4 +1385,8 @@ I agree to all of the foregoing:</value>
   <data name="Type_Name" xml:space="preserve">
     <value>Type Name</value>
   </data>
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>Live Share C#/Visual Basic Language Server Client</value>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
+  </data>
 </root>

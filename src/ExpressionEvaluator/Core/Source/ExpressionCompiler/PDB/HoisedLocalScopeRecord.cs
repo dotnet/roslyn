@@ -1,16 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct HoistedLocalScopeRecord
+    internal readonly struct HoistedLocalScopeRecord
     {
         public readonly int StartOffset;
         public readonly int Length;
 
         public HoistedLocalScopeRecord(int startOffset, int length)
         {
-            this.StartOffset = startOffset;
-            this.Length = length;
+            StartOffset = startOffset;
+            Length = length;
         }
     }
 }

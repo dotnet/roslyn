@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier);
 
         internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false)
         {
@@ -305,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier) &&
                     (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";
@@ -586,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return type.IsNullableType();
             }
-            return type.IsValueType && !type.IsTupleType;
+            return type.IsValueType;
         }
 
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
