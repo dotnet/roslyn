@@ -323,12 +323,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(ExpressionSyntax root, SimpleNameSyntax right)
         {
             // We have a name like A.B or A::B.
-
-            var rightIdentifier = right.Identifier.ValueText;
-
+            //
             // First see if we even have a type/namespace in scope called 'B'.  If not,
             // there's nothing we need to do further.
-            if (!_declarationNamesInScope.Contains(rightIdentifier))
+            if (!_declarationNamesInScope.Contains(right.Identifier.ValueText))
                 return false;
 
             return TrySimplify(root);
