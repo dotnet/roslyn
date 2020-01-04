@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
                 ? CommandState.Available
-                : CommandState.Unavailable;
+                : CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(FindReferencesCommandArgs args, CommandExecutionContext context)

@@ -82,6 +82,16 @@
         <target state="translated">Vyhněte se v kódu nepoužitým parametrům. Pokud parametr nelze odebrat, změňte jeho název tak, aby začínal podtržítkem, za kterým volitelně následuje celé číslo, například _, _1, _2 atd. Tyto řetězce se považují za názvy speciálních symbolů pro vyřazení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Změny se nedají použít – neočekávaná chyba: {0}</target>
@@ -1646,16 +1656,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
         <target state="translated">&lt;Čeká&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">Očekávaný vrácený obsah úkolů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">žádná hodnota</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">

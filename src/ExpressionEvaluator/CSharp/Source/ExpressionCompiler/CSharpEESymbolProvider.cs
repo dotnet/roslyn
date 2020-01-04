@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
@@ -24,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         public override LocalSymbol GetLocalVariable(
-            string name,
+            string? name,
             int slotIndex,
             LocalInfo<TypeSymbol> info,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt)
+            ImmutableArray<string?> tupleElementNamesOpt)
         {
             var isPinned = info.IsPinned;
 
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeSymbol type,
             ConstantValue value,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt)
+            ImmutableArray<string?> tupleElementNamesOpt)
         {
             type = IncludeDynamicAndTupleElementNamesIfAny(type, RefKind.None, dynamicFlagsOpt, tupleElementNamesOpt);
             return new EELocalConstantSymbol(_method, name, type, value);
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeSymbol type,
             RefKind refKind,
             ImmutableArray<bool> dynamicFlagsOpt,
-            ImmutableArray<string> tupleElementNamesOpt)
+            ImmutableArray<string?> tupleElementNamesOpt)
         {
             if (!dynamicFlagsOpt.IsDefault)
             {

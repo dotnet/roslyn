@@ -18,7 +18,7 @@ namespace Microsoft.Cci
     internal interface IAssemblyReference : IModuleReference
     {
         AssemblyIdentity Identity { get; }
-        Version AssemblyVersionPattern { get; }
+        Version? AssemblyVersionPattern { get; }
     }
 
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]

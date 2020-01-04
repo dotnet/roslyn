@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -91,8 +93,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static ImmutableArray<MetadataBlock> GetMetadataBlocks(GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
-            ArrayBuilder<MetadataBlock> builder = null;
-            foreach (AssemblyIdentity missingAssemblyIdentity in missingAssemblyIdentities)
+            ArrayBuilder<MetadataBlock>? builder = null;
+            foreach (var missingAssemblyIdentity in missingAssemblyIdentities)
             {
                 MetadataBlock block;
                 try
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return GetMetadataBlock(ptr, size);
         }
 
-        internal static object GetSymReader(this DkmClrModuleInstance clrModule)
+        internal static object? GetSymReader(this DkmClrModuleInstance clrModule)
         {
             var module = clrModule.Module; // Null if there are no symbols.
             if (module == null)
@@ -183,8 +185,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return clrModule.GetSymUnmanagedReader();
         }
 
-        internal static DkmCompiledClrInspectionQuery ToQueryResult(
-            this CompileResult compResult,
+        internal static DkmCompiledClrInspectionQuery? ToQueryResult(
+            this CompileResult? compResult,
             DkmCompilerId languageId,
             ResultProperties resultProperties,
             DkmClrRuntimeInstance runtimeInstance)
@@ -198,7 +200,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(compResult.TypeName != null);
             Debug.Assert(compResult.MethodName != null);
 
-            ReadOnlyCollection<byte> customTypeInfo;
+            ReadOnlyCollection<byte>? customTypeInfo;
             Guid customTypeInfoId = compResult.GetCustomTypeInfo(out customTypeInfo);
 
             return DkmCompiledClrInspectionQuery.Create(
@@ -217,25 +219,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 CustomTypeInfo: customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
         }
 
-        internal static DkmClrCustomTypeInfo ToCustomTypeInfo(this ReadOnlyCollection<byte> payload, Guid payloadTypeId)
+        internal static DkmClrCustomTypeInfo? ToCustomTypeInfo(this ReadOnlyCollection<byte>? payload, Guid payloadTypeId)
         {
             return (payload == null) ? null : DkmClrCustomTypeInfo.Create(payloadTypeId, payload);
         }
 
-        internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol symbol, DkmClrCompilationResultFlags flags, bool isConstant)
-            where TSymbol : ISymbolInternal
+        internal static ResultProperties GetResultProperties<TSymbol>(this TSymbol? symbol, DkmClrCompilationResultFlags flags, bool isConstant)
+            where TSymbol : class, ISymbolInternal
         {
-            var haveSymbol = symbol != null;
-
-            var category = haveSymbol
-                ? GetResultCategory(symbol.Kind)
+            var category = (symbol != null) ? GetResultCategory(symbol.Kind)
                 : DkmEvaluationResultCategory.Data;
 
-            var accessType = haveSymbol
-                ? GetResultAccessType(symbol.DeclaredAccessibility)
+            var accessType = (symbol != null) ? GetResultAccessType(symbol.DeclaredAccessibility)
                 : DkmEvaluationResultAccessType.None;
 
-            var storageType = haveSymbol && symbol.IsStatic
+            var storageType = (symbol != null) && symbol.IsStatic
                 ? DkmEvaluationResultStorageType.Static
                 : DkmEvaluationResultStorageType.None;
 
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 modifierFlags = DkmEvaluationResultTypeModifierFlags.Constant;
             }
-            else if (!haveSymbol)
+            else if (symbol is null)
             {
                 // No change.
             }
@@ -307,7 +305,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             where TAssemblyContext : struct
         {
             var dataItem = appDomain.GetDataItem<MetadataContextItem<MetadataContext<TAssemblyContext>>>();
-            return (dataItem == null) ? default(MetadataContext<TAssemblyContext>) : dataItem.MetadataContext;
+            return (dataItem == null) ? default : dataItem.MetadataContext;
         }
 
         internal static void SetMetadataContext<TAssemblyContext>(this DkmClrAppDomain appDomain, MetadataContext<TAssemblyContext> context, bool report)

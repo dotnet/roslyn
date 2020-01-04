@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
     {
 #if LOG
         private static string _logFile = @"c:\temp\simplifytypenames.txt";
-        private static object _gate = new object();
+        private static object _logGate = new object();
         private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
 #endif
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var contents = leading + "[|" + s_newlinePattern.Replace(mid, " ") + "|]" + trailing;
             logLine += contents + "\r\n";
 
-            lock (_gate)
+            lock (_logGate)
             {
                 File.AppendAllText(_logFile, logLine);
             }

@@ -2811,6 +2811,8 @@ class A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNullableInsideCref_AllowedIfReferencingActualType_AsTypeArgument()
         {
+            // Both the 'original' and 'fixed' code here are incorrect as doc comments do not allow
+            // actual type-references in a type-arg list.
             await TestInRegularAndScriptAsync(
 @"using System;
 /// <summary>
@@ -2825,6 +2827,29 @@ class C<T>
 /// </summary>
 class C<T>
 {
+}");
+        }
+
+        [WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNullableInsideCref_AllowedIfReferencingActualType_InParameterList()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+/// <summary>
+/// <see cref=""Goo([|Nullable{int}|])""/>
+/// </summary>
+class C
+{
+    void Goo(int? i) { }
+}",
+@"using System;
+/// <summary>
+/// <see cref=""Goo(int?)""/>
+/// </summary>
+class C
+{
+    void Goo(int? i) { }
 }");
         }
 

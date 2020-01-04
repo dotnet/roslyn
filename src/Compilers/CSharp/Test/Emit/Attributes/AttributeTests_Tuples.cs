@@ -489,7 +489,8 @@ class C
                 // public static ValueTuple Field7;
                 var field7 = _derivedClass.GetMember<FieldSymbol>("Field7");
                 ValidateTupleNameAttribute(field7.GetAttributes(), expectedTupleNamesAttribute: false);
-                Assert.False(field7.Type.IsTupleType);
+                Assert.True(field7.Type.IsTupleType);
+                Assert.Empty(field7.Type.TupleElementTypesWithAnnotations);
 
                 // public static (int e1, int e2, int e3, int e4, int e5, int e6, int e7, int e8, int e9) Field8;
                 var field8 = _derivedClass.GetMember<FieldSymbol>("Field8");

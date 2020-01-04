@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.Extensions
             // "(large * large) * small.  And that could easily overflow to Inf (and 
             // other badness).
             var parentBinary = parenthesizedExpression.Parent;
+            if (parentBinary is null)
+            {
+                return false;
+            }
+
             var outerTypeInfo = semanticModel.GetTypeInfo(parentBinary);
             if (IsFloatingPoint(innerTypeInfo) || IsFloatingPoint(outerTypeInfo))
             {
