@@ -26,7 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly bool _preferPredefinedTypeInMemberAccess;
         private readonly CancellationToken _cancellationToken;
 
+        /// <summary>
+        /// Set of all the type names that this compilation knows about (both through source and
+        /// metadata).  This is used so that when we see <c>Y.Z</c> we can know if <c>Y</c> could be
+        /// a type and thus if we should try to simplify that to <c>X.Z</c> (if <c>X</c> is a base
+        /// class of <c>Y</c>).
+        /// </summary>
         private readonly HashSet<string> _compilationTypeNames;
+
+        /// <summary>
+        /// 
+        /// </summary>
         private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
         private readonly List<HashSet<string>> _declarationNamesInScopeStack;
         private readonly List<HashSet<string>> _staticNamesInScopeStack;
