@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             Dim specialTypeInt64 = Me.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)
                             ' NOTE: used from emit, so shouldn't have gotten here if there were errors
-                            Debug.Assert(specialTypeInt64.GetUseSiteErrorInfo() Is Nothing)
+                            Debug.Assert(specialTypeInt64.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
                             Dim compilation = Me.DeclaringCompilation
 

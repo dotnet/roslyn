@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' the type. Bad metadata.
             End Try
 
-            If metadataType.GetUseSiteErrorInfo() IsNot Nothing Then
+            If metadataType.GetUseSiteInfo().DiagnosticInfo IsNot Nothing Then
                 Return metadataType
             End If
 

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        slotAllocatorOpt As VariableSlotAllocator,
                        asyncKind As AsyncMethodKind,
                        compilationState As TypeCompilationState,
-                       diagnostics As DiagnosticBag)
+                       diagnostics As BindingDiagnosticBag)
 
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  methodOrdinal As Integer,
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  <Out> ByRef stateMachineType As AsyncStateMachine) As BoundBlock
 
             If body.HasErrors Then
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = DiagnosticBag.GetInstance()
+            Dim bag = BindingDiagnosticBag.GetInstance()
 
             EnsureSpecialType(SpecialType.System_Object, bag)
             EnsureSpecialType(SpecialType.System_Void, bag)
@@ -540,9 +540,9 @@ lCaptureRValue:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)
@@ -599,9 +599,9 @@ lCaptureRValue:
             Dim group As BoundPropertyGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
-            Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
+            Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteInfo:=useSiteInfo)
+            Me.Diagnostics.Add(Me.F.Syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)

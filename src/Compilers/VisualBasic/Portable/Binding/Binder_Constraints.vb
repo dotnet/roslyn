@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function BindTypeParameterConstraintClause(
             containingSymbol As Symbol,
             clause As TypeParameterConstraintClauseSyntax,
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         ) As ImmutableArray(Of TypeParameterConstraint)
             Debug.Assert((containingSymbol.Kind = SymbolKind.NamedType) OrElse (containingSymbol.Kind = SymbolKind.Method))
 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             syntax As ConstraintSyntax,
             ByRef constraints As TypeParameterConstraintKind,
             constraintsBuilder As ArrayBuilder(Of TypeParameterConstraint),
-            diagnostics As DiagnosticBag
+            diagnostics As BindingDiagnosticBag
         )
             Debug.Assert((containingSymbol.Kind = SymbolKind.NamedType) OrElse (containingSymbol.Kind = SymbolKind.Method))
 

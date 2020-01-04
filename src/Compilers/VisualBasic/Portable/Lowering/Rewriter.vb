@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             instrumentForDynamicAnalysis As Boolean,
             <Out> ByRef dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
             debugDocumentProvider As DebugDocumentProvider,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
             lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
             closureDebugInfoBuilder As ArrayBuilder(Of ClosureDebugInfo),
@@ -30,13 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not body.HasErrors)
             Debug.Assert(compilationState.ModuleBuilderOpt IsNot Nothing)
+            Debug.Assert(diagnostics.DiagnosticBag IsNot Nothing)
 
             ' performs node-specific lowering.
             Dim sawLambdas As Boolean
             Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
-            Dim localDiagnostics = DiagnosticBag.GetInstance()
+            Dim localDiagnostics = BindingDiagnosticBag.GetInstance()
             dynamicAnalysisSpans = ImmutableArray(Of SourceSpan).Empty
 
             Try
@@ -79,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If lazyVariableSlotAllocator Is Nothing Then
                     ' synthesized lambda methods are handled in LambdaRewriter.RewriteLambdaAsMethod
                     Debug.Assert(TypeOf method IsNot SynthesizedLambdaMethod)
-                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics)
+                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics.DiagnosticBag)
                 End If
 
                 ' Lowers lambda expressions into expressions that construct delegates.    
@@ -120,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        method As MethodSymbol,
                                                        methodOrdinal As Integer,
                                                        compilationState As TypeCompilationState,
-                                                       diagnostics As DiagnosticBag,
+                                                       diagnostics As BindingDiagnosticBag,
                                                        slotAllocatorOpt As VariableSlotAllocator,
                                                        <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol) As BoundBlock
 

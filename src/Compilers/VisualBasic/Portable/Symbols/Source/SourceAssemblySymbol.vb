@@ -62,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyIsVbRuntime As ThreeState = ThreeState.Unknown
 
         Private _lazyAssemblyLevelDeclarationErrors As ImmutableArray(Of Diagnostic)
+        Private _lazyAssemblyLevelDeclarationDependencies As ImmutableArray(Of AssemblySymbol)
 
         Private ReadOnly _assemblySimpleName As String
 
@@ -224,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return uniqueAttributes.Add(attribute)
         End Function
 
-        Private Function ValidateAttributeUsageForNetModuleAttribute(attribute As VisualBasicAttributeData, netModuleName As String, diagnostics As DiagnosticBag, ByRef uniqueAttributes As HashSet(Of VisualBasicAttributeData)) As Boolean
+        Private Function ValidateAttributeUsageForNetModuleAttribute(attribute As VisualBasicAttributeData, netModuleName As String, diagnostics As BindingDiagnosticBag, ByRef uniqueAttributes As HashSet(Of VisualBasicAttributeData)) As Boolean
             Debug.Assert(Not attribute.HasErrors)
 
             Dim attributeClass = attribute.AttributeClass
@@ -302,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function ValidateAttributeUsageAndDecodeWellKnownNetModuleAttributes(
             attributesFromNetModules As ImmutableArray(Of VisualBasicAttributeData),
             netModuleNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <Out> ByRef attributeIndicesToSkip As HashSet(Of Integer)) As WellKnownAttributeData
 
             Debug.Assert(attributesFromNetModules.Any())
@@ -360,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Interlocked.CompareExchange(lazyNetModuleAttributesBag, CustomAttributesBag(Of VisualBasicAttributeData).Empty, Nothing)
             Else
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim netModuleNames As ImmutableArray(Of String) = Nothing
                 Dim attributesFromNetModules As ImmutableArray(Of VisualBasicAttributeData) = GetNetModuleAttributes(netModuleNames)
                 Dim wellKnownData As WellKnownAttributeData = Nothing
@@ -395,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         If forwardedTypes.Add(forwarded) Then
                             If forwarded.IsErrorType() Then
-                                Dim info As DiagnosticInfo = If(forwarded.GetUseSiteErrorInfo(), DirectCast(forwarded, ErrorTypeSymbol).ErrorInfo)
+                                Dim info As DiagnosticInfo = If(forwarded.GetUseSiteInfo().DiagnosticInfo, DirectCast(forwarded, ErrorTypeSymbol).ErrorInfo)
 
                                 If info IsNot Nothing Then
                                     diagnostics.Add(info, NoLocation.Singleton)
@@ -854,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Once the computation of the AssemblyIdentity is complete, check whether
         ' any of the IVT access grants that were optimistically made during AssemblyIdentity computation
         ' are in fact invalid now that the full identity is known.
-        Private Sub CheckOptimisticIVTAccessGrants(bag As DiagnosticBag)
+        Private Sub CheckOptimisticIVTAccessGrants(bag As BindingDiagnosticBag)
             Dim haveGrantedAssemblies As ConcurrentDictionary(Of AssemblySymbol, Boolean) = _optimisticallyGrantedInternalsAccess
 
             If haveGrantedAssemblies IsNot Nothing Then
@@ -922,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ProcessOneInternalsVisibleToAttribute(nodeOpt As AttributeSyntax, attrData As VisualBasicAttributeData, diagnostics As DiagnosticBag) As Boolean
+        Private Function ProcessOneInternalsVisibleToAttribute(nodeOpt As AttributeSyntax, attrData As VisualBasicAttributeData, diagnostics As BindingDiagnosticBag) As Boolean
             'assume that this code won't be called unless we bound a well-formed, semantically
             'correct ctor call.
             Dim displayName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
@@ -984,13 +985,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim attrData = arguments.Attribute
             Debug.Assert(Not attrData.HasErrors)
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
+            Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                 ' Already have an attribute, no need to add another one.
                 Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.True)
                 _lazyEmitExtensionAttribute = ThreeState.False
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.InternalsVisibleToAttribute) Then
-                ProcessOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attrData, arguments.Diagnostics)
+                ProcessOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attrData, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblySignatureKeyAttribute) Then
                 Dim signatureKey = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblySignatureKeyAttributeSetting = signatureKey
@@ -1058,13 +1060,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
                 attrData.DecodeSecurityAttribute(Of CommonAssemblyWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ClassInterfaceAttribute) Then
-                attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics)
+                attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.TypeLibVersionAttribute) Then
-                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, arguments.Diagnostics)
+                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ComCompatibleVersionAttribute) Then
-                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, arguments.Diagnostics)
+                ValidateIntegralAttributeNonNegativeArguments(attrData, arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics)
+                attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasCompilationRelaxationsAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ReferenceAssemblyAttribute) Then
@@ -1118,7 +1120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ' Checks that the integral arguments for the given well-known attribute are non-negative.
-        Private Sub ValidateIntegralAttributeNonNegativeArguments(attrData As VisualBasicAttributeData, nodeOpt As AttributeSyntax, diagnostics As DiagnosticBag)
+        Private Sub ValidateIntegralAttributeNonNegativeArguments(attrData As VisualBasicAttributeData, nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not attrData.HasErrors)
 
             Dim argCount As Integer = attrData.CommonConstructorArguments.Length
@@ -1137,21 +1139,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             _lazyEmitExtensionAttribute = ThreeState.False
         End Sub
 
-        Friend Function GetAllDeclarationErrors(Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+        Friend Sub GetAllDeclarationErrors(diagnostics As BindingDiagnosticBag, Optional cancellationToken As CancellationToken = Nothing)
             Dim hasExtensionMethods As Boolean = False
-            Dim moduleErrors = SourceModule.GetAllDeclarationErrors(cancellationToken, hasExtensionMethods)
-            Return moduleErrors.Concat(GetAssemblyLevelDeclarationErrors(hasExtensionMethods))
-        End Function
+            SourceModule.GetAllDeclarationErrors(diagnostics, cancellationToken, hasExtensionMethods)
+            diagnostics.AddRange(GetAssemblyLevelDeclarationErrors(hasExtensionMethods))
+        End Sub
 
         ''' <summary>
         ''' Get assembly level declaration errors.
         ''' </summary>
         Private Function GetAssemblyLevelDeclarationErrors(
-            haveExtensionMethodsInSource As Boolean) As ImmutableArray(Of Diagnostic)
+            haveExtensionMethodsInSource As Boolean) As ImmutableBindingDiagnostic(Of AssemblySymbol)
 
-            If _lazyAssemblyLevelDeclarationErrors.IsDefault Then
+            If _lazyAssemblyLevelDeclarationErrors.IsDefault OrElse _lazyAssemblyLevelDeclarationDependencies.IsDefault Then
 
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
 
                 Dim emitExtensionAttribute As ThreeState = CType(_lazyEmitExtensionAttribute, ThreeState)
                 If emitExtensionAttribute = ThreeState.Unknown Then
@@ -1163,10 +1165,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Else
                         ' We need to emit an Extension attribute on the assembly. 
                         ' Can we locate it?
-                        Dim useSiteError As DiagnosticInfo = Nothing
-                        _compilation.GetExtensionAttributeConstructor(useSiteError:=useSiteError)
+                        Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
+                        _compilation.GetExtensionAttributeConstructor(useSiteInfo:=useSiteInfo)
 
-                        If useSiteError IsNot Nothing Then
+                        If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                             ' Note, we are storing false because, even though we should emit the attribute,
                             ' we can't do that due to the use site error.
                             ' The diagnostic itself was already reported at the location where the attribute was applied to.
@@ -1225,13 +1227,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ReportDiagnosticsForSynthesizedAttributes(DeclaringCompilation, diagnostics)
                 ReportDiagnosticsForAddedModules(diagnostics)
 
-                ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, diagnostics.ToReadOnlyAndFree(Of Diagnostic)())
+                Dim immutableBindingDiagnostic As ImmutableBindingDiagnostic(Of AssemblySymbol) = diagnostics.ToReadOnlyAndFree()
+                ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationDependencies, immutableBindingDiagnostic.Dependencies)
+                ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, immutableBindingDiagnostic.Diagnostics)
             End If
 
-            Return _lazyAssemblyLevelDeclarationErrors
+            Debug.Assert(Not _lazyAssemblyLevelDeclarationErrors.IsDefault)
+            Debug.Assert(Not _lazyAssemblyLevelDeclarationDependencies.IsDefault)
+
+            Return New ImmutableBindingDiagnostic(Of AssemblySymbol)(_lazyAssemblyLevelDeclarationErrors, _lazyAssemblyLevelDeclarationDependencies)
         End Function
 
-        Private Sub DetectAttributeAndOptionConflicts(diagnostics As DiagnosticBag)
+        Private Sub DetectAttributeAndOptionConflicts(diagnostics As BindingDiagnosticBag)
             EnsureAttributesAreBound()
 
             If _compilation.Options.PublicSign AndAlso DelaySignAttributeSetting Then
@@ -1247,7 +1254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If assemblyKeyContainerAttributeSetting Is CommonAssemblyWellKnownAttributeData.StringMissingValue Then
                         ' We need to synthesize this attribute for .NET module,
                         ' touch the constructor in order to generate proper use-site diagnostics
-                        Binder.ReportUseSiteErrorForSynthesizedAttribute(
+                        Binder.ReportUseSiteInfoForSynthesizedAttribute(
                             WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor,
                             _compilation,
                             NoLocation.Singleton,
@@ -1272,7 +1279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If assemblyKeyFileAttributeSetting Is CommonAssemblyWellKnownAttributeData.StringMissingValue Then
                         ' We need to synthesize this attribute for .NET module,
                         ' touch the constructor in order to generate proper use-site diagnostics
-                        Binder.ReportUseSiteErrorForSynthesizedAttribute(
+                        Binder.ReportUseSiteInfoForSynthesizedAttribute(
                             WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor,
                             _compilation,
                             NoLocation.Singleton,
@@ -1294,7 +1301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Sub ReportDiagnosticsForAddedModules(diagnostics As DiagnosticBag)
+        Private Sub ReportDiagnosticsForAddedModules(diagnostics As BindingDiagnosticBag)
             For Each pair In _compilation.GetBoundReferenceManager().ReferencedModuleIndexMap
                 Dim fileRef = TryCast(pair.Key, PortableExecutableReference)
 
@@ -1369,7 +1376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Protected Sub ValidateIVTPublicKeys(diagnostics As DiagnosticBag)
+        Protected Sub ValidateIVTPublicKeys(diagnostics As BindingDiagnosticBag)
             EnsureAttributesAreBound()
 
             If Not Me.Identity.IsStrongName Then
@@ -1406,7 +1413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' too late to report diagnostics or cancel the emit.  Instead, we check for use site errors on the types and members
         ''' we know we'll need at synthesis time.
         ''' </summary>
-        Private Shared Sub ReportDiagnosticsForSynthesizedAttributes(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag)
+        Private Shared Sub ReportDiagnosticsForSynthesizedAttributes(compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag)
             ' May need to synthesize CompilationRelaxationsAttribute and/or RuntimeCompatibilityAttribute if we are not building a net-module.
             ' NOTE: Native compiler skips synthesizing these attributes if the respective well-known attribute types aren't available, we do the same.
 
@@ -1414,13 +1421,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not compilationOptions.OutputKind.IsNetModule() Then
                 Dim compilationRelaxationsAttributeType = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute)
                 If TryCast(compilationRelaxationsAttributeType, MissingMetadataTypeSymbol) Is Nothing Then
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32, compilation, NoLocation.Singleton, diagnostics)
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32, compilation, NoLocation.Singleton, diagnostics)
                 End If
 
                 Dim runtimeCompatibilityAttributeType = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute)
                 If TryCast(runtimeCompatibilityAttributeType, MissingMetadataTypeSymbol) Is Nothing Then
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor, compilation, NoLocation.Singleton, diagnostics)
-                    Binder.ReportUseSiteErrorForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, compilation, NoLocation.Singleton, diagnostics)
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor, compilation, NoLocation.Singleton, diagnostics)
+                    Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, compilation, NoLocation.Singleton, diagnostics)
                 End If
             End If
         End Sub
@@ -1486,7 +1493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim compilationRelaxationsAttributeType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute)
                 If TryCast(compilationRelaxationsAttributeType, MissingMetadataTypeSymbol) Is Nothing Then
                     Dim int32Type = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
-                    Debug.Assert(int32Type.GetUseSiteErrorInfo() Is Nothing, "Use site errors should have been checked ahead of time (type int).")
+                    Debug.Assert(int32Type.GetUseSiteInfo().DiagnosticInfo Is Nothing, "Use site errors should have been checked ahead of time (type int).")
                     Dim typedConstantNoStringInterning = New TypedConstant(int32Type, TypedConstantKind.Primitive, Cci.Constants.CompilationRelaxations_NoStringInterning)
 
                     AddSynthesizedAttribute(attributes, DeclaringCompilation.TrySynthesizeAttribute(
@@ -1504,7 +1511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim runtimeCompatibilityAttributeType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute)
                 If TryCast(runtimeCompatibilityAttributeType, MissingMetadataTypeSymbol) Is Nothing Then
                     Dim boolType = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
-                    Debug.Assert(boolType.GetUseSiteErrorInfo() Is Nothing, "Use site errors should have been checked ahead of time (type bool).")
+                    Debug.Assert(boolType.GetUseSiteInfo().DiagnosticInfo Is Nothing, "Use site errors should have been checked ahead of time (type bool).")
                     Dim typedConstantTrue = New TypedConstant(boolType, TypedConstantKind.Primitive, True)
 
                     AddSynthesizedAttribute(attributes, DeclaringCompilation.TrySynthesizeAttribute(
@@ -1525,7 +1532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Synthesize attribute: <DebuggableAttribute(DebuggableAttribute.DebuggingMode.<Value>)>
 
                 Dim int32Type = Me.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
-                If int32Type.GetUseSiteErrorInfo() Is Nothing Then
+                If int32Type.GetUseSiteInfo().DiagnosticInfo Is Nothing Then
                     Dim debuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints
 
                     ' Since .NET 2.0 the combinations of None, Default And DisableOptimizations have the following effect
@@ -1558,7 +1565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Not String.IsNullOrEmpty(_compilation.Options.CryptoKeyContainer) AndAlso
                    AssemblyKeyContainerAttributeSetting Is CommonAssemblyWellKnownAttributeData.StringMissingValue Then
                     Dim stringType = _compilation.GetSpecialType(SpecialType.System_String)
-                    Debug.Assert(stringType.GetUseSiteErrorInfo Is Nothing, "Use site errors should have been checked ahead of time (type string).")
+                    Debug.Assert(stringType.GetUseSiteInfo.DiagnosticInfo Is Nothing, "Use site errors should have been checked ahead of time (type string).")
 
                     Dim typedConstant = New TypedConstant(stringType, TypedConstantKind.Primitive, _compilation.Options.CryptoKeyContainer)
                     AddSynthesizedAttribute(attributes, _compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor, ImmutableArray.Create(typedConstant)))
@@ -1567,7 +1574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Not String.IsNullOrEmpty(_compilation.Options.CryptoKeyFile) AndAlso
                    AssemblyKeyFileAttributeSetting Is CommonAssemblyWellKnownAttributeData.StringMissingValue Then
                     Dim stringType = _compilation.GetSpecialType(SpecialType.System_String)
-                    Debug.Assert(stringType.GetUseSiteErrorInfo Is Nothing, "Use site errors should have been checked ahead of time (type string).")
+                    Debug.Assert(stringType.GetUseSiteInfo.DiagnosticInfo Is Nothing, "Use site errors should have been checked ahead of time (type string).")
 
                     Dim typedConstant = New TypedConstant(stringType, TypedConstantKind.Primitive, _compilation.Options.CryptoKeyFile)
                     AddSynthesizedAttribute(attributes, _compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor, ImmutableArray.Create(typedConstant)))

@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Symbols;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// This is base class for a bag used to accumulate various information as binding is performed.
+    /// This is base class for a bag used to accumulate information while binding is performed.
     /// Including diagnostic messages and dependencies in the form of "used" assemblies. 
     /// </summary>
-    internal class BindingDiagnosticBag
+    internal abstract class BindingDiagnosticBag // PROTOTYPE(UsedAssemblyReferences): Is there a better name for this and the derived types?
     {
         public readonly DiagnosticBag? DiagnosticBag;
 
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
+        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag)
         {
             DiagnosticBag = diagnosticBag;
         }
@@ -50,31 +50,22 @@ namespace Microsoft.CodeAnalysis
         {
             DiagnosticBag?.Add(diag);
         }
-
-        // PROTOTYPE(UsedAssemblyReferences): Remove conversions once VB side is implemented.
-        public static implicit operator DiagnosticBag?(BindingDiagnosticBag from)
-        {
-            return from.DiagnosticBag;
-        }
-
-        public static implicit operator BindingDiagnosticBag(DiagnosticBag? from)
-        {
-            return new BindingDiagnosticBag(from);
-        }
     }
 
+    // PROTOTYPE(UsedAssemblyReferences): Measure performance impact of collecting more information during binding by using this class.
     internal abstract class BindingDiagnosticBag<TAssemblySymbol> : BindingDiagnosticBag
         where TAssemblySymbol : class, IAssemblySymbolInternal
     {
         public readonly ICollection<TAssemblySymbol>? DependenciesBag;
 
-        public BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
+        protected BindingDiagnosticBag(DiagnosticBag? diagnosticBag, ICollection<TAssemblySymbol>? dependenciesBag)
             : base(diagnosticBag)
         {
+            Debug.Assert(diagnosticBag?.GetType().IsValueType != true);
             DependenciesBag = dependenciesBag;
         }
 
-        public BindingDiagnosticBag(bool usePool)
+        protected BindingDiagnosticBag(bool usePool)
             : this(usePool ? DiagnosticBag.GetInstance() : new DiagnosticBag(), usePool ? PooledHashSet<TAssemblySymbol>.GetInstance() : new HashSet<TAssemblySymbol>())
         { }
 
@@ -102,20 +93,6 @@ namespace Microsoft.CodeAnalysis
             other.Free();
         }
 
-        // PROTOTYPE(UsedAssemblyReferences): Remove conversions once VB side is implemented.
-
-        [Obsolete("Implicit conversion from BindingDiagnosticBag<TAssemblySymbol> to DiagnosticBag is not supported.", error: true)]
-        public static implicit operator DiagnosticBag(BindingDiagnosticBag<TAssemblySymbol>? from)
-        {
-            throw new NotSupportedException();
-        }
-
-        [Obsolete("Implicit conversion from DiagnosticBag to BindingDiagnosticBag<TAssemblySymbol> is not supported.", error: true)]
-        public static implicit operator BindingDiagnosticBag<TAssemblySymbol>(DiagnosticBag? from)
-        {
-            throw new NotSupportedException();
-        }
-
         internal void Clear()
         {
             DiagnosticBag?.Clear();
@@ -128,10 +105,13 @@ namespace Microsoft.CodeAnalysis
             AddDependencies(other.Dependencies);
         }
 
-        internal void AddRange(BindingDiagnosticBag<TAssemblySymbol> other)
+        internal void AddRange(BindingDiagnosticBag<TAssemblySymbol>? other)
         {
-            AddRange(other.DiagnosticBag);
-            AddDependencies(other.DependenciesBag);
+            if (other is object)
+            {
+                AddRange(other.DiagnosticBag);
+                AddDependencies(other.DependenciesBag);
+            }
         }
 
         internal void AddRange(DiagnosticBag? bag)
@@ -152,7 +132,40 @@ namespace Microsoft.CodeAnalysis
 
         internal void AddDependencies(ICollection<TAssemblySymbol>? dependencies)
         {
-            if (dependencies?.Count > 0 && DependenciesBag is object)
+            if (!dependencies.IsNullOrEmpty() && DependenciesBag is object)
+            {
+                foreach (var candidate in dependencies)
+                {
+                    DependenciesBag.Add(candidate);
+                }
+            }
+        }
+
+        internal void AddDependencies(IReadOnlyCollection<TAssemblySymbol>? dependencies)
+        {
+            if (!dependencies.IsNullOrEmpty() && DependenciesBag is object)
+            {
+                foreach (var candidate in dependencies)
+                {
+                    DependenciesBag.Add(candidate);
+                }
+            }
+        }
+
+        internal void AddDependencies(ImmutableHashSet<TAssemblySymbol>? dependencies)
+        {
+            if (!dependencies.IsNullOrEmpty() && DependenciesBag is object)
+            {
+                foreach (var candidate in dependencies)
+                {
+                    DependenciesBag.Add(candidate);
+                }
+            }
+        }
+
+        internal void AddDependencies(ImmutableArray<TAssemblySymbol> dependencies)
+        {
+            if (!dependencies.IsDefaultOrEmpty && DependenciesBag is object)
             {
                 foreach (var candidate in dependencies)
                 {
@@ -177,10 +190,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void AddDependencies(CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
         {
-            if (DependenciesBag is object)
-            {
-                AddDependencies(useSiteInfo.Dependencies);
-            }
+            AddDependencies(useSiteInfo.Dependencies);
         }
 
         internal bool Add(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
@@ -188,7 +198,12 @@ namespace Microsoft.CodeAnalysis
             return Add(node.Location, useSiteInfo);
         }
 
-        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+        internal bool AddDiagnostics(SyntaxNode node, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+        {
+            return AddDiagnostics(node.Location, useSiteInfo);
+        }
+
+        internal bool AddDiagnostics(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
         {
             if (!useSiteInfo.Diagnostics.IsNullOrEmpty())
             {
@@ -220,7 +235,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            AddDependencies(useSiteInfo.Dependencies);
+            return false;
+        }
+
+        internal bool Add(Location location, CompoundUseSiteInfo<TAssemblySymbol> useSiteInfo)
+        {
+            if (AddDiagnostics(location, useSiteInfo))
+            {
+                return true;
+            }
+
+            AddDependencies(useSiteInfo);
             return false;
         }
 

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the identifier has a type character, report an error on it.
         ''' </summary>
         Public Shared Sub DisallowTypeCharacter(identifier As SyntaxToken,
-                                         diagBag As DiagnosticBag,
+                                         diagBag As BindingDiagnosticBag,
                                          Optional errid As ERRID = ERRID.ERR_TypecharNotallowed)
             If (identifier.GetTypeCharacter() <> TypeCharacter.None) Then
                 ReportDiagnostic(diagBag, identifier, errid)
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function DecodeParameterModifiers(container As Symbol,
                                                  modifiers As SyntaxTokenList,
                                                  checkModifier As CheckParameterModifierDelegate,
-                                                 diagBag As DiagnosticBag) As SourceParameterFlags
+                                                 diagBag As BindingDiagnosticBag) As SourceParameterFlags
             Dim flags As SourceParameterFlags = Nothing
 
             ' Go through each modifiers, accumulating flags of what we've seen and reporting errors.
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function CreateNullableOf(typeArgument As TypeSymbol,
                                          syntax As VisualBasicSyntaxNode,
                                          syntaxTypeArgument As VisualBasicSyntaxNode,
-                                         diagBag As DiagnosticBag) As NamedTypeSymbol
+                                         diagBag As BindingDiagnosticBag) As NamedTypeSymbol
             ' Get the Nullable type
             Dim nullableType As NamedTypeSymbol = DirectCast(GetSpecialType(SpecialType.System_Nullable_T, syntax, diagBag), NamedTypeSymbol)
 
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For Each pair In diagnosticsBuilder
-                    diagBag.Add(pair.DiagnosticInfo, syntaxTypeArgument.GetLocation())
+                    diagBag.Add(pair.UseSiteInfo, syntaxTypeArgument.GetLocation())
                 Next
                 diagnosticsBuilder.Free()
             End If
@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function ApplyArrayRankSpecifiersToType(elementType As TypeSymbol,
                                       arrayModifierSyntax As SyntaxList(Of ArrayRankSpecifierSyntax),
-                                      diagnostics As DiagnosticBag) As TypeSymbol
+                                      diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             Dim currentType As TypeSymbol = elementType
 
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function ApplyArrayRankSpecifiersAndBoundsToType(elementType As TypeSymbol,
                                       arrayModifierSyntax As SyntaxList(Of ArrayRankSpecifierSyntax),
                                       arrayBoundsOpt As ArgumentListSyntax,
-                                      diagnostics As DiagnosticBag) As TypeSymbol
+                                      diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             Dim currentType As TypeSymbol = elementType
 
@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function CreateArrayOf(elementType As TypeSymbol,
                                       arrayModifierSyntax As SyntaxList(Of ArrayRankSpecifierSyntax),
                                       arrayBoundsOpt As ArgumentListSyntax,
-                                      diagnostics As DiagnosticBag) As ArrayTypeSymbol
+                                      diagnostics As BindingDiagnosticBag) As ArrayTypeSymbol
 
             Debug.Assert(arrayModifierSyntax.Count > 0 OrElse
                                   arrayBoundsOpt IsNot Nothing)
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      asClauseSyntaxOpt As AsClauseSyntax,
                                                      initializerSyntaxOpt As VisualBasicSyntaxNode,
                                                      getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
-                                                     diagBag As DiagnosticBag,
+                                                     diagBag As BindingDiagnosticBag,
                                                      Optional decoderContext As ModifiedIdentifierTypeDecoderContext = ModifiedIdentifierTypeDecoderContext.None
         ) As TypeSymbol
             Dim baseType As TypeSymbol = DecodeIdentifierType(modifiedIdentifier.Identifier, asClauseOrValueType, getRequireTypeDiagnosticInfoFunc, diagBag, decoderContext)
@@ -568,7 +568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      initializerSyntaxOpt As EqualsValueSyntax,
                                                      getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
                                                      <Out()> ByRef asClauseType As TypeSymbol,
-                                                     diagBag As DiagnosticBag,
+                                                     diagBag As BindingDiagnosticBag,
                                                      Optional decoderContext As ModifiedIdentifierTypeDecoderContext = Nothing
         ) As TypeSymbol
 
@@ -600,7 +600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      asClauseOpt As AsClauseSyntax,
                                                      initializerSyntaxOpt As EqualsValueSyntax,
                                                      getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
-                                                     diagBag As DiagnosticBag,
+                                                     diagBag As BindingDiagnosticBag,
                                                      Optional decoderContext As ModifiedIdentifierTypeDecoderContext = Nothing
         ) As TypeSymbol
 
@@ -621,7 +621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              asClauseOpt As AsClauseSyntax,
                                              getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
                                              ByRef asClauseType As TypeSymbol,
-                                             diagBag As DiagnosticBag) As TypeSymbol
+                                             diagBag As BindingDiagnosticBag) As TypeSymbol
 
             If asClauseOpt IsNot Nothing Then
                 asClauseType = BindTypeSyntax(asClauseOpt.Type, diagBag)
@@ -643,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function DecodeIdentifierType(identifier As SyntaxToken,
                                              asClauseOpt As AsClauseSyntax,
                                              getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
-                                             diagBag As DiagnosticBag) As TypeSymbol
+                                             diagBag As BindingDiagnosticBag) As TypeSymbol
             Dim asClauseType As TypeSymbol = Nothing
             Return DecodeIdentifierType(identifier, asClauseOpt, getRequireTypeDiagnosticInfoFunc, asClauseType, diagBag)
         End Function
@@ -659,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function DecodeIdentifierType(identifier As SyntaxToken,
                                              asClauseType As TypeSymbol,
                                              getRequireTypeDiagnosticInfoFunc As Func(Of DiagnosticInfo),
-                                             diagBag As DiagnosticBag,
+                                             diagBag As BindingDiagnosticBag,
                                              Optional decoderContext As ModifiedIdentifierTypeDecoderContext = ModifiedIdentifierTypeDecoderContext.None
         ) As TypeSymbol
             Dim typeCharacterType As TypeSymbol = Nothing
@@ -808,7 +808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function DecodeParameterListOfDelegateDeclaration(
             container As Symbol,
             syntaxOpt As ParameterListSyntax,
-            diagBag As DiagnosticBag
+            diagBag As BindingDiagnosticBag
         ) As ImmutableArray(Of ParameterSymbol)
 
             If syntaxOpt Is Nothing Then
@@ -849,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             isFromLambda As Boolean,
                                             modifiers As SourceMemberFlags,
                                             syntaxOpt As ParameterListSyntax,
-                                            diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+                                            diagBag As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             Debug.Assert(Not (container.Kind = SymbolKind.Method AndAlso DirectCast(container, MethodSymbol).MethodKind = MethodKind.DelegateInvoke))
 
             If syntaxOpt Is Nothing Then
@@ -913,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_checkOperatorParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckOperatorParameterModifier
 
-        Private Shared Function CheckOperatorParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
+        Private Shared Function CheckOperatorParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As BindingDiagnosticBag) As SourceParameterFlags
             If (flag And SourceParameterFlags.ByRef) <> 0 Then
                 diagnostics.Add(ERRID.ERR_ByRefIllegal1, token.GetLocation(), container.GetKindText())
                 flag = flag And (Not SourceParameterFlags.ByRef)
@@ -939,7 +939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntaxOpt">Optional parameter list syntax</param>
         Public Function DecodePropertyParameterList(container As PropertySymbol,
                                             syntaxOpt As ParameterListSyntax,
-                                            diagBag As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
+                                            diagBag As BindingDiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             If syntaxOpt Is Nothing Then
                 Return ImmutableArray(Of ParameterSymbol).Empty
             End If
@@ -976,7 +976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared ReadOnly s_checkPropertyParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckPropertyParameterModifier
 
-        Private Shared Function CheckPropertyParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
+        Private Shared Function CheckPropertyParameterModifier(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As BindingDiagnosticBag) As SourceParameterFlags
             If flag = SourceParameterFlags.ByRef Then
                 Dim location = token.GetLocation()
                 diagnostics.Add(ERRID.ERR_ByRefIllegal1, location, container.GetKindText(), token.ToString())
@@ -985,7 +985,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return flag
         End Function
 
-        Private Shared Function CheckReservedParameterName(reservedName As String, syntax As ParameterSyntax, errorId As ERRID, diagnostics As DiagnosticBag) As Boolean
+        Private Shared Function CheckReservedParameterName(reservedName As String, syntax As ParameterSyntax, errorId As ERRID, diagnostics As BindingDiagnosticBag) As Boolean
             Dim identifier = syntax.Identifier
             Dim name = identifier.Identifier.ValueText
             If IdentifierComparison.Equals(reservedName, name) Then
@@ -1002,7 +1002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  nParams As Integer,
                                                  syntax As ParameterSyntax,
                                                  parameter As ParameterSymbol,
-                                                 diagnostics As DiagnosticBag)
+                                                 diagnostics As BindingDiagnosticBag)
             Dim name = parameter.Name
             For i = 0 To nParams - 1
                 If IdentifierComparison.Equals(params(i).Name, name) Then
@@ -1013,7 +1013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Friend Delegate Function CheckParameterModifierDelegate(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As DiagnosticBag) As SourceParameterFlags
+        Friend Delegate Function CheckParameterModifierDelegate(container As Symbol, token As SyntaxToken, flag As SourceParameterFlags, diagnostics As BindingDiagnosticBag) As SourceParameterFlags
 
         Public Sub DecodeParameterList(container As Symbol,
                                             isFromLambda As Boolean,
@@ -1021,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             syntax As SeparatedSyntaxList(Of ParameterSyntax),
                                             params As ArrayBuilder(Of ParameterSymbol),
                                             checkModifier As CheckParameterModifierDelegate,
-                                            diagBag As DiagnosticBag)
+                                            diagBag As BindingDiagnosticBag)
 
             Dim count As Integer = syntax.Count
             Dim ordinal = params.Count
@@ -1287,7 +1287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="diagnostics">The diagnostics.</param>
         ''' <returns>ConstantValue if the bound expression is compile time constant and can be used 
         ''' for const field/local initializations or enum member initializations. Nothing if not</returns>
-        Public Function GetExpressionConstantValueIfAny(boundExpression As BoundExpression, diagnostics As DiagnosticBag, context As ConstantContext) As ConstantValue
+        Public Function GetExpressionConstantValueIfAny(boundExpression As BoundExpression, diagnostics As BindingDiagnosticBag, context As ConstantContext) As ConstantValue
             Dim nonConstantDetected As Boolean = False
             Do
                 If boundExpression.Kind = BoundKind.Local Then
@@ -1379,7 +1379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function CheckConversionForConstantExpression(conv As BoundExpression, operand As BoundExpression, diagnostics As DiagnosticBag, context As ConstantContext) As ConstantValue
+        Private Function CheckConversionForConstantExpression(conv As BoundExpression, operand As BoundExpression, diagnostics As BindingDiagnosticBag, context As ConstantContext) As ConstantValue
             If conv.HasErrors Then
                 Return Nothing
             End If
@@ -1455,9 +1455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         ' Let's convert to the underlying type of the Nullable.
                         ' All diagnostics about this conversion have already been reported, so we can treat it as an explicit conversion and ignore any errors/warnings.
-                        Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
-                        Dim conversionToUnderlying As BoundExpression = ApplyConversion(operand.Syntax, conversionType.GetNullableUnderlyingType(), operand, isExplicit:=True, diagnostics:=ignoreDiagnostics)
-                        ignoreDiagnostics.Free()
+                        Dim conversionToUnderlying As BoundExpression = ApplyConversion(operand.Syntax, conversionType.GetNullableUnderlyingType(), operand, isExplicit:=True, diagnostics:=BindingDiagnosticBag.Discarded)
 
                         nestedConstValue = conversionToUnderlying.ConstantValueOpt
                         If nestedConstValue IsNot Nothing Then

@@ -1073,10 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UseSiteInfo<AssemblySymbol> useSiteInfo = accessor.GetUseSiteInfo();
                 if (!object.Equals(useSiteInfo.DiagnosticInfo, propertySymbol.GetUseSiteInfo().DiagnosticInfo))
                 {
-                    if (diagnostics.Add(useSiteInfo, propertySyntax))
-                    {
-                        return true;
-                    }
+                    return diagnostics.Add(useSiteInfo, propertySyntax);
                 }
                 else
                 {

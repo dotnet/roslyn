@@ -2465,7 +2465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
             {
-                var methodBodyDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
+                var methodBodyDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(),
+                                                                     builder.DependenciesBag is object ? new ConcurrentSet<AssemblySymbol>() : null);
                 GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
                 builder.AddRange(methodBodyDiagnostics);
                 methodBodyDiagnostics.DiagnosticBag.Free();

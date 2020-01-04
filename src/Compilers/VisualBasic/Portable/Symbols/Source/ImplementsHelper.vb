@@ -70,22 +70,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                      binder As Binder) As QualifiedNameSyntax
             Debug.Assert(implementedSym IsNot Nothing)
 
-            Dim dummyDiagnostics = DiagnosticBag.GetInstance() ' don't care about diagnostics
             Dim dummyResultKind As LookupResultKind
 
-            Try
-                ' Bind each syntax again and compare them.
-                For Each implementedMethodSyntax As QualifiedNameSyntax In implementsClause.InterfaceMembers
-                    Dim implementedMethod As TSymbol = FindExplicitlyImplementedMember(implementingSym, container, implementedMethodSyntax, binder, dummyDiagnostics, Nothing, dummyResultKind)
-                    If implementedMethod = implementedSym Then
-                        Return implementedMethodSyntax
-                    End If
-                Next
+            ' Bind each syntax again and compare them.
+            For Each implementedMethodSyntax As QualifiedNameSyntax In implementsClause.InterfaceMembers
+                ' don't care about diagnostics
+                Dim implementedMethod As TSymbol = FindExplicitlyImplementedMember(implementingSym, container, implementedMethodSyntax, binder, BindingDiagnosticBag.Discarded, Nothing, dummyResultKind)
+                If implementedMethod = implementedSym Then
+                    Return implementedMethodSyntax
+                End If
+            Next
 
-                Return Nothing
-            Finally
-                dummyDiagnostics.Free()
-            End Try
+            Return Nothing
         End Function
 
         ' Given a symbol in the process of being constructed, bind the Implements clause
@@ -94,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                       implementingSym As TSymbol,
                                                                       container As SourceMemberContainerTypeSymbol,
                                                                       binder As Binder,
-                                                                      diagBag As DiagnosticBag) As ImmutableArray(Of TSymbol)
+                                                                      diagBag As BindingDiagnosticBag) As ImmutableArray(Of TSymbol)
             Debug.Assert(implementsClause IsNot Nothing)
 
             If container.IsInterface Then
@@ -169,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                               containingType As NamedTypeSymbol,
                                                                               implementedMemberSyntax As QualifiedNameSyntax,
                                                                               binder As Binder,
-                                                                              diagBag As DiagnosticBag,
+                                                                              diagBag As BindingDiagnosticBag,
                                                                               candidateSymbols As ArrayBuilder(Of Symbol),
                                                                               ByRef resultKind As LookupResultKind) As TSymbol
             resultKind = LookupResultKind.Good
@@ -204,8 +200,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     options = CType(options Or LookupOptions.EventsOnly, LookupOptions)
                 End If
 
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                binder.LookupMember(lookup, interfaceType, implementedMethodName, -1, options, useSiteDiagnostics)
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                binder.LookupMember(lookup, interfaceType, implementedMethodName, -1, options, useSiteInfo)
 
                 If lookup.IsAmbiguous Then
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_AmbiguousImplementsMember3,
@@ -253,11 +249,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                     Continue For ' has been eliminated already
                                 End If
 
-                                If second.ContainingType.ImplementsInterface(first.ContainingType, comparer:=Nothing, useSiteDiagnostics:=Nothing) Then
+                                If second.ContainingType.ImplementsInterface(first.ContainingType, comparer:=Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                                     candidates(i) = Nothing
                                     candidatesCount -= 1
                                     GoTo Next_i
-                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, comparer:=Nothing, useSiteDiagnostics:=Nothing) Then
+                                ElseIf first.ContainingType.ImplementsInterface(second.ContainingType, comparer:=Nothing, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                                     candidates(j) = Nothing
                                     candidatesCount -= 1
                                 End If
@@ -361,7 +357,7 @@ DoneWithErrorReporting:
                                 candidateSymbols.Add(foundMember)
                             End If
                             resultKind = LookupResult.WorseResultKind(resultKind, lookup.Kind)
-                            If Not binder.IsAccessible(foundMember, useSiteDiagnostics) Then
+                            If Not binder.IsAccessible(foundMember, useSiteInfo) Then
                                 resultKind = LookupResult.WorseResultKind(resultKind, LookupResultKind.Inaccessible) ' we specified IgnoreAccessibility above.
                                 Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(foundMember))
                             ElseIf foundMember.Kind = SymbolKind.Property Then
@@ -375,7 +371,7 @@ DoneWithErrorReporting:
                                 If accessorToCheck IsNot Nothing AndAlso
                                    accessorToCheck.DeclaredAccessibility <> [property].DeclaredAccessibility AndAlso
                                    accessorToCheck.RequiresImplementation() AndAlso
-                                   Not binder.IsAccessible(accessorToCheck, useSiteDiagnostics) Then
+                                   Not binder.IsAccessible(accessorToCheck, useSiteInfo) Then
                                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, binder.GetInaccessibleErrorInfo(accessorToCheck))
                                 End If
                             End If
@@ -383,7 +379,7 @@ DoneWithErrorReporting:
                     End If
                 End If
 
-                diagBag.Add(interfaceName, useSiteDiagnostics)
+                diagBag.Add(interfaceName, useSiteInfo)
                 lookup.Free()
 
                 If foundMember Is Nothing And Not errorReported Then
@@ -457,7 +453,7 @@ DoneWithErrorReporting:
                                                                         implementedSym As TSymbol,
                                                                         implementedMemberSyntax As QualifiedNameSyntax,
                                                                         binder As Binder,
-                                                                        diagBag As DiagnosticBag,
+                                                                        diagBag As BindingDiagnosticBag,
                                                                         interfaceType As TypeSymbol,
                                                                         implementedMethodName As String,
                                                                         ByRef errorReported As Boolean) As TSymbol
@@ -535,7 +531,7 @@ DoneWithErrorReporting:
         ''' </summary>
         Public Sub ValidateImplementedMethodConstraints(implementingMethod As SourceMethodSymbol,
                                                         implementedMethod As MethodSymbol,
-                                                        diagBag As DiagnosticBag)
+                                                        diagBag As BindingDiagnosticBag)
             If Not MethodSignatureComparer.HaveSameConstraints(implementedMethod, implementingMethod) Then
                 ' "'{0}' cannot implement '{1}.{2}' because they differ by type parameter constraints."
                 Dim loc = implementingMethod.GetImplementingLocation(implementedMethod)

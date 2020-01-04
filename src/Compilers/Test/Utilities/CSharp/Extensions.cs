@@ -836,18 +836,31 @@ internal static class Extensions
     public static Conversion ClassifyConversionFromType(this ConversionsBase conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
     {
         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
-        useSiteInfo.Diagnostics = useSiteDiagnostics;
         Conversion result = conversions.ClassifyConversionFromType(source, destination, ref useSiteInfo, forCast);
-        useSiteDiagnostics = useSiteInfo.Diagnostics;
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
         return result;
+    }
+
+    private static void AddDiagnosticInfos(ref HashSet<DiagnosticInfo> useSiteDiagnostics, CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+    {
+        if (useSiteInfo.Diagnostics is object)
+        {
+            if (useSiteDiagnostics is null)
+            {
+                useSiteDiagnostics = (HashSet<DiagnosticInfo>)useSiteInfo.Diagnostics;
+            }
+            else
+            {
+                useSiteDiagnostics.AddAll(useSiteInfo.Diagnostics);
+            }
+        }
     }
 
     public static Conversion ClassifyConversionFromExpression(this ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast = false)
     {
         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
-        useSiteInfo.Diagnostics = useSiteDiagnostics;
         Conversion result = conversions.ClassifyConversionFromExpression(sourceExpression, destination, ref useSiteInfo, forCast);
-        useSiteDiagnostics = useSiteInfo.Diagnostics;
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
         return result;
     }
 
@@ -863,9 +876,8 @@ internal static class Extensions
         ref HashSet<DiagnosticInfo> useSiteDiagnostics)
     {
         CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = default;
-        useSiteInfo.Diagnostics = useSiteDiagnostics;
         binder.LookupSymbolsSimpleName(result, qualifierOpt, plainName, arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
-        useSiteDiagnostics = useSiteInfo.Diagnostics;
+        AddDiagnosticInfos(ref useSiteDiagnostics, useSiteInfo);
     }
 
     public static ImmutableArray<Symbol> BindCref(this Microsoft.CodeAnalysis.CSharp.Binder binder, CrefSyntax syntax, out Symbol ambiguityWinner, DiagnosticBag diagnostics)

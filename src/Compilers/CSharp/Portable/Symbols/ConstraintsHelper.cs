@@ -982,7 +982,7 @@ hasRelatedInterfaces:
             TypeParameterSymbol typeParameter,
             ref ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder)
         {
-            if (!useSiteInfo.Dependencies.IsNullOrEmpty())
+            if (!useSiteInfo.HasErrors && !useSiteInfo.Dependencies.IsNullOrEmpty())
             {
                 ensureUseSiteDiagnosticsBuilder(ref useSiteDiagnosticsBuilder).Add(new TypeParameterDiagnosticInfo(typeParameter,
                                                                               useSiteInfo.Dependencies.Count == 1 ?

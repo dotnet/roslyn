@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindNameInsideCrefReferenceInLegacyMode(nameFromCref As TypeSyntax, preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Private Function BindNameInsideCrefReferenceInLegacyMode(nameFromCref As TypeSyntax, preserveAliases As Boolean, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             ' This binding mode is used for cref-references without signatures and 
             ' emulate Dev11 behavior
 
@@ -41,11 +41,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             While name IsNot Nothing And name.Kind <> SyntaxKind.CrefReference
                 If name.Kind <> SyntaxKind.QualifiedName Then
                     ' Not a top-level name or a top-level qualified name part
-                    Dim discarded = DiagnosticBag.GetInstance
                     Dim result As Symbol = If(preserveAliases,
-                                              BindTypeOrAliasSyntax(nameFromCref, discarded),
-                                              BindTypeSyntax(nameFromCref, discarded))
-                    discarded.Free()
+                                              BindTypeOrAliasSyntax(nameFromCref, BindingDiagnosticBag.Discarded),
+                                              BindTypeSyntax(nameFromCref, BindingDiagnosticBag.Discarded))
                     Return ImmutableArray.Create(Of Symbol)(result)
                 End If
 
@@ -65,13 +63,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case nameFromCref.Kind
                 Case SyntaxKind.IdentifierName,
                      SyntaxKind.GenericName
-                    BindSimpleNameForCref(DirectCast(nameFromCref, SimpleNameSyntax), symbols, preserveAliases, useSiteDiagnostics, False)
+                    BindSimpleNameForCref(DirectCast(nameFromCref, SimpleNameSyntax), symbols, preserveAliases, useSiteInfo, False)
 
                 Case SyntaxKind.PredefinedType
                     BindPredefinedTypeForCref(DirectCast(nameFromCref, PredefinedTypeSyntax), symbols)
 
                 Case SyntaxKind.QualifiedName
-                    BindQualifiedNameForCref(DirectCast(nameFromCref, QualifiedNameSyntax), symbols, preserveAliases, useSiteDiagnostics)
+                    BindQualifiedNameForCref(DirectCast(nameFromCref, QualifiedNameSyntax), symbols, preserveAliases, useSiteInfo)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(nameFromCref.Kind)
@@ -82,17 +80,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return symbols.ToImmutableAndFree()
         End Function
 
-        Private Sub BindQualifiedNameForCref(node As QualifiedNameSyntax, symbols As ArrayBuilder(Of Symbol), preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+        Private Sub BindQualifiedNameForCref(node As QualifiedNameSyntax, symbols As ArrayBuilder(Of Symbol), preserveAliases As Boolean, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim allowColorColor As Boolean = True
 
             Dim left As NameSyntax = node.Left
             Select Case left.Kind
                 Case SyntaxKind.IdentifierName,
                      SyntaxKind.GenericName
-                    BindSimpleNameForCref(DirectCast(left, SimpleNameSyntax), symbols, preserveAliases, useSiteDiagnostics, True)
+                    BindSimpleNameForCref(DirectCast(left, SimpleNameSyntax), symbols, preserveAliases, useSiteInfo, True)
 
                 Case SyntaxKind.QualifiedName
-                    BindQualifiedNameForCref(DirectCast(left, QualifiedNameSyntax), symbols, preserveAliases, useSiteDiagnostics)
+                    BindQualifiedNameForCref(DirectCast(left, QualifiedNameSyntax), symbols, preserveAliases, useSiteInfo)
                     allowColorColor = False
 
                 Case SyntaxKind.GlobalName
@@ -123,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       genericName.TypeArgumentList.Arguments.Count,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics,
+                                      useSiteInfo,
                                       containingSymbol:=singleSymbol,
                                       allowColorColor:=allowColorColor)
 
@@ -144,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       0,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics,
+                                      useSiteInfo,
                                       containingSymbol:=singleSymbol,
                                       allowColorColor:=allowColorColor)
                 If symbols.Count > 0 Then
@@ -157,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       -1,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics,
+                                      useSiteInfo,
                                       containingSymbol:=singleSymbol,
                                       allowColorColor:=allowColorColor)
             End If
@@ -170,11 +168,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        preserveAliases As Boolean,
                                                        lookupResult As LookupResult,
                                                        options As LookupOptions,
-                                                       <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                       <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 lAgain:
             Select Case containingSymbol.Kind
                 Case SymbolKind.Namespace
-                    LookupMember(lookupResult, DirectCast(containingSymbol, NamespaceSymbol), name, arity, options, useSiteDiagnostics)
+                    LookupMember(lookupResult, DirectCast(containingSymbol, NamespaceSymbol), name, arity, options, useSiteInfo)
 
                 Case SymbolKind.Alias
                     If Not preserveAliases Then
@@ -183,7 +181,7 @@ lAgain:
                     End If
 
                 Case SymbolKind.NamedType, SymbolKind.ArrayType
-                    LookupMember(lookupResult, DirectCast(containingSymbol, TypeSymbol), name, arity, options, useSiteDiagnostics)
+                    LookupMember(lookupResult, DirectCast(containingSymbol, TypeSymbol), name, arity, options, useSiteInfo)
 
                 Case SymbolKind.Property
                     If allowColorColor Then
@@ -230,7 +228,7 @@ lAgain:
                                           arity As Integer,
                                           symbols As ArrayBuilder(Of Symbol),
                                           preserveAliases As Boolean,
-                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                          <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                           Optional containingSymbol As Symbol = Nothing,
                                           Optional allowColorColor As Boolean = False,
                                           Optional typeOrNamespaceOnly As Boolean = False)
@@ -260,7 +258,7 @@ lAgain:
             Dim lookupResult As LookupResult = LookupResult.GetInstance()
 
             If containingSymbol Is Nothing Then
-                Me.Lookup(lookupResult, name, arity, options, useSiteDiagnostics)
+                Me.Lookup(lookupResult, name, arity, options, useSiteInfo)
             Else
                 LookupSimpleNameInContainingSymbol(containingSymbol,
                                                allowColorColor,
@@ -269,7 +267,7 @@ lAgain:
                                                preserveAliases,
                                                lookupResult,
                                                options,
-                                               useSiteDiagnostics)
+                                               useSiteInfo)
             End If
 
             If Not lookupResult.IsGoodOrAmbiguous OrElse Not lookupResult.HasSymbol Then
@@ -283,7 +281,7 @@ lAgain:
         Private Sub BindSimpleNameForCref(node As SimpleNameSyntax,
                                           symbols As ArrayBuilder(Of Symbol),
                                           preserveAliases As Boolean,
-                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                          <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                           typeOrNamespaceOnly As Boolean)
 
             ' Name syntax of Cref should not have diagnostics
@@ -300,7 +298,7 @@ lAgain:
                                       genericName.TypeArgumentList.Arguments.Count,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics,
+                                      useSiteInfo,
                                       typeOrNamespaceOnly:=typeOrNamespaceOnly)
 
                 If symbols.Count <> 1 Then
@@ -321,7 +319,7 @@ lAgain:
                                       0,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics,
+                                      useSiteInfo,
                                       typeOrNamespaceOnly:=typeOrNamespaceOnly)
 
                 If symbols.Count > 0 Then
@@ -334,7 +332,7 @@ lAgain:
                                       -1,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics,
+                                      useSiteInfo,
                                       typeOrNamespaceOnly:=typeOrNamespaceOnly)
             End If
         End Sub
@@ -387,9 +385,7 @@ lAgain:
             End Select
 
             ' We discard diagnostics in case 
-            Dim diagnostics = DiagnosticBag.GetInstance
-            symbols.Add(Me.GetSpecialType(type, node, diagnostics))
-            diagnostics.Free()
+            symbols.Add(Me.GetSpecialType(type, node, BindingDiagnosticBag.Discarded))
         End Sub
 
         Private Function ConstructGenericSymbolWithTypeArgumentsForCref(genericSymbol As Symbol, genericName As GenericNameSyntax) As Symbol
@@ -415,11 +411,9 @@ lAgain:
 
         Private Function BingTypeArgumentsForCref(args As SeparatedSyntaxList(Of TypeSyntax)) As ImmutableArray(Of TypeSymbol)
             Dim result(args.Count - 1) As TypeSymbol
-            Dim diagBag = DiagnosticBag.GetInstance
             For i = 0 To args.Count - 1
-                result(i) = Me.BindTypeSyntax(args(i), diagBag)
+                result(i) = Me.BindTypeSyntax(args(i), BindingDiagnosticBag.Discarded)
             Next
-            diagBag.Free()
             Return result.AsImmutableOrNull()
         End Function
 

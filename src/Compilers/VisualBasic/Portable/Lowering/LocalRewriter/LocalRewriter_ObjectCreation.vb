@@ -37,10 +37,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If node.Type.IsInterfaceType() Then
                     Debug.Assert(result.Type.Equals(DirectCast(node.Type, NamedTypeSymbol).CoClassType))
 
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(result.Type, node.Type, useSiteDiagnostics)
+                    Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                    Dim conv As ConversionKind = Conversions.ClassifyDirectCastConversion(result.Type, node.Type, useSiteInfo)
                     Debug.Assert(Conversions.ConversionExists(conv))
-                    _diagnostics.Add(result, useSiteDiagnostics)
+                    _diagnostics.Add(result, useSiteInfo)
                     result = New BoundDirectCast(node.Syntax, result, conv, node.Type, Nothing)
                 Else
                     Debug.Assert(node.Type.IsSameTypeIgnoringAll(result.Type))
@@ -84,9 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim createInstance = factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Activator__CreateInstance)
             Dim rewrittenObjectCreation As BoundExpression
             If createInstance IsNot Nothing AndAlso Not createInstance.ReturnType.IsErrorType() Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim conversion = Conversions.ClassifyDirectCastConversion(createInstance.ReturnType, node.Type, useSiteDiagnostics)
-                _diagnostics.Add(node, useSiteDiagnostics)
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim conversion = Conversions.ClassifyDirectCastConversion(createInstance.ReturnType, node.Type, useSiteInfo)
+                _diagnostics.Add(node, useSiteInfo)
                 rewrittenObjectCreation = New BoundDirectCast(node.Syntax, factory.Call(Nothing, createInstance, callGetTypeFromCLSID), conversion, node.Type)
             Else
                 rewrittenObjectCreation = New BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray(Of Symbol).Empty, ImmutableArray(Of BoundExpression).Empty, node.Type, hasErrors:=True)

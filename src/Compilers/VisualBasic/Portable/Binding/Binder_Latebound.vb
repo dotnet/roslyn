@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            typeArguments As TypeArgumentListSyntax,
                                            receiver As BoundExpression,
                                            containerType As TypeSymbol,
-                                           diagnostics As DiagnosticBag) As BoundExpression
+                                           diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim boundTypeArguments As BoundTypeArguments = BindTypeArguments(typeArguments, diagnostics)
             Return BindLateBoundMemberAccess(node, name, boundTypeArguments, receiver, containerType, diagnostics)
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            boundTypeArguments As BoundTypeArguments,
                                            receiver As BoundExpression,
                                            containerType As TypeSymbol,
-                                           diagnostics As DiagnosticBag,
+                                           diagnostics As BindingDiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
             receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    isDefaultMemberAccess As Boolean,
                                    arguments As ImmutableArray(Of BoundExpression),
                                    argumentNames As ImmutableArray(Of String),
-                                   diagnostics As DiagnosticBag) As BoundExpression
+                                   diagnostics As BindingDiagnosticBag) As BoundExpression
 
             Dim memberName As String = If(isDefaultMemberAccess,
                                           Nothing,
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            receiver As BoundExpression,
                                            arguments As ImmutableArray(Of BoundExpression),
                                            argumentNames As ImmutableArray(Of String),
-                                           diagnostics As DiagnosticBag,
+                                           diagnostics As BindingDiagnosticBag,
                                            Optional suppressLateBindingResolutionDiagnostics As Boolean = False) As BoundExpression
 
             Debug.Assert(receiver IsNot Nothing AndAlso receiver.Kind <> BoundKind.TypeOrValueExpression)
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckNamedArgumentsForLateboundInvocation(argumentNames As ImmutableArray(Of String),
                                                             arguments As ImmutableArray(Of BoundExpression),
-                                                            diagnostics As DiagnosticBag)
+                                                            diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(Not arguments.IsDefault)
 

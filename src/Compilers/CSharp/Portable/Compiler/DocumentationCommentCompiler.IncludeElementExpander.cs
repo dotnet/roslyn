@@ -656,9 +656,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _diagnostics.Add(diagnostic.WithLocation(sourceLocation));
                         }
                     }
-
-                    _diagnostics.AddDependencies(bindingDiagnostics);
                 }
+
+                _diagnostics.AddDependencies(bindingDiagnostics);
             }
         }
     }

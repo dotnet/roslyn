@@ -33,15 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyType Is Nothing Then
 
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim result = _propertyOrEvent.Type
 
                     If _propertyOrEvent.IsWindowsRuntimeEvent Then
                         Dim tokenType = Me.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T)
-                        Dim info = Binder.GetUseSiteErrorForWellKnownType(tokenType)
-                        If info IsNot Nothing Then
-                            diagnostics.Add(info, _propertyOrEvent.Locations(0))
-                        End If
+                        diagnostics.Add(Binder.GetUseSiteInfoForWellKnownType(tokenType), _propertyOrEvent.Locations(0))
+
                         result = tokenType.Construct(result)
                     End If
 

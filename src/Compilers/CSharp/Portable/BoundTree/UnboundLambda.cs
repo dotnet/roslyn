@@ -94,22 +94,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
-                if (useSiteInfo.Diagnostics == null)
-                {
-                    useSiteInfo.Diagnostics = new HashSet<DiagnosticInfo>();
-                }
-
-                useSiteInfo.Diagnostics.AddAll(InferredReturnType.UseSiteDiagnostics);
+                useSiteInfo.AddDiagnostics(InferredReturnType.UseSiteDiagnostics);
             }
 
             if (!InferredReturnType.Dependencies.IsEmpty)
             {
-                if (useSiteInfo.Dependencies == null)
-                {
-                    useSiteInfo.Dependencies = new HashSet<AssemblySymbol>();
-                }
-
-                useSiteInfo.Dependencies.AddAll(InferredReturnType.Dependencies);
+                useSiteInfo.AddDependencies(InferredReturnType.Dependencies);
             }
 
             if (nullableState == null)

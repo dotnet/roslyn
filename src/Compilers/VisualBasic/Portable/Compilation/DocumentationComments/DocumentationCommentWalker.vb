@@ -31,13 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private ReadOnly _wellKnownElementNodes As Dictionary(Of WellKnownTag, ArrayBuilder(Of XmlNodeSyntax))
                 Private ReadOnly _reportDiagnostics As Boolean
                 Private ReadOnly _writer As TextWriter
-                Private ReadOnly _diagnostics As DiagnosticBag
+                Private ReadOnly _diagnostics As BindingDiagnosticBag
 
                 Private Sub New(symbol As Symbol,
                                 syntaxTree As SyntaxTree,
                                 wellKnownElementNodes As Dictionary(Of WellKnownTag, ArrayBuilder(Of XmlNodeSyntax)),
                                 writer As TextWriter,
-                                diagnostics As DiagnosticBag)
+                                diagnostics As BindingDiagnosticBag)
 
                     MyBase.New(SyntaxWalkerDepth.Token)
 
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Friend Shared Function GetSubstitutedText(symbol As Symbol,
                                                           trivia As DocumentationCommentTriviaSyntax,
                                                           wellKnownElementNodes As Dictionary(Of WellKnownTag, ArrayBuilder(Of XmlNodeSyntax)),
-                                                          diagnostics As DiagnosticBag) As String
+                                                          diagnostics As BindingDiagnosticBag) As String
 
                     Dim pooled As PooledStringBuilder = PooledStringBuilder.GetInstance()
 
@@ -146,12 +146,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(Not reference.ContainsDiagnostics)
 
                         Dim crefBinder = CreateDocumentationCommentBinderForSymbol(Me.Module, Me._symbol, Me._syntaxTree, DocumentationCommentBinder.BinderType.Cref)
-                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                        Dim diagnostics = DiagnosticBag.GetInstance
-                        Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteDiagnostics:=useSiteDiagnostics)
-                        Dim errorLocations = diagnostics.ToReadOnlyAndFree().SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
-                        If Not useSiteDiagnostics.IsNullOrEmpty AndAlso Me._reportDiagnostics Then
-                            ProcessErrorLocations(node, errorLocations, useSiteDiagnostics, Nothing)
+                        Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                        Dim diagnostics = BindingDiagnosticBag.GetInstance
+                        Dim result As ImmutableArray(Of Symbol) = crefBinder.BindInsideCrefAttributeValue(reference, preserveAliases:=False, diagnosticBag:=diagnostics, useSiteInfo:=useSiteInfo)
+                        _diagnostics.AddDependencies(diagnostics)
+                        _diagnostics.AddDependencies(useSiteInfo)
+
+                        Dim errorLocations = diagnostics.DiagnosticBag.ToReadOnly.SelectAsArray(Function(x) x.Location).WhereAsArray(Function(x) x IsNot Nothing)
+                        diagnostics.Free()
+
+                        If Not useSiteInfo.Diagnostics.IsNullOrEmpty AndAlso Me._reportDiagnostics Then
+                            ProcessErrorLocations(node, errorLocations, useSiteInfo, Nothing)
                         End If
 
                         If result.IsEmpty Then
@@ -261,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     MyBase.DefaultVisit(node)
                 End Sub
 
-                Private Sub ProcessErrorLocations(node As SyntaxNode, errorLocations As ImmutableArray(Of Location), useSiteDiagnostics As HashSet(Of DiagnosticInfo), errid As Nullable(Of ERRID))
+                Private Sub ProcessErrorLocations(node As SyntaxNode, errorLocations As ImmutableArray(Of Location), useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol), errid As Nullable(Of ERRID))
                     Dim crefAttr = TryCast(node, XmlCrefAttributeSyntax)
                     If crefAttr IsNot Nothing AndAlso errid.HasValue Then
                         If errorLocations.Length = 0 Then
@@ -271,11 +276,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ProcessBadNameInCrefAttribute(crefAttr, location, errid.Value)
                             Next
                         End If
-                    ElseIf errorLocations.Length = 0 AndAlso useSiteDiagnostics IsNot Nothing Then
-                        Me._diagnostics.Add(node, useSiteDiagnostics)
-                    ElseIf useSiteDiagnostics IsNot Nothing Then
+                    ElseIf errorLocations.Length = 0 AndAlso useSiteInfo.Diagnostics IsNot Nothing Then
+                        Me._diagnostics.AddDiagnostics(node, useSiteInfo)
+                    ElseIf useSiteInfo.Diagnostics IsNot Nothing Then
                         For Each location In errorLocations
-                            Me._diagnostics.Add(location, useSiteDiagnostics)
+                            Me._diagnostics.AddDiagnostics(location, useSiteInfo)
                         Next
                     End If
                 End Sub

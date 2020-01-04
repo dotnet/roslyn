@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Note that this binder should have been already been set up to only bind to things in the global namespace.
         Public Sub BindImportClause(importClauseSyntax As ImportsClauseSyntax,
                                           data As ImportData,
-                                          diagBag As DiagnosticBag)
+                                          diagBag As BindingDiagnosticBag)
             ImportsBinder.BindImportClause(importClauseSyntax, Me, data, diagBag)
         End Sub
 
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Sub BindImportClause(importClauseSyntax As ImportsClauseSyntax,
                                                      binder As Binder,
                                                      data As ImportData,
-                                                     diagBag As DiagnosticBag)
+                                                     diagBag As BindingDiagnosticBag)
                 Select Case importClauseSyntax.Kind
                     Case SyntaxKind.SimpleImportsClause
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindAliasImportsClause(aliasImportSyntax As SimpleImportsClauseSyntax,
                                                       binder As Binder,
                                                       data As ImportData,
-                                                      diagBag As DiagnosticBag)
+                                                      diagBag As BindingDiagnosticBag)
                 Dim aliasesName = aliasImportSyntax.Name
                 Dim aliasTarget As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(aliasesName, diagBag)
 
@@ -111,10 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     conflictsWith(0))
                     Else
                         If aliasTarget.Kind <> SymbolKind.ErrorType Then
-                            Dim useSiteErrorInfo As DiagnosticInfo = aliasTarget.GetUseSiteErrorInfo()
+                            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = aliasTarget.GetUseSiteInfo()
 
-                            If ShouldReportUseSiteErrorForAlias(useSiteErrorInfo) Then
-                                Binder.ReportDiagnostic(diagBag, aliasImportSyntax, useSiteErrorInfo)
+                            If ShouldReportUseSiteErrorForAlias(useSiteInfo.DiagnosticInfo) Then
+                                Binder.ReportUseSite(diagBag, aliasImportSyntax, useSiteInfo)
+                            Else
+                                diagBag.AddDependencies(useSiteInfo)
                             End If
                         End If
 
@@ -146,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindMembersImportsClause(membersImportsSyntax As SimpleImportsClauseSyntax,
                                                         binder As Binder,
                                                         data As ImportData,
-                                                        diagBag As DiagnosticBag)
+                                                        diagBag As BindingDiagnosticBag)
                 Debug.Assert(membersImportsSyntax.Alias Is Nothing)
                 Dim importsName = membersImportsSyntax.Name
                 Dim importedSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(importsName, diagBag)
@@ -200,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub BindXmlNamespaceImportsClause(syntax As XmlNamespaceImportsClauseSyntax,
                                                              binder As Binder,
                                                              data As ImportData,
-                                                             diagBag As DiagnosticBag)
+                                                             diagBag As BindingDiagnosticBag)
                 Dim prefix As String = Nothing
                 Dim namespaceName As String = Nothing
                 Dim [namespace] As BoundExpression = Nothing
