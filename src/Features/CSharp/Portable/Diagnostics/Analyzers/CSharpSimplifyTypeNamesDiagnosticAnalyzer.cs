@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
-        protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
