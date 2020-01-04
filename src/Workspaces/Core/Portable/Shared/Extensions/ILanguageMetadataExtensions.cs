@@ -35,11 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             foreach (var service in services)
             {
-                if (service.Metadata?.Language == null)
-                {
-                    continue;
-                }
-
+                var language = service.Metadata?.Language ?? string.Empty;
                 var list = builder.GetOrAdd(service.Metadata.Language, _ => ArrayBuilder<Lazy<TInterface, TMetadata>>.GetInstance());
                 list.Add(service);
             }
