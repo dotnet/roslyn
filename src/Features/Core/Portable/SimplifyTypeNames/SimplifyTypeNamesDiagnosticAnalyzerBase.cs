@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
-            // context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
