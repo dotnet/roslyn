@@ -91,11 +91,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             context.EnableConcurrentExecution();
 
             context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
-            // context.RegisterSemanticModelAction(AnalyzeSemanticModel);
         }
 
         protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
-        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context);
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,
