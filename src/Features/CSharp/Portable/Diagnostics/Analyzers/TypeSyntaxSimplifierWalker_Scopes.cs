@@ -35,10 +35,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private HashSet<string> _compilationTypeNames;
 
         /// <summary>
-        /// 
+        /// Set of type and namespace names that have an alias associated with them.  i.e. if the
+        /// user has <c>using X = System.DateTime</c>, then <c>DateTime</c> will be in this set.
+        /// This is used so we can easily tell if we should try to simplify some identifier to an
+        /// alias when we encounter it.
         /// </summary>
         private HashSet<string> _aliasedSymbolNames;
+
+        /// <summary>
+        /// Set of types and namespace names currently in scope based on the usings/namespaces we're
+        /// inside of.  This can be used to tell if we can simplify <c>X.Y</c> (in a types-only
+        /// context) to just<c>Y</c>.  If there is no declaration in scope called <c>Y</c> we don't
+        /// have to bother checking.
+        /// </summary>
         private HashSet<string> _declarationNamesInScope;
+
+        /// <summary>
+        /// Similar to <see cref="_declarationNamesInScope"/> except this also contains static
+        /// members. Used in expression contexts to tell if <c>X.Y</c> can be simplified to just
+        /// <c>Y</c>.
+        /// </summary>
         private HashSet<string> _staticNamesInScope;
 
         private readonly Action<CompilationUnitSyntax> _visitBaseCompilationUnit;
