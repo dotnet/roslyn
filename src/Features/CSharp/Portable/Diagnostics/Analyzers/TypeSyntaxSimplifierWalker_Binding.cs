@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return false;
         }
 
-        private bool TrySimplifyQualifiedReferenceToNamespaceOrType(
-            ExpressionSyntax node, SimpleNameSyntax right)
+        private bool TrySimplifyQualifiedReferenceToNamespaceOrType(ExpressionSyntax node, SimpleNameSyntax right)
         {
             // We have a qualified name (like A.B).
 

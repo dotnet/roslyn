@@ -104,8 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// static names into the current scope.
         /// </summary>
         private void EnterScope<TNode>(
-            TNode node, SyntaxList<UsingDirectiveSyntax> usings,
-            int position, Action<TNode> func) where TNode : SyntaxNode
+            TNode node, SyntaxList<UsingDirectiveSyntax> usings, int position, Action<TNode> func) where TNode : SyntaxNode
         {
             var savedAliasedSymbolNames = _aliasedSymbolNames;
             var savedDeclarationNamesInScope = _declarationNamesInScope;
@@ -115,8 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _declarationNamesInScope = SharedPools.StringHashSet.Allocate();
             _staticNamesInScope = SharedPools.StringHashSet.Allocate();
 
-            AddAliases(savedAliasedSymbolNames, usings);
-            AddNamesInScope(position);
+            AddNamesInScope(usings, position, savedAliasedSymbolNames);
 
             func(node);
 
@@ -129,8 +127,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _staticNamesInScope = savedStaticNamesInScope;
         }
 
-        private void AddAliases(HashSet<string> savedAliasedSymbolNames, SyntaxList<UsingDirectiveSyntax> usings)
+        private void AddNamesInScope(SyntaxList<UsingDirectiveSyntax> usings, int position, HashSet<string> savedAliasedSymbolNames)
         {
+            var declarationSymbols = _semanticModel.LookupNamespacesAndTypes(position);
+            foreach (var symbol in declarationSymbols)
+                _declarationNamesInScope.Add(symbol.Name);
+
+            var staticSymbols = _semanticModel.LookupStaticMembers(position);
+            foreach (var symbol in staticSymbols)
+                _staticNamesInScope.Add(symbol.Name);
+
+            // Now add information about the aliases in scope.
+
             if (savedAliasedSymbolNames != null)
             {
                 // Include the members of the top of the stack in the new indices we're making.
@@ -151,17 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     }
                 }
             }
-        }
-
-        private void AddNamesInScope(int position)
-        {
-            var declarationSymbols = _semanticModel.LookupNamespacesAndTypes(position);
-            foreach (var symbol in declarationSymbols)
-                _declarationNamesInScope.Add(symbol.Name);
-
-            var staticSymbols = _semanticModel.LookupStaticMembers(position);
-            foreach (var symbol in staticSymbols)
-                _staticNamesInScope.Add(symbol.Name);
         }
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
