@@ -83,6 +83,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _visitBaseEnumDeclaration = n => base.VisitEnumDeclaration(n);
         }
 
+        public override void DefaultVisit(SyntaxNode node)
+        {
+            // For any member-decl (which includes named-types), descend into any leading doc
+            // comments so we can simplify types there as well.
+            if (node is MemberDeclarationSyntax memberDeclaration)
+            {
+                foreach (var trivia in memberDeclaration.GetLeadingTrivia())
+                {
+                    if (trivia.HasStructure)
+                        this.Visit(trivia.GetStructure());
+                }
+            }
+
+            base.DefaultVisit(node);
+        }
+
+        /// <summary>
+        /// Common helper that we call through with all nodes that can add type, namespace and
+        /// static names into the current scope.
+        /// </summary>
+        private void EnterScope<TNode>(
+            TNode node, SyntaxList<UsingDirectiveSyntax> usings,
+            int position, Action<TNode> func) where TNode : SyntaxNode
+        {
+            var savedAliasedSymbolNames = _aliasedSymbolNames;
+            var savedDeclarationNamesInScope = _declarationNamesInScope;
+            var savedStaticNamesInScope = _staticNamesInScope;
+
+            _aliasedSymbolNames = SharedPools.StringHashSet.Allocate();
+            _declarationNamesInScope = SharedPools.StringHashSet.Allocate();
+            _staticNamesInScope = SharedPools.StringHashSet.Allocate();
+
+            AddAliases(savedAliasedSymbolNames, usings);
+            AddNamesInScope(position);
+
+            func(node);
+
+            SharedPools.StringHashSet.ClearAndFree(_aliasedSymbolNames);
+            SharedPools.StringHashSet.ClearAndFree(_declarationNamesInScope);
+            SharedPools.StringHashSet.ClearAndFree(_staticNamesInScope);
+
+            _aliasedSymbolNames = savedAliasedSymbolNames;
+            _declarationNamesInScope = savedDeclarationNamesInScope;
+            _staticNamesInScope = savedStaticNamesInScope;
+        }
+
         private void AddAliases(HashSet<string> savedAliasedSymbolNames, SyntaxList<UsingDirectiveSyntax> usings)
         {
             if (savedAliasedSymbolNames != null)
@@ -107,48 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        public override void DefaultVisit(SyntaxNode node)
-        {
-            // For any member-decl (which includes named-types), descend into any leading doc
-            // comments so we can simplify types there as well.
-            if (node is MemberDeclarationSyntax memberDeclaration)
-            {
-                foreach (var trivia in memberDeclaration.GetLeadingTrivia())
-                {
-                    if (trivia.HasStructure)
-                        this.Visit(trivia.GetStructure());
-                }
-            }
-
-            base.DefaultVisit(node);
-        }
-
-        private void EnterNamespaceContext<TNode>(
-            TNode node, SyntaxList<UsingDirectiveSyntax> usings,
-            int position, Action<TNode> func) where TNode : SyntaxNode
-        {
-            var savedAliasedSymbolNames = _aliasedSymbolNames;
-            var savedDeclarationNamesInScope = _declarationNamesInScope;
-            var savedStaticNamesInScope = _staticNamesInScope;
-
-            _aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject().Object;
-            _declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
-            _staticNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
-
-            AddAliases(savedAliasedSymbolNames, usings);
-            AddNamesInScope(position);
-
-            func(node);
-
-            SharedPools.StringHashSet.ClearAndFree(_aliasedSymbolNames);
-            SharedPools.StringHashSet.ClearAndFree(_declarationNamesInScope);
-            SharedPools.StringHashSet.ClearAndFree(_staticNamesInScope);
-
-            _aliasedSymbolNames = savedAliasedSymbolNames;
-            _declarationNamesInScope = savedDeclarationNamesInScope;
-            _staticNamesInScope = savedStaticNamesInScope;
-        }
-
         private void AddNamesInScope(int position)
         {
             var declarationSymbols = _semanticModel.LookupNamespacesAndTypes(position);
@@ -161,44 +165,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
-            => EnterNamespaceContext(node, node.Usings,
+            => EnterScope(node, node.Usings,
                 node.AttributeLists.FirstOrDefault()?.SpanStart ??
                 node.Usings.FirstOrDefault()?.SpanStart ??
                 node.EndOfFileToken.SpanStart,
                 _visitBaseCompilationUnit);
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-            => EnterNamespaceContext(node, node.Usings, node.OpenBraceToken.Span.End, _visitBaseNamespaceDeclaration);
+            => EnterScope(node, node.Usings, node.OpenBraceToken.Span.End, _visitBaseNamespaceDeclaration);
 
-        private void EnterNamedTypeContext<TNode>(TNode node, Action<TNode> func) where TNode : BaseTypeDeclarationSyntax
-        {
-            var savedDeclarationNamesInScope = _declarationNamesInScope;
-            var savedStaticNamesInScope = _staticNamesInScope;
-
-            _declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
-            _staticNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
-
-            AddNamesInScope(node.OpenBraceToken.Span.End);
-
-            func(node);
-
-            SharedPools.StringHashSet.ClearAndFree(_declarationNamesInScope);
-            SharedPools.StringHashSet.ClearAndFree(_staticNamesInScope);
-
-            _declarationNamesInScope = savedDeclarationNamesInScope;
-            _staticNamesInScope = savedStaticNamesInScope;
-        }
+        private void EnterNamedTypeScope<TNode>(TNode node, Action<TNode> func) where TNode : BaseTypeDeclarationSyntax
+            => EnterScope(node, usings: default, node.OpenBraceToken.Span.End, func);
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
-            => EnterNamedTypeContext(node, _visitBaseClassDeclaration);
+            => EnterNamedTypeScope(node, _visitBaseClassDeclaration);
 
         public override void VisitStructDeclaration(StructDeclarationSyntax node)
-            => EnterNamedTypeContext(node, _visitBaseStructDeclaration);
+            => EnterNamedTypeScope(node, _visitBaseStructDeclaration);
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-            => EnterNamedTypeContext(node, _visitBaseInterfaceDeclaration);
+            => EnterNamedTypeScope(node, _visitBaseInterfaceDeclaration);
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
-            => EnterNamedTypeContext(node, _visitBaseEnumDeclaration);
+            => EnterNamedTypeScope(node, _visitBaseEnumDeclaration);
     }
 }
