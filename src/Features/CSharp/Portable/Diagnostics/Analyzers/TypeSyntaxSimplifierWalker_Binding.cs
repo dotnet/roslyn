@@ -284,17 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return false;
         }
 
-        private INamespaceOrTypeSymbol GetNamespaceOrTypeSymbol(SyntaxNode node)
-        {
-            var symbolInfo = _semanticModel.GetSymbolInfo(node, _cancellationToken);
-
-            // Don't offer if we have ambiguity involved.
-            if (symbolInfo.CandidateSymbols.Length > 0)
-                return null;
-
-            return symbolInfo.Symbol as INamespaceOrTypeSymbol;
-        }
-
         private bool TryReplaceWithAlias(
             SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
@@ -302,21 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!Peek(_aliasedSymbolNamesStack).Contains(typeName))
                 return false;
 
-            symbol ??= GetNamespaceOrTypeSymbol(node);
-            if (symbol == null)
-                return false;
-
-            // Next, see if there's an alias in scope we can bind to.
-            for (var i = _aliasedSymbolsStack.Count - 1; i >= 0; i--)
-            {
-                var aliasedSymbols = _aliasedSymbolsStack[i];
-                if (aliasedSymbols.Contains(symbol))
-                {
-                    return TrySimplify(node);
-                }
-            }
-
-            return false;
+            return TrySimplify(node);
         }
 
         private bool TryReplaceWithPredefinedType(SyntaxNode node, string typeName)

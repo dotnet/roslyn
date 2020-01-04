@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly bool _preferPredefinedTypeInMemberAccess;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly List<HashSet<INamespaceOrTypeSymbol>> _aliasedSymbolsStack;
         private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
         private readonly List<HashSet<string>> _declarationNamesInScopeStack;
         private readonly List<HashSet<string>> _staticNamesInScopeStack;
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
             _preferPredefinedTypeInMemberAccess = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, semanticModel.Language).Value;
 
-            _aliasedSymbolsStack = SharedPools.Default<List<HashSet<INamespaceOrTypeSymbol>>>().Allocate();
             _aliasedSymbolNamesStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _declarationNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _staticNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
@@ -66,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public void Dispose()
         {
-            SharedPools.Default<List<HashSet<INamespaceOrTypeSymbol>>>().ClearAndFree(_aliasedSymbolsStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_aliasedSymbolNamesStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_declarationNamesInScopeStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_staticNamesInScopeStack);
@@ -78,10 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private static void Pop<T>(List<T> stack)
             => stack.RemoveAt(stack.Count - 1);
 
-        private void AddAliases(
-            HashSet<INamespaceOrTypeSymbol> aliasedSymbols,
-            HashSet<string> aliasedSymbolNames,
-            SyntaxList<UsingDirectiveSyntax> usings)
+        private void AddAliases(HashSet<string> aliasedSymbolNames, SyntaxList<UsingDirectiveSyntax> usings)
         {
             if (_aliasedSymbolNamesStack.Count > 0)
             {
@@ -99,7 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                     if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
                     {
-                        aliasedSymbols.Add(symbol);
                         aliasedSymbolNames.Add(symbol.Name);
                     }
                 }
@@ -126,25 +119,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             TNode node, SyntaxList<UsingDirectiveSyntax> usings,
             int position, Action<TNode> func) where TNode : SyntaxNode
         {
-            using var aliases = SharedPools.Default<HashSet<INamespaceOrTypeSymbol>>().GetPooledObject();
             using var aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject();
             using var declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject();
             using var staticNamesInScope = SharedPools.StringHashSet.GetPooledObject();
 
-            AddAliases(aliases.Object, aliasedSymbolNames.Object, usings);
+            AddAliases(aliasedSymbolNames.Object, usings);
             AddNamesInScope(
                 declarationNamesInScope.Object,
                 staticNamesInScope.Object,
                 position);
 
-            _aliasedSymbolsStack.Add(aliases.Object);
             _aliasedSymbolNamesStack.Add(aliasedSymbolNames.Object);
             _declarationNamesInScopeStack.Add(declarationNamesInScope.Object);
             _staticNamesInScopeStack.Add(staticNamesInScope.Object);
 
             func(node);
 
-            Pop(_aliasedSymbolsStack);
             Pop(_aliasedSymbolNamesStack);
             Pop(_declarationNamesInScopeStack);
             Pop(_staticNamesInScopeStack);
