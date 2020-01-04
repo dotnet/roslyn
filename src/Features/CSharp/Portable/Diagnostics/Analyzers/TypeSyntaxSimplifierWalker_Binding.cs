@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         private bool SimplifyQualifiedReferenceToNamespaceOrType(
-            NameSyntax node, SimpleNameSyntax right)
+            ExpressionSyntax node, SimpleNameSyntax right)
         {
             // We have a qualified name (like A.B).
 
@@ -182,9 +183,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 if (SimplifyMemberAccessInNameofExpression(node))
                     return;
 
-                if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
+                // The `A.B` part might be referring to type/namespace.  See if we can simplify that.
+                if (SimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
                     return;
+                //if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
+                //    return;
 
+                // See if we can just simplify to `C`.
                 if (SimplifyStaticMemberAccess(node))
                     return;
             }
@@ -264,38 +269,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
             => nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
 
-        private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
-        {
-            // Can be one of:
-            //
-            //  A.B         expr is identifier
-            //  A.B.C       expr is member access
-            //  A::B.C      expr is alias qualified name
-            //  A<T>.B      expr is generic name.
+        //private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
+        //{
+        //    // Can be one of:
+        //    //
+        //    //  A.B         expr is identifier
+        //    //  A.B.C       expr is member access
+        //    //  A::B.C      expr is alias qualified name
+        //    //  A<T>.B      expr is generic name.
 
-            // We could end up simplifying to a predefined type or alias.  We can't simplify
-            // to nullable as `A?.B` is not a legal member access for `Nullable<A>.B`
-            var rightmostName = node.GetRightmostName();
-            if (rightmostName == null)
-                return false;
+        //    // We could end up simplifying to a predefined type or alias.  We can't simplify
+        //    // to nullable as `A?.B` is not a legal member access for `Nullable<A>.B`
+        //    var rightmostName = node.GetRightmostName();
+        //    Debug.Assert(rightmostName != null);
 
-            var identifier = rightmostName.Identifier.ValueText;
-            if (TryReplaceWithPredefinedType(node, identifier))
-                return true;
+        //    var identifier = rightmostName.Identifier.ValueText;
+        //    if (TryReplaceWithPredefinedType(node, identifier))
+        //        return true;
 
-            INamespaceOrTypeSymbol symbol = null;
-            if (TryReplaceWithAlias(node, identifier, ref symbol))
-                return true;
+        //    INamespaceOrTypeSymbol symbol = null;
+        //    if (TryReplaceWithAlias(node, identifier, ref symbol))
+        //        return true;
 
-            var parts = TryGetPartsOfQualifiedName(node);
-            if (parts != null &&
-                TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, parts.Value.right, ref symbol))
-            {
-                return true;
-            }
+        //    var parts = TryGetPartsOfQualifiedName(node);
+        //    if (parts != null &&
+        //        TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, parts.Value.right, ref symbol))
+        //    {
+        //        return true;
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         private bool SimplifyMemberAccessInNameofExpression(MemberAccessExpressionSyntax node)
         {
@@ -416,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             };
 
         private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(
-            SyntaxNode root, SimpleNameSyntax right, ref INamespaceOrTypeSymbol symbol)
+            ExpressionSyntax root, SimpleNameSyntax right, ref INamespaceOrTypeSymbol symbol)
         {
             // We have a name like A.B or A::B.
 
