@@ -112,19 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // comments so we can simplify types there as well.
             if (node is MemberDeclarationSyntax memberDeclaration)
             {
-                VisitMemberDeclaration(memberDeclaration);
+                foreach (var trivia in memberDeclaration.GetLeadingTrivia())
+                {
+                    if (trivia.HasStructure)
+                        this.Visit(trivia.GetStructure());
+                }
             }
 
             base.DefaultVisit(node);
-        }
-
-        private void VisitMemberDeclaration(MemberDeclarationSyntax memberDeclaration)
-        {
-            foreach (var trivia in memberDeclaration.GetLeadingTrivia())
-            {
-                if (trivia.HasStructure)
-                    this.Visit(trivia.GetStructure());
-            }
         }
 
         private void EnterNamespaceContext<TNode>(
@@ -168,18 +163,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
-        {
-            EnterNamespaceContext(node, node.Usings,
+            => EnterNamespaceContext(node, node.Usings,
                 node.AttributeLists.FirstOrDefault()?.SpanStart ??
                 node.Usings.FirstOrDefault()?.SpanStart ??
                 node.EndOfFileToken.SpanStart,
                 _visitBaseCompilationUnit);
-        }
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => EnterNamespaceContext(node, node.Usings, node.OpenBraceToken.Span.End, _visitBaseNamespaceDeclaration);
 
-        private void VisitTypeDeclaration<TNode>(TNode node, Action<TNode> func) where TNode : BaseTypeDeclarationSyntax
+        private void EnterNamedTypeContext<TNode>(TNode node, Action<TNode> func) where TNode : BaseTypeDeclarationSyntax
         {
             using var declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject();
             using var staticNamesInScope = SharedPools.StringHashSet.GetPooledObject();
@@ -195,15 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
-            => VisitTypeDeclaration(node, _visitBaseClassDeclaration);
+            => EnterNamedTypeContext(node, _visitBaseClassDeclaration);
 
         public override void VisitStructDeclaration(StructDeclarationSyntax node)
-            => VisitTypeDeclaration(node, _visitBaseStructDeclaration);
+            => EnterNamedTypeContext(node, _visitBaseStructDeclaration);
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-            => VisitTypeDeclaration(node, _visitBaseInterfaceDeclaration);
+            => EnterNamedTypeContext(node, _visitBaseInterfaceDeclaration);
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
-            => VisitTypeDeclaration(node, _visitBaseEnumDeclaration);
+            => EnterNamedTypeContext(node, _visitBaseEnumDeclaration);
     }
 }

@@ -29,12 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             // Don't bother looking at the right side of A.B or A::B.  We will process those in
-            // VisitQualifiedName, VisitAliasQualifiedName or VisitMemberAccessExpression.
+            // one of our other top level Visit methods (like VisitQualifiedName).
             if (!node.IsRightSideOfDotOrArrowOrColonColon())
             {
                 // If we have an identifier, we would only ever replace it with an alias or a
-                // predefined-type name.  Do a very quick syntactic check to even see if either of those
-                // are possible.
+                // predefined-type name.
                 var identifier = node.Identifier.ValueText;
                 if (TryReplaceWithPredefinedType(node, identifier))
                     return;
@@ -44,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     return;
             }
 
-            // No need to call `base.VisitIdentifierName()`.  identifier have no
-            // children we need to process.
+            // No need to call `base.VisitIdentifierName()`.  identifiers have no children we need
+            // to process.
         }
 
         public override void VisitGenericName(GenericNameSyntax node)
@@ -65,14 +64,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     return;
             }
 
-            if (TrySimplifyTypeArgumentList(node))
+            // See if we can remove the type argument list entirely from the generic name
+            // i.e. `G<int>(0)` => `G(0)`.
+            if (TrySimplifyTypeArgumentListInInvocation(node))
                 return;
 
-            // Try to simplify the type arguments if we can't simplify anything else.
+            // Even if the generic name itself wasn't simplifiable, its type arguments might be.
+            // i.e. `G<System.Int32>` => `G<int>`.
             this.Visit(node.TypeArgumentList);
         }
 
-        private bool TrySimplifyTypeArgumentList(GenericNameSyntax node)
+        private bool TrySimplifyTypeArgumentListInInvocation(GenericNameSyntax node)
         {
             // If we have a generic method call (like `Goo<int>(...)`), see if we can replace this
             // with a call it like so `Goo(...)`.
@@ -96,24 +98,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return false;
         }
 
-        private bool SimplifyQualifiedReferenceToNamespaceOrType(SyntaxNode node)
+        private bool SimplifyQualifiedReferenceToNamespaceOrType(
+            SyntaxNode node, SimpleNameSyntax right)
         {
-            var (left, right) = TryGetPartsOfQualifiedName(node).Value;
+            // We have a qualified name (like A.B).
 
-            // We have a qualified name (like A.B).  Check and see if 'B' is the name of
-            // predefined type, or if there's something aliased to the name B.
+            // First Check and see if 'B' is the name of
+            // predefined type.
             var identifier = right.Identifier.ValueText;
             if (TryReplaceWithPredefinedType(node, identifier))
                 return true;
 
+            // Then see if there's something aliased to the name B.
             INamespaceOrTypeSymbol symbol = null;
             if (TryReplaceWithAlias(node, identifier, ref symbol))
                 return true;
 
+            // Then see if they explicitly wrote out `A.Nullable<T>` and replace with T?
             if (TryReplaceWithNullable(node, identifier))
                 return true;
 
-            // Wasn't predefined or an alias.  See if we can just reduce it to 'B'.
+            // Finally, see if we can just reduce it to 'B'.
             if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, right, ref symbol))
                 return true;
 
@@ -122,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
         {
-            if (SimplifyQualifiedReferenceToNamespaceOrType(node))
+            if (SimplifyQualifiedReferenceToNamespaceOrType(node, node.Right))
                 return;
 
             // we could have something like `A.B.C<D.E>`.  We want to visit both A.B to see if that
@@ -132,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
         {
-            if (SimplifyQualifiedReferenceToNamespaceOrType(node))
+            if (SimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
                 return;
 
             // We still want to simplify the right side of this name.  We might have something
@@ -145,11 +150,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // A qualified cref could be referencing a namespace, type or member.  Try simplifying
             // all of those possibilities.
 
-            if (SimplifyQualifiedReferenceToNamespaceOrType(node))
+            if (node.Member is NameMemberCrefSyntax nameMember &&
+                nameMember.Name is SimpleNameSyntax name &&
+                SimplifyQualifiedReferenceToNamespaceOrType(node, name))
+            {
                 return;
+            }
 
             if (SimplifyStaticMemberAccess(node))
                 return;
+
+            // TODO
 
             base.VisitQualifiedCref(node);
         }
