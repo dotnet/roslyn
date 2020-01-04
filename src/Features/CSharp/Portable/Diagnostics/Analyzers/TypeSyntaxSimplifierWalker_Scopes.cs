@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private readonly bool _preferPredefinedTypeInMemberAccess;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly List<Dictionary<INamespaceOrTypeSymbol, string>> _aliasStack;
+        private readonly List<HashSet<INamespaceOrTypeSymbol>> _aliasedSymbolsStack;
         private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
         private readonly List<HashSet<string>> _declarationNamesInScopeStack;
         private readonly List<HashSet<string>> _staticNamesInScopeStack;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
             _preferPredefinedTypeInMemberAccess = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, semanticModel.Language).Value;
 
-            _aliasStack = SharedPools.Default<List<Dictionary<INamespaceOrTypeSymbol, string>>>().Allocate();
+            _aliasedSymbolsStack = SharedPools.Default<List<HashSet<INamespaceOrTypeSymbol>>>().Allocate();
             _aliasedSymbolNamesStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _declarationNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
             _staticNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public void Dispose()
         {
-            SharedPools.Default<List<Dictionary<INamespaceOrTypeSymbol, string>>>().ClearAndFree(_aliasStack);
+            SharedPools.Default<List<HashSet<INamespaceOrTypeSymbol>>>().ClearAndFree(_aliasedSymbolsStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_aliasedSymbolNamesStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_declarationNamesInScopeStack);
             SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_staticNamesInScopeStack);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             => stack.RemoveAt(stack.Count - 1);
 
         private void AddAliases(
-            Dictionary<INamespaceOrTypeSymbol, string> aliasMap,
+            HashSet<INamespaceOrTypeSymbol> aliasedSymbols,
             HashSet<string> aliasedSymbolNames,
             SyntaxList<UsingDirectiveSyntax> usings)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                     if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
                     {
-                        aliasMap[symbol] = @using.Alias.Name.Identifier.ValueText;
+                        aliasedSymbols.Add(symbol);
                         aliasedSymbolNames.Add(symbol.Name);
                     }
                 }
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             TNode node, SyntaxList<UsingDirectiveSyntax> usings,
             int position, Action<TNode> func) where TNode : SyntaxNode
         {
-            using var aliases = SharedPools.Default<Dictionary<INamespaceOrTypeSymbol, string>>().GetPooledObject();
+            using var aliases = SharedPools.Default<HashSet<INamespaceOrTypeSymbol>>().GetPooledObject();
             using var aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject();
             using var declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject();
             using var staticNamesInScope = SharedPools.StringHashSet.GetPooledObject();
@@ -137,14 +137,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 staticNamesInScope.Object,
                 position);
 
-            _aliasStack.Add(aliases.Object);
+            _aliasedSymbolsStack.Add(aliases.Object);
             _aliasedSymbolNamesStack.Add(aliasedSymbolNames.Object);
             _declarationNamesInScopeStack.Add(declarationNamesInScope.Object);
             _staticNamesInScopeStack.Add(staticNamesInScope.Object);
 
             func(node);
 
-            Pop(_aliasStack);
+            Pop(_aliasedSymbolsStack);
             Pop(_aliasedSymbolNamesStack);
             Pop(_declarationNamesInScopeStack);
             Pop(_staticNamesInScopeStack);

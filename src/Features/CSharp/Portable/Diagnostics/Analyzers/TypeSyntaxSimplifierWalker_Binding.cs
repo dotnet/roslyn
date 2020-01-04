@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return false;
         }
 
-        private bool SimplifyQualifiedReferenceToNamespaceOrType(
+        private bool TrySimplifyQualifiedReferenceToNamespaceOrType(
             ExpressionSyntax node, SimpleNameSyntax right)
         {
             // We have a qualified name (like A.B).
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
         {
-            if (SimplifyQualifiedReferenceToNamespaceOrType(node, node.Right))
+            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Right))
                 return;
 
             // we could have something like `A.B.C<D.E>`.  We want to visit both A.B to see if that
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
         {
-            if (SimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
+            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
                 return;
 
             // We still want to simplify the right side of this name.  We might have something
@@ -178,26 +178,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // alias-qualified names.
             if (IsSimplifiableMemberAccess(node))
             {
-                // If we have `nameof(A.B.C)` then we can potentially simplify this just to
-                // 'C'.
-                if (SimplifyMemberAccessInNameofExpression(node))
+                // The `A.B` part might be referring to type/namespace.  See if we can simplify
+                // that. portion.
+                if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
                     return;
-
-                // The `A.B` part might be referring to type/namespace.  See if we can simplify that.
-                if (SimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
-                    return;
-                //if (SimplifyExpressionOfMemberAccessExpression(node.Expression))
-                //    return;
 
                 // See if we can just simplify to `C`.
-                if (SimplifyStaticMemberAccess(node))
+                if (TrySimplifyStaticMemberAccess(node))
                     return;
             }
 
             base.VisitMemberAccessExpression(node);
         }
 
-        private bool SimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
+        private bool TrySimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
         {
             if (SimplifyStaticMemberAccessInScope(node))
                 return true;
@@ -228,8 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool SimplifyStaticMemberAccessInScope(
-            MemberAccessExpressionSyntax node)
+        private bool SimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)
         {
             // see if we can just access this member using it's name alone here.
             var memberName = node.Name.Identifier.ValueText;
@@ -269,62 +262,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
             => nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
 
-        //private bool SimplifyExpressionOfMemberAccessExpression(ExpressionSyntax node)
-        //{
-        //    // Can be one of:
-        //    //
-        //    //  A.B         expr is identifier
-        //    //  A.B.C       expr is member access
-        //    //  A::B.C      expr is alias qualified name
-        //    //  A<T>.B      expr is generic name.
-
-        //    // We could end up simplifying to a predefined type or alias.  We can't simplify
-        //    // to nullable as `A?.B` is not a legal member access for `Nullable<A>.B`
-        //    var rightmostName = node.GetRightmostName();
-        //    Debug.Assert(rightmostName != null);
-
-        //    var identifier = rightmostName.Identifier.ValueText;
-        //    if (TryReplaceWithPredefinedType(node, identifier))
-        //        return true;
-
-        //    INamespaceOrTypeSymbol symbol = null;
-        //    if (TryReplaceWithAlias(node, identifier, ref symbol))
-        //        return true;
-
-        //    var parts = TryGetPartsOfQualifiedName(node);
-        //    if (parts != null &&
-        //        TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, parts.Value.right, ref symbol))
-        //    {
-        //        return true;
-        //    }
-
-        //    return false;
-        //}
-
-        private bool SimplifyMemberAccessInNameofExpression(MemberAccessExpressionSyntax node)
-        {
-            if (!node.IsNameOfArgumentExpression())
-                return false;
-
-            // in a nameof(...) expr, we cannot simplify to predefined types, or nullable. We can
-            // simplify to an alias if it has the same name as us.
-            INamespaceOrTypeSymbol symbol = null;
-            var memberName = node.Name.Identifier.ValueText;
-            if (TryReplaceWithAlias(node, memberName, ref symbol))
-                return true;
-
-            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, node.Name, ref symbol))
-                return true;
-
-            return false;
-        }
-
         private bool IsSimplifiableMemberAccess(MemberAccessExpressionSyntax node)
         {
             var current = node.Expression;
-            while (current.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
             {
-                current = ((MemberAccessExpressionSyntax)current).Expression;
+                current = currentMember.Expression;
                 continue;
             }
 
@@ -376,10 +319,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
 
             // Next, see if there's an alias in scope we can bind to.
-            for (var i = _aliasStack.Count - 1; i >= 0; i--)
+            for (var i = _aliasedSymbolsStack.Count - 1; i >= 0; i--)
             {
-                var symbolToAlias = _aliasStack[i];
-                if (symbolToAlias.TryGetValue(symbol, out var alias))
+                var aliasedSymbols = _aliasedSymbolsStack[i];
+                if (aliasedSymbols.Contains(symbol))
                 {
                     return TrySimplify(node);
                 }
