@@ -11,12 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
-    /// <summary>
-    /// This walker sees if we can simplify types/namespaces that it encounters.
-    /// Importantly, it only checks types/namespaces in contexts that are known to
-    /// only allows types/namespaces only (i.e. declarations, casts, etc.).  It does
-    /// not check general expression contexts.
-    /// </summary>
     internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
         private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
