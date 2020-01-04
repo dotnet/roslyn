@@ -85,29 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: default);
 
         /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
-        public static StructDeclarationSyntax StructDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            SyntaxToken identifier,
-            TypeParameterListSyntax? typeParameterList,
-            ParameterListSyntax? parameterList,
-            BaseListSyntax? baseList,
-            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.StructDeclaration(attributeLists,
-                modifiers,
-                SyntaxFactory.Token(SyntaxKind.StructKeyword),
-                identifier,
-                typeParameterList,
-                parameterList,
-                baseList,
-                constraintClauses,
-                default,
-                members,
-                default,
-                default);
-
-        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
         public static StructDeclarationSyntax StructDeclaration(SyntaxToken identifier)
             => SyntaxFactory.StructDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.StructKeyword), identifier, default, default, default, default, default, default, default, default);
 

@@ -87,30 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: default);
 
         /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
-        public static ClassDeclarationSyntax ClassDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            SyntaxToken identifier,
-            TypeParameterListSyntax? typeParameterList,
-            ParameterListSyntax? parameterList,
-            BaseListSyntax? baseList,
-            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.ClassDeclaration(
-                attributeLists,
-                modifiers,
-                SyntaxFactory.Token(SyntaxKind.ClassKeyword),
-                identifier,
-                typeParameterList,
-                parameterList,
-                baseList,
-                constraintClauses,
-                SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-                members,
-                SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
-                semicolonToken: default);
-
-        /// <summary>Creates a new ClassDeclarationSyntax instance.</summary>
         public static ClassDeclarationSyntax ClassDeclaration(SyntaxToken identifier)
             => SyntaxFactory.ClassDeclaration(default,
                 default(SyntaxTokenList),
