@@ -222,11 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private bool TrySimplifyStaticMemberAccessThroughDerivedType(MemberAccessExpressionSyntax node)
         {
-            var left = node.Expression;
-            var right = node.Name;
-
             // Member on the right of the dot needs to be a static member or another named type.
-            var nameSymbol = _semanticModel.GetSymbolInfo(right).Symbol;
+            var nameSymbol = _semanticModel.GetSymbolInfo(node.Name).Symbol;
             if (!IsNamedTypeOrStaticSymbol(nameSymbol))
                 return false;
 
@@ -240,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             // If the user is already accessing the static through its containing type, there's
             // nothing we need to simplify to.
-            var containerSymbol = _semanticModel.GetSymbolInfo(left).Symbol;
+            var containerSymbol = _semanticModel.GetSymbolInfo(node.Expression).Symbol;
             if (Equals(containerSymbol, nameSymbol.ContainingType))
                 return false;
 
