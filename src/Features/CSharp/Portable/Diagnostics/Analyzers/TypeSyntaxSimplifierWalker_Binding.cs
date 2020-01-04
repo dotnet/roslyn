@@ -167,12 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             //      A.B.C<X.Y>
             //
             // In these cases we want to see if we can simplify what's on the left of 'C'.
-            // In case we're in a `nameof` we can simplify the entire expr.
             //
-            //      nameof(A.B.C)
-
-            // To be able to simplify, we have to only contain other member-accesses or
-            // alias-qualified names.
+            // To be able to simplify, we have to only contain other member-accesses or qualified
+            // names.
             if (IsSimplifiableMemberAccess(node))
             {
                 // The `A.B` part might be referring to type/namespace.  See if we can simplify
