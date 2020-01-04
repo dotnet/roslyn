@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 SignatureChange signaturePermutationWithoutAddedParameters = signaturePermutation.WithoutAddedParameters();
 
                 var newArguments = PermuteArgumentList(document, declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, isReducedExtensionMethod);
-                newArguments = AddNewArgumentsToList(newArguments, signaturePermutation);
+                newArguments = AddNewArgumentsToList(newArguments, signaturePermutation, isReducedExtensionMethod);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -450,7 +451,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(
             SeparatedSyntaxList<ArgumentSyntax> newArguments,
-            SignatureChange signaturePermutation)
+            SignatureChange signaturePermutation,
+            bool isReducedExtensionMethod)
         {
             List<ArgumentSyntax> fullList = new List<ArgumentSyntax>();
             List<SyntaxToken> separators = new List<SyntaxToken>();
@@ -463,32 +465,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             for (int i = 0; i < updatedParameters.Count; i++)
             {
-                if (updatedParameters[i] is AddedParameter addedParameter)
+                // Skip this parameter in list of arguments for extension method calls but not for reduced ones.
+                if (updatedParameters[i] != signaturePermutation.UpdatedConfiguration.ThisParameter
+                    || !isReducedExtensionMethod)
                 {
-                    if (addedParameter.CallsiteValue != null)
+                    if (updatedParameters[i] is AddedParameter addedParameter)
                     {
-                        fullList.Add(SyntaxFactory.Argument(
-                            seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
-                            refKindKeyword: default,
-                            expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
-                        separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
+                        if (addedParameter.CallsiteValue != null)
+                        {
+                            fullList.Add(SyntaxFactory.Argument(
+                                seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
+                                refKindKeyword: default,
+                                expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
+                            separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
+                        }
                     }
-                }
-                else
-                {
-                    if (indexInExistingList < newArguments.Count)
+                    else
                     {
-                        if (newArguments[indexInExistingList].NameColon != default)
+                        if (indexInExistingList < newArguments.Count)
                         {
-                            seenNameEquals = true;
-                        }
+                            if (newArguments[indexInExistingList].NameColon != default)
+                            {
+                                seenNameEquals = true;
+                            }
 
-                        if (indexInExistingList < newArguments.SeparatorCount)
-                        {
-                            separators.Add(newArguments.GetSeparator(indexInExistingList));
-                        }
+                            if (indexInExistingList < newArguments.SeparatorCount)
+                            {
+                                separators.Add(newArguments.GetSeparator(indexInExistingList));
+                            }
 
-                        fullList.Add(newArguments[indexInExistingList++]);
+                            fullList.Add(newArguments[indexInExistingList++]);
+                        }
                     }
                 }
             }
@@ -507,7 +514,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return SyntaxFactory.SeparatedList(fullList, separators);
         }
 
-        private SeparatedSyntaxList<T> PermuteDeclaration<T>(SeparatedSyntaxList<T> list, SignatureChange updatedSignature) where T : SyntaxNode
+        private T CreateNewParameter<T>(AddedParameter addedParameter) where T : SyntaxNode
+        {
+            var type = typeof(T);
+
+            if (type == typeof(ParameterSyntax))
+            {
+                return SyntaxFactory.Parameter(
+                       attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
+                       modifiers: SyntaxFactory.TokenList(),
+                       type: SyntaxFactory.ParseTypeName(addedParameter.TypeName),
+                       SyntaxFactory.Identifier(addedParameter.ParameterName),
+                       @default: default) as T;
+            }
+
+            if (type == typeof(CrefParameterSyntax))
+            {
+                return SyntaxFactory.CrefParameter(
+                    type: SyntaxFactory.ParseTypeName(addedParameter.TypeName)) as T;
+            }
+
+            return default;
+        }
+
+        private SeparatedSyntaxList<T> PermuteDeclaration<T>(
+            SeparatedSyntaxList<T> list, 
+            SignatureChange updatedSignature) where T : SyntaxNode
         {
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
@@ -524,25 +556,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 {
                     // Added parameter
                     numAddedParameters++;
-
-                    var newParameter = SyntaxFactory.Parameter(
-                        attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
-                        modifiers: SyntaxFactory.TokenList(),
-                        type: SyntaxFactory.ParseTypeName((newParam as AddedParameter).TypeName),
-                        SyntaxFactory.Identifier((newParam as AddedParameter).ParameterName),
-                        @default: default);
-
-                    newParameters.Add(newParameter as T);
-
-                    continue;
+                    var newParameter = CreateNewParameter<T>(newParam as AddedParameter);
+                    newParameters.Add(newParameter);
                 }
+                else
+                {
+                    var param = list[pos];
 
-                var param = list[pos];
-
-                // copy whitespace trivia from original position
-                param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
-
-                newParameters.Add(param);
+                    // copy whitespace trivia from original position
+                    param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
+                    newParameters.Add(param);
+                }
             }
 
             int numSeparatorsToSkip;
@@ -688,7 +712,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var permutedParams = new List<XmlElementSyntax>();
             foreach (var parameter in reorderedParameters)
             {
-                permutedParams.Add(dictionary[parameter.Name]);
+                if (dictionary.TryGetValue(parameter.Name, out var permutedParam))
+                {
+                    permutedParams.Add(permutedParam);
+                }
+                else
+                {
+                    permutedParams.Add(SyntaxFactory.XmlElement(
+                        SyntaxFactory.XmlElementStartTag(
+                            SyntaxFactory.XmlName("param"),
+                            SyntaxFactory.List<XmlAttributeSyntax>(new[] { SyntaxFactory.XmlNameAttribute(parameter.Name) })),
+                        SyntaxFactory.XmlElementEndTag(SyntaxFactory.XmlName("param"))));
+                }
             }
 
             return permutedParams;

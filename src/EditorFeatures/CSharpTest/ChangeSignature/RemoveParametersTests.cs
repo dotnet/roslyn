@@ -5,12 +5,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
@@ -185,7 +185,7 @@ public class DP20<T>
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
         [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
-        public async Task RemoveParameters_ExtensionMethodInAnotherFile()
+        public async Task AddRemoveParameters_ExtensionMethodInAnotherFile()
         {
             var workspaceXml = @"
 <Workspace>
@@ -243,7 +243,10 @@ class C{i}
             // If a reference does not bind correctly, it will believe Ext is not an extension
             // method and remove the string argument instead of the int argument.
 
-            var updatedSignature = new[] { new AddedParameterOrExistingIndex(0), new AddedParameterOrExistingIndex(2) };
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "123")) };
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
             testState.TestChangeSignatureOptionsService.IsCancelled = false;
@@ -257,11 +260,11 @@ class C{i}
             {
                 if (updatedDocument.Name == "C5.cs")
                 {
-                    Assert.Contains("void Ext(this C5 c, string s)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    Assert.Contains("void Ext(this C5 c, string s, int newIntegerParameter)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                 }
                 else
                 {
-                    Assert.Contains(@"c.Ext(""two"");", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    Assert.Contains(@"c.Ext(""two"", 123);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                 }
             }
         }
