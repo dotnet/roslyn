@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     /// only allows types/namespaces only (i.e. declarations, casts, etc.).  It does
     /// not check general expression contexts.
     /// </summary>
-    internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
+    internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
         private readonly CSharpSimplifyTypeNamesDiagnosticAnalyzer _analyzer;
         private readonly SemanticModel _semanticModel;
@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// a type and thus if we should try to simplify that to <c>X.Z</c> (if <c>X</c> is a base
         /// class of <c>Y</c>).
         /// </summary>
-        private readonly HashSet<string> _compilationTypeNames;
+        private HashSet<string> _compilationTypeNames;
 
         /// <summary>
         /// 
         /// </summary>
-        private readonly List<HashSet<string>> _aliasedSymbolNamesStack;
-        private readonly List<HashSet<string>> _declarationNamesInScopeStack;
-        private readonly List<HashSet<string>> _staticNamesInScopeStack;
+        private HashSet<string> _aliasedSymbolNames;
+        private HashSet<string> _declarationNamesInScope;
+        private HashSet<string> _staticNamesInScope;
 
         private readonly Action<CompilationUnitSyntax> _visitBaseCompilationUnit;
         private readonly Action<NamespaceDeclarationSyntax> _visitBaseNamespaceDeclaration;
@@ -65,10 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _compilationTypeNames = SharedPools.StringHashSet.Allocate();
             _compilationTypeNames.AddAll(semanticModel.Compilation.Assembly.TypeNames);
 
-            _aliasedSymbolNamesStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
-            _declarationNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
-            _staticNamesInScopeStack = SharedPools.Default<List<HashSet<string>>>().Allocate();
-
             _visitBaseCompilationUnit = n => base.VisitCompilationUnit(n);
             _visitBaseNamespaceDeclaration = n => base.VisitNamespaceDeclaration(n);
             _visitBaseClassDeclaration = n => base.VisitClassDeclaration(n);
@@ -77,26 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _visitBaseEnumDeclaration = n => base.VisitEnumDeclaration(n);
         }
 
-        public void Dispose()
+        private void AddAliases(HashSet<string> savedAliasedSymbolNames, SyntaxList<UsingDirectiveSyntax> usings)
         {
-            SharedPools.StringHashSet.ClearAndFree(_compilationTypeNames);
-            SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_aliasedSymbolNamesStack);
-            SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_declarationNamesInScopeStack);
-            SharedPools.Default<List<HashSet<string>>>().ClearAndFree(_staticNamesInScopeStack);
-        }
-
-        private static T Peek<T>(List<T> stack)
-            => stack[stack.Count - 1];
-
-        private static void Pop<T>(List<T> stack)
-            => stack.RemoveAt(stack.Count - 1);
-
-        private void AddAliases(HashSet<string> aliasedSymbolNames, SyntaxList<UsingDirectiveSyntax> usings)
-        {
-            if (_aliasedSymbolNamesStack.Count > 0)
+            if (savedAliasedSymbolNames != null)
             {
                 // Include the members of the top of the stack in the new indices we're making.
-                aliasedSymbolNames.UnionWith(Peek(_aliasedSymbolNamesStack));
+                _aliasedSymbolNames.UnionWith(savedAliasedSymbolNames);
             }
 
             foreach (var @using in usings)
@@ -109,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                     if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
                     {
-                        aliasedSymbolNames.Add(symbol.Name);
+                        _aliasedSymbolNames.Add(symbol.Name);
                     }
                 }
             }
@@ -135,37 +117,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             TNode node, SyntaxList<UsingDirectiveSyntax> usings,
             int position, Action<TNode> func) where TNode : SyntaxNode
         {
-            using var aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject();
-            using var declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject();
-            using var staticNamesInScope = SharedPools.StringHashSet.GetPooledObject();
+            var savedAliasedSymbolNames = _aliasedSymbolNames;
+            var savedDeclarationNamesInScope = _declarationNamesInScope;
+            var savedStaticNamesInScope = _staticNamesInScope;
 
-            AddAliases(aliasedSymbolNames.Object, usings);
-            AddNamesInScope(
-                declarationNamesInScope.Object,
-                staticNamesInScope.Object,
-                position);
+            _aliasedSymbolNames = SharedPools.StringHashSet.GetPooledObject().Object;
+            _declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
+            _staticNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
 
-            _aliasedSymbolNamesStack.Add(aliasedSymbolNames.Object);
-            _declarationNamesInScopeStack.Add(declarationNamesInScope.Object);
-            _staticNamesInScopeStack.Add(staticNamesInScope.Object);
+            AddAliases(savedAliasedSymbolNames, usings);
+            AddNamesInScope(position);
 
             func(node);
 
-            Pop(_aliasedSymbolNamesStack);
-            Pop(_declarationNamesInScopeStack);
-            Pop(_staticNamesInScopeStack);
+            SharedPools.StringHashSet.ClearAndFree(_aliasedSymbolNames);
+            SharedPools.StringHashSet.ClearAndFree(_declarationNamesInScope);
+            SharedPools.StringHashSet.ClearAndFree(_staticNamesInScope);
+
+            _aliasedSymbolNames = savedAliasedSymbolNames;
+            _declarationNamesInScope = savedDeclarationNamesInScope;
+            _staticNamesInScope = savedStaticNamesInScope;
         }
 
-        private void AddNamesInScope(
-            HashSet<string> declarationNames, HashSet<string> staticNames, int position)
+        private void AddNamesInScope(int position)
         {
             var declarationSymbols = _semanticModel.LookupNamespacesAndTypes(position);
             foreach (var symbol in declarationSymbols)
-                declarationNames.Add(symbol.Name);
+                _declarationNamesInScope.Add(symbol.Name);
 
             var staticSymbols = _semanticModel.LookupStaticMembers(position);
             foreach (var symbol in staticSymbols)
-                staticNames.Add(symbol.Name);
+                _staticNamesInScope.Add(symbol.Name);
         }
 
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
@@ -180,17 +162,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private void EnterNamedTypeContext<TNode>(TNode node, Action<TNode> func) where TNode : BaseTypeDeclarationSyntax
         {
-            using var declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject();
-            using var staticNamesInScope = SharedPools.StringHashSet.GetPooledObject();
+            var savedDeclarationNamesInScope = _declarationNamesInScope;
+            var savedStaticNamesInScope = _staticNamesInScope;
 
-            AddNamesInScope(declarationNamesInScope.Object, staticNamesInScope.Object, node.OpenBraceToken.Span.End);
-            _declarationNamesInScopeStack.Add(declarationNamesInScope.Object);
-            _staticNamesInScopeStack.Add(staticNamesInScope.Object);
+            _declarationNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
+            _staticNamesInScope = SharedPools.StringHashSet.GetPooledObject().Object;
+
+            AddNamesInScope(node.OpenBraceToken.Span.End);
 
             func(node);
 
-            Pop(_declarationNamesInScopeStack);
-            Pop(_staticNamesInScopeStack);
+            SharedPools.StringHashSet.ClearAndFree(_declarationNamesInScope);
+            SharedPools.StringHashSet.ClearAndFree(_staticNamesInScope);
+
+            _declarationNamesInScope = savedDeclarationNamesInScope;
+            _staticNamesInScope = savedStaticNamesInScope;
         }
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)

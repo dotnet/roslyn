@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, cancellationToken);
             simplifier.Visit(root);
 
             foreach (var diagnostic in simplifier.Diagnostics)

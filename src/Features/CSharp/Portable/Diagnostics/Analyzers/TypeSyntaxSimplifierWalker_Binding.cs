@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     /// walker builds up information as it walks the tree (like what names are in scope) so it can
     /// avoid binding nodes it knows cannot be simplified at all.
     /// </summary>
-    internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker, IDisposable
+    internal partial class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
         /// <summary>
         /// This is the root helper that all other TrySimplify methods in this type must call
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         {
             // see if we can just access this member using it's name alone here.
             var memberName = node.Name.Identifier.ValueText;
-            if (!Peek(_staticNamesInScopeStack).Contains(memberName))
+            if (!_staticNamesInScope.Contains(memberName))
                 return false;
 
             return TrySimplify(node);
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             SyntaxNode node, string typeName, ref INamespaceOrTypeSymbol symbol)
         {
             // See if we actually have an alias to something with our name.
-            if (!Peek(_aliasedSymbolNamesStack).Contains(typeName))
+            if (!_aliasedSymbolNames.Contains(typeName))
                 return false;
 
             return TrySimplify(node);
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             // First see if we even have a type/namespace in scope called 'B'.  If not,
             // there's nothing we need to do further.
-            if (!Peek(_declarationNamesInScopeStack).Contains(rightIdentifier))
+            if (!_declarationNamesInScope.Contains(rightIdentifier))
                 return false;
 
             return TrySimplify(root);
