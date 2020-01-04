@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                    if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier) &&
                         !type.IsValueType &&
                         (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotation() != true)
                     {
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
 
                                     case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                                        if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier))
+                                        if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier))
                                         {
                                             AddPunctuation(SyntaxKind.ExclamationToken);
                                         }
