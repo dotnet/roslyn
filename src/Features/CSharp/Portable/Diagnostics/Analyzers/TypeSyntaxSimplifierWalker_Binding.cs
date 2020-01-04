@@ -287,15 +287,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return false;
         }
 
-        private bool IsNameOfUsingDirective(QualifiedNameSyntax node, out UsingDirectiveSyntax usingDirective)
-        {
-            while (node.Parent is QualifiedNameSyntax parent)
-                node = parent;
-
-            usingDirective = node.Parent as UsingDirectiveSyntax;
-            return usingDirective != null;
-        }
-
         private INamespaceOrTypeSymbol GetNamespaceOrTypeSymbol(SyntaxNode node)
         {
             var symbolInfo = _semanticModel.GetSymbolInfo(node, _cancellationToken);
@@ -364,31 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // there's nothing we need to do further.
             if (!Peek(_declarationNamesInScopeStack).Contains(rightIdentifier))
                 return false;
-
-            if (root is QualifiedNameSyntax qualifiedName &&
-                IsNameOfUsingDirective(qualifiedName, out var usingDirective))
-            {
-                symbol ??= GetNamespaceOrTypeSymbol(root);
-                if (symbol == null)
-                    return false;
-
-                // Check for a couple of cases where it is legal to simplify, but where users prefer
-                // that we not do that.
-
-                // Do not replace `using NS1.NS2` with anything shorter if it binds to a namespace.
-                // In a using declaration we've found that people prefer to see the full name for
-                // clarity. Note: this does not apply to stripping the 'global' alias off of
-                // something like `using global::NS1.NS2`.
-                if (symbol is INamespaceSymbol)
-                    return false;
-
-                // Do not replace `using static NS1.C1` with anything shorter if it binds to a type.
-                // In a using declaration we've found that people prefer to see the full name for
-                // clarity. Note: this does not apply to stripping the 'global' alias off of
-                // something like `using static global::NS1.C1`.
-                if (usingDirective.StaticKeyword != default || usingDirective.Alias != default)
-                    return false;
-            }
 
             return TrySimplify(root);
         }

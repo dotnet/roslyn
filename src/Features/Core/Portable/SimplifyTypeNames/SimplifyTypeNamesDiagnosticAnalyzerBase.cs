@@ -2,10 +2,7 @@
 
 // #define LOG
 
-using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,6 +10,12 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if LOG
+using System;
+using System.IO;
+using System.Text.RegularExpressions;
+#endif
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
