@@ -178,7 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     return;
 
                 // See if we can just simplify to `C`.
-                if (TrySimplifyStaticMemberAccess(node))
+                if (TrySimplifyStaticMemberAccessInScope(node))
+                    return;
+
+                // See if `A` can be simplified to a base type.
+                if (TrySimplifyStaticMemberAccessThroughDerivedType(node))
                     return;
             }
 
@@ -198,17 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             return TrySimplifyStaticMemberAccessInScope(node);
-        }
-
-        private bool TrySimplifyStaticMemberAccess(MemberAccessExpressionSyntax node)
-        {
-            if (TrySimplifyStaticMemberAccessInScope(node))
-                return true;
-
-            if (TrySimplifyStaticMemberAccessThroughDerivedType(node))
-                return true;
-
-            return false;
         }
 
         private bool TrySimplifyBaseAccessExpression(MemberAccessExpressionSyntax node)
