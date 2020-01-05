@@ -128,10 +128,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0, insertPosition)
         End Function
 
-        ' TODO this Is a rough algorithm: find the first ( And add 1.
         Private Shared Function TryGetInsertPositionFromDeclaration(matchingNode As SyntaxNode) As Integer
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
-            Return If(parameters Is Nothing, 0, parameters.OpenParenToken.SpanStart + 1)
+
+            If parameters Is Nothing Then
+                Return 0
+            End If
+
+            If parameters.Parameters.Count > 0 AndAlso parameters.Parameters.Last().Modifiers.Any(SyntaxKind.ParamArrayKeyword) Then
+                If parameters.Parameters.Count = 1 Then
+                    Return parameters.OpenParenToken.SpanStart + 1
+                Else
+                    Return parameters.Parameters.GetSeparators().Last().SpanStart
+                End If
+            End If
+
+            Return parameters.CloseParenToken.SpanStart
         End Function
 
         Private Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer
