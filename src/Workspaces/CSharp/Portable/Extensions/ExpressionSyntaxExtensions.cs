@@ -761,17 +761,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (expression.TryReduceExplicitName(semanticModel, out var replacementTypeNode, out issueSpan, optionSet, cancellationToken))
+            if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, optionSet, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
                 return true;
             }
 
-            return expression.TrySimplify(semanticModel, out replacementNode, out issueSpan);
+            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan);
         }
 
-        public static bool TryReduceExplicitName(
-            this ExpressionSyntax expression,
+        private static bool TryReduceExplicitName(
+            ExpressionSyntax expression,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
@@ -782,26 +782,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
-            {
                 return false;
-            }
 
-            if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
-                return memberAccess.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+                return TryReduce(memberAccess, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
 
             if (expression is NameSyntax name)
-            {
-                return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
+                return TryReduce(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
 
             return false;
         }
 
         private static bool TryReduce(
-            this MemberAccessExpressionSyntax memberAccess,
+            MemberAccessExpressionSyntax memberAccess,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
@@ -1409,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool TryReduce(
-            this NameSyntax name,
+            NameSyntax name,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
@@ -1945,7 +1938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool TrySimplify(
-            this ExpressionSyntax expression,
+            ExpressionSyntax expression,
             SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan)
