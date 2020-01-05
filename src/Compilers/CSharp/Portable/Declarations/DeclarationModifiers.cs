@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [Flags]
-    internal enum DeclarationModifiers
+    internal enum DeclarationModifiers : uint
     {
         None = 0,
         Abstract = 1 << 0,
@@ -34,9 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         Async = 1 << 20,
         Ref = 1 << 21, // used only for structs
 
-        All = (1 << 22) - 1, // all modifiers
-        Unset = 1 << 22, // used when a modifiers value hasn't yet been computed
+        Data = 1 << 22,
+
+        All = (1 << 23) - 1, // all modifiers
+        Unset = 1 << 23, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
+    }
+
+    internal static class DeclarationModifierExtensions
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasFlag(this DeclarationModifiers modifiers, DeclarationModifiers flag)
+            => (modifiers & flag) != 0;
     }
 }

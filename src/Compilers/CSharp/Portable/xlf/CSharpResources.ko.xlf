@@ -894,6 +894,11 @@
         <target state="translated">읽기 전용 멤버</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRecords">
+        <source>records</source>
+        <target state="new">records</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
         <source>recursive patterns</source>
         <target state="translated">재귀 패턴</target>
