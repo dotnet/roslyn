@@ -101,20 +101,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var documentText = sourceText.ToString();
 
-            var rolesCollection1 = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
+            var rolesCollectionType = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterTypeTextViewRole };
-            var rolesCollection2 = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
+            var rolesCollectionName = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
-            var rolesCollections = new[] { rolesCollection1, rolesCollection2 };
 
-            var viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
-                // TODO for VB there should be something like ", AS " and corresponding mapping should be opposite.
-                document, _contentType, documentText.Insert(insertPosition, ", "),
-                CreateTrackingSpans, rolesCollections, cancellationToken).ConfigureAwait(false);
+            var language = syntaxTree.Options.Language;
+            IntellisenseTextBoxViewModel[] viewModels = null;
+            if (language == LanguageNames.CSharp)
+            {
+                var rolesCollections = new[] { rolesCollectionType, rolesCollectionName };
+
+                var test = documentText.Insert(insertPosition, ", ");
+                viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
+                    document, _contentType, documentText.Insert(insertPosition, ", "),
+                    CreateTrackingSpansCSharp, rolesCollections, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var rolesCollections = new[] { rolesCollectionName, rolesCollectionType };
+                var test = documentText.Insert(insertPosition, ", [] As ");
+                viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
+                    // TODO for VB there should be something like ", AS " and corresponding mapping should be opposite.
+                    document, _contentType, documentText.Insert(insertPosition, ", [] As "),
+                    CreateTrackingSpansVB, rolesCollections, cancellationToken).ConfigureAwait(false);
+            }
 
             return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>());
 
-            ITrackingSpan[] CreateTrackingSpans(IProjectionSnapshot snapshot)
+            ITrackingSpan[] CreateTrackingSpansCSharp(IProjectionSnapshot snapshot)
             {
                 // Adjust the context point to ensure that the right information is in scope.
                 // For example, we may need to move the point to the end of the last statement in a method body
@@ -126,13 +141,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
 
                 // Get the appropriate ITrackingSpan for the window the user is typing in
-                var mappedSpan1 = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
+                var mappedSpanType = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
                 var spaceSpan = snapshot.CreateTrackingSpan(contextPoint, 1, SpanTrackingMode.EdgeExclusive);
-                var mappedSpan2 = snapshot.CreateTrackingSpan(contextPoint + 1, 0, SpanTrackingMode.EdgeExclusive);
+                var mappedSpanName = snapshot.CreateTrackingSpan(contextPoint + 1, 0, SpanTrackingMode.EdgeExclusive);
 
                 // Build the tracking span that includes the rest of the file
                 var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint + 1, SpanTrackingMode.EdgePositive);
-                return new ITrackingSpan[] { previousStatementSpan, mappedSpan1, spaceSpan, mappedSpan2, restOfFileSpan };
+                return new ITrackingSpan[] { previousStatementSpan, mappedSpanType, spaceSpan, mappedSpanName, restOfFileSpan };
+            }
+
+            ITrackingSpan[] CreateTrackingSpansVB(IProjectionSnapshot snapshot)
+            {
+                // + 3 to support inserted ', ['
+                var contextPoint = insertPosition + 3;
+
+                // Get the previous span/text. We might have to insert another newline or something.
+                var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
+
+                // Get the appropriate ITrackingSpan for the window the user is typing in
+                var mappedSpanName = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
+                var asSpan = snapshot.CreateTrackingSpan(contextPoint, 5, SpanTrackingMode.EdgeExclusive);
+                var mappedSpanType = snapshot.CreateTrackingSpan(contextPoint + 5, 0, SpanTrackingMode.EdgeExclusive);
+
+                // Build the tracking span that includes the rest of the file
+                var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint + 6, SpanTrackingMode.EdgePositive);
+                return new ITrackingSpan[] { previousStatementSpan, mappedSpanName, asSpan, mappedSpanType, restOfFileSpan };
             }
         }
     }

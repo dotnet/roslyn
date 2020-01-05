@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 exception.Data[s_reportedMarker] = s_reportedMarker;
             }
 
-            handler.Invoke(exception);
+           handler.Invoke(exception);
         }
     }
 }
