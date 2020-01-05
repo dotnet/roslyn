@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             {
                 // If we have an identifier, we would only ever replace it with an alias or a
                 // predefined-type name.
-                var identifier = node.Identifier.ValueText;
-                if (TryReplaceWithPredefinedType(node, identifier))
+                var typeName = node.Identifier.ValueText;
+                if (TryReplaceWithPredefinedType(node, typeName))
                     return;
 
-                if (TryReplaceWithAlias(node, identifier))
+                if (TryReplaceWithAlias(node, typeName))
                     return;
             }
 
@@ -106,26 +106,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return false;
         }
 
-        private bool TrySimplifyQualifiedReferenceToNamespaceOrType(ExpressionSyntax node, SimpleNameSyntax right)
+        private bool TrySimplifyQualifiedReferenceToNamespaceOrType(ExpressionSyntax node, string typeName)
         {
             // We have a qualified name (like A.B).
 
-            // First Check and see if 'B' is the name of
-            // predefined type.
-            var identifier = right.Identifier.ValueText;
-            if (TryReplaceWithPredefinedType(node, identifier))
+            // First Check and see if 'B' is the name of predefined type.
+            if (TryReplaceWithPredefinedType(node, typeName))
                 return true;
 
             // Then see if there's something aliased to the name B.
-            if (TryReplaceWithAlias(node, identifier))
+            if (TryReplaceWithAlias(node, typeName))
                 return true;
 
             // Then see if they explicitly wrote out `A.Nullable<T>` and replace with T?
-            if (TryReplaceWithNullable(node, identifier))
+            if (TryReplaceWithNullable(node, typeName))
                 return true;
 
             // Finally, see if we can just reduce it to 'B'.
-            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, right))
+            if (TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(node, typeName))
                 return true;
 
             return false;
@@ -133,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
         {
-            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Right))
+            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Right.Identifier.ValueText))
                 return;
 
             // we could have something like `A.B.C<D.E>`.  We want to visit both A.B to see if that
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
         {
-            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
+            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name.Identifier.ValueText))
                 return;
 
             // We still want to simplify the right side of this name.  We might have something
@@ -156,7 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (TrySimplifyBaseAccessExpression(node))
                 return;
 
-            if (TrySimplifyObjectAccessExpression(node))
+            var memberName = node.Name.Identifier.ValueText;
+            if (TrySimplifyObjectAccessExpression(node, memberName))
                 return;
 
             // Look for one of the following:
@@ -173,11 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             {
                 // The `A.B` part might be referring to type/namespace.  See if we can simplify
                 // that. portion.
-                if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name))
+                if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, memberName))
                     return;
 
                 // See if we can just simplify to `C`.
-                if (TrySimplifyStaticMemberAccessInScope(node))
+                if (TrySimplifyStaticMemberAccessInScope(node, memberName))
                     return;
 
                 // See if `A` can be simplified to a base type.
@@ -188,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             base.VisitMemberAccessExpression(node);
         }
 
-        private bool TrySimplifyObjectAccessExpression(MemberAccessExpressionSyntax node)
+        private bool TrySimplifyObjectAccessExpression(MemberAccessExpressionSyntax node, string memberName)
         {
             // if we have a call like `object.Equals(...)` we may be able to reduce that to just
             // `Equals(...)` since `object` member are in scope within us.
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
             }
 
-            return TrySimplifyStaticMemberAccessInScope(node);
+            return TrySimplifyStaticMemberAccessInScope(node, memberName);
         }
 
         private bool TrySimplifyBaseAccessExpression(MemberAccessExpressionSyntax node)
@@ -214,10 +213,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool TrySimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node)
+        private bool TrySimplifyStaticMemberAccessInScope(MemberAccessExpressionSyntax node, string memberName)
         {
             // see if we can just access this member using it's name alone here.
-            var memberName = node.Name.Identifier.ValueText;
             if (!_staticNamesInScope.Contains(memberName))
                 return false;
 
@@ -288,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                    current.Kind() == SyntaxKind.GenericName;
         }
 
-        private bool TryReplaceWithAlias(SyntaxNode node, string typeName)
+        private bool TryReplaceWithAlias(ExpressionSyntax node, string typeName)
         {
             // See if we actually have an alias to something with our name.
             if (!_aliasedSymbolNames.Contains(typeName))
@@ -297,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool TryReplaceWithPredefinedType(SyntaxNode node, string typeName)
+        private bool TryReplaceWithPredefinedType(ExpressionSyntax node, string typeName)
         {
             // No point even checking this if the user doesn't like using predefined types.
             if (!_preferPredefinedTypeInDecl && !_preferPredefinedTypeInMemberAccess)
@@ -310,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool TryReplaceWithNullable(SyntaxNode node, string typeName)
+        private bool TryReplaceWithNullable(ExpressionSyntax node, string typeName)
         {
             // Only both checking this if the user referenced `Nullable`.
             if (typeName != nameof(Nullable))
@@ -319,13 +317,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return TrySimplify(node);
         }
 
-        private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(ExpressionSyntax root, SimpleNameSyntax right)
+        private bool TypeReplaceQualifiedReferenceToNamespaceOrTypeWithName(ExpressionSyntax root, string typeName)
         {
             // We have a name like A.B or A::B.
             //
             // First see if we even have a type/namespace in scope called 'B'.  If not,
             // there's nothing we need to do further.
-            if (!_declarationNamesInScope.Contains(right.Identifier.ValueText))
+            if (!_declarationNamesInScope.Contains(typeName))
                 return false;
 
             return TrySimplify(root);
