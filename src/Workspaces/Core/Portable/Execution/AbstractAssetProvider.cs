@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var metadata = await CreateCollectionAsync<MetadataReference>(projectSnapshot.MetadataReferences, cancellationToken).ConfigureAwait(false);
             var analyzers = await CreateCollectionAsync<AnalyzerReference>(projectSnapshot.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
-            var documentInfos = await CreateDocumentInfosAsync( projectSnapshot.Documents, cancellationToken).ConfigureAwait(false);
+            var documentInfos = await CreateDocumentInfosAsync(projectSnapshot.Documents, cancellationToken).ConfigureAwait(false);
             var additionalDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
             var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectSnapshot.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
 

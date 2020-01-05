@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     _ = await client.TryRunRemoteAsync(
                         WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                        solution: null,
                         new object[]
                         {
                             analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_analyzerInfoCache),
                             // +1 for project itself
                             project.DocumentIds.Count + 1
                         },
-                        solution: null,
                         callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
                 }
@@ -141,7 +141,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, analyzerMap.Keys.ToArray());
 
+                // TODO: use RemoteHostClient.TryRunRemoteAsync once options are part of solution snapshot
+                // See https://github.com/dotnet/roslyn/pull/40289.
+#pragma warning disable CS0618 // Type or member is obsolete
                 using var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0618
                 if (session == null)
                 {
                     // session is not available

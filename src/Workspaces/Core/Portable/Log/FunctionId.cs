@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         SnapshotService_RequestAssetAsync,
 
-        CompilationService_GetCompilationAsync,
+        // obsolete: CompilationService_GetCompilationAsync,
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
         FxCopAnalyzersInstall,

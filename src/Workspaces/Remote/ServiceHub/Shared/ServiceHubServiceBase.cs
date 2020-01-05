@@ -13,19 +13,17 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Serialization;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // TODO: all service hub service should be extract to interface so that it can support multiple hosts.
-    //       right now, tightly coupled to service hub
+    [Obsolete("Only used by Razor", error: false)]
     internal abstract class ServiceHubServiceBase : ServiceBase
     {
         private PinnedSolutionInfo? _solutionInfo;
-
-        private RoslynServices? _lazyRoslynServices;
 
         // Used by Razor: https://github.com/aspnet/AspNetCore-Tooling/blob/master/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/RazorServiceBase.cs
         protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
@@ -38,39 +36,16 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public virtual void Initialize(PinnedSolutionInfo info)
         {
-            // set pinned solution info
-            _lazyRoslynServices = null;
             _solutionInfo = info;
         }
 
-        protected RoslynServices RoslynServices
-        {
-            get
-            {
-                // must be initialized
-                Contract.ThrowIfNull(_solutionInfo);
-
-                return _lazyRoslynServices ??= new RoslynServices(_solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            }
-        }
-
+        // Used by Razor: https://github.com/aspnet/AspNetCore-Tooling/blob/master/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/RazorLanguageService.cs#L24
         protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
         {
             // must be initialized
             Contract.ThrowIfNull(_solutionInfo);
 
-            return GetSolutionAsync(RoslynServices.SolutionService, _solutionInfo, cancellationToken);
-        }
-
-        protected Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            var localRoslynService = new RoslynServices(solutionInfo.ScopeId, AssetStorage, RoslynServices.HostServices);
-            return GetSolutionAsync(localRoslynService.SolutionService, solutionInfo, cancellationToken);
-        }
-
-        private static Task<Solution> GetSolutionAsync(SolutionService solutionService, PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
-        {
-            return solutionService.GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+            return GetSolutionAsync(_solutionInfo, cancellationToken);
         }
     }
 

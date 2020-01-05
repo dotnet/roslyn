@@ -63,21 +63,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private readonly int _scopeId;
-
-        public RoslynServices(int scopeId, AssetStorage storage, HostServices hostServices)
-        {
-            _scopeId = scopeId;
-
-            AssetProvider = new AssetProvider(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
-            SolutionService = new SolutionService(AssetProvider);
-            CompilationService = new CompilationService(SolutionService);
-        }
-
-        public AssetProvider AssetProvider { get; }
-        public SolutionService SolutionService { get; }
-        public CompilationService CompilationService { get; }
-
         /// <summary>
         /// Set default telemetry session
         /// </summary>

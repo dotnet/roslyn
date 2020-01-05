@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-<<<<<<< HEAD
         public static AssetService CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
         {
             var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
@@ -65,8 +64,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, solutionChecksum, cancellationToken);
         }
 
-=======
->>>>>>> AssetProvider refactoring
+        public static AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        {
+            var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
+            return new AssetProvider(solutionInfo.ScopeId, assetStorage, serializerService);
+        }
+
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // this method is called by users which means we don't know whether the solution is from primary branch or not.
@@ -74,14 +77,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return GetSolutionAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken);
         }
 
-<<<<<<< HEAD
         public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
             => GetSolutionInternalAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
 
         private async Task<Solution> GetSolutionInternalAsync(
-=======
+
+        public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+            => GetSolutionAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+
         public async Task<Solution> GetSolutionAsync(
->>>>>>> AssetProvider refactoring
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
             int workspaceVersion,

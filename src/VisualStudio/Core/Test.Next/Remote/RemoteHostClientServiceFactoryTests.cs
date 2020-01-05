@@ -161,7 +161,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, callbackTarget: mock, CancellationToken.None);
-            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), new object[] { "emptySource", Path.GetTempPath() }, CancellationToken.None);
+            var result = await session.TryInvokeAsync(
+                nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
+                solution: null,
+                new object[] { "emptySource", Path.GetTempPath() },
+                CancellationToken.None);
 
             Assert.True(result);
 
@@ -177,7 +181,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var service = CreateRemoteHostClientService();
             service.Enable();
 
-            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
+            var client = (InProcRemoteHostClient)await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // register local service
             TestService testService = null;
@@ -191,7 +195,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var session = await client.TryCreateKeepAliveSessionAsync("Test", callbackTarget: null, CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.TryInvokeAsync("TestMethodAsync", arguments: null, CancellationToken.None);
+            var task = session.TryInvokeAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
 
             // make client to go away
             service.Disable();
@@ -246,6 +250,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var threadingContext = ((IMefHostExportProvider)workspace.Services.HostServices).GetExports<IThreadingContext>().Single().Value;
             var factory = new RemoteHostClientServiceFactory(threadingContext, listenerProvider ?? AsynchronousOperationListenerProvider.NullProvider, analyzerService);
             return factory.CreateService(workspace.Services) as RemoteHostClientServiceFactory.RemoteHostClientService;
+        }
+
+        private IDiagnosticAnalyzerService GetDiagnosticAnalyzerService(IEnumerable<AnalyzerReference> references)
+        {
+            var mock = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
+            mock.Setup(a => a.GetHostAnalyzerReferences()).Returns(references);
+            return mock.Object;
         }
 
         private class TestService : ServiceHubServiceBase
