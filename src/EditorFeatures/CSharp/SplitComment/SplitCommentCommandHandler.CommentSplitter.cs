@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitComment
                     : null;
             }
 
-            protected SyntaxNode GetNodeToReplace() => _trivia.Token.Parent;
+            protected SyntaxNode GetNodeToReplace() => _trivia.SyntaxTree.GetRoot();
 
             protected SyntaxTriviaList CreateSplitComment(string indentString)
             {

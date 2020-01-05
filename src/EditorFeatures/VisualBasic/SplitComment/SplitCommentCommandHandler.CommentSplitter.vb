@@ -27,6 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
 
             Private ReadOnly _indentStyle As IndentStyle
 
+            Private hasLineContinuation As Boolean = False
+
             Public Sub New(document As Document, cursorPosition As Integer,
                            sourceText As SourceText, root As SyntaxNode,
                            tabSize As Integer, useTabs As Boolean,
@@ -49,7 +51,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                                       indentStyle As IndentStyle,
                                       cancellationToken As CancellationToken) As CommentSplitter
                 Dim trivia = root.FindTrivia(position)
-
                 If trivia.IsKind(SyntaxKind.CommentTrivia) Then
                     Return New CommentSplitter(document, position, sourceText,
                                                root, tabSize, useTabs, trivia,
@@ -60,23 +61,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
             End Function
 
             Protected Function GetNodeToReplace() As SyntaxNode
-                ' Return the Parent of the Parent to get the containing statement instead and not any ending statement if it exists
-                If _trivia.Token.Parent.Parent IsNot Nothing Then
-                    Return _trivia.Token.Parent.Parent
-                Else
-                    Return _trivia.Token.Parent
-                End If
+                ' Always return the root to simplify logic
+                Return _trivia.SyntaxTree.GetRoot()
             End Function
 
             Protected Function CreateSplitComment(indentString As String) As SyntaxTriviaList
                 Dim prefix = SourceText.GetSubText(TextSpan.FromBounds(_trivia.SpanStart, CursorPosition)).ToString()
                 Dim suffix = SourceText.GetSubText(TextSpan.FromBounds(CursorPosition, _trivia.Span.End)).ToString()
 
-                Dim firstTrivia = SyntaxFactory.CommentTrivia(prefix)
-                Dim secondTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
-                Dim thirdTrivia = SyntaxFactory.CommentTrivia(indentString + CommentCharacter + suffix)
+                Dim triviaList = New List(Of SyntaxTrivia)
+                triviaList.Add(SyntaxFactory.CommentTrivia(prefix))
+                triviaList.Add(SyntaxFactory.ElasticCarriageReturnLineFeed)
 
-                Return SyntaxFactory.TriviaList(firstTrivia, secondTrivia, thirdTrivia)
+                If hasLineContinuation Then
+                    triviaList.Add(SyntaxFactory.ElasticSpace)
+                    triviaList.Add(SyntaxFactory.LineContinuationTrivia("_"))
+                End If
+
+                triviaList.Add(SyntaxFactory.CommentTrivia(indentString + CommentCharacter + suffix))
+
+                Return SyntaxFactory.TriviaList(triviaList)
             End Function
 
             Public Function TrySplit() As Integer?
@@ -117,10 +121,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SplitComment
                 Dim newDocument = Document.WithSyntaxRoot(newRoot)
 
                 Dim indentationService = newDocument.GetLanguageService(Of Indentation.IIndentationService)()
-                Dim originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber
+                Dim originalLine = SourceText.Lines.GetLineFromPosition(CursorPosition)
+
+                Dim node = newRoot.FindNode(originalLine.Span, False, True)
+                hasLineContinuation = node.DescendantTrivia().Any(Function(x)
+                                                                      Return x.Kind() = SyntaxKind.LineContinuationTrivia
+                                                                  End Function)
+                If hasLineContinuation Then
+                    Return " "
+                End If
 
                 Dim desiredIndentation = indentationService.GetIndentation(
-                    newDocument, originalLineNumber, _indentStyle, CancellationToken)
+                    newDocument, originalLine.LineNumber, _indentStyle, CancellationToken)
 
                 Dim newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken)
                 Dim baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition)

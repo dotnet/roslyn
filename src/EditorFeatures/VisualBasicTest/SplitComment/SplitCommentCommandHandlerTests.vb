@@ -242,5 +242,26 @@ End Namespace
 'Comment
 ")
         End Sub
+
+        <WorkItem(38516, "https://github.com/dotnet/roslyn/issues/38516")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SplitComment)>
+        Public Sub TestSplitCommentWithLineContinuation()
+            TestHandled(
+"Module Program
+    Sub Main(args As String())
+        Dim X As Integer _ ' Comment [||] is here
+                       = 4
+    End Sub
+End Module
+",
+"Module Program
+    Sub Main(args As String())
+        Dim X As Integer _ ' Comment 
+ _ ' is here
+                       = 4
+    End Sub
+End Module
+")
+        End Sub
     End Class
 End Namespace
