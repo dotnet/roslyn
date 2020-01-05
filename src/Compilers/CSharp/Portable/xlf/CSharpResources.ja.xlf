@@ -5933,8 +5933,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">読み取り専用フィールドに割り当てることはできません (コンストラクター、変数初期化子では可 )。</target>
+        <source>A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">読み取り専用フィールドに割り当てることはできません (コンストラクター、変数初期化子では可 )。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
