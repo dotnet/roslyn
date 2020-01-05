@@ -149,13 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 if (@using.Alias != null)
                 {
                     var symbolInfo = _semanticModel.GetSymbolInfo(@using.Name, _cancellationToken);
-                    if (symbolInfo.CandidateSymbols.Length > 0)
-                        continue;
-
                     if (symbolInfo.Symbol is INamespaceOrTypeSymbol symbol)
-                    {
                         _aliasedSymbolNames.Add(symbol.Name);
-                    }
                 }
             }
         }
