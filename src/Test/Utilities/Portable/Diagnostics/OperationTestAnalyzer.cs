@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 IForLoopOperation forLoop = (IForLoopOperation)loop;
                 IOperation forCondition = forLoop.Condition;
 
-                if (forCondition.Kind == OperationKind.BinaryOperator)
+                if (forCondition.Kind == OperationKind.Binary)
                 {
                     IBinaryOperation condition = (IBinaryOperation)forCondition;
                     IOperation conditionLeft = condition.LeftOperand;
@@ -181,15 +181,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                         if (advance.Kind == OperationKind.ExpressionStatement)
                                         {
                                             IOperation advanceExpression = ((IExpressionStatementOperation)advance).Operation;
-                                            SemanticModel semanticModel = operationContext.Compilation.GetSemanticModel(advance.Syntax.SyntaxTree);
 
-                                            IOperation advanceIncrement;
+                                            Optional<object> advanceIncrementOpt;
                                             BinaryOperatorKind? advanceOperationCode;
-                                            GetOperationKindAndValue(semanticModel, testVariable, advanceExpression, out advanceOperationCode, out advanceIncrement);
+                                            GetOperationKindAndValue(testVariable, advanceExpression, out advanceOperationCode, out advanceIncrementOpt);
 
-                                            if (advanceIncrement != null && advanceOperationCode.HasValue)
+                                            if (advanceIncrementOpt.HasValue && advanceOperationCode.HasValue)
                                             {
-                                                int incrementValue = (int)advanceIncrement.ConstantValue.Value;
+                                                var incrementValue = (int)advanceIncrementOpt.Value;
                                                 if (advanceOperationCode.Value == BinaryOperatorKind.Subtract)
                                                 {
                                                     advanceOperationCode = BinaryOperatorKind.Add;
@@ -222,10 +221,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
 
         private void GetOperationKindAndValue(
-            SemanticModel semanticModel, ILocalSymbol testVariable, IOperation advanceExpression,
-            out BinaryOperatorKind? advanceOperationCode, out IOperation advanceIncrement)
+            ILocalSymbol testVariable, IOperation advanceExpression,
+            out BinaryOperatorKind? advanceOperationCode, out Optional<object> advanceIncrementOpt)
         {
-            advanceIncrement = null;
+            advanceIncrementOpt = null;
             advanceOperationCode = null;
 
             if (advanceExpression.Kind == OperationKind.SimpleAssignment)
@@ -234,7 +233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                 if (advanceAssignment.Target.Kind == OperationKind.LocalReference &&
                     ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable &&
-                    advanceAssignment.Value.Kind == OperationKind.BinaryOperator &&
+                    advanceAssignment.Value.Kind == OperationKind.Binary &&
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
                     // Advance is known to be an assignment of a binary operation to the local used in the test.
@@ -247,7 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         advanceOperation.RightOperand.Type.SpecialType == SpecialType.System_Int32)
                     {
                         // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                        advanceIncrement = advanceOperation.RightOperand;
+                        advanceIncrementOpt = advanceOperation.RightOperand.ConstantValue;
                         advanceOperationCode = advanceOperation.OperatorKind;
                     }
                 }
@@ -262,7 +261,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     advanceAssignment.Value.Type.SpecialType == SpecialType.System_Int32)
                 {
                     // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                    advanceIncrement = advanceAssignment.Value;
+                    advanceIncrementOpt = advanceAssignment.Value.ConstantValue;
                     advanceOperationCode = advanceAssignment.OperatorKind;
                 }
             }
@@ -274,19 +273,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     ((ILocalReferenceOperation)advanceAssignment.Target).Local == testVariable)
                 {
                     // Advance binary operation is known to involve a reference to the local used in the test and a constant.
-                    advanceIncrement = CreateIncrementOneLiteralExpression(semanticModel, advanceAssignment);
+                    advanceIncrementOpt = new Optional<object>(1);
                     advanceOperationCode = BinaryOperatorKind.Add;
                 }
             }
-        }
-
-        private static ILiteralOperation CreateIncrementOneLiteralExpression(SemanticModel semanticModel, IIncrementOrDecrementOperation increment)
-        {
-            string text = increment.Syntax.ToString();
-            SyntaxNode syntax = increment.Syntax;
-            ITypeSymbol type = increment.Type;
-            Optional<object> constantValue = new Optional<object>(1);
-            return new LiteralExpression(semanticModel, syntax, type, constantValue, increment.IsImplicit);
         }
 
         private static int Abs(int value)
@@ -850,24 +840,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var declarationStatement = (IVariableDeclarationsOperation)operationContext.Operation;
+                     var declarationStatement = (IVariableDeclarationGroupOperation)operationContext.Operation;
                      if (declarationStatement.GetDeclaredVariables().Count() > 3)
                      {
                          Report(operationContext, declarationStatement.Syntax, TooManyLocalVarDeclarationsDescriptor);
                      }
 
-                     foreach (var decl in declarationStatement.Declarations)
+                     foreach (var decl in declarationStatement.Declarations.SelectMany(multiDecl => multiDecl.Declarators))
                      {
-                         if (decl.Initializer != null && !decl.Initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
+                         var initializer = decl.GetVariableInitializer();
+                         if (initializer != null && !initializer.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                          {
-                             foreach (var symbol in decl.Variables)
-                             {
-                                 Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
-                             }
+                             Report(operationContext, decl.Symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                          }
                      }
                  },
-                 OperationKind.VariableDeclarations);
+                 OperationKind.VariableDeclarationGroup);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
@@ -1054,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      IEventAssignmentOperation eventAssignment = (IEventAssignmentOperation)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(eventAssignment.Adds ? HandlerAddedDescriptor : HandlerRemovedDescriptor, operationContext.Operation.Syntax.GetLocation()));
 
-                     if (eventAssignment.EventReference?.Event == null && eventAssignment.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
+                     if (eventAssignment.EventReference.Kind == OperationKind.Invalid || eventAssignment.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
                      }
@@ -1536,13 +1524,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(DoubleMultiplyDescriptor, binary.Syntax.GetLocation()));
                     }
                 },
-                OperationKind.BinaryOperator);
+                OperationKind.Binary);
 
             context.RegisterOperationAction(
                 (operationContext) =>
                 {
                     IUnaryOperation unary = (IUnaryOperation)operationContext.Operation;
-                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod  != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
+                    if (unary.OperatorKind == UnaryOperatorKind.Minus && unary.OperatorMethod != null && unary.OperatorMethod.Name.Contains("UnaryNegation"))
                     {
                         operationContext.ReportDiagnostic(Diagnostic.Create(OperatorMinusMethodDescriptor, unary.Syntax.GetLocation()));
                     }
@@ -1557,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         operationContext.ReportDiagnostic(Diagnostic.Create(BooleanNotDescriptor, unary.Syntax.GetLocation()));
                     }
                 },
-                OperationKind.UnaryOperator);
+                OperationKind.Unary);
         }
     }
 
@@ -1588,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                 binary.OperatorKind.ToString()));
                     }
                 },
-                OperationKind.BinaryOperator);
+                OperationKind.Binary);
         }
     }
 
@@ -1645,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         }
                     }
                 },
-                OperationKind.BinaryOperator);
+                OperationKind.Binary);
 
             context.RegisterOperationAction(
                 (operationContext) =>
@@ -1667,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         }
                     }
                 },
-                OperationKind.UnaryOperator);
+                OperationKind.Unary);
         }
     }
 
@@ -1796,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  (operationContext) =>
                  {
                      var operation = operationContext.Operation;
-                     if (operation.Kind == OperationKind.BinaryOperator)
+                     if (operation.Kind == OperationKind.Binary)
                      {
                          var binary = (IBinaryOperation)operation;
                          if (binary.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
@@ -1804,7 +1792,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidBinaryDescriptor, binary.Syntax.GetLocation()));
                          }
                      }
-                     else if (operation.Kind == OperationKind.UnaryOperator)
+                     else if (operation.Kind == OperationKind.Unary)
                      {
                          var unary = (IUnaryOperation)operation;
                          if (unary.HasErrors(operationContext.Compilation, operationContext.CancellationToken))
@@ -1821,8 +1809,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          }
                      }
                  },
-                 OperationKind.BinaryOperator,
-                 OperationKind.UnaryOperator,
+                 OperationKind.Binary,
+                 OperationKind.Unary,
                  OperationKind.Increment);
         }
     }
@@ -1991,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          operationContext.ReportDiagnostic(Diagnostic.Create(UnaryFalseDescriptor, unary.Syntax.GetLocation()));
                      }
                  },
-                 OperationKind.UnaryOperator);
+                 OperationKind.Unary);
         }
     }
 
@@ -2096,34 +2084,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
-    // This analyzer is to test internal operation action registration method in AnalysisContext
-    public class AnalysisContextInternalAnalyzer : DiagnosticAnalyzer
-    {
-        private const string ReliabilityCategory = "Reliability";
-
-        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
-            "AnalysisContextInternal",
-            "An operation related action is invoked",
-            "An {0} action is invoked in {1} context.",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(OperationActionInternalDescriptor);
-
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterOperationActionParamsArrayInternal(
-                (operationContext) =>
-                {
-                    operationContext.ReportDiagnostic(
-                        Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "Analysis"));
-                },
-                OperationKind.Literal);
-        }
-    }
-
     // This analyzer is to test operation action registration method in CompilationStartAnalysisContext
     public class CompilationStartAnalysisContextAnalyzer : DiagnosticAnalyzer
     {
@@ -2150,38 +2110,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                             operationContext.ReportDiagnostic(
                                 Diagnostic.Create(OperationActionDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
-                        },
-                        OperationKind.Literal);
-                });
-        }
-    }
-
-    // This analyzer is to test internal operation action registration method in CompilationStartAnalysisContext
-    public class CompilationStartAnalysisContextInternalAnalyzer : DiagnosticAnalyzer
-    {
-        private const string ReliabilityCategory = "Reliability";
-
-        public static readonly DiagnosticDescriptor OperationActionInternalDescriptor = new DiagnosticDescriptor(
-            "CompilationStartAnalysisContextInternal",
-            "An operation related action is invoked",
-            "An {0} action is invoked in {1} context.",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(OperationActionInternalDescriptor);
-
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(
-                (compilationStartContext) =>
-                {
-                    compilationStartContext.RegisterOperationActionParamsArrayInternal(
-                        (operationContext) =>
-                        {
-                            operationContext.ReportDiagnostic(
-                                Diagnostic.Create(OperationActionInternalDescriptor, operationContext.Operation.Syntax.GetLocation(), "Operation", "CompilationStart within Analysis"));
                         },
                         OperationKind.Literal);
                 });
@@ -2226,52 +2154,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     if (model.GetOperation(node) != null)
                     {
                         syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationDescriptor, node.GetLocation()));
-                    }
-                },
-                Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);
-        }
-    }
-
-    // This analyzer is to test GetOperationInternal method in SemanticModel
-    public class SemanticModelInternalAnalyzer : DiagnosticAnalyzer
-    {
-        private const string ReliabilityCategory = "Reliability";
-
-
-        public static readonly DiagnosticDescriptor GetOperationInternalDescriptor = new DiagnosticDescriptor(
-            "GetOperationInternal",
-            "An IOperation is returned by SemanticModel",
-            "An IOperation is returned by SemanticModel.",
-            ReliabilityCategory,
-            DiagnosticSeverity.Warning,
-            isEnabledByDefault: true);
-
-
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(GetOperationInternalDescriptor);
-
-        public sealed override void Initialize(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(
-                (syntaxContext) =>
-                {
-                    var node = syntaxContext.Node;
-                    var model = syntaxContext.SemanticModel;
-                    if (model.GetOperationInternal(node) != null)
-                    {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
-                    }
-                },
-                Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression);
-
-            context.RegisterSyntaxNodeAction(
-                (syntaxContext) =>
-                {
-                    var node = syntaxContext.Node;
-                    var model = syntaxContext.SemanticModel;
-                    if (model.GetOperationInternal(node) != null)
-                    {
-                        syntaxContext.ReportDiagnostic(Diagnostic.Create(GetOperationInternalDescriptor, node.GetLocation()));
                     }
                 },
                 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.NumericLiteralExpression);

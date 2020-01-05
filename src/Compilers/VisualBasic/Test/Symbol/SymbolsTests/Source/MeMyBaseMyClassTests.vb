@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' 'Me' is key word and can't use as in identify
         <Fact>
         Public Sub MeIsKeyWord()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MeIsKeyWord">
     <file name="a.vb">
 Module Program
@@ -69,7 +69,7 @@ End Structure
         ' 'Me' is not valid within a Module.
         <Fact>
         Public Sub MeIsInvalidInModule()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MeIsInvalidInModule">
     <file name="a.vb">
 Imports System
@@ -265,7 +265,7 @@ End Class
         ' Call Me on a private method defined only in the base class.
         <Fact>
         Public Sub CallFunctionInBaseClassByMe_2()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallFunctionInBaseClassByMe">
     <file name="a.vb">
 Class BaseClass
@@ -618,7 +618,7 @@ Module Module1
     End Class
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
+</compilation>, references:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
 {
   // Code size       26 (0x1a)
   .maxstack  3
@@ -639,7 +639,7 @@ End Module
         ' Invalid use of  Me
         <Fact>
         Public Sub InvalidUseOfMe()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidUseOfMe">
     <file name="a.vb">
 Class Class1
@@ -672,7 +672,7 @@ End Class
         ' 'MyBase' is key word and can't use as in identify
         <Fact>
         Public Sub MyBaseIsKeyWord()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyBaseIsKeyWord">
     <file name="a.vb">
 Class MyBase
@@ -688,7 +688,7 @@ End Class
 
         <Fact>
         Public Sub MyBaseIsKeyWord_2()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyBaseIsKeyWord">
     <file name="a.vb">
 Class C1
@@ -701,7 +701,7 @@ End Class
 
         <Fact>
         Public Sub MyBaseIsKeyWord_3()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyBaseIsKeyWord">
     <file name="a.vb">
 Class C1
@@ -722,7 +722,7 @@ End Enum
         ' MyBase refers to the immediate base class and its inherited members. It cannot be used to access Private members in the class.
         <Fact>
         Public Sub AccessPrivateMethodInBase()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AccessPrivateMethodInBase">
     <file name="a.vb">
 Class BaseClass
@@ -775,7 +775,7 @@ End Class
         ' MyBase is a keyword, not a real object. MyBase cannot be assigned to a variable, passed to procedures, or used in an Is comparison.
         <Fact()>
         Public Sub MyBaseIsKeyWord_4()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyBaseIsKeyWord">
     <file name="a.vb">
 Class BaseClass
@@ -815,7 +815,7 @@ End Class
         ' MyBase cannot be used to qualify itself. 
         <Fact>
         Public Sub InvalidUseOfMyBase()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidUseOfMyBase">
     <file name="a.vb">
 MustInherit Class BaseClass
@@ -843,7 +843,7 @@ End Class
         ' MyBase cannot be used in modules.
         <Fact>
         Public Sub MyBaseCannotUsedInModule()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyBaseCannotUsedInModule">
     <file name="a.vb">
 Module M1
@@ -860,7 +860,7 @@ End Module
         ' MyBase cannot be used to access base class members that are marked as Friend if the base class is in a different assembly.
         <Fact>
         Public Sub InvalidUseOfMyBase_2()
-            Dim comp1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidUseOfMyBase_2">
     <file name="a.vb">
 Public Class Class1
@@ -870,7 +870,7 @@ End Class
     </file>
 </compilation>)
             Dim compRef = New VisualBasicCompilationReference(comp1)
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="InvalidUseOfMyBase_2">
     <file name="a.vb">
 Class DerivedClass
@@ -880,7 +880,7 @@ Class DerivedClass
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={compRef})
+</compilation>, references:={compRef})
 
             VerifyDiagnostics(comp2, Diagnostic(ERRID.ERR_InaccessibleMember3, "MyBase.goo").WithArguments("Class1", "Friend Sub goo()", "Friend"))
 
@@ -889,7 +889,7 @@ End Class
         ' Calls MyBase.method which is only defined in the derived class 
         <Fact>
         Public Sub MethodOnlyDefinedInDerived()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MethodOnlyDefinedInDerived">
     <file name="a.vb">
 MustInherit Class BaseClass
@@ -911,7 +911,7 @@ End Class
         ' MyBase used to qualify a function overriding.
         <Fact>
         Public Sub InvalidUseOfMyBase_3()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidUseOfMyBase">
     <file name="a.vb">
 MustInherit Class BaseClass
@@ -933,7 +933,7 @@ End Class
         ' Call MyBase by itself in a class that has a default property 
         <Fact>
         Public Sub CallMyBaseWithDefaultProperty()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallMyBaseWithDefaultProperty">
     <file name="a.vb">
 Class BaseClass
@@ -965,7 +965,7 @@ End Class    </file>
         ' Call data member by MyBase
         <Fact>
         Public Sub CallDataMemberByMyBase()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallDataMemberByMyBase">
     <file name="a.vb">
 Class BaseClass
@@ -1125,7 +1125,7 @@ Module Module1
     End Class
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
+</compilation>, references:={SystemCoreRef}).VerifyIL("Module1.Class2.TEST", <![CDATA[
 {
   // Code size       50 (0x32)
   .maxstack  3
@@ -1255,7 +1255,7 @@ End Class
 
         <Fact()>
         Public Sub InvalidUseOfMyBase_4()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidUseOfMyBase">
     <file name="a.vb">
 Class C1
@@ -1283,7 +1283,7 @@ End Class
         ' Invalid use of  MyBase 
         <Fact>
         Public Sub InvalidUseOfMyBase_5()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="InvalidUseOfMyBase">
     <file name="a.vb">
 Class C1
@@ -1317,7 +1317,7 @@ End Class
         ' MyClass is a keyword, not a real object. MyClass cannot be assigned to a variable, passed to procedures, or used in an Is comparison. 
         <Fact()>
         Public Sub MyClassIsKeyWord()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyClassIsKeyWord">
     <file name="a.vb">
 Imports System
@@ -1358,7 +1358,7 @@ End Class
         ' MyClass refers to the containing class and its inherited members.
         <Fact>
         Public Sub MyClassRefsDerivedMethod()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyClassRefsDerivedMethod">
     <file name="a.vb">
 Class BaseClass
@@ -1436,7 +1436,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, additionalRefs:={SystemCoreRef}).VerifyIL("C1.Goo", <![CDATA[
+</compilation>, references:={SystemCoreRef}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1477,7 +1477,7 @@ End Structure
         ' 'MyClass' is valid only within an instance method.
         <Fact>
         Public Sub MyClassOnlyValidInInstanceMethod()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MyClassOnlyValidInInstanceMethod">
     <file name="a.vb">
 Structure s1
@@ -1572,7 +1572,7 @@ End Class
         ' Assigning to the Me/MyBase/MyClass variable in a Class/Module/Structure (should never work)
         <Fact>
         Public Sub AssignValueToMeMyBaseMyClass()
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssignValueToMeMyBaseMyClass">
     <file name="a.vb">
 Class Base

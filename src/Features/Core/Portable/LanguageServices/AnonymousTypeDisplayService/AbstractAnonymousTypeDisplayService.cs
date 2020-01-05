@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             anonymousTypeParts.Add(PlainText(FeaturesResources.Anonymous_Types_colon));
             anonymousTypeParts.AddRange(LineBreak());
 
-            for (int i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
+            for (var i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
             {
                 if (i != 0)
                 {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
             IList<INamedTypeSymbol> anonymousTypes)
         {
-            int current = 0;
+            var current = 0;
             var anonymousTypeToName = new Dictionary<INamedTypeSymbol, string>();
             foreach (var type in anonymousTypes)
             {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private string GenerateAnonymousTypeName(int current)
         {
-            char c = (char)('a' + current);
+            var c = (char)('a' + current);
             if (c >= 'a' && c <= 'z')
             {
                 return "'" + c.ToString();
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.LineBreak, null, "\r\n");
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected IEnumerable<SymbolDisplayPart> Space(int count = 1)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 yield return new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " ");
             }

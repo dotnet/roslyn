@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         <Fact>
         Public Sub [GetXmlNamespace]()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports <xmlns:p="http://roslyn/">
@@ -21,7 +21,7 @@ Module M
     Private F2 = GetXmlNamespace()
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -39,14 +39,14 @@ End Module
 
         <Fact>
         Public Sub XmlDocument()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
     Private F = <?xml version="1.0"?><?pi data?><!-- comment --><x/>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -78,14 +78,14 @@ End Module
 
         <Fact>
         Public Sub XmlProcessingInstruction()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
     Private F As Object = <?p?>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -96,14 +96,14 @@ End Module
 
         <Fact>
         Public Sub XmlElement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb">
 Module M
     Public F = &lt;x a="b"&gt;&lt;y/&gt;z&lt;![CDATA[c]]&gt;&#x42;&lt;/&gt;
 End Module
     </file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -166,7 +166,7 @@ End Module
 
         <Fact>
         Public Sub XmlName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb">
 Module M
@@ -176,7 +176,7 @@ Module M
     End Sub
 End Module
     </file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -195,7 +195,7 @@ End Module
         ' Ensure we are still generating BoundNodes for semantic info.
         <Fact>
         Public Sub XmlnsAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -204,7 +204,7 @@ Module M
     Private F As Object = <x xmlns:p="http://roslyn/"/>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -215,7 +215,7 @@ End Module
 
         <Fact>
         Public Sub XmlPrefix()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports <xmlns:p="http://roslyn/p">
@@ -223,7 +223,7 @@ Module M
     Private F As Object = p
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim node = FindNodeOfTypeFromText(Of EqualsValueSyntax)(tree, "= p").Value
@@ -233,7 +233,7 @@ End Module
 
         <Fact>
         Public Sub XmlEmbeddedExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -241,7 +241,7 @@ Module M
     Private F2 = <x <%= F1 %>=""/>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -259,7 +259,7 @@ End Module
 
         <Fact>
         Public Sub XmlElementAccess()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports <xmlns:p="...">
@@ -267,7 +267,7 @@ Module M
     Private F = <x/>.<y>.<p:z>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -300,7 +300,7 @@ End Module
 
         <Fact>
         Public Sub XmlDescendantAccess()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports <xmlns:p="...">
@@ -308,7 +308,7 @@ Module M
     Private F = <x/>...<y>...<p:z>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -341,7 +341,7 @@ End Module
 
         <Fact>
         Public Sub XmlAttributeAccess()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports <xmlns:p="...">
@@ -351,7 +351,7 @@ Module M
     Private F3 = <x/>.@<z>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -394,7 +394,7 @@ End Module
 
         <Fact>
         Public Sub ValueExtensionProperty()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
@@ -404,7 +404,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
@@ -424,7 +424,7 @@ End Module
         <WorkItem(545659, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545659")>
         <Fact>
         Public Sub LookupValueExtensionProperty()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Collections
@@ -459,7 +459,7 @@ Module M
     End Sub
 End Module
 ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30456: 'Value' is not a member of 'IEnumerable(Of Object)'.
         o = _5.Value
@@ -487,14 +487,14 @@ BC30456: 'Value' is not a member of 'IEnumerable(Of Object)'.
         <WorkItem(544421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544421")>
         <Fact()>
         Public Sub XmlEndElementNoMatchingStart()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Module M
     Private F = <?xml version="1.0"?><?p?></x>
 End Module
     ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
             Dim tree = compilation.SyntaxTrees(0)
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
@@ -512,7 +512,7 @@ End Module
         <WorkItem(545167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545167")>
         <Fact()>
         Public Sub XmlElementEndTag()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
             <compilation>
                 <file name="a.vb"><![CDATA[
 Module M

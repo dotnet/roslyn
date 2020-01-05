@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
+using System.IO;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
@@ -45,44 +46,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void SetOutputFileName(string filename)
         {
-            SetOutputPathAndRelatedData(filename);
+            // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
+            if (PathUtilities.IsAbsolute(filename))
+            {
+                VisualStudioProject.IntermediateOutputFilePath = filename;
+            }
+
+            if (filename != null)
+            {
+                VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(filename);
+            }
+
+            RefreshBinOutputPath();
         }
 
         public void SetOutputFileType(OutputFileType fileType)
         {
-            OutputKind newOutputKind;
-            switch (fileType)
-            {
-                case OutputFileType.Console:
-                    newOutputKind = OutputKind.ConsoleApplication;
-                    break;
-
-                case OutputFileType.Windows:
-                    newOutputKind = OutputKind.WindowsApplication;
-                    break;
-
-                case OutputFileType.Library:
-                    newOutputKind = OutputKind.DynamicallyLinkedLibrary;
-                    break;
-
-                case OutputFileType.Module:
-                    newOutputKind = OutputKind.NetModule;
-                    break;
-
-                case OutputFileType.AppContainer:
-                    newOutputKind = OutputKind.WindowsRuntimeApplication;
-                    break;
-
-                case OutputFileType.WinMDObj:
-                    newOutputKind = OutputKind.WindowsRuntimeMetadata;
-                    break;
-
-                default:
-
-                    throw new ArgumentException("fileType was not a valid OutputFileType", nameof(fileType));
-            }
-
-            SetOption(ref _outputKind, newOutputKind);
+            VisualStudioProjectOptionsProcessor.SetOutputFileType(fileType);
         }
 
         public void SetImageBase(uint imageBase)
@@ -92,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void SetMainClass(string fullyQualifiedClassName)
         {
-            SetOption(ref _mainTypeName, fullyQualifiedClassName);
+            VisualStudioProjectOptionsProcessor.SetMainTypeName(fullyQualifiedClassName);
         }
 
         public void SetWin32Icon(string iconFileName)
@@ -123,15 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         public void SetWin32Manifest(string manifestFileName)
         {
             // This option is used only during emit. Since we no longer use our in-proc workspace to emit, we can ignore this value.
-        }
-
-        private void SetOption<T>(ref T value, T newValue)
-        {
-            if (!object.Equals(value, newValue))
-            {
-                value = newValue;
-                UpdateOptions();
-            }
         }
     }
 }

@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Text
 Imports System.Threading
+Imports System.Xml.Schema
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend Module BreakpointSpans
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Dim root = tree.GetRoot(cancellationToken)
-            Return TryGetEnclosingBreakpointSpan(root, position, breakpointSpan)
+            Return TryGetEnclosingBreakpointSpan(root, position, minLength:=0, breakpointSpan)
         End Function
 
         Private Function IsBlank(line As TextLine) As Boolean
@@ -48,21 +49,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' <remarks>
         ''' If the span exists it Is possible To place a breakpoint at the given position.
         ''' </remarks>
-        Public Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
+        ''' <param name="minLength">
+        ''' In case there are multiple breakpoint spans starting at the given <paramref name="position"/>,
+        ''' <paramref name="minLength"/> can be used to disambiguate between them. 
+        ''' The inner-most available span whose length is at least <paramref name="minLength"/> is returned.
+        ''' </param>
+        Public Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, minLength As Integer, <Out> ByRef span As TextSpan) As Boolean
             Dim node = root.FindToken(position).Parent
 
+            Dim candidate As TextSpan? = Nothing
             While node IsNot Nothing
                 Dim breakpointSpan = TryCreateSpanForNode(node, position)
                 If breakpointSpan.HasValue Then
-                    span = breakpointSpan.Value
-                    Return span <> New TextSpan()
+                    If breakpointSpan.Value = New TextSpan() Then
+                        Exit While
+                    End If
+
+                    ' the new breakpoint span doesn't alight with the previously found breakpoint span, return the previous one:
+                    If candidate.HasValue AndAlso breakpointSpan.Value.Start <> candidate.Value.Start Then
+                        span = candidate.Value
+                        Return True
+                    End If
+
+                    ' The span length meets the requirement:
+                    If breakpointSpan.Value.Length >= minLength Then
+                        span = breakpointSpan.Value
+                        Return True
+                    End If
+
+                    candidate = breakpointSpan
                 End If
 
                 node = node.Parent
             End While
 
-            span = Nothing
-            Return False
+            span = candidate.GetValueOrDefault()
+            Return candidate.HasValue
         End Function
 
         Private Function CreateSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
@@ -175,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 Case SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
-                    Return TryCreateSpanForSingleLineLambdaExpression(DirectCast(node, SingleLineLambdaExpressionSyntax))
+                    Return CreateSpan(node)
 
                 Case SyntaxKind.SelectClause
                     Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax), position)
@@ -338,14 +360,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Private Function TryCreateSpanForSingleLineLambdaExpression(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) As TextSpan?
-            If TypeOf singleLineLambdaExpression.Body Is ExpressionSyntax Then
-                Return CreateSpan(singleLineLambdaExpression.Body)
-            End If
-
-            Return Nothing
-        End Function
-
         Private Function TryCreateSpanForFunctionAggregation(functionAggregation As FunctionAggregationSyntax) As TextSpan?
             If functionAggregation.Argument IsNot Nothing Then
                 Return CreateSpan(functionAggregation.Argument)
@@ -442,9 +456,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Select Case expression.Parent.Kind
                 Case SyntaxKind.JoinCondition
                     Dim joinCondition = DirectCast(expression.Parent, JoinConditionSyntax)
-                    If expression Is joinCondition.Left OrElse expression Is joinCondition.Right Then
-                        Return True
-                    End If
+                    Return expression Is joinCondition.Left OrElse expression Is joinCondition.Right
+
+                Case SyntaxKind.SingleLineFunctionLambdaExpression
+                    Dim lambda = DirectCast(expression.Parent, SingleLineLambdaExpressionSyntax)
+                    Return expression Is lambda.Body
             End Select
 
             Return False

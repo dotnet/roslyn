@@ -15,7 +15,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
     {
         internal const string CS0108 = nameof(CS0108); // 'SomeClass.SomeMember' hides inherited member 'SomeClass.SomeMember'. Use the new keyword if hiding was intended.
 
+        [ImportingConstructor]
+        public HideBaseCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0108);
+
+        public override FixAllProvider GetFixAllProvider()
+        {
+            return WellKnownFixAllProviders.BatchFixer;
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

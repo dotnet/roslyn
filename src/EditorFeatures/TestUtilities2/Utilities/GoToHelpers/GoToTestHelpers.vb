@@ -3,27 +3,24 @@
 Imports Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
-Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.GeneratedCodeRecognition
 Imports Microsoft.VisualStudio.Composition
-Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Module GoToTestHelpers
         Public ReadOnly Catalog As ComposableCatalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
                         GetType(MockDocumentNavigationServiceFactory),
+                        GetType(MockSymbolNavigationServiceFactory),
                         GetType(DefaultSymbolNavigationServiceFactory),
                         GetType(CSharpGoToDefinitionSymbolService),
                         GetType(VisualBasicGoToDefinitionSymbolService),
                         GetType(CSharpGeneratedCodeRecognitionService),
                         GetType(VisualBasicGeneratedCodeRecognitionService))
 
-        Public ReadOnly ExportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(Catalog)
-
+        Public ReadOnly ExportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(Catalog)
     End Module
 
     Friend Structure FilePathAndSpan

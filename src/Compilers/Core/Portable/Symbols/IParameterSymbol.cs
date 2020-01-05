@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -36,9 +38,19 @@ namespace Microsoft.CodeAnalysis
         bool IsThis { get; }
 
         /// <summary>
+        /// Returns true if the parameter is a discard parameter.
+        /// </summary>
+        bool IsDiscard { get; }
+
+        /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
         ITypeSymbol Type { get; }
+
+        /// <summary>
+        /// Gets the top-level nullability of the parameter.
+        /// </summary>
+        NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>
         /// Custom modifiers associated with the parameter type, or an empty array if there are none.
@@ -71,7 +83,7 @@ namespace Microsoft.CodeAnalysis
         /// is the default value of the struct type.
         /// </remarks>
         /// <exception cref="System.InvalidOperationException">The parameter has no default value.</exception>
-        object ExplicitDefaultValue { get; }
+        object? ExplicitDefaultValue { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another

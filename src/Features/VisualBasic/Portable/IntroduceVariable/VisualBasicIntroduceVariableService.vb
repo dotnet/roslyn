@@ -10,8 +10,12 @@ Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportLanguageService(GetType(IIntroduceVariableService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicIntroduceVariableService
-        Inherits AbstractIntroduceVariableService(Of VisualBasicIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeBlockSyntax, QueryExpressionSyntax)
+    Partial Friend Class VisualBasicIntroduceVariableService
+        Inherits AbstractIntroduceVariableService(Of VisualBasicIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeBlockSyntax, QueryExpressionSyntax, NameSyntax)
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetContainingExecutableBlocks(expression As ExpressionSyntax) As IEnumerable(Of SyntaxNode)
             Return expression.GetContainingExecutableBlocks()
@@ -113,9 +117,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function IsInAutoPropertyInitializer(expression As ExpressionSyntax) As Boolean
             Dim propertyStatement = expression.GetAncestorOrThis(Of PropertyStatementSyntax)()
+            Dim equalsValueStatement = expression.GetAncestorOrThis(Of EqualsValueSyntax)
+
             If propertyStatement IsNot Nothing Then
                 Return expression.GetAncestorsOrThis(Of AsClauseSyntax).Contains(propertyStatement.AsClause) OrElse
-                    expression.GetAncestorOrThis(Of EqualsValueSyntax).Contains(propertyStatement.Initializer)
+                    (equalsValueStatement IsNot Nothing AndAlso equalsValueStatement.Contains(propertyStatement.Initializer))
             End If
 
             Return False
@@ -131,6 +137,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
 
             Return True
+        End Function
+
+        Protected Overrides Function IsExpressionInStaticLocalFunction(expression As ExpressionSyntax) As Boolean
+            ' Local functions don't apply to VB.
+            Return False
         End Function
 
         Protected Overrides Function RewriteCore(Of TNode As SyntaxNode)(node As TNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As TNode

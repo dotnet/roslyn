@@ -1,107 +1,95 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// ParallelExtensionsExtras: https://code.msdn.microsoft.com/ParExtSamples
-
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace Roslyn.Test.Utilities
 {
-    /// <summary>Provides a scheduler that uses STA threads.</summary>
-    public sealed class StaTaskScheduler : TaskScheduler, IDisposable
+    public sealed class StaTaskScheduler : IDisposable
     {
-        /// <summary>Gets a StaTaskScheduler for the current AppDomain.</summary>
-        /// <remarks>We use a count of 1, because the editor ends up re-using <see cref="System.Windows.Threading.DispatcherObject"/>
+        /// <summary>Gets a <see cref="StaTaskScheduler"/> for the current <see cref="AppDomain"/>.</summary>
+        /// <remarks>We use a count of 1, because the editor ends up re-using <see cref="DispatcherObject"/>
         /// instances between tests, so we need to always use the same thread for our Sta tests.</remarks>
-        public static StaTaskScheduler DefaultSta { get; } = new StaTaskScheduler(1);
-
-        /// <summary>Stores the queued tasks to be executed by our pool of STA threads.</summary>
-        private BlockingCollection<Task> _tasks;
+        public static StaTaskScheduler DefaultSta { get; } = new StaTaskScheduler();
 
         /// <summary>The STA threads used by the scheduler.</summary>
-        private readonly ImmutableArray<Thread> _threads;
+        public Thread StaThread { get; }
 
-        public ImmutableArray<Thread> Threads => _threads;
+        public bool IsRunningInScheduler => StaThread.ManagedThreadId == Thread.CurrentThread.ManagedThreadId;
 
-        /// <summary>Initializes a new instance of the StaTaskScheduler class with the specified concurrency level.</summary>
-        /// <param name="numberOfThreads">The number of threads that should be created and used by this scheduler.</param>
-        public StaTaskScheduler(int numberOfThreads)
+        static StaTaskScheduler()
         {
-            // Validate arguments
-            if (numberOfThreads < 1)
-                throw new ArgumentOutOfRangeException(nameof(numberOfThreads));
-
-            // Initialize the tasks collection
-            _tasks = new BlockingCollection<Task>();
-
-            // Create the threads to be used by this scheduler
-            _threads = Enumerable.Range(0, numberOfThreads).Select(i =>
+            // We've created an STA thread, which has some extra requirements for COM Runtime
+            // Callable Wrappers (RCWs). If any COM object is created on the STA thread, calls to that
+            // object must be made from that thread; when the RCW is no longer being used by any
+            // managed code, the RCW is put into the finalizer queue, but to actually finalize it
+            // it has to marshal to the STA thread to do the work. This means that in order to safely
+            // clean up any RCWs, we need to ensure that the thread is pumping past the point of
+            // all RCWs being finalized
+            //
+            // This constraint is particularly problematic if our tests are running in an AppDomain:
+            // when the AppDomain is unloaded, any threads (including our STA thread) are going to be
+            // aborted. Once the thread and AppDomain is being torn down, the CLR is going to try cleaning up
+            // any RCWs associated them, because if the thread is gone for good there's no way
+            // it could ever clean anything further up. The code there waits for the finalizer queue
+            // -- but the finalizer queue might be already trying to clean up an RCW, which is marshaling
+            // to the STA thread. This could then deadlock.
+            //
+            // The suggested workaround from the CLR team is to do an explicit GC.Collect and
+            // WaitForPendingFinalizers before we let the AppDomain shut down. The belief is subscribing
+            // to DomainUnload is a reasonable place to do it.
+            AppDomain.CurrentDomain.DomainUnload += (sender, e) =>
             {
-                var thread = new Thread(() =>
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            };
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="StaTaskScheduler"/> class.</summary>
+        public StaTaskScheduler()
+        {
+            using (var threadStartedEvent = new ManualResetEventSlim(initialState: false))
+            {
+                DispatcherSynchronizationContext synchronizationContext = null;
+                StaThread = new Thread(() =>
                 {
-                    // Continually get the next task and try to execute it.
-                    // This will continue until the scheduler is disposed and no more tasks remain.
-                    foreach (var t in _tasks.GetConsumingEnumerable())
+                    var oldContext = SynchronizationContext.Current;
+                    try
                     {
-                        if (!TryExecuteTask(t))
-                        {
-                            System.Diagnostics.Debug.Assert(t.IsCompleted, "Can't run, not completed");
-                        }
+                        // All WPF Tests need a DispatcherSynchronizationContext and we dont want to block pending keyboard
+                        // or mouse input from the user. So use background priority which is a single level below user input.
+                        synchronizationContext = new DispatcherSynchronizationContext();
+
+                        // xUnit creates its own synchronization context and wraps any existing context so that messages are
+                        // still pumped as necessary. So we are safe setting it here, where we are not safe setting it in test.
+                        SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+
+                        threadStartedEvent.Set();
+
+                        Dispatcher.Run();
+                    }
+                    finally
+                    {
+                        SynchronizationContext.SetSynchronizationContext(oldContext);
                     }
                 });
-                thread.Name = $"{nameof(StaTaskScheduler)} thread";
-                thread.IsBackground = true;
-                thread.SetApartmentState(ApartmentState.STA);
-                return thread;
-            }).ToImmutableArray();
+                StaThread.Name = $"{nameof(StaTaskScheduler)} thread";
+                StaThread.IsBackground = true;
+                StaThread.SetApartmentState(ApartmentState.STA);
+                StaThread.Start();
 
-            // Start all of the threads
-            foreach (var thread in _threads)
-            {
-                thread.Start();
+                threadStartedEvent.Wait();
+                DispatcherSynchronizationContext = synchronizationContext;
             }
+
+            // Work around the WeakEventTable Shutdown race conditions
+            AppContext.SetSwitch("Switch.MS.Internal.DoNotInvokeInWeakEventTableShutdownListener", isEnabled: true);
         }
 
-        /// <summary>Queues a Task to be executed by this scheduler.</summary>
-        /// <param name="task">The task to be executed.</param>
-        protected override void QueueTask(Task task)
+        public DispatcherSynchronizationContext DispatcherSynchronizationContext
         {
-            // Push it into the blocking collection of tasks
-            _tasks.Add(task);
-        }
-
-        /// <summary>Provides a list of the scheduled tasks for the debugger to consume.</summary>
-        /// <returns>An enumerable of all tasks currently scheduled.</returns>
-        protected override IEnumerable<Task> GetScheduledTasks()
-        {
-            // Serialize the contents of the blocking collection of tasks for the debugger
-            return _tasks.ToArray();
-        }
-
-        /// <summary>Determines whether a Task may be inlined.</summary>
-        /// <param name="task">The task to be executed.</param>
-        /// <param name="taskWasPreviouslyQueued">Whether the task was previously queued.</param>
-        /// <returns>true if the task was successfully inlined; otherwise, false.</returns>
-        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-        {
-            // Try to inline if the current thread is STA
-            return
-                Thread.CurrentThread.GetApartmentState() == ApartmentState.STA &&
-                TryExecuteTask(task);
-        }
-
-        /// <summary>Gets the maximum concurrency level supported by this scheduler.</summary>
-        public override int MaximumConcurrencyLevel
-        {
-            get
-            {
-                return _threads.Length;
-            }
+            get;
         }
 
         /// <summary>
@@ -110,29 +98,11 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         public void Dispose()
         {
-            if (_tasks != null)
+            if (StaThread.IsAlive)
             {
-                // Indicate that no new tasks will be coming in
-                _tasks.CompleteAdding();
-
-                // Wait for all threads to finish processing tasks
-                foreach (var thread in _threads)
-                    thread.Join();
-
-                // Cleanup
-                _tasks.Dispose();
-                _tasks = null;
+                DispatcherSynchronizationContext.Post(_ => Dispatcher.ExitAllFrames(), null);
+                StaThread.Join();
             }
-        }
-
-        public bool IsAnyQueued()
-        {
-            if (_threads.Length != 1 || _threads[0] != Thread.CurrentThread)
-            {
-                throw new InvalidOperationException("Operation invalid in this context");
-            }
-
-            return _tasks.Count > 0;
         }
     }
 }

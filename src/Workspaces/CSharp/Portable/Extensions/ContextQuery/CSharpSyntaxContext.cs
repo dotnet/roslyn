@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLabelContext;
         public readonly bool IsTypeArgumentOfConstraintContext;
 
-        public readonly bool IsIsOrAsContext;
+        public readonly bool IsIsOrAsOrSwitchExpressionContext;
         public readonly bool IsObjectCreationTypeContext;
         public readonly bool IsDefiniteCastTypeContext;
         public readonly bool IsGenericTypeArgumentContext;
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
+        public readonly bool IsLeftSideOfImportAliasDirective;
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -74,10 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isNameOfContext,
             bool isInQuery,
             bool isInImportsDirective,
+            bool isLeftSideOfImportAliasDirective,
             bool isLabelContext,
             bool isTypeArgumentOfConstraintContext,
             bool isRightOfDotOrArrowOrColonColon,
-            bool isIsOrAsContext,
+            bool isIsOrAsOrSwitchExpressionContext,
             bool isObjectCreationTypeContext,
             bool isDefiniteCastTypeContext,
             bool isGenericTypeArgumentContext,
@@ -99,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isDestructorTypeContext,
             bool isPossibleTupleContext,
             bool isPatternContext,
+            bool isRightSideOfNumericType,
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
@@ -106,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
-                   isPatternContext, cancellationToken)
+                   isPatternContext, isRightSideOfNumericType, cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;
             this.IsTypeArgumentOfConstraintContext = isTypeArgumentOfConstraintContext;
-            this.IsIsOrAsContext = isIsOrAsContext;
+            this.IsIsOrAsOrSwitchExpressionContext = isIsOrAsOrSwitchExpressionContext;
             this.IsObjectCreationTypeContext = isObjectCreationTypeContext;
             this.IsDefiniteCastTypeContext = isDefiniteCastTypeContext;
             this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
@@ -138,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsCrefContext = isCrefContext;
             this.IsCatchFilterContext = isCatchFilterContext;
             this.IsDestructorTypeContext = isDestructorTypeContext;
+            this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -161,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
 
             var isPreProcessorKeywordContext = isPreProcessorDirectiveContext
-                ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken, cancellationToken)
+                ? syntaxTree.IsPreProcessorKeywordContext(position, leftToken)
                 : false;
 
             var isPreProcessorExpressionContext = isPreProcessorDirectiveContext
@@ -185,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 : false;
 
             var isConstantExpressionContext = !isPreProcessorDirectiveContext
-                ? syntaxTree.IsConstantExpressionContext(position, leftToken, cancellationToken)
+                ? syntaxTree.IsConstantExpressionContext(position, leftToken)
                 : false;
 
             var containingTypeDeclaration = syntaxTree.GetContainingTypeDeclaration(position, cancellationToken);
@@ -195,57 +199,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
                                             targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration);
 
+            // Typing a dot after a numeric expression (numericExpression.) 
+            // - maybe a start of MemberAccessExpression like numericExpression.Member.
+            // - or it maybe a start of a range expression like numericExpression..anotherNumericExpression (starting C# 8.0) 
+            // Therefore, in the scenario, we want the completion to be __soft selected__ until user types the next character after the dot.
+            // If the second dot was typed, we just insert two dots.
+            var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
+
             return new CSharpSyntaxContext(
-                workspace,
-                semanticModel,
-                position,
-                leftToken,
-                targetToken,
-                containingTypeDeclaration,
-                containingTypeOrEnumDeclaration,
-                isInNonUserCode,
-                isPreProcessorDirectiveContext,
-                isPreProcessorKeywordContext,
-                isPreProcessorExpressionContext,
-                syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt: semanticModel),
-                syntaxTree.IsNamespaceContext(position, cancellationToken, semanticModelOpt: semanticModel),
-                syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
-                isStatementContext,
-                isGlobalStatementContext,
-                isAnyExpressionContext,
-                isNonAttributeExpressionContext,
-                isConstantExpressionContext,
-                syntaxTree.IsAttributeNameContext(position, cancellationToken),
-                syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
-                syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
-                leftToken.GetAncestor<QueryExpressionSyntax>() != null,
-                IsLeftSideOfUsingAliasDirective(leftToken, cancellationToken),
-                syntaxTree.IsLabelContext(position, cancellationToken),
-                syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
-                syntaxTree.IsRightOfDotOrArrowOrColonColon(position, cancellationToken),
-                syntaxTree.IsIsOrAsContext(position, leftToken, cancellationToken),
-                syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsDefiniteCastTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),
-                syntaxTree.IsEnumBaseListContext(position, leftToken, cancellationToken),
-                syntaxTree.IsIsOrAsTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
-                syntaxTree.IsDeclarationExpressionContext(position, leftToken, cancellationToken),
-                syntaxTree.IsFixedVariableDeclarationContext(position, leftToken, cancellationToken),
-                syntaxTree.IsParameterTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken, cancellationToken),
-                syntaxTree.IsDelegateReturnTypeContext(position, leftToken, cancellationToken),
-                syntaxTree.IsTypeOfExpressionContext(position, leftToken, cancellationToken),
-                syntaxTree.GetPrecedingModifiers(position, leftToken, cancellationToken),
-                syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
-                syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
-                syntaxTree.IsCatchFilterContext(position, leftToken),
-                isDestructorTypeContext,
-                syntaxTree.IsPossibleTupleContext(leftToken, position),
-                syntaxTree.IsPatternContext(leftToken, position),
-                cancellationToken);
+                workspace: workspace,
+                semanticModel: semanticModel,
+                position: position,
+                leftToken: leftToken,
+                targetToken: targetToken,
+                containingTypeDeclaration: containingTypeDeclaration,
+                containingTypeOrEnumDeclaration: containingTypeOrEnumDeclaration,
+                isInNonUserCode: isInNonUserCode,
+                isPreProcessorDirectiveContext: isPreProcessorDirectiveContext,
+                isPreProcessorKeywordContext: isPreProcessorKeywordContext,
+                isPreProcessorExpressionContext: isPreProcessorExpressionContext,
+                isTypeContext: syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt: semanticModel),
+                isNamespaceContext: syntaxTree.IsNamespaceContext(position, cancellationToken, semanticModelOpt: semanticModel),
+                isNamespaceDeclarationNameContext: syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
+                isStatementContext: isStatementContext,
+                isGlobalStatementContext: isGlobalStatementContext,
+                isAnyExpressionContext: isAnyExpressionContext,
+                isNonAttributeExpressionContext: isNonAttributeExpressionContext,
+                isConstantExpressionContext: isConstantExpressionContext,
+                isAttributeNameContext: syntaxTree.IsAttributeNameContext(position, cancellationToken),
+                isEnumTypeMemberAccessContext: syntaxTree.IsEnumTypeMemberAccessContext(semanticModel, position, cancellationToken),
+                isNameOfContext: syntaxTree.IsNameOfContext(position, semanticModel, cancellationToken),
+                isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
+                isInImportsDirective: leftToken.GetAncestor<UsingDirectiveSyntax>() != null,
+                isLeftSideOfImportAliasDirective: IsLeftSideOfUsingAliasDirective(leftToken),
+                isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
+                isTypeArgumentOfConstraintContext: syntaxTree.IsTypeArgumentOfConstraintClause(position, cancellationToken),
+                isRightOfDotOrArrowOrColonColon: syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken),
+                isIsOrAsOrSwitchExpressionContext: syntaxTree.IsIsOrAsOrSwitchExpressionContext(semanticModel, position, leftToken, cancellationToken),
+                isObjectCreationTypeContext: syntaxTree.IsObjectCreationTypeContext(position, leftToken, cancellationToken),
+                isDefiniteCastTypeContext: syntaxTree.IsDefiniteCastTypeContext(position, leftToken),
+                isGenericTypeArgumentContext: syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken),
+                isEnumBaseListContext: syntaxTree.IsEnumBaseListContext(position, leftToken),
+                isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken),
+                isLocalVariableDeclarationContext: syntaxTree.IsLocalVariableDeclarationContext(position, leftToken, cancellationToken),
+                isDeclarationExpressionContext: syntaxTree.IsDeclarationExpressionContext(position, leftToken),
+                isFixedVariableDeclarationContext: syntaxTree.IsFixedVariableDeclarationContext(position, leftToken),
+                isParameterTypeContext: syntaxTree.IsParameterTypeContext(position, leftToken),
+                isPossibleLambdaOrAnonymousMethodParameterTypeContext: syntaxTree.IsPossibleLambdaOrAnonymousMethodParameterTypeContext(position, leftToken, cancellationToken),
+                isImplicitOrExplicitOperatorTypeContext: syntaxTree.IsImplicitOrExplicitOperatorTypeContext(position, leftToken),
+                isPrimaryFunctionExpressionContext: syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken),
+                isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
+                isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
+                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, leftToken),
+                isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
+                isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
+                isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
+                isDestructorTypeContext: isDestructorTypeContext,
+                isPossibleTupleContext: syntaxTree.IsPossibleTupleContext(leftToken, position),
+                isPatternContext: syntaxTree.IsPatternContext(leftToken, position),
+                isRightSideOfNumericType: isRightSideOfNumericType,
+                cancellationToken: cancellationToken);
         }
 
         public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -275,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
                 token.Parent.Kind() == SyntaxKind.AttributeList &&
                 this.SyntaxTree.IsTypeDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 return true;
             }
@@ -318,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return this.SyntaxTree.IsMemberDeclarationContext(this.Position, this, validModifiers, validTypeDeclarations, canBePartial, cancellationToken);
         }
 
-        private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken, CancellationToken cancellationToken)
+        private static bool IsLeftSideOfUsingAliasDirective(SyntaxToken leftToken)
         {
             var usingDirective = leftToken.GetAncestor<UsingDirectiveSyntax>();
 
@@ -339,6 +352,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
         {
             return new CSharpTypeInferenceService();
+        }
+
+        /// <summary>
+        /// Is this a possible position for an await statement (`await using` or `await foreach`)?
+        /// </summary>
+        internal bool IsAwaitStatementContext(int position, CancellationToken cancellationToken)
+        {
+            var leftToken = this.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var targetToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+            return targetToken.Kind() == SyntaxKind.AwaitKeyword && targetToken.GetPreviousToken().IsBeginningOfStatementContext();
         }
     }
 }

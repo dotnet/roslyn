@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.MethodOpt;
                 var oldSyntax = _factory.Syntax;
                 _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                var receiver = (method.IsStatic && !node.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
+                var receiver = (!method.RequiresInstanceReceiver && !node.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
                 _factory.Syntax = oldSyntax;
                 return node.Update(receiver, method, node.IsExtensionMethod, node.Type);
             }

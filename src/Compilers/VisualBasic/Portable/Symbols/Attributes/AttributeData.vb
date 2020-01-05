@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Else
                 Dim firstArg As TypedConstant = Me.CommonConstructorArguments.FirstOrDefault()
-                Dim firstArgType = DirectCast(firstArg.Type, TypeSymbol)
+                Dim firstArgType = DirectCast(firstArg.TypeInternal, TypeSymbol)
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If firstArgType IsNot Nothing AndAlso firstArgType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Security_Permissions_SecurityAction, compilation, useSiteDiagnostics) Then
                     Return ValidateSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, hasErrors)
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ) As DeclarativeSecurityAction
             Debug.Assert(targetSymbol.Kind = SymbolKind.Assembly OrElse targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method)
 
-            Dim securityAction As Integer = CInt(typedValue.Value)
+            Dim securityAction As Integer = CInt(typedValue.ValueInternal)
             hasErrors = False
             Dim isPermissionRequestAction As Boolean
 
@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     PermissionSetAttributeTypeHasRequiredProperty(attrType, filePropName) Then
 
                     ' resolve file prop path
-                    Dim fileName = DirectCast(namedArg.Value.Value, String)
+                    Dim fileName = DirectCast(namedArg.Value.ValueInternal, String)
                     Dim resolver = compilation.Options.XmlReferenceResolver
                     resolvedFilePath = If(resolver IsNot Nothing, resolver.ResolveReference(fileName, baseFilePath:=Nothing), Nothing)
 

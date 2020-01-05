@@ -100,7 +100,7 @@ namespace Roslyn.Utilities
                 _wordSpans = new TextSpan[distinctValues.Length];
 
                 var characterIndex = 0;
-                for (int i = 0; i < distinctValues.Length; i++)
+                for (var i = 0; i < distinctValues.Length; i++)
                 {
                     var value = distinctValues[i];
                     _wordSpans[i] = new TextSpan(characterIndex, value.Length);
@@ -192,8 +192,8 @@ namespace Roslyn.Utilities
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
                     var editDistance = EditDistance.GetEditDistance(
-                        new ArraySlice<char>(_concatenatedLowerCaseWords, currentNode.CharacterSpan),
-                        new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan));
+                        _concatenatedLowerCaseWords.AsSpan(currentNode.CharacterSpan.Start, currentNode.CharacterSpan.Length),
+                        _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length));
 
                     if (editDistance == 0)
                     {

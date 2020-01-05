@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         private class SignatureHelpSource : ForegroundThreadAffinitizedObject, ISignatureHelpSource
         {
+            public SignatureHelpSource(IThreadingContext threadingContext)
+                : base(threadingContext)
+            {
+            }
+
             public void AugmentSignatureHelpSession(ISignatureHelpSession session, IList<ISignature> signatures)
             {
                 AssertIsForeground();

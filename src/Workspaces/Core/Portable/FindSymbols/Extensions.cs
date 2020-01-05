@@ -14,14 +14,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal static partial class Extensions
     {
-        public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<SyntaxToken>> GetConstructorInitializerTokensAsync(this Document document, SemanticModel model, CancellationToken cancellationToken)
         {
-            // model should exist already
-            if (!document.TryGetSemanticModel(out var model))
-            {
-                return Contract.FailWithReturn<IEnumerable<SyntaxToken>>("we should never reach here");
-            }
-
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -34,14 +28,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async Task<ImmutableArray<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
-            this Document document, string identifier, CancellationToken cancellationToken)
+            this Document document, SemanticModel model, string identifier, CancellationToken cancellationToken)
         {
-            // model should exist already
-            if (!document.TryGetSemanticModel(out var model))
-            {
-                return Contract.FailWithReturn<ImmutableArray<SyntaxToken>>("we should never reach here");
-            }
-
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
             var info = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);

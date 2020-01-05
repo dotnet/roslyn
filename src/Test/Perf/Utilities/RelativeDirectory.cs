@@ -73,7 +73,7 @@ namespace Roslyn.Test.Performance.Utilities
             // in a project in the solution and have already been deployed
             // to a binaries folder
 
-            foreach (var configuration in new string[] {"debug", "release"})
+            foreach (var configuration in new string[] { "debug", "release" })
             {
                 var configurationIndex = _workingDir.IndexOf(configuration, StringComparison.CurrentCultureIgnoreCase);
                 if (configurationIndex != -1)

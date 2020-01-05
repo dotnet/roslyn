@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If commentedNamedType IsNot Nothing AndAlso commentedNamedType.TypeKind <> TypeKind.Delegate Then
                 Debug.Assert(binderContainingMember = commentedSymbol)
             ElseIf commentedSymbol.ContainingType IsNot Nothing Then
-                Debug.Assert(binderContainingMember = commentedSymbol.ContainingType)
+                Debug.Assert(TypeSymbol.Equals(DirectCast(binderContainingMember, TypeSymbol), commentedSymbol.ContainingType, TypeCompareKind.ConsiderEverything))
             Else
                 ' It's not worth writing a complicated check that handles merged namespaces.
                 Debug.Assert(binderContainingMember <> commentedSymbol)

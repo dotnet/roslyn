@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol toType,
             IParameterSymbol fromType,
             bool isImplicit,
-            ImmutableArray<AttributeData> toTypeAttributes) :
-            base(containingType,
-                attributes,
-                declaredAccessibility,
-                modifiers,
-                returnType: toType,
-                refKind: RefKind.None,
-                explicitInterfaceImplementations: default,
-                name: isImplicit ?
-                    WellKnownMemberNames.ImplicitConversionName :
-                    WellKnownMemberNames.ExplicitConversionName,
-                typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                parameters: ImmutableArray.Create(fromType),
-                returnTypeAttributes: toTypeAttributes)
+            ImmutableArray<AttributeData> toTypeAttributes)
+            : base(containingType,
+                  attributes,
+                  declaredAccessibility,
+                  modifiers,
+                  returnType: toType,
+                  refKind: RefKind.None,
+                  explicitInterfaceImplementations: default,
+                  name: isImplicit ?
+                      WellKnownMemberNames.ImplicitConversionName :
+                      WellKnownMemberNames.ExplicitConversionName,
+                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+                  parameters: ImmutableArray.Create(fromType),
+                  returnTypeAttributes: toTypeAttributes)
         {
         }
 

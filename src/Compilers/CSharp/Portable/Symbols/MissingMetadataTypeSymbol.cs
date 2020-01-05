@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly int arity;
         protected readonly bool mangleName;
 
-        private MissingMetadataTypeSymbol(string name, int arity, bool mangleName)
+        private MissingMetadataTypeSymbol(string name, int arity, bool mangleName, TupleExtraData tupleData = null)
+            : base(tupleData)
         {
             Debug.Assert(name != null);
 
@@ -131,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             private int _lazyTypeId = -1;
 
-            public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName)
-                : base(name, arity, mangleName)
+            public TopLevel(ModuleSymbol module, string @namespace, string name, int arity, bool mangleName, TupleExtraData tupleData = null)
+                : base(name, arity, mangleName, tupleData)
             {
                 Debug.Assert((object)module != null);
                 Debug.Assert(@namespace != null);
@@ -169,6 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        mangleName ? fullName.InferredArity : fullName.ForcedArity,
                        mangleName)
             {
+            }
+
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            {
+                return new TopLevel(_containingModule, _namespaceName, Name, Arity, MangleName, newData);
             }
 
             /// <summary>
@@ -301,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Hash.Combine(MetadataName, Hash.Combine(_containingModule, Hash.Combine(_namespaceName, arity)));
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -406,12 +413,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
             public override int GetHashCode()
             {
                 return Hash.Combine(_containingType, Hash.Combine(MetadataName, arity));
             }
 
-            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+            internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
                 if (ReferenceEquals(this, t2))
                 {
@@ -421,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var other = t2 as Nested;
                 return (object)other != null && string.Equals(MetadataName, other.MetadataName, StringComparison.Ordinal) &&
                     arity == other.arity &&
-                    _containingType.Equals(other._containingType, comparison);
+                    _containingType.Equals(other._containingType, comparison, isValueTypeOverrideOpt);
             }
         }
     }

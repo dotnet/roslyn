@@ -51,13 +51,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/23582",
+            Constraint = "Provide " + nameof(ArrayBuilder<Symbol>) + " capacity to reduce number of allocations.",
+            AllowGenericEnumeration = false)]
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
             EnsureAllMembersLoaded();
 
-            var builder = ArrayBuilder<Symbol>.GetInstance();
-            builder.AddRange(GetMemberTypesPrivate());
-            builder.AddRange(GetMemberNamespacesPrivate());
+            var memberTypes = GetMemberTypesPrivate();
+            var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
+
+            builder.AddRange(memberTypes);
+            foreach (var pair in lazyNamespaces)
+            {
+                builder.Add(pair.Value);
+            }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -71,11 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return StaticCast<NamedTypeSymbol>.From(_lazyFlattenedTypes);
-        }
-
-        private IEnumerable<PENestedNamespaceSymbol> GetMemberNamespacesPrivate()
-        {
-            return lazyNamespaces.Values;
         }
 
         public sealed override ImmutableArray<Symbol> GetMembers(string name)

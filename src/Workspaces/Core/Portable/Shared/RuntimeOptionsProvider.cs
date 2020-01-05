@@ -10,8 +10,12 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     [ExportOptionProvider, Shared]
     internal class RuntimeOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public RuntimeOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RuntimeOptions.FullSolutionAnalysis,
-            RuntimeOptions.FullSolutionAnalysisInfoBarShown);
+            RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown);
     }
 }

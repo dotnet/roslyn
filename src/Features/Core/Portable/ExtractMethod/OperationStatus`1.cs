@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     {
         public OperationStatus(OperationStatus status, T data)
         {
-            this.Status = status;
-            this.Data = data;
+            Status = status;
+            Data = data;
         }
 
         public OperationStatus Status { get; }
@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public OperationStatus<T> With(OperationStatus status)
         {
-            return new OperationStatus<T>(status, this.Data);
+            return new OperationStatus<T>(status, Data);
         }
 
         public OperationStatus<TNew> With<TNew>(TNew data)
         {
-            return new OperationStatus<TNew>(this.Status, data);
+            return new OperationStatus<TNew>(Status, data);
         }
     }
 }

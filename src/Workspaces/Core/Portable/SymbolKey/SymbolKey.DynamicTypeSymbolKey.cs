@@ -6,16 +6,14 @@ namespace Microsoft.CodeAnalysis
     {
         private static class DynamicTypeSymbolKey
         {
-            private static readonly object instance = new object();
-
-            public static void Create(SymbolKeyWriter visitor)
+            public static void Create(SymbolKeyWriter _)
             {
+                // No need to encode anything here.  There is only ever one dynamic-symbol
+                // per compilation.
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
-            {
-                return new SymbolKeyResolution(reader.Compilation.DynamicType);
-            }
+                => new SymbolKeyResolution(reader.Compilation.DynamicType);
         }
     }
 }

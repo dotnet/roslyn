@@ -4,7 +4,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariable
-
     Partial Friend Class CorrectNextControlVariableCodeFixProvider
         Private Class CorrectNextControlVariableCodeAction
             Inherits CodeAction

@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var oldOutermostQuery = expression.GetAncestorsOrThis<QueryExpressionSyntax>().LastOrDefault();
 
             var newLocalNameToken = GenerateUniqueLocalName(
-                document, expression, isConstant: false, 
-                container: oldOutermostQuery, cancellationToken: cancellationToken);
+                document, expression, isConstant: false,
+                containerOpt: oldOutermostQuery, cancellationToken: cancellationToken);
             var newLocalName = SyntaxFactory.IdentifierName(newLocalNameToken);
 
             var letClause = SyntaxFactory.LetClause(

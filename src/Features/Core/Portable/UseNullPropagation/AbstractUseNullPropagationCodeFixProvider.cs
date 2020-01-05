@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -38,6 +36,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
 
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
             => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
@@ -46,28 +46,31 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             context.RegisterCodeFix(new MyCodeAction(
                 c => FixAsync(context.Document, context.Diagnostics[0], c)),
                 context.Diagnostics);
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
                 var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
-                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
+                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
+                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
                 syntaxFacts.GetPartsOfConditionalExpression(
                     conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
 
                 var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
                 editor.ReplaceNode(conditionalExpression,
-                    (c, g) => {
+                    (c, g) =>
+                    {
                         syntaxFacts.GetPartsOfConditionalExpression(
                             c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
 
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         var match = AbstractUseNullPropagationDiagnosticAnalyzer<
                             TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
                             TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, conditionalPart, currentWhenPartToCheck);
+                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticFacts, semanticModel, conditionalPart, currentWhenPartToCheck);
                         if (match == null)
                         {
                             return c;
@@ -89,8 +92,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         return newNode;
                     });
             }
-
-            return SpecializedTasks.EmptyTask;
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         private SyntaxNode CreateConditionalAccessExpression(
-            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator, 
+            ISyntaxFactsService syntaxFacts, SyntaxGenerator generator,
             SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
         {
             if (matchParent is TMemberAccessExpression memberAccess)

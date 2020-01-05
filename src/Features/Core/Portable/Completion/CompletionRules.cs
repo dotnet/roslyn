@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public EnterKeyRule DefaultEnterKeyRule { get; }
 
         /// <summary>
-        /// The rule determing how snippets work.
+        /// The rule determining how snippets work.
         /// </summary>
         public SnippetsRule SnippetsRule { get; }
 
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.Completion
             EnterKeyRule defaultEnterKeyRule,
             SnippetsRule snippetsRule)
         {
-            this.DismissIfEmpty = dismissIfEmpty;
-            this.DismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted;
-            this.DefaultCommitCharacters = defaultCommitCharacters.NullToEmpty();
-            this.DefaultEnterKeyRule = defaultEnterKeyRule;
-            this.SnippetsRule = snippetsRule;
+            DismissIfEmpty = dismissIfEmpty;
+            DismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted;
+            DefaultCommitCharacters = defaultCommitCharacters.NullToEmpty();
+            DefaultEnterKeyRule = defaultEnterKeyRule;
+            SnippetsRule = snippetsRule;
         }
 
         /// <summary>
@@ -98,17 +98,17 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<EnterKeyRule> defaultEnterKeyRule = default,
             Optional<SnippetsRule> snippetsRule = default)
         {
-            var newDismissIfEmpty = dismissIfEmpty.HasValue ? dismissIfEmpty.Value : this.DismissIfEmpty;
-            var newDismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted.HasValue ? dismissIfLastCharacterDeleted.Value : this.DismissIfLastCharacterDeleted;
-            var newDefaultCommitCharacters = defaultCommitCharacters.HasValue ? defaultCommitCharacters.Value : this.DefaultCommitCharacters;
-            var newDefaultEnterKeyRule = defaultEnterKeyRule.HasValue ? defaultEnterKeyRule.Value : this.DefaultEnterKeyRule;
-            var newSnippetsRule = snippetsRule.HasValue ? snippetsRule.Value : this.SnippetsRule;
+            var newDismissIfEmpty = dismissIfEmpty.HasValue ? dismissIfEmpty.Value : DismissIfEmpty;
+            var newDismissIfLastCharacterDeleted = dismissIfLastCharacterDeleted.HasValue ? dismissIfLastCharacterDeleted.Value : DismissIfLastCharacterDeleted;
+            var newDefaultCommitCharacters = defaultCommitCharacters.HasValue ? defaultCommitCharacters.Value : DefaultCommitCharacters;
+            var newDefaultEnterKeyRule = defaultEnterKeyRule.HasValue ? defaultEnterKeyRule.Value : DefaultEnterKeyRule;
+            var newSnippetsRule = snippetsRule.HasValue ? snippetsRule.Value : SnippetsRule;
 
-            if (newDismissIfEmpty == this.DismissIfEmpty &&
-                newDismissIfLastCharacterDeleted == this.DismissIfLastCharacterDeleted &&
-                newDefaultCommitCharacters == this.DefaultCommitCharacters &&
-                newDefaultEnterKeyRule == this.DefaultEnterKeyRule &&
-                newSnippetsRule == this.SnippetsRule)
+            if (newDismissIfEmpty == DismissIfEmpty &&
+                newDismissIfLastCharacterDeleted == DismissIfLastCharacterDeleted &&
+                newDefaultCommitCharacters == DefaultCommitCharacters &&
+                newDefaultEnterKeyRule == DefaultEnterKeyRule &&
+                newSnippetsRule == SnippetsRule)
             {
                 return this;
             }

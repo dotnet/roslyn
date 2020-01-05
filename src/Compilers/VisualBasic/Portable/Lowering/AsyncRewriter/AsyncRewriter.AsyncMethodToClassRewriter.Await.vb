@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), awaiterField, True),
-                        If(awaiterField.Type = awaiterTemp.Type,
+                        If(TypeSymbol.Equals(awaiterField.Type, awaiterTemp.Type, TypeCompareKind.ConsiderEverything),
                            DirectCast(Me.F.Local(awaiterTemp, False), BoundExpression),
                            Me.F.Convert(awaiterFieldType, Me.F.Local(awaiterTemp, False)))))
 
@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 blockBuilder.Add(
                     Me.F.Assignment(
                         Me.F.Local(awaiterTemp, True),
-                        If(awaiterTemp.Type = awaiterField.Type,
+                        If(TypeSymbol.Equals(awaiterTemp.Type, awaiterField.Type, TypeCompareKind.ConsiderEverything),
                            DirectCast(Me.F.Field(Me.F.Me(), awaiterField, False), BoundExpression),
                            Me.F.Convert(awaiterTemp.Type, Me.F.Field(Me.F.Me(), awaiterField, False)))))
 

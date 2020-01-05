@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>
+    internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>, IReadOnlyList<T>, IOrderedReadOnlySet<T>
     {
         private readonly HashSet<T> _set;
         private readonly ArrayBuilder<T> _list;
@@ -49,6 +51,14 @@ namespace Microsoft.CodeAnalysis.Collections
             get
             {
                 return _list.Count;
+            }
+        }
+
+        public T this[int index]
+        {
+            get
+            {
+                return _list[index];
             }
         }
 

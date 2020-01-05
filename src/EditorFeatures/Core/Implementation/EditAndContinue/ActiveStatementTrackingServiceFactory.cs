@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [ExportWorkspaceServiceFactory(typeof(IActiveStatementTrackingService), ServiceLayer.Editor), Shared]
     internal sealed class ActiveStatementTrackingServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public ActiveStatementTrackingServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new ActiveStatementTrackingService();

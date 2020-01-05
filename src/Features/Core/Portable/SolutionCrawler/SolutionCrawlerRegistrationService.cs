@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ImportingConstructor]
         public SolutionCrawlerRegistrationService(
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _gate = new object();
 
@@ -38,12 +38,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
 
-            _progressReporter = new SolutionCrawlerProgressReporter(_listener);
+            _progressReporter = new SolutionCrawlerProgressReporter();
         }
 
         public void Register(Workspace workspace)
+        {
+            EnsureRegistration(workspace, initializeLazily: true);
+        }
+
+        /// <summary>
+        /// make sure solution cralwer is registered for the given workspace.
+        /// </summary>
+        /// <param name="workspace"><see cref="Workspace"/> this solution crawler runs for</param>
+        /// <param name="initializeLazily">
+        /// when true, solution crawler will be initialized when there is the first workspace event fired. 
+        /// otherwise, it will be initialized when workspace is registered right away. 
+        /// something like "Build" will use initializeLazily:false to make sure diagnostic analyzer engine (incremental analyzer)
+        /// is initialized. otherwise, if build is called before workspace is fully populated, we will think some errors from build
+        /// doesn't belong to us since diagnostic analyzer engine is not there yet and 
+        /// let project system to take care of these unknown errors.
+        /// </param>
+        public void EnsureRegistration(Workspace workspace, bool initializeLazily)
         {
             var correlationId = LogAggregator.GetNextId();
 
@@ -58,6 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var coordinator = new WorkCoordinator(
                     _listener,
                     GetAnalyzerProviders(workspace),
+                    initializeLazily,
                     new Registration(correlationId, workspace, _progressReporter));
 
                 _documentWorkCoordinatorMap.Add(workspace, coordinator);
@@ -134,22 +152,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // no specific projects or documents provided
                 if (projectIds == null && documentIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, workspace.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet(), highPriority);
+                    coordinator.Reanalyze(analyzer, new ReanalyzeScope(workspace.CurrentSolution.Id), highPriority);
                     return;
                 }
 
-                // specific documents provided
-                if (projectIds == null)
-                {
-                    coordinator.Reanalyze(analyzer, documentIds.ToSet(), highPriority);
-                    return;
-                }
-
-                var solution = workspace.CurrentSolution;
-                var set = new HashSet<DocumentId>(documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>());
-                set.UnionWith(projectIds.Select(id => solution.GetProject(id)).SelectMany(p => p.DocumentIds));
-
-                coordinator.Reanalyze(analyzer, set, highPriority);
+                coordinator.Reanalyze(analyzer, new ReanalyzeScope(projectIds, documentIds), highPriority);
             }
         }
 
@@ -241,13 +248,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     if (IsDefaultProvider(lazyProvider.Metadata))
                     {
-                        Contract.Requires(set.Add(Default));
+                        Debug.Assert(set.Add(Default));
                         continue;
                     }
 
                     foreach (var kind in lazyProvider.Metadata.WorkspaceKinds)
                     {
-                        Contract.Requires(set.Add(kind));
+                        Debug.Assert(set.Add(kind));
                     }
                 }
 
@@ -258,7 +265,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         private static bool IsDefaultProvider(IncrementalAnalyzerProviderMetadata providerMetadata)
         {
-            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Length == 0;
+            return providerMetadata.WorkspaceKinds == null || providerMetadata.WorkspaceKinds.Count == 0;
         }
 
         private class Registration

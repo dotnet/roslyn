@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static DestructorDeclarationSyntax GenerateDestructorDeclaration(
             IMethodSymbol destructor, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
 
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, options);
             if (reusableSyntax != null)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            bool hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.DestructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(destructor.GetAttributes(), options),

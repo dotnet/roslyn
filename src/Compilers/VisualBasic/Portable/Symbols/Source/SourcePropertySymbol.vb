@@ -32,6 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _setMethod As MethodSymbol
         Private _backingField As FieldSymbol
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
         Private _lazyMeParameter As ParameterSymbol
 
         ' Attributes on property. Set once after construction. IsNull means not set. 
@@ -895,7 +896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For Each implementedProp In implementedProperties
                     Dim accessor = If(getter, implementedProp.GetMethod, implementedProp.SetMethod)
-                    If accessor IsNot Nothing Then
+                    If accessor IsNot Nothing AndAlso accessor.RequiresImplementation() Then
                         builder.Add(accessor)
                     End If
                 Next
@@ -1051,13 +1052,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-
-            Return _lazyDocComment
         End Function
 
         Private Shared Function DecodeModifiers(modifiers As SyntaxTokenList,

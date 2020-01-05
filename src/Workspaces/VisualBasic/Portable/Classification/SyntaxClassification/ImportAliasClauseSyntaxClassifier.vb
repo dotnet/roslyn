@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Classification.Classifiers
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -12,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(ImportAliasClauseSyntax))
 
-        Public Overrides Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddClassifications(workspace As Workspace, syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             ClassifyImportAliasClauseSyntax(DirectCast(syntax, ImportAliasClauseSyntax), semanticModel, result, cancellationToken)
         End Sub
 

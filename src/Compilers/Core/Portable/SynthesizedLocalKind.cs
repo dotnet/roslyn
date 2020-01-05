@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -160,10 +162,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Local that stores an expression value which needs to be spilled.
-        /// This local should either be hoisted or its lifespan ends before 
-        /// the end of the containing await expression.
+        /// Such a local arises from the translation of an await or switch expression,
+        /// and might be hoisted to an async state machine if it remains alive
+        /// after an await expression.
         /// </summary>
-        AwaitSpill = 28,
+        Spill = 28,
 
         AwaitByRefSpill = 29,
 
@@ -199,7 +202,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Stores a dynamic analysis instrumentation payload array. The value is initialized in
-        /// synthesized mehtod prologue code and referred to throughout the method body.
+        /// synthesized method prologue code and referred to throughout the method body.
         /// </summary>
         InstrumentationPayload = 34,
 

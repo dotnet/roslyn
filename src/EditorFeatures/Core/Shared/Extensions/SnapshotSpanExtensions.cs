@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -14,15 +13,21 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, trackingMode);
         }
 
-        public static void GetLinesAndColumns(
+        public static void GetLinesAndCharacters(
             this SnapshotSpan snapshotSpan,
             out int startLineNumber,
-            out int startColumnIndex,
+            out int startCharacterIndex,
             out int endLineNumber,
-            out int endColumnIndex)
+            out int endCharacterIndex)
         {
-            snapshotSpan.Snapshot.GetLineAndColumn(snapshotSpan.Span.Start, out startLineNumber, out startColumnIndex);
-            snapshotSpan.Snapshot.GetLineAndColumn(snapshotSpan.Span.End, out endLineNumber, out endColumnIndex);
+            snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.Start, out startLineNumber, out startCharacterIndex);
+            snapshotSpan.Snapshot.GetLineAndCharacter(snapshotSpan.Span.End, out endLineNumber, out endCharacterIndex);
+        }
+
+        public static LinePositionSpan ToLinePositionSpan(this SnapshotSpan snapshotSpan)
+        {
+            snapshotSpan.GetLinesAndCharacters(out var startLine, out var startChar, out var endLine, out var endChar);
+            return new LinePositionSpan(new LinePosition(startLine, startChar), new LinePosition(endLine, endChar));
         }
 
         public static bool IntersectsWith(this SnapshotSpan snapshotSpan, TextSpan textSpan)

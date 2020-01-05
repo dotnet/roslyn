@@ -37,12 +37,16 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Removes trailing directory separator characters
         /// </summary>
+        /// <remarks>
+        /// This will trim the root directory separator:
+        /// "C:\" maps to "C:", and "/" maps to ""
+        /// </remarks>
         public static string TrimTrailingSeparators(string s)
         {
             int lastSeparator = s.Length;
             while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
             {
-                lastSeparator = lastSeparator - 1;
+                lastSeparator -= 1;
             }
 
             if (lastSeparator != s.Length)
@@ -51,6 +55,34 @@ namespace Roslyn.Utilities
             }
 
             return s;
+        }
+
+        /// <summary>
+        /// Ensures a trailing directory separator character
+        /// </summary>
+        public static string EnsureTrailingSeparator(string s)
+        {
+            if (s.Length == 0 || IsAnyDirectorySeparator(s[s.Length - 1]))
+            {
+                return s;
+            }
+
+            // Use the existing slashes in the path, if they're consistent
+            bool hasSlash = s.IndexOf('/') >= 0;
+            bool hasBackslash = s.IndexOf('\\') >= 0;
+            if (hasSlash && !hasBackslash)
+            {
+                return s + '/';
+            }
+            else if (!hasSlash && hasBackslash)
+            {
+                return s + '\\';
+            }
+            else
+            {
+                // If there are no slashes or they are inconsistent, use the current platform's slash.
+                return s + DirectorySeparatorChar;
+            }
         }
 
         public static string GetExtension(string path)
@@ -77,7 +109,7 @@ namespace Roslyn.Utilities
         /// Get directory name from path.
         /// </summary>
         /// <remarks>
-        /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it doesn't check for invalid path characters
+        /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
         public static string GetDirectoryName(string path)
@@ -85,8 +117,7 @@ namespace Roslyn.Utilities
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        // Exposed for testing purposes only.
-        internal static string GetDirectoryName(string path, bool isUnixLike)
+        private static string GetDirectoryName(string path, bool isUnixLike)
         {
             if (path != null)
             {
@@ -595,8 +626,8 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            return IsUnixLikePlatform 
-                ? x == y 
+            return IsUnixLikePlatform
+                ? x == y
                 : char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
         }
 
@@ -625,14 +656,16 @@ namespace Roslyn.Utilities
                 return filePath;
             }
 
-            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // find the first key in the path map that matches a prefix of the normalized path.
             // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
             foreach (var kv in pathMap)
             {
                 var oldPrefix = kv.Key;
                 if (!(oldPrefix?.Length > 0)) continue;
 
-                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && IsAnyDirectorySeparator(filePath[oldPrefix.Length]))
+                // oldPrefix always ends with a path separator, so there's no need to check if it was a partial match
+                // e.g. for the map /goo=/bar and filename /goooo
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal))
                 {
                     var replacementPrefix = kv.Value;
 
@@ -652,6 +685,47 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
+        /// <summary>
+        /// Unfortunately, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
+        /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters
+        /// that are invalid in file and directory names. The full set of invalid characters can vary by file system.
+        /// https://msdn.microsoft.com/en-us/library/system.io.path.getinvalidfilenamechars.aspx
+        /// 
+        /// Additionally, Path.GetInvalidPathChars() doesn't include "?" or "*" which are invalid characters,
+        /// and Path.GetInvalidFileNameChars() includes ":" and "\" which are valid characters.
+        /// 
+        /// The more accurate way is to let the framework parse the path and throw on any errors.
+        /// </summary>
+        public static bool IsValidFilePath(string fullPath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(fullPath))
+                {
+                    return false;
+                }
+
+                // Uncomment when this is fixed: https://github.com/dotnet/roslyn/issues/19592
+                // Debug.Assert(IsAbsolute(fullPath));
+
+                var fileInfo = new FileInfo(fullPath);
+                return !string.IsNullOrEmpty(fileInfo.Name);
+            }
+            catch (Exception ex) when (
+                ex is ArgumentException ||          // The file name is empty, contains only white spaces, or contains invalid characters.
+                ex is PathTooLongException ||       // The specified path, file name, or both exceed the system-defined maximum length.
+                ex is NotSupportedException)        // fileName contains a colon (:) in the middle of the string.
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If the current environment uses the '\' directory separator, replaces all uses of '\'
+        /// in the given string with '/'. Otherwise, returns the string.
+        /// </summary>
+        public static string NormalizeWithForwardSlash(string p)
+            => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
@@ -676,6 +750,12 @@ namespace Roslyn.Utilities
             {
                 return PathHashCode(s);
             }
+        }
+
+        internal static class TestAccessor
+        {
+            internal static string GetDirectoryName(string path, bool isUnixLike)
+                => PathUtilities.GetDirectoryName(path, isUnixLike);
         }
     }
 }

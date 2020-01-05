@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Information about the character boundaries of a single line of text.
     /// </summary>
-    public struct TextLine : IEquatable<TextLine>
+    public readonly struct TextLine : IEquatable<TextLine>
     {
         private readonly SourceText _text;
         private readonly int _start;

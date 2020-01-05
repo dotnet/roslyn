@@ -421,7 +421,7 @@ private namespace test
 {
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text, 0);
         }
 
         [Fact]
@@ -843,7 +843,7 @@ class AAttribute : Attribute {
 class C {
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text);
         }
 
         [Fact]
@@ -1439,7 +1439,7 @@ public class Test
 
         [WorkItem(911518, "DevDiv/Personal")]
         [Fact]
-        public void RegressError4AnonymousTypeWithTailingComma()
+        public void RegressError4AnonymousTypeWithTrailingComma()
         {
             var text = @"using System;
 public class Test

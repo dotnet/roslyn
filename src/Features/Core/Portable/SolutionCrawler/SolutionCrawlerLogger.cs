@@ -3,19 +3,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal class SolutionCrawlerLogger
+    internal static class SolutionCrawlerLogger
     {
         private const string Id = nameof(Id);
         private const string Kind = nameof(Kind);
         private const string Analyzer = nameof(Analyzer);
         private const string DocumentCount = nameof(DocumentCount);
+        private const string Languages = nameof(Languages);
         private const string HighPriority = nameof(HighPriority);
         private const string Enabled = nameof(Enabled);
         private const string AnalyzerCount = nameof(AnalyzerCount);
@@ -67,14 +67,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogReanalyze(int correlationId, IIncrementalAnalyzer analyzer, IEnumerable<DocumentId> documentIds, bool highPriority)
+        public static void LogReanalyze(
+            int correlationId,
+            IIncrementalAnalyzer analyzer,
+            int documentCount,
+            string languages,
+            bool highPriority)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
-                m[DocumentCount] = documentIds == null ? 0 : documentIds.Count();
+                m[DocumentCount] = documentCount;
                 m[HighPriority] = highPriority;
+                m[Languages] = languages;
             }));
         }
 
@@ -222,9 +228,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         continue;
                     }
 
-                    if (kv.Key is ValueTuple<string, Guid>)
+                    if (kv.Key is ValueTuple<string, Guid> tuple)
                     {
-                        var tuple = (ValueTuple<string, Guid>)kv.Key;
                         var list = statMap.GetOrAdd(tuple.Item1, _ => new List<int>());
                         list.Add(kv.Value.GetCount());
                         continue;
@@ -240,9 +245,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     m[CreateProperty(key, Max)] = result.Maximum;
                     m[CreateProperty(key, Min)] = result.Minimum;
-                    m[CreateProperty(key, Median)] = result.Median;
+                    m[CreateProperty(key, Median)] = result.Median.Value;
                     m[CreateProperty(key, Mean)] = result.Mean;
-                    m[CreateProperty(key, Mode)] = result.Mode;
+                    m[CreateProperty(key, Mode)] = result.Mode.Value;
                     m[CreateProperty(key, Range)] = result.Range;
                     m[CreateProperty(key, Count)] = result.Count;
                 }

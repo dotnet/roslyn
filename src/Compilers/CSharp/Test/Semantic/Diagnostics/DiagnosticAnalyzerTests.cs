@@ -5,10 +5,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -131,7 +134,7 @@ public class C : NotFound
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
+                new[] { KeyValuePairUtil.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Suppress) });
 
             CreateCompilationWithMscorlib45(source, options: options/*, analyzers: new IDiagnosticAnalyzerFactory[] { new ComplainAboutX() }*/).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
@@ -154,7 +157,7 @@ public class C : NotFound
 }";
             // TODO: Compilation create doesn't accept analyzers anymore.
             var options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(
-                new[] { KeyValuePair.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
+                new[] { KeyValuePairUtil.Create("CA9999_UseOfVariableThatStartsWithX", ReportDiagnostic.Error) });
 
             CreateCompilationWithMscorlib45(source, options: options).VerifyDiagnostics(
                 // (2,18): error CS0246: The type or namespace name 'NotFound' could not be found (are you missing a using directive or an assembly reference?)
@@ -705,7 +708,7 @@ public class B
             var analyzer = new CSharpCompilerDiagnosticAnalyzer();
             foreach (var descriptor in analyzer.SupportedDiagnostics)
             {
-                Assert.Equal(descriptor.IsEnabledByDefault, true);
+                Assert.True(descriptor.IsEnabledByDefault);
 
                 if (descriptor.IsNotConfigurable())
                 {
@@ -888,12 +891,52 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
+        public void TestAnalyzerWithNullDescriptor()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNullDescriptor() };
+            var analyzerFullName = "Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithNullDescriptor";
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzerFullName), "SupportedDiagnostics").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments(analyzerFullName, "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
+        public void TestReportingDiagnosticWithCSharpCompilerId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithCSharpCompilerDiagnosticId() };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    Diagnostic("CS101").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
+        public void TestReportingDiagnosticWithBasicCompilerId()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithBasicCompilerDiagnosticId() };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    Diagnostic("BC101").WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         public void TestReportingDiagnosticWithInvalidLocation()
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateCompilationWithMscorlib45(source1);
             var anotherCompilation = CreateCompilationWithMscorlib45(source2);
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 
@@ -920,7 +963,7 @@ public class B
         public void TestReportingDiagnosticWithInvalidSpan()
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
-            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateCompilationWithMscorlib45(source1);
             var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
 
             var badSpan = new Text.TextSpan(100000, 10000);
@@ -1185,7 +1228,6 @@ class MyClass
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: ReportDiagnostic.Suppress, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
         }
 
-
         [Fact()]
         [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
         [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
@@ -1307,7 +1349,7 @@ class NonGeneratedCode{0}
     private class NestedGeneratedCode{0} {{ }}
 }}
 ";
-            var generatedFileNames = new string[]
+            var generatedFileNames = new List<string>
             {
                 "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs",
                 "Test.designer.cs",
@@ -1343,6 +1385,40 @@ class NonGeneratedCode{0}
                 builder.Add(tree);
             }
 
+            // Files with editorconfig based "generated_code" configuration
+            var analyzerConfigOptionsPerTreeBuilder = ImmutableDictionary.CreateBuilder<object, AnalyzerConfigOptions>();
+
+            // (1) "generated_code = true"
+            const string myGeneratedFileTrueName = "MyGeneratedFileTrue.cs";
+            generatedFileNames.Add(myGeneratedFileTrueName);
+            tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: myGeneratedFileTrueName);
+            builder.Add(tree);
+            var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "true"));
+            analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
+
+            // (2) "generated_code = TRUE" (case insensitive)
+            const string myGeneratedFileCaseInsensitiveTrueName = "MyGeneratedFileCaseInsensitiveTrue.cs";
+            generatedFileNames.Add(myGeneratedFileCaseInsensitiveTrueName);
+            tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: myGeneratedFileCaseInsensitiveTrueName);
+            builder.Add(tree);
+            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "TRUE"));
+            analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
+
+            // (3) "generated_code = false"
+            tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "MyGeneratedFileFalse.cs");
+            builder.Add(tree);
+            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "false"));
+            analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
+
+            // (4) "generated_code = auto"
+            tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "MyGeneratedFileAuto.cs");
+            builder.Add(tree);
+            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
+            analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
+
+            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable());
+            var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
+
             // Verify no compiler diagnostics.
             var trees = builder.ToImmutable();
             var compilation = CreateCompilationWithMscorlib45(trees, new MetadataReference[] { SystemRef });
@@ -1351,19 +1427,19 @@ class NonGeneratedCode{0}
             Func<string, bool> isGeneratedFile = fileName => fileName.Contains("SourceFileWithAutoGeneratedComment") || generatedFileNames.Contains(fileName);
 
             // (1) Verify default mode of analysis when there is no generated code configuration.
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, generatedCodeAnalysisFlagsOpt: null);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, analyzerOptions, isGeneratedFile, generatedCodeAnalysisFlagsOpt: null);
 
             // (2) Verify ConfigureGeneratedCodeAnalysis with different combinations of GeneratedCodeAnalysisFlags.
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, GeneratedCodeAnalysisFlags.None);
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags);
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, GeneratedCodeAnalysisFlags.Analyze);
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, GeneratedCodeAnalysisFlags.ReportDiagnostics);
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFile, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, analyzerOptions, isGeneratedFile, GeneratedCodeAnalysisFlags.None);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, analyzerOptions, isGeneratedFile, AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, analyzerOptions, isGeneratedFile, GeneratedCodeAnalysisFlags.Analyze);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, analyzerOptions, isGeneratedFile, GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, analyzerOptions, isGeneratedFile, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
             // (4) Ensure warnaserror doesn't produce noise in generated files.
             var options = compilation.Options.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             var warnAsErrorCompilation = compilation.WithOptions(options);
-            VerifyGeneratedCodeAnalyzerDiagnostics(warnAsErrorCompilation, isGeneratedFile, generatedCodeAnalysisFlagsOpt: null);
+            VerifyGeneratedCodeAnalyzerDiagnostics(warnAsErrorCompilation, analyzerOptions, isGeneratedFile, generatedCodeAnalysisFlagsOpt: null);
         }
 
         [Fact, WorkItem(6998, "https://github.com/dotnet/roslyn/issues/6998")]
@@ -1492,16 +1568,16 @@ class C
                 );
         }
 
-        private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
+        private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, AnalyzerOptions analyzerOptions, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
         {
             var expected = GetExpectedGeneratedCodeAnalyzerDiagnostics(compilation, isGeneratedFileName, generatedCodeAnalysisFlagsOpt);
-            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt);
+            VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, generatedCodeAnalysisFlagsOpt, analyzerOptions);
         }
 
-        private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, DiagnosticDescription[] expected, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
+        private static void VerifyGeneratedCodeAnalyzerDiagnostics(Compilation compilation, DiagnosticDescription[] expected, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt, AnalyzerOptions analyzerOptions = null)
         {
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(generatedCodeAnalysisFlagsOpt) };
-            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false, expected: expected);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, analyzerOptions, null, logAnalyzerExceptionAsDiagnostics: false, expected: expected);
         }
 
         private static DiagnosticDescription[] GetExpectedGeneratedCodeAnalyzerDiagnostics(Compilation compilation, Func<string, bool> isGeneratedFileName, GeneratedCodeAnalysisFlags? generatedCodeAnalysisFlagsOpt)
@@ -1634,8 +1710,8 @@ class C
         {
             var source = @"namespace N1.N2 { }";
 
-            var metadataReference = CreateStandardCompilation(source).ToMetadataReference();
-            var compilation = CreateStandardCompilation(source, new[] { metadataReference });
+            var metadataReference = CreateCompilation(source).ToMetadataReference();
+            var compilation = CreateCompilation(source, new[] { metadataReference });
             compilation.VerifyDiagnostics();
 
             // Analyzer reports a diagnostic if it receives a merged namespace symbol across assemblies in compilation.
@@ -1990,12 +2066,12 @@ public class Class
     }
 }
 ";
-            var tree = CSharpSyntaxTree.ParseText(source, TestOptions.RegularWithIOperationFeature, "Source.cs");
+            var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
 
             var syntaxKinds = ImmutableArray.Create(SyntaxKind.VariableDeclaration);
-            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclaration);
+            var operationKinds = ImmutableArray.Create(OperationKind.VariableDeclarator);
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeSyntaxAndOperationAnalyzer(GeneratedCodeAnalysisFlags.None, syntaxKinds, operationKinds) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
@@ -2107,6 +2183,1021 @@ public class Class
                 var diagnostic = CodeAnalysis.Diagnostic.Create(Warning, location, messageArguments);
                 addDiagnostic(diagnostic);
             }
+        }
+
+        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        public void TestFieldReferenceAnalyzer_InAttributes()
+        {
+            string source = @"
+using System;
+
+[assembly: MyAttribute(C.FieldForAssembly)]
+[module: MyAttribute(C.FieldForModule)]
+
+internal class MyAttribute : Attribute
+{
+    public MyAttribute(int f) { }
+}
+
+internal interface MyInterface
+{
+    event EventHandler MyEvent;
+}
+
+[MyAttribute(FieldForClass)]
+internal class C : MyInterface
+{
+    internal const int FieldForClass = 1, FieldForStruct = 2, FieldForInterface = 3, FieldForField = 4, FieldForMethod = 5,
+        FieldForEnum = 6, FieldForEnumMember = 7, FieldForDelegate = 8, FieldForEventField = 9, FieldForEvent = 10,
+        FieldForAddHandler = 11, FieldForRemoveHandler = 12, FieldForProperty = 13, FieldForPropertyGetter = 14, FieldForPropertySetter = 15,
+        FieldForIndexer = 16, FieldForIndexerGetter = 17, FieldForIndexerSetter = 18, FieldForExpressionBodiedMethod = 19, FieldForExpressionBodiedProperty = 20,
+        FieldForMethodParameter = 21, FieldForDelegateParameter = 22, FieldForIndexerParameter = 23, FieldForMethodTypeParameter = 24, FieldForTypeTypeParameter = 25,
+        FieldForDelegateTypeParameter = 26, FieldForMethodReturnType = 27, FieldForAssembly = 28, FieldForModule = 29;
+
+    [MyAttribute(FieldForStruct)]
+    private struct S<[MyAttribute(FieldForTypeTypeParameter)] T> { }
+
+    [MyAttribute(FieldForInterface)]
+    private interface I { }
+
+    [MyAttribute(FieldForField)]
+    private int field2 = 0, field3 = 0;
+
+    [return: MyAttribute(FieldForMethodReturnType)]
+    [MyAttribute(FieldForMethod)]
+    private void M1<[MyAttribute(FieldForMethodTypeParameter)]T>([MyAttribute(FieldForMethodParameter)]int p1) { }
+
+    [MyAttribute(FieldForEnum)]
+    private enum E
+    {
+        [MyAttribute(FieldForEnumMember)]
+        F = 0
+    }
+
+    [MyAttribute(FieldForDelegate)]
+    public delegate void Delegate<[MyAttribute(FieldForDelegateTypeParameter)]T>([MyAttribute(FieldForDelegateParameter)]int p1);
+
+    [MyAttribute(FieldForEventField)]
+    public event Delegate<int> MyEvent;
+
+    [MyAttribute(FieldForEvent)]
+    event EventHandler MyInterface.MyEvent
+    {
+        [MyAttribute(FieldForAddHandler)]
+        add
+        {
+        }
+        [MyAttribute(FieldForRemoveHandler)]
+        remove
+        {
+        }
+    }
+
+    [MyAttribute(FieldForProperty)]
+    private int P1
+    {
+        [MyAttribute(FieldForPropertyGetter)]
+        get;
+        [MyAttribute(FieldForPropertySetter)]
+        set;
+    }
+
+    [MyAttribute(FieldForIndexer)]
+    private int this[[MyAttribute(FieldForIndexerParameter)]int index]
+    {
+        [MyAttribute(FieldForIndexerGetter)]
+        get { return 0; }
+        [MyAttribute(FieldForIndexerSetter)]
+        set { }
+    }
+
+    [MyAttribute(FieldForExpressionBodiedMethod)]
+    private int M2 => 0;
+
+    [MyAttribute(FieldForExpressionBodiedProperty)]
+    private int P2 => 0;
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics(
+                // (51,32): warning CS0067: The event 'C.MyEvent' is never used
+                //     public event Delegate<int> MyEvent;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "MyEvent").WithArguments("C.MyEvent").WithLocation(51, 32),
+                // (34,17): warning CS0414: The field 'C.field2' is assigned but its value is never used
+                //     private int field2 = 0, field3 = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field2").WithArguments("C.field2").WithLocation(34, 17),
+                // (34,29): warning CS0414: The field 'C.field3' is assigned but its value is never used
+                //     private int field2 = 0, field3 = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field3").WithArguments("C.field3").WithLocation(34, 29));
+
+            // Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: true);
+
+            // Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InAttributes_Core(compilation, doOperationBlockAnalysis: false);
+        }
+
+        private static void TestFieldReferenceAnalyzer_InAttributes_Core(Compilation compilation, bool doOperationBlockAnalysis)
+        {
+            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("ID", "FieldForClass").WithArguments("FieldForClass", "1").WithLocation(17, 14),
+                Diagnostic("ID", "FieldForStruct").WithArguments("FieldForStruct", "2").WithLocation(27, 18),
+                Diagnostic("ID", "FieldForInterface").WithArguments("FieldForInterface", "3").WithLocation(30, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
+                Diagnostic("ID", "FieldForField").WithArguments("FieldForField", "4").WithLocation(33, 18),
+                Diagnostic("ID", "FieldForMethod").WithArguments("FieldForMethod", "5").WithLocation(37, 18),
+                Diagnostic("ID", "FieldForEnum").WithArguments("FieldForEnum", "6").WithLocation(40, 18),
+                Diagnostic("ID", "FieldForEnumMember").WithArguments("FieldForEnumMember", "7").WithLocation(43, 22),
+                Diagnostic("ID", "FieldForDelegate").WithArguments("FieldForDelegate", "8").WithLocation(47, 18),
+                Diagnostic("ID", "FieldForEventField").WithArguments("FieldForEventField", "9").WithLocation(50, 18),
+                Diagnostic("ID", "FieldForEvent").WithArguments("FieldForEvent", "10").WithLocation(53, 18),
+                Diagnostic("ID", "FieldForAddHandler").WithArguments("FieldForAddHandler", "11").WithLocation(56, 22),
+                Diagnostic("ID", "FieldForRemoveHandler").WithArguments("FieldForRemoveHandler", "12").WithLocation(60, 22),
+                Diagnostic("ID", "FieldForProperty").WithArguments("FieldForProperty", "13").WithLocation(66, 18),
+                Diagnostic("ID", "FieldForPropertyGetter").WithArguments("FieldForPropertyGetter", "14").WithLocation(69, 22),
+                Diagnostic("ID", "FieldForPropertySetter").WithArguments("FieldForPropertySetter", "15").WithLocation(71, 22),
+                Diagnostic("ID", "FieldForIndexer").WithArguments("FieldForIndexer", "16").WithLocation(75, 18),
+                Diagnostic("ID", "FieldForIndexerGetter").WithArguments("FieldForIndexerGetter", "17").WithLocation(78, 22),
+                Diagnostic("ID", "FieldForIndexerSetter").WithArguments("FieldForIndexerSetter", "18").WithLocation(80, 22),
+                Diagnostic("ID", "FieldForExpressionBodiedMethod").WithArguments("FieldForExpressionBodiedMethod", "19").WithLocation(84, 18),
+                Diagnostic("ID", "FieldForExpressionBodiedProperty").WithArguments("FieldForExpressionBodiedProperty", "20").WithLocation(87, 18),
+                Diagnostic("ID", "FieldForMethodParameter").WithArguments("FieldForMethodParameter", "21").WithLocation(38, 79),
+                Diagnostic("ID", "FieldForDelegateParameter").WithArguments("FieldForDelegateParameter", "22").WithLocation(48, 95),
+                Diagnostic("ID", "FieldForIndexerParameter").WithArguments("FieldForIndexerParameter", "23").WithLocation(76, 35),
+                Diagnostic("ID", "FieldForMethodTypeParameter").WithArguments("FieldForMethodTypeParameter", "24").WithLocation(38, 34),
+                Diagnostic("ID", "FieldForTypeTypeParameter").WithArguments("FieldForTypeTypeParameter", "25").WithLocation(28, 35),
+                Diagnostic("ID", "FieldForDelegateTypeParameter").WithArguments("FieldForDelegateTypeParameter", "26").WithLocation(48, 48),
+                Diagnostic("ID", "FieldForMethodReturnType").WithArguments("FieldForMethodReturnType", "27").WithLocation(36, 26),
+                Diagnostic("ID", "C.FieldForAssembly").WithArguments("FieldForAssembly", "28").WithLocation(4, 24),
+                Diagnostic("ID", "C.FieldForModule").WithArguments("FieldForModule", "29").WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem(23309, "https://github.com/dotnet/roslyn/issues/23309")]
+        public void TestFieldReferenceAnalyzer_InConstructorInitializer()
+        {
+            string source = @"
+internal class Base
+{
+    protected Base(int i) { }
+}
+
+internal class Derived : Base
+{
+    private const int Field = 0;
+
+    public Derived() : base(Field)
+    {
+    }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InConstructorInitializer_Core(compilation, doOperationBlockAnalysis: true);
+
+            // Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InConstructorInitializer_Core(compilation, doOperationBlockAnalysis: false);
+        }
+
+        private static void TestFieldReferenceAnalyzer_InConstructorInitializer_Core(Compilation compilation, bool doOperationBlockAnalysis)
+        {
+            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("ID", "Field").WithArguments("Field", "0").WithLocation(11, 29));
+        }
+
+        [Fact, WorkItem(26520, "https://github.com/dotnet/roslyn/issues/26520")]
+        public void TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody()
+        {
+            string source = @"
+internal class C
+{
+    public bool Flag;
+    public C() => Flag = true;
+    ~C() => Flag = false;
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            // Test RegisterOperationBlockAction
+            TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(compilation, doOperationBlockAnalysis: true);
+
+            // Test RegisterOperationAction
+            TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(compilation, doOperationBlockAnalysis: false);
+        }
+
+        private static void TestFieldReferenceAnalyzer_InConstructorDestructorExpressionBody_Core(Compilation compilation, bool doOperationBlockAnalysis)
+        {
+            var analyzers = new DiagnosticAnalyzer[] { new FieldReferenceOperationAnalyzer(doOperationBlockAnalysis) };
+            compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
+                Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(5, 19),
+                Diagnostic("ID", "Flag").WithArguments("Flag", "").WithLocation(6, 13));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer()
+        {
+            string source = @"
+internal class A
+{
+    public void M() { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public void M() { }").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer_WithParameterInitializers()
+        {
+            string source = @"
+internal class A
+{
+    public void M(int p = 0) { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public void M(int p = 0) { }").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestMethodBodyOperationAnalyzer_WithExpressionAndMethodBody()
+        {
+            string source = @"
+internal class A
+{
+    public int M() { return 0; } => 0;
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public int M() { return 0; } => 0;
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int M() { return 0; } => 0;").WithLocation(4, 5));
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("ID", squiggledText: "public int M() { return 0; } => 0;").WithArguments("M").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(25167, "https://github.com/dotnet/roslyn/issues/25167")]
+        public void TestConstructorBodyOperationAnalyzer()
+        {
+            string source = @"
+internal class Base
+{
+    protected Base(int i) { }
+}
+
+internal class Derived : Base
+{
+    private const int Field = 0;
+
+    public Derived() : base(Field) { }
+}";
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new MethodOrConstructorBodyOperationAnalyzer() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: new[] {
+                    Diagnostic("ID", squiggledText: "protected Base(int i) { }").WithArguments(".ctor").WithLocation(4, 5),
+                    Diagnostic("ID", squiggledText: "public Derived() : base(Field) { }").WithArguments(".ctor").WithLocation(11, 5)
+                });
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestGetControlFlowGraphInOperationAnalyzers()
+        {
+            string source = @"class C { void M(int p = 0) { int x = 1 + 2; } }";
+
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (1,35): warning CS0219: The variable 'x' is assigned but its value is never used
+                // class C { void M(int p = 0) { int x = 1 + 2; } }
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 35));
+
+            var expectedFlowGraphs = new[]
+            {
+                // Method body
+                @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 x]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
+              Left: 
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                  Left: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)",
+
+                // Parameter initializer
+                @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 0')
+          Left: 
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: '= 0')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)"
+            };
+
+            // Verify analyzer diagnostics and flow graphs for different kind of operation analyzers.
+
+            var analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.Operation, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                    Diagnostic("ID", "0").WithArguments("Operation").WithLocation(1, 26),
+                    Diagnostic("ID", "1").WithArguments("Operation").WithLocation(1, 39),
+                    Diagnostic("ID", "2").WithArguments("Operation").WithLocation(1, 43)
+                });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationInOperationBlockStart, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                Diagnostic("ID", "0").WithArguments("OperationInOperationBlockStart").WithLocation(1, 26),
+                Diagnostic("ID", "1").WithArguments("OperationInOperationBlockStart").WithLocation(1, 39),
+                Diagnostic("ID", "2").WithArguments("OperationInOperationBlockStart").WithLocation(1, 43)
+            });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlock, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                    Diagnostic("ID", "M").WithArguments("OperationBlock").WithLocation(1, 16)
+                });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            analyzer = new OperationAnalyzer(OperationAnalyzer.ActionKind.OperationBlockEnd, verifyGetControlFlowGraph: true);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { analyzer },
+                expected: new[] {
+                    Diagnostic("ID", "M").WithArguments("OperationBlockEnd").WithLocation(1, 16)
+                });
+            verifyFlowGraphs(analyzer.GetControlFlowGraphs());
+
+            void verifyFlowGraphs(ImmutableArray<ControlFlowGraph> flowGraphs)
+            {
+                for (int i = 0; i < expectedFlowGraphs.Length; i++)
+                {
+                    string expectedFlowGraph = expectedFlowGraphs[i];
+                    ControlFlowGraph actualFlowGraph = flowGraphs[i];
+                    ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph);
+                }
+            }
+        }
+
+        private static void TestSymbolStartAnalyzerCore(SymbolStartAnalyzer analyzer, params DiagnosticDescription[] diagnostics)
+        {
+            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer }, diagnostics);
+        }
+
+        private static void TestSymbolStartAnalyzerCore(DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        {
+            var source = @"
+#pragma warning disable CS0219 // unused local
+#pragma warning disable CS0067 // unused event
+
+class C1
+{
+    void M1() { int localInTypeInGlobalNamespace = 0; }
+}
+
+class C2
+{
+    class NestedType
+    {
+        void M2() { int localInNestedType = 0; }
+    }
+}
+
+namespace N1 { }
+
+namespace N2
+{
+    namespace N3
+    {
+        class C3
+        {
+            void M3(int p) { int localInTypeInNamespace = 0; }
+            void M4() { }
+        }
+    }
+}
+
+namespace N2.N3
+{
+    class C4
+    {
+        public int f1 = 0;
+    }
+}
+
+namespace N4
+{
+    class C5
+    {
+        void M5() { }
+    }
+    class C6
+    {
+        void M6() { }
+        void M7() { }
+    }
+}
+
+namespace N5
+{
+    partial class C7
+    {
+        void M8() { }
+        int P1 { get; set; }
+        public event System.EventHandler e1;
+    }
+    partial class C7
+    {
+        void M9() { }
+        void M10() { }
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: diagnostics);
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NamedType()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType),
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Namespace()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace),
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Method()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Field()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Field),
+                Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Property()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Property),
+                Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Event()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Event),
+                Diagnostic("SymbolStartRuleId").WithArguments("e1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Parameter()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Parameter));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_NamespaceAndMethods()
+        {
+            var analyzer1 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace, analyzerId: 1);
+            var analyzer2 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method, analyzerId: 2);
+
+            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer1, analyzer2 },
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer2").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_NamedTypeAndMethods()
+        {
+            var analyzer1 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, analyzerId: 1);
+            var analyzer2 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method, analyzerId: 2);
+
+            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer1, analyzer2 },
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer2").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_AllSymbolKinds()
+        {
+            testCore("SymbolStartTopLevelRuleId", topLevel: true);
+            testCore("SymbolStartRuleId", topLevel: false);
+
+            void testCore(string ruleId, bool topLevel)
+            {
+                var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
+                    SymbolKind.Property, SymbolKind.Event, SymbolKind.Field, SymbolKind.Parameter };
+
+                var analyzers = new DiagnosticAnalyzer[symbolKinds.Length];
+                for (int i = 0; i < symbolKinds.Length; i++)
+                {
+                    analyzers[i] = new SymbolStartAnalyzer(topLevel, symbolKinds[i], analyzerId: i + 1);
+                }
+
+                TestSymbolStartAnalyzerCore(analyzers,
+                    Diagnostic(ruleId).WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N1", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N2", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N3", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N4", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N5", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M1", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M2", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M3", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M4", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M5", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M6", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M7", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M8", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M9", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M10", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("get_P1", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("set_P1", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("P1", "Analyzer4").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("e1", "Analyzer5").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("f1", "Analyzer6").WithLocation(1, 1));
+            }
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_Namespace()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace, OperationKind.VariableDeclarationGroup),
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("N3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_NamedType()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.VariableDeclarationGroup),
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("NestedType", "M2", "int localInNestedType = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_Method()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Method, OperationKind.VariableDeclarationGroup),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M8", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M9", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M10", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("get_P1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("set_P1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M2", "M2", "int localInNestedType = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_AllSymbolKinds()
+        {
+            var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
+                    SymbolKind.Property, SymbolKind.Event, SymbolKind.Field, SymbolKind.Parameter };
+
+            var analyzers = new DiagnosticAnalyzer[symbolKinds.Length];
+            for (int i = 0; i < symbolKinds.Length; i++)
+            {
+                analyzers[i] = new SymbolStartAnalyzer(topLevelAction: false, symbolKinds[i], OperationKind.VariableDeclarationGroup, analyzerId: i + 1);
+            }
+
+            TestSymbolStartAnalyzerCore(analyzers,
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("NestedType", "M2", "int localInNestedType = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("N3", "M3", "int localInTypeInNamespace = 0;", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M2", "M2", "int localInNestedType = 0;", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M3", "M3", "int localInTypeInNamespace = 0;", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer4").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("e1", "Analyzer5").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer6").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestInvocationInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        M();
+    }
+
+    private static void M() { }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.Invocation) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "M()", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestFieldReferenceInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        var x = _field;
+    }
+
+    private static int _field = 0;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.NamedType, OperationKind.FieldReference) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "_field", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Fact, WorkItem(922802, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/922802")]
+        public async Task TestAnalysisScopeForGetAnalyzerSemanticDiagnosticsAsync()
+        {
+            string source1 = @"
+partial class B
+{
+    private int _field1 = 1;
+}";
+            string source2 = @"
+partial class B
+{
+    private int _field2 = 2;
+}";
+            string source3 = @"
+class C
+{
+    private int _field3 = 3;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2, source3 });
+            var tree1 = compilation.SyntaxTrees[0];
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzer1 = new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Field, analyzerId: 1);
+            var analyzer2 = new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Field, analyzerId: 2);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2));
+
+            // Invoke "GetAnalyzerSemanticDiagnosticsAsync" for a single analyzer on a single tree and
+            // ensure that the API respects the requested analysis scope:
+            // 1. It should never force analyze the non-requested analyzer.
+            // 2. It should only analyze the requested tree. If the requested tree has partial type declaration(s),
+            //    then it should also analyze additional trees with other partial declarations for partial types in the original tree,
+            //    but not other tree.
+            var tree1SemanticDiagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(semanticModel1, filterSpan: null, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1), CancellationToken.None);
+            Assert.Equal(2, analyzer1.SymbolsStarted.Count);
+            var sortedSymbolNames = analyzer1.SymbolsStarted.Select(s => s.Name).ToImmutableSortedSet();
+            Assert.Equal("_field1", sortedSymbolNames[0]);
+            Assert.Equal("_field2", sortedSymbolNames[1]);
+            Assert.Empty(analyzer2.SymbolsStarted);
+            Assert.Empty(tree1SemanticDiagnostics);
+        }
+
+        [Fact]
+        public void TestAnalyzerCallbacksWithSuppressedFile_SymbolAction()
+        {
+            var tree1 = Parse("partial class A { }");
+            var tree2 = Parse("partial class A { private class B { } }");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics and callbacks without suppression.
+            var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify suppressed analyzer diagnostic and callback with suppression on second file.
+            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
+            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
+            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
+                });
+
+            Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for non-configurable diagnostic even suppression on second file.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol, configurable: false);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+        }
+
+        [Fact]
+        public void TestAnalyzerCallbacksWithSuppressedFile_SymbolStartEndAction()
+        {
+            var tree1 = Parse("partial class A { }");
+            var tree2 = Parse("partial class A { private class B { } }");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics and callbacks without suppression.
+            var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify same callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
+            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
+            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
+            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.Analyze);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify suppressed analyzer diagnostic and callback with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, GeneratedCodeAnalysisFlags.None);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15)
+                });
+
+            Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for non-configurable diagnostics even with with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.SymbolStartEnd, configurable: false);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "A").WithArguments("A").WithLocation(1, 15),
+                    Diagnostic(NamedTypeAnalyzer.RuleId, "B").WithArguments("B").WithLocation(1, 33)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+        }
+
+        [Fact]
+        public void TestAnalyzerCallbacksWithSuppressedFile_CompilationStartEndAction()
+        {
+            var tree1 = Parse("partial class A { }");
+            var tree2 = Parse("partial class A { private class B { } }");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            // Verify analyzer diagnostics and callbacks without suppression.
+            var namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A, B").WithLocation(1, 1)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify same diagnostics and callbacks even with suppression on second file when using GeneratedCodeAnalysisFlags.Analyze.
+            var suppressingOptions = ImmutableDictionary<string, ReportDiagnostic>.Empty.Add(NamedTypeAnalyzer.RuleId, ReportDiagnostic.Suppress);
+            tree2 = tree2.WithDiagnosticOptions(suppressingOptions);
+            compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 });
+            compilation.VerifyDiagnostics();
+
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.Analyze);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A, B").WithLocation(1, 1)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify suppressed analyzer diagnostic and callback with suppression on second file when not using GeneratedCodeAnalysisFlags.Analyze.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, GeneratedCodeAnalysisFlags.None);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A").WithLocation(1, 1)
+                });
+
+            Assert.Equal("A", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
+
+            // Verify analyzer diagnostics and callbacks for non-configurable diagnostics even with suppression on second file.
+            namedTypeAnalyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.CompilationStartEnd, configurable: false);
+            compilation.VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { namedTypeAnalyzer },
+                expected: new[] {
+                    Diagnostic(NamedTypeAnalyzer.RuleId).WithArguments("A, B").WithLocation(1, 1)
+                });
+
+            Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
     }
 }

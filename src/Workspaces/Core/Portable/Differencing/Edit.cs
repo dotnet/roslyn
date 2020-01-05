@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Differencing
 
         public override int GetHashCode()
         {
-            int hash = (int)_kind;
+            var hash = (int)_kind;
             if (_oldNode != null)
             {
                 hash = Hash.Combine(_oldNode.GetHashCode(), hash);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         // Has to be 'internal' for now as it's used by EnC test tool
         internal string GetDebuggerDisplay()
         {
-            string result = Kind.ToString();
+            var result = Kind.ToString();
             switch (Kind)
             {
                 case EditKind.Delete:

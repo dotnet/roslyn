@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.Debugging
@@ -11,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Debugging
 
         internal static bool IsBadOrMissingMetadataException(Exception e)
         {
-            return e is ObjectDisposedException || 
-                   e.HResult == COR_E_BADIMAGEFORMAT || 
+            return e is ObjectDisposedException ||
+                   e.HResult == COR_E_BADIMAGEFORMAT ||
                    e.HResult == CORDBG_E_MISSING_METADATA;
         }
     }

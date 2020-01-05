@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class SmartIndentProvider : ISmartIndentProvider
     {
+        [ImportingConstructor]
+        public SmartIndentProvider()
+        {
+        }
+
         public ISmartIndent CreateSmartIndent(ITextView textView)
         {
             if (textView == null)

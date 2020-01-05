@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function CheckAccessibility(sym As Symbol,
                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
-                                                     Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                     Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -57,6 +57,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides ReadOnly Property ContainingMember As Symbol
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
             Get
                 Throw ExceptionUtilities.Unreachable
             End Get

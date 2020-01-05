@@ -358,7 +358,7 @@ End Module
     ]]>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub LateIndexRValue()
             CompileAndVerify(
     <compilation>
@@ -2710,7 +2710,7 @@ expectedOutput:=<![CDATA[short]]>)
         <WorkItem(546467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546467")>
         <Fact()>
         Public Sub Bug15939_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -2754,7 +2754,7 @@ End Module
         <WorkItem(546467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546467")>
         <Fact()>
         Public Sub Bug15939_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -2801,7 +2801,7 @@ End Module
                     Diagnostic(ERRID.ERR_NameNotMember2, "I4.GoHome").WithArguments("GoHome", "Module1.II4"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Regress14722()
             CompileAndVerify(
 <compilation>
@@ -3202,7 +3202,8 @@ hello
 ]]>)
         End Sub
 
-        <Fact(), WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Bug18274()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3220,7 +3221,8 @@ End Module
 </compilation>)
         End Sub
 
-        <Fact(), WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <WorkItem(531547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531547")>
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28046")>
         Public Sub Bug18274_1()
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -3774,7 +3776,7 @@ set_P2 402 (301) = 4 401
 
         <Fact>
         Public Sub LateBoundArgumentForByRefParameterInEarlyBoundCall_Diagnostic()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Test2
@@ -3970,7 +3972,7 @@ End Module
         <WorkItem(575833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575833")>
         <Fact()>
         Public Sub OverloadedMethodUsingNamespaceDotMethodSyntax()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -4022,14 +4024,14 @@ End Module
 
    ]]>
     </file>
-</compilation>, expectedOutput:="HELLO", additionalRefs:=XmlReferences)
+</compilation>, expectedOutput:="HELLO", references:=XmlReferences)
 
         End Sub
 
         <WorkItem(531569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531569")>
         <Fact()>
         Public Sub ObjectToXmlLiteral_Err()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -4049,7 +4051,7 @@ Friend Module Program
 End Module
 
    ]]></file>
-</compilation>, additionalRefs:=XmlReferences)
+</compilation>, references:=XmlReferences)
 
             compilation.AssertTheseDiagnostics(
                 <expected><![CDATA[
@@ -4067,7 +4069,7 @@ End Module
         <WorkItem(632206, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632206")>
         <Fact()>
         Public Sub LateBang()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[

@@ -3,12 +3,13 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Microsoft.VisualStudio.LanguageServices.Progression
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class GraphNodeCreationTests
         Private Async Function AssertCreatedNodeIsAsync(code As String, expectedId As String, xml As XElement, Optional language As String = "C#") As Task
             Using testState = ProgressionTestState.Create(

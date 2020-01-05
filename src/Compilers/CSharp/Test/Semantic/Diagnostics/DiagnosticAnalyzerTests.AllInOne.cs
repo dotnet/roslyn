@@ -20,16 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = TestResource.AllInOneCSharpCode;
 
-            // AllInOneCSharpCode has no properties with initializers or named types with primary constructors.
+            // AllInOneCSharpCode has no properties with initializers/attributes.
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
+
+            // Add nodes that are not yet in AllInOneCSharpCode to this list.
+            var missingSyntaxKinds = new HashSet<SyntaxKind>();
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer });
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(new HashSet<SyntaxKind>());
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxKinds);
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
         }
 

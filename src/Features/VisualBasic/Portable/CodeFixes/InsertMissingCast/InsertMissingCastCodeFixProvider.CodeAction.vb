@@ -4,7 +4,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
-
     Partial Friend Class InsertMissingCastCodeFixProvider
         Private Class InsertMissingCastCodeAction
             Inherits CodeAction

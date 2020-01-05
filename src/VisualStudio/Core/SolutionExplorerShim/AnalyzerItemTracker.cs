@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export]
     internal class AnalyzerItemsTracker : IVsSelectionEvents
     {
-        private IServiceProvider _serviceProvider;
+        private readonly IServiceProvider _serviceProvider;
         private IVsMonitorSelection _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
 
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public void Register()
         {
-            IVsMonitorSelection vsMonitorSelection = GetMonitorSelection();
+            var vsMonitorSelection = GetMonitorSelection();
 
             if (vsMonitorSelection != null)
             {
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public void Unregister()
         {
-            IVsMonitorSelection vsMonitorSelection = GetMonitorSelection();
+            var vsMonitorSelection = GetMonitorSelection();
 
             if (vsMonitorSelection != null)
             {
@@ -76,8 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             IVsMultiItemSelect pMISNew,
             ISelectionContainer pSCNew)
         {
-            IVsHierarchy oldSelectedHierarchy = this.SelectedHierarchy;
-            uint oldSelectedItemId = this.SelectedItemId;
+            var oldSelectedHierarchy = this.SelectedHierarchy;
+            var oldSelectedItemId = this.SelectedItemId;
 
             this.SelectedHierarchy = pHierNew;
             this.SelectedItemId = itemidNew;
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return Array.Empty<object>();
             }
 
-            object[] selectedObjects = new object[selectedObjectCount];
+            var selectedObjects = new object[selectedObjectCount];
             if (selectionContainer.GetObjects((uint)Constants.GETOBJS_SELECTED, selectedObjectCount, selectedObjects) < 0)
             {
                 return Array.Empty<object>();

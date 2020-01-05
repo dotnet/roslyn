@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,8 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 Parallel.For(0, members.Length, po, UICultureUtilities.WithCurrentUICulture<int>(i =>
                                 {
-                                    var member = members[i];
-                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    try
+                                    {
+                                        var member = members[i];
+                                        ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    }
+                                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                                    {
+                                        throw ExceptionUtilities.Unreachable;
+                                    }
                                 }));
 
                                 foreach (var member in members)
@@ -99,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-        done:
-            // Don't return until we've seen all of the CompletionParts. This ensures all
-            // diagnostics have been reported (not necessarily on this thread).
+done:
+// Don't return until we've seen all of the CompletionParts. This ensures all
+// diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = (locationOpt == null) ? CompletionPart.NamespaceSymbolAll : CompletionPart.NamespaceSymbolAll & ~CompletionPart.MembersCompleted;
             _state.SpinWaitComplete(allParts, cancellationToken);
         }

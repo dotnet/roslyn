@@ -12,18 +12,18 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQMethodPropertyOrEvent(RQUnconstructedType containingType, RQMethodPropertyOrEventName memberName)
             : base(containingType)
         {
-            this.RqMemberName = memberName;
+            RqMemberName = memberName;
         }
 
         public override string MemberName
         {
-            get { return this.RqMemberName.OrdinaryNameValue; }
+            get { return RqMemberName.OrdinaryNameValue; }
         }
 
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
             base.AppendChildren(childList);
-            childList.Add(this.RqMemberName.ToSimpleTree());
+            childList.Add(RqMemberName.ToSimpleTree());
         }
     }
 }

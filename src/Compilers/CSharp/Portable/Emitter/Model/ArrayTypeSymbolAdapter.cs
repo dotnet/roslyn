@@ -16,15 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-            var type = moduleBeingBuilt.Translate(this.ElementType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            TypeWithAnnotations elementType = this.ElementTypeWithAnnotations;
+            var type = moduleBeingBuilt.Translate(elementType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
-            if (this.CustomModifiers.Length == 0)
+            if (elementType.CustomModifiers.Length == 0)
             {
                 return type;
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, this.CustomModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, elementType.CustomModifiers.As<Cci.ICustomModifier>());
             }
         }
 

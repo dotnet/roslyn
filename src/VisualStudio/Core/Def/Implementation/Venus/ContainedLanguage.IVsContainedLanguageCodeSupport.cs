@@ -14,7 +14,7 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedLanguageCodeSupport
+    internal partial class ContainedLanguage : IVsContainedLanguageCodeSupport
     {
         public int CreateUniqueEventName(string pszClassName, string pszObjectName, string pszNameOfEvent, out string pbstrEventHandlerName)
         {
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public int OnRenamed(ContainedLanguageRenameType clrt, string bstrOldID, string bstrNewID)
         {
-            int result = 0;
+            var result = 0;
 
             var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
             waitIndicator.Wait(

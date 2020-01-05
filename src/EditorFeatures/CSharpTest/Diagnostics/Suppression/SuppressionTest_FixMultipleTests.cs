@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
         {
             protected override int CodeActionIndex => 0;
 
-            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
             {
-                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
@@ -55,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
             public class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
             {
-                private string FixMultipleActionEquivalenceKey => FeaturesResources.in_Source;
-
                 [Fact]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
@@ -155,7 +154,7 @@ class Class2
     </Project>
 </Workspace>";
 
-                    await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: FixMultipleActionEquivalenceKey);
+                    await TestInRegularAndScriptAsync(input, expected);
                 }
             }
 

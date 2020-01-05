@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
     {
         private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
             where TSyntax : SyntaxNode
-            where TSyntaxList : SyntaxNode 
+            where TSyntaxList : SyntaxNode
         {
             protected sealed override SyntaxNode GetReceiver(SyntaxNode argument)
                 => argument.Parent.Parent;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
 
             protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
-                => argument.WithNameColon(SyntaxFactory.NameColon(name));
+                => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
         }
 
         private class AttributeArgumentAnalyzer :
@@ -63,9 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
 
             protected override AttributeArgumentSyntax WithName(AttributeArgumentSyntax argument, string name)
-                => argument.WithNameColon(SyntaxFactory.NameColon(name));
+                => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
         }
 
+        [ImportingConstructor]
         public CSharpUseNamedArgumentsCodeRefactoringProvider()
             : base(new ArgumentAnalyzer(), new AttributeArgumentAnalyzer())
         {

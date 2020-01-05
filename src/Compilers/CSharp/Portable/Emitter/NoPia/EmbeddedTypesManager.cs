@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     typeSymbol = null;
                 }
 
-                if (Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType) == ErrorTypeSymbol.UnknownResultType)
+                if (TypeSymbol.Equals(Interlocked.CompareExchange(ref _lazySystemStringType, typeSymbol, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything2))
                 {
                     if (info != null)
                     {
@@ -231,6 +231,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             switch (namedType.TypeKind)
             {
                 case TypeKind.Interface:
+                    foreach (Symbol member in namedType.GetMembersUnordered())
+                    {
+                        if (member.Kind != SymbolKind.NamedType)
+                        {
+                            if (!member.IsAbstract)
+                            {
+                                error = ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType;
+                                break;
+                            }
+                            else if (member.IsSealed)
+                            {
+                                error = ErrorCode.ERR_ReAbstractionInNoPIAType;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (error != ErrorCode.Unknown)
+                    {
+                        break;
+                    }
+
+                    goto case TypeKind.Struct;
                 case TypeKind.Struct:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:
@@ -331,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // Therefore, the following check can be as simple as:
             Debug.Assert(!IsFrozen, "Set of embedded types is frozen.");
 
-            var noPiaIndexer = new Cci.NoPiaReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly: false, includePrivateMembers: true));
+            var noPiaIndexer = new Cci.TypeReferenceIndexer(new EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly: false, includePrivateMembers: true));
 
             // Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded);

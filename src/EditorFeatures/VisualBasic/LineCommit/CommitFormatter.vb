@@ -12,17 +12,25 @@ Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     <Export(GetType(ICommitFormatter))>
     Friend Class CommitFormatter
         Implements ICommitFormatter
 
+        Private ReadOnly _indentationManagerService As IIndentationManagerService
+
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
                 Return p.Name <> PredefinedCodeCleanupProviderNames.Simplification AndAlso
                        p.Name <> PredefinedCodeCleanupProviderNames.Format
             End Function
+
+        <ImportingConstructor>
+        Public Sub New(indentationManagerService As IIndentationManagerService)
+            _indentationManagerService = indentationManagerService
+        End Sub
 
         Public Sub CommitRegion(spanToFormat As SnapshotSpan,
                                 isExplicitFormat As Boolean,
@@ -45,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim documentOptions = document.GetDocumentOptionsWithInferredIndentationAsync(isExplicitFormat, _indentationManagerService, cancellationToken).WaitAndGetResult(cancellationToken)
                 If Not (isExplicitFormat OrElse documentOptions.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
@@ -127,26 +135,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim rules = GetFormattingRules(document, documentOptions, spanToFormat, oldDirtySpan, oldTree, newDirtySpan, newTree, cancellationToken)
 
             Return New SimpleCodeCleanupProvider(PredefinedCodeCleanupProviderNames.Format,
-                                                 Function(doc, spans, c) FormatAsync(doc, spans, rules, c),
-                                                 Function(r, spans, w, c) Format(r, spans, w, document.GetOptionsAsync(c).WaitAndGetResult(c), rules, c))
+                                                 Function(doc, spans, c) FormatAsync(doc, spans, documentOptions, rules, c),
+                                                 Function(r, spans, w, c) Format(r, spans, w, documentOptions, rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
-            Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-
             If document.TryGetText(oldText) Then
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, documentOptions, rules, cancellationToken))
+                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, options, rules, cancellationToken))
                 Return document.WithText(newText)
             End If
 
-            Return Await Formatter.FormatAsync(document, spans, documentOptions, rules, cancellationToken).ConfigureAwait(False)
+            Return Await Formatter.FormatAsync(document, spans, options, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -172,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             oldTree As SyntaxTree,
             newDirtySpan As SnapshotSpan,
             newTree As SyntaxTree,
-            cancellationToken As CancellationToken) As IEnumerable(Of IFormattingRule)
+            cancellationToken As CancellationToken) As IEnumerable(Of AbstractFormattingRule)
 
             ' if the span we are going to format is same as the span that got changed, don't bother to do anything special.
             ' just do full format of the span.
@@ -245,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=documentOptions))
+                                    Formatter.GetDefaultFormattingRules(document), node, optionSet:=documentOptions))
                 node = node.Parent
             End While
 
@@ -254,9 +260,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         End Function
 
         Private Class NoAnchorFormatterRule
-            Inherits AbstractFormattingRule
+            Inherits CompatAbstractFormattingRule
 
-            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of AnchorIndentationOperation))
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 ' no anchor/relative formatting
                 Return
             End Sub

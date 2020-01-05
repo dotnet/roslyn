@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,27 +46,27 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     return await IterateAllCodeCleanupProvidersAsync(document, document, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
-                var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
+                var (newNode, annotations) = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
 
                 // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
-                if (newNodeAndAnnotations.newNode == null)
+                if (newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
                     return await IterateAllCodeCleanupProvidersAsync(document, document, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
-                var annotatedRoot = newNodeAndAnnotations.newNode;
+                var annotatedRoot = newNode;
                 var annotatedDocument = document.WithSyntaxRoot(annotatedRoot);
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
                     document, annotatedDocument,
-                    r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.annotations, cancellationToken),
+                    r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
                     codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -91,25 +92,25 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 }
 
                 var syntaxFactsService = workspace.Services.GetLanguageServices(root.Language).GetService<ISyntaxFactsService>();
-                Contract.Requires(syntaxFactsService != null);
+                Debug.Assert(syntaxFactsService != null);
 
                 // We need to track spans between cleaners. Annotate the tree with the provided spans.
-                var newNodeAndAnnotations = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
+                var (newNode, annotations) = AnnotateNodeForTextSpans(syntaxFactsService, root, normalizedSpan, cancellationToken);
 
                 // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
-                if (newNodeAndAnnotations.newNode == null)
+                if (newNode == null)
                 {
                     // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
                     return await IterateAllCodeCleanupProvidersAsync(root, root, n => ImmutableArray.Create(n.FullSpan), workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Replace the initial node and document with the annotated node.
-                var annotatedRoot = newNodeAndAnnotations.newNode;
+                var annotatedRoot = newNode;
 
                 // Run the actual cleanup.
                 return await IterateAllCodeCleanupProvidersAsync(
-                    root, annotatedRoot, 
-                    r => GetTextSpansFromAnnotation(r, newNodeAndAnnotations.annotations, cancellationToken),
+                    root, annotatedRoot,
+                    r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
                     workspace, codeCleaners, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -122,19 +123,19 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // Now try to retrieve the text span from the annotations injected into the node.
             var builder = ArrayBuilder<TextSpan>.GetInstance();
 
-            foreach (var annotationPair in annotations)
+            foreach (var (previousAnnotation, nextAnnotation) in annotations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var previousMarkerAnnotation = annotationPair.previousAnnotation;
-                var nextMarkerAnnotation = annotationPair.nextAnnotation;
+                var previousMarkerAnnotation = previousAnnotation;
+                var nextMarkerAnnotation = nextAnnotation;
 
                 var previousTokenMarker = SpanMarker.FromAnnotation(previousMarkerAnnotation);
                 var nextTokenMarker = SpanMarker.FromAnnotation(nextMarkerAnnotation);
 
                 var previousTokens = node.GetAnnotatedNodesAndTokens(previousMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
                 var nextTokens = node.GetAnnotatedNodesAndTokens(nextMarkerAnnotation).Where(n => n.IsToken).Select(n => n.AsToken());
-                
+
                 // Check whether we can use the tokens we got back from the node.
                 if (TryGetTextSpanFromAnnotation(previousTokenMarker, nextTokenMarker, node, previousTokens, nextTokens,
                         out var span))
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                GetTokensAroundSpan(root, span, 
+                GetTokensAroundSpan(root, span,
                     out var previousToken, out var startToken, out var endToken, out var nextToken);
 
                 // Create marker to insert
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var spans = ImmutableArray<TextSpan>.Empty;
 
 #if DEBUG
-                bool originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
+                var originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
                 var current = 0;
@@ -482,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         // Document was changed by the previous code cleaner, compute new spans.
                         var root = await currentDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         previousDocument = currentDocument;
-                        spans = GetSpans(root, spanGetter);;
+                        spans = GetSpans(root, spanGetter); ;
                     }
 
                     // If we are at the end and there were no changes to the document, use the original document for the cleanup.

@@ -285,7 +285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '               ...
                 Case SyntaxKind.GroupByClause
                     Dim groupByClause = DirectCast(clause, GroupByClauseSyntax)
-                    If rangeVariable.SpanStart < groupByClause.ByKeyword.SpanStart Then
+                    If rangeVariable.SpanStart < groupByClause.ByKeyword.SpanStart OrElse
+                       (rangeVariable.SpanStart = groupByClause.ByKeyword.SpanStart AndAlso rangeVariable Is groupByClause.Items.Last) Then
                         Return GetGroupByItemsLambdaBody(groupByClause)
                     Else
                         Return GetGroupByKeysLambdaBody(groupByClause)

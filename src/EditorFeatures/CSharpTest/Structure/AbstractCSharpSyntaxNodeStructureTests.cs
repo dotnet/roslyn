@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
-    public abstract class AbstractCSharpSyntaxNodeStructureTests<TSyntaxNode> : 
+    public abstract class AbstractCSharpSyntaxNodeStructureTests<TSyntaxNode> :
         AbstractSyntaxNodeStructureProviderTests<TSyntaxNode>
         where TSyntaxNode : SyntaxNode
     {

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,27 +34,76 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
+        /// <remarks>
+        /// This overload is required for compatibility with existing extensions.
+        /// </remarks>
         protected static SignatureHelpItems CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        {
+            return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
+        }
+
+        protected static SignatureHelpItems CreateSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
         {
             if (items == null || !items.Any() || state == null)
             {
                 return null;
             }
 
-            items = Filter(items, state.ArgumentNames);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
+            if (selectedItem < 0)
+            {
+                selectedItem = null;
+            }
+
+            (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
         }
 
-        private static IList<SignatureHelpItem> Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames)
+        protected static SignatureHelpItems CreateCollectionInitializerSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        {
+            // We will have added all the accessible '.Add' methods that take at least one
+            // arguments. However, in general the one-arg Add method is the least likely for the
+            // user to invoke. For example, say there is:
+            //
+            //      new JObject { { $$ } }
+            //
+            // Technically, the user could be calling the `.Add(object)` overload in this case.
+            // However, normally in that case, they would just supply the value directly like so:
+            //
+            //      new JObject { new JProperty(...), new JProperty(...) }
+            //
+            // So, it's a strong signal when they're inside another `{ $$ }` that they want to call
+            // the .Add methods that take multiple args, like so:
+            //
+            //      new JObject { { propName, propValue }, { propName, propValue } }
+            // 
+            // So, we include all the .Add methods, but we prefer selecting the first that has
+            // at least two parameters.
+            return CreateSignatureHelpItems(
+                items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
+        }
+
+
+        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
         {
             if (parameterNames == null)
             {
-                return items.ToList();
+                return (items.ToList(), selectedItem);
             }
 
             var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
-            return filteredList.Count == 0 ? items.ToList() : filteredList;
+            var isEmpty = filteredList.Count == 0;
+            if (!selectedItem.HasValue || isEmpty)
+            {
+                return (isEmpty ? items.ToList() : filteredList, selectedItem);
+            }
+
+            // adjust the selected item
+            var selection = items[selectedItem.Value];
+            selectedItem = filteredList.IndexOf(selection);
+            return (filteredList, selectedItem);
         }
 
         private static bool Include(SignatureHelpItem item, IEnumerable<string> parameterNames)
@@ -276,6 +326,20 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             return supportedPlatforms;
+        }
+
+        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, SymbolInfo currentSymbol) where TSymbol : class, ISymbol
+        {
+            if (currentSymbol.Symbol is TSymbol matched)
+            {
+                var found = candidates.IndexOf(matched);
+                if (found >= 0)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
     }
 }

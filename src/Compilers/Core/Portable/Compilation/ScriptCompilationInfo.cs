@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 
 namespace Microsoft.CodeAnalysis
 {
     public abstract class ScriptCompilationInfo
     {
-        internal Type ReturnTypeOpt { get; }
+        internal Type? ReturnTypeOpt { get; }
         public Type ReturnType => ReturnTypeOpt ?? typeof(object);
         public Type GlobalsType { get; }
 

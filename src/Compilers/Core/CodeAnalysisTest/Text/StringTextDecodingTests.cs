@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
             {
-                return EncodedStringText.Create(stream, new Lazy<Encoding>(getEncoding), readEncodingOpt, algorithm);
+                return EncodedStringText.TestAccessor.Create(stream, new Lazy<Encoding>(getEncoding), readEncodingOpt, algorithm, canBeEmbedded: false);
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ShiftJisGetEncoding()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ShiftJisFile()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -152,9 +152,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // bytes should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
             {
-                Assert.Throws(typeof(DecoderFallbackException), () =>
+                Assert.Throws<DecoderFallbackException>(() =>
                 {
-                    EncodedStringText.Decode(stream, utf8, SourceHashAlgorithm.Sha1);
+                    EncodedStringText.TestAccessor.Decode(stream, utf8, SourceHashAlgorithm.Sha1, throwIfBinaryDetected: false, canBeEmbedded: false);
                 });
 
                 Assert.True(stream.CanRead);
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
         [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()

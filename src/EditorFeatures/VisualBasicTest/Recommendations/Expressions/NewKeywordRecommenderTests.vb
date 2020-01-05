@@ -163,5 +163,12 @@ End Module
 <MethodBody>Dim x As _
 |</MethodBody>, "New")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsContainAsync(
+<MethodBody>Dim x As _ ' Test
+|</MethodBody>, "New")
+        End Function
     End Class
 End Namespace

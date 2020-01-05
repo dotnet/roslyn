@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -47,22 +48,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, context.Position, cancellationToken))
+            try
             {
-                var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
-                var attributeSyntaxNode = GetAttributeSyntaxNodeOfToken(syntaxFactsService, token);
-                if (attributeSyntaxNode == null)
+                var cancellationToken = context.CancellationToken;
+                var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
+                if (syntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, context.Position, cancellationToken))
                 {
-                    return;
-                }
+                    var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
+                    var attributeSyntaxNode = GetAttributeSyntaxNodeOfToken(syntaxFactsService, token);
+                    if (attributeSyntaxNode == null)
+                    {
+                        return;
+                    }
 
-                if (await CheckTypeInfoOfAttributeAsync(context.Document, attributeSyntaxNode, context.CancellationToken).ConfigureAwait(false))
-                {
-                    await AddAssemblyCompletionItemsAsync(context, cancellationToken).ConfigureAwait(false);
+                    if (await CheckTypeInfoOfAttributeAsync(context.Document, attributeSyntaxNode, context.CancellationToken).ConfigureAwait(false))
+                    {
+                        await AddAssemblyCompletionItemsAsync(context, cancellationToken).ConfigureAwait(false);
+                    }
                 }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
@@ -75,13 +83,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //[Attribute(""|
             //[Attribute("Text"|)
             var node = token.Parent;
-            if (syntaxFactsService.IsStringLiteralExpression(node))
+            if (node != null && syntaxFactsService.IsStringLiteralExpression(node))
             {
-                // Edge case: ElementAccessExpressionSyntax is present if the following statement is another attribute:
+                // Edge cases: 
+                // ElementAccessExpressionSyntax is present if the following statement is another attribute:
                 //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("|
                 //   [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
                 //   [assembly: System.Reflection.AssemblyCompany("Test")]
-                while (syntaxFactsService.IsElementAccessExpression(node.Parent))
+                // BinaryExpression is present if the string literal is concatenated:
+                //   From: https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
+                //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Friend1, PublicKey=002400000480000094" + 
+                //                                                                 "0000000602000000240000525341310004000" + ..
+                while (syntaxFactsService.IsElementAccessExpression(node.Parent) || syntaxFactsService.IsBinaryExpression(node.Parent))
                 {
                     node = node.Parent;
                 }
@@ -122,6 +135,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
+                if (IsProjectTypeUnsupported(project))
+                {
+                    continue;
+                }
+
                 if (allInternalsVisibleToAttributesOfProject.Contains(project.AssemblyName))
                 {
                     continue;
@@ -130,12 +148,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var projectGuid = project.Id.Id.ToString();
                 var completionItem = CommonCompletionItem.Create(
                     displayText: project.AssemblyName,
+                    displayTextSuffix: "",
                     rules: CompletionItemRules.Default,
                     glyph: project.GetGlyph(),
                     properties: ImmutableDictionary.Create<string, string>().Add(ProjectGuidKey, projectGuid));
                 context.AddItem(completionItem);
             }
+
+            if (context.Items.Count > 0)
+            {
+                context.CompletionListSpan = await GetTextChangeSpanAsync(
+                    context.Document, context.CompletionListSpan, cancellationToken).ConfigureAwait(false);
+            }
         }
+
+        private static bool IsProjectTypeUnsupported(Project project)
+            => !project.SupportsCompilation;
 
         private async Task<IImmutableSet<string>> GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(CompletionContext completionContext, CancellationToken cancellationToken)
         {
@@ -178,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
-                            resultBuilder = resultBuilder ?? ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                             resultBuilder.Add(assemblyName);
                         }
                     }
@@ -211,7 +239,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return string.Empty;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
+        {
+            var result = startSpan;
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(result.Start);
+            if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
+            {
+                var text = root.GetText();
+
+                // Expand selection in both directions until a double quote or any line break character is reached
+                static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
+
+                result = CommonCompletionUtilities.GetWordSpan(
+                    text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
+            }
+
+            return result;
+        }
+
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
             var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));

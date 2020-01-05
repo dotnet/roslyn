@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportOptionProvider, Shared]
     internal class SymbolSearchOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public SymbolSearchOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             SymbolSearchOptions.Enabled,
             SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,

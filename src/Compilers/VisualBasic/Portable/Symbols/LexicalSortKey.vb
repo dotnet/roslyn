@@ -192,6 +192,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return LexicalSortKey.Compare(firstKey, secondKey)
         End Function
 
+        Public Shared Function Compare(first As SyntaxReference, second As SyntaxReference, compilation As VisualBasicCompilation) As Integer
+            ' This is a shortcut to avoid building complete keys for the case when both locations belong to the same tree.
+            ' Also saves us in some speculative SemanticModel scenarios when the tree we are dealing with doesn't belong to
+            ' the compilation and an attempt of building the LexicalSortKey will simply assert and crash.
+            If first.SyntaxTree IsNot Nothing AndAlso first.SyntaxTree Is second.SyntaxTree Then
+                Return first.Span.Start - second.Span.Start
+            End If
+
+            Dim firstKey = New LexicalSortKey(first, compilation)
+            Dim secondKey = New LexicalSortKey(second, compilation)
+            Return LexicalSortKey.Compare(firstKey, secondKey)
+        End Function
+
         Public Shared Function First(xSortKey As LexicalSortKey, ySortKey As LexicalSortKey) As LexicalSortKey
             Dim comparison As Integer = Compare(xSortKey, ySortKey)
             Return If(comparison > 0, ySortKey, xSortKey)

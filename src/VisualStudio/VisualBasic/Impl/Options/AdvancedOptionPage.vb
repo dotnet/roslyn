@@ -8,8 +8,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPage
         Inherits AbstractOptionPage
 
-        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider) As AbstractOptionPageControl
-            Return New AdvancedOptionPageControl(serviceProvider)
+        Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
+            Return New AdvancedOptionPageControl(optionStore)
         End Function
     End Class
 End Namespace

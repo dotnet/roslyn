@@ -23,5 +23,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.On
 <MethodBody>On Error Goto _
  |</MethodBody>, "0", "-1")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsAreExactlyAsync(
+<MethodBody>On Error Goto _ ' Test
+ |</MethodBody>, "0", "-1")
+        End Function
     End Class
 End Namespace

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Determines, using heuristics, what the next likely value is in this enum.
         /// </summary>
-        public static object GetNextEnumValue(INamedTypeSymbol enumType, CancellationToken cancellationToken)
+        public static object GetNextEnumValue(INamedTypeSymbol enumType)
         {
             var orderedExistingConstants = enumType.GetMembers()
                                             .OfType<IFieldSymbol>()

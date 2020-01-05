@@ -5,11 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
 {
+    [UseExportProvider]
     public abstract class AbstractGoToAdjacentMemberTests
     {
         protected abstract string LanguageName { get; }

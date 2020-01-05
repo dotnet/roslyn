@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override BoundNode VisitLocal(BoundLocal node)
         {
             var result = RewriteLocal(node);
-            Debug.Assert(result.Type == node.Type);
+            Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.ConsiderEverything2));
             return result;
         }
 

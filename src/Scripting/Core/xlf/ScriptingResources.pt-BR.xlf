@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../ScriptingResources.resx">
+    <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">Não é possível definir a opção {1} específica de {0} porque as opções já foram configuradas para um idioma diferente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackOverflowWhileEvaluating">
+        <source>!&lt;Stack overflow while evaluating object&gt;</source>
+        <target state="translated">!&lt;Estouro de pilha durante a avaliação do objeto&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantAssignTo">
+        <source>Can't assign '{0}' to '{1}'.</source>
+        <target state="translated">Não foi possível atribuir '{0}' a '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedAnAssemblyReference">
+        <source>Expected an assembly reference.</source>
+        <target state="translated">Referência de assembly esperado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisplayNameOrPathCannotBe">
+        <source>Display name or path cannot be empty.</source>
+        <target state="translated">Nome de exibição ou caminho não pode estar vazio.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="translated">Caminho absoluto esperado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalsNotAssignable">
+        <source>The globals of type '{0}' is not assignable to '{1}'</source>
+        <target state="translated">Os globais do tipo '{0}' não podem ser atribuídos a '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartingStateIncompatible">
+        <source>Starting state was incompatible with script.</source>
+        <target state="translated">O estado inicial não era compatível com o script.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name</source>
+        <target state="translated">Nome do assembly inválido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assemblyName</source>
+        <target state="translated">Caracteres inválidos no assemblyName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ScriptRequiresGlobalVariables">
+        <source>The script requires access to global variables but none were given</source>
+        <target state="translated">O script requer acesso às variáveis globais, mas esse acesso não foi fornecido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalVariablesWithoutGlobalType">
+        <source>Global variables passed to a script without a global type</source>
+        <target state="translated">Variáveis globais passadas para um script sem um tipo global</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalError">
+        <source>+ additional {0} error</source>
+        <target state="translated">+ {0} outro erro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalErrors">
+        <source>+ additional {0} errors</source>
+        <target state="translated">+ {0} outros erros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AtFileLine">
+        <source> at {0} : {1}</source>
+        <target state="translated"> em {0}: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetReadOnlyVariable">
+        <source>Cannot set a read-only variable</source>
+        <target state="translated">Não é possível definir uma variável somente leitura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetConstantVariable">
+        <source>Cannot set a constant variable</source>
+        <target state="translated">Não é possível definir uma variável constante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpPrompt">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">Digite "#help" para obter mais informações.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpText">
+        <source>Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-C        Exit the REPL.
+REPL commands:
+  #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
+  #load         Load specified script file and execute it, e.g. #load "myScript.csx".</source>
+        <target state="translated">Atalhos de teclado:
+  Enter         Se o envio atual parece estar concluído, avalie-o. Caso contrário, insira uma nova linha.
+ Escape        Limpe o envio atual.
+  UpArrow       Substitua o envio atual por um envio anterior.
+  DownArrow     Substitua o envio atual por um envio subsequente (após ter anteriormente navegado para trás).
+  Ctrl-C        Saia do REPL.
+Comandos REPL:
+  #help         Exiba a ajuda sobre associações de teclas e comandos e disponíveis.
+Diretivas de script:
+  #r            Adicione uma referência de metadados para o assembly especificado e todas as suas dependências, por ex., #r "myLib.dll".
+  #load         Carregue o arquivo de script especificado e execute-o, por ex., #load "myScript.csx".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoaded">
+        <source>Assembly '{0}, Version={1}' has already been loaded from '{2}'. A different assembly with the same name and version can't be loaded: '{3}'.</source>
+        <target state="translated">Assembly '{0}, Versão ={1}' já foi carregado de '{2}'. Um assembly diferente com o mesmo nome e versão não pode ser carregado: '{3}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoadedNotSigned">
+        <source>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</source>
+        <target state="translated">O Assembly '{0}' já foi carregado de '{1}'. Não é possível carregar um assembly diferente com o mesmo nome, a menos que ele esteja assinado: '{2}'.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

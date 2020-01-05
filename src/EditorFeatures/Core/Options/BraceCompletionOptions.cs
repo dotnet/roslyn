@@ -16,6 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     [ExportOptionProvider, Shared]
     internal class BraceCompletionOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public BraceCompletionOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             BraceCompletionOptions.Enable);
     }

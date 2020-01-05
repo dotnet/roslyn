@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Is this a zero-based one-dimensional array, i.e. SZArray in CLR terms.
         /// SZArray is an array type encoded in metadata with ELEMENT_TYPE_SZARRAY (always single-dim array with 0 lower bound).
-        /// Non-SZArray type is ecoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
+        /// Non-SZArray type is encoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
         /// non-SZArray can also be a single-dim array with 0 lower bound, the encoding of these types in metadata is distinct.
         /// </summary>
         bool IsSZArray { get; }
@@ -48,10 +50,15 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ElementType { get; }
 
         /// <summary>
+        /// Gets the top-level nullability of the elements stored in the array. 
+        /// </summary>
+        NullableAnnotation ElementNullableAnnotation { get; }
+
+        /// <summary>
         /// Custom modifiers associated with the array type, or an empty array if there are none.
         /// </summary>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
 
-        bool Equals(IArrayTypeSymbol other);
+        bool Equals(IArrayTypeSymbol? other);
     }
 }

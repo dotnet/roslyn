@@ -1,25 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal sealed class NodeKeyValidation
     {
-        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap;
+        private readonly Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>> _nodeKeysMap =
+            new Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>>();
 
         public NodeKeyValidation()
         {
-            _nodeKeysMap = new Dictionary<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>, List<GlobalNodeKey>>();
         }
 
-        public void AddProject(AbstractProject project)
+        public NodeKeyValidation(ProjectCodeModelFactory projectCodeModelFactory)
         {
-            if (project is IProjectCodeModelProvider provider)
+            foreach (var projectCodeModel in projectCodeModelFactory.GetAllProjectCodeModels())
             {
-                var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
+                var fcms = projectCodeModel.GetCachedFileCodeModelInstances();
 
                 foreach (var fcm in fcms)
                 {

@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
-    internal struct DesignerAttributeResult
+    internal readonly struct DesignerAttributeResult
     {
         /// <summary>
         /// Designer attribute string
@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
         public bool ContainsErrors { get; }
 
         /// <summary>
-        /// The document asked is not applicable for the designer attribute
+        /// The document asked is applicable for the designer attribute
         /// </summary>
-        public bool NotApplicable { get; }
+        public bool Applicable { get; }
 
-        public DesignerAttributeResult(string designerAttributeArgument, bool containsErrors, bool notApplicable)
+        public DesignerAttributeResult(string designerAttributeArgument, bool containsErrors, bool applicable)
         {
             DesignerAttributeArgument = designerAttributeArgument;
             ContainsErrors = containsErrors;
-            NotApplicable = notApplicable;
+            Applicable = applicable;
         }
     }
 }

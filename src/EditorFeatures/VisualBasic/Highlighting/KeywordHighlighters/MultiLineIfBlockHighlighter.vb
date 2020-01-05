@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Text
@@ -10,9 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class MultiLineIfBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of MultiLineIfBlockSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(ifBlock As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
+        Protected Overloads Overrides Sub addHighlights(ifBlock As MultiLineIfBlockSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             With ifBlock.IfStatement
                 ' ElseIf case
                 highlights.Add(.IfKeyword.Span)
@@ -42,8 +45,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             End If
 
             highlights.Add(ifBlock.EndIfStatement.Span)
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
@@ -17,7 +18,7 @@ namespace Roslyn.Utilities
     {
         private bool? _failed; // Nullable to assert that this is only checked after dispose
         private readonly string _filePath;
-        private readonly TextWriter _writer;
+        private readonly DiagnosticBag _diagnostics;
         private readonly CommonMessageProvider _messageProvider;
 
         /// <summary>
@@ -32,27 +33,27 @@ namespace Roslyn.Utilities
         {
             get
             {
-                Debug.Assert(_failed != null);
+                RoslynDebug.Assert(_failed != null);
                 return _failed.GetValueOrDefault();
             }
         }
-        
+
         public NoThrowStreamDisposer(
             Stream stream,
             string filePath,
-            TextWriter writer,
+            DiagnosticBag diagnostics,
             CommonMessageProvider messageProvider)
         {
             Stream = stream;
             _failed = null;
             _filePath = filePath;
-            _writer = writer;
+            _diagnostics = diagnostics;
             _messageProvider = messageProvider;
         }
 
         public void Dispose()
         {
-            Debug.Assert(_failed == null);
+            RoslynDebug.Assert(_failed == null);
             try
             {
                 Stream.Dispose();
@@ -63,7 +64,7 @@ namespace Roslyn.Utilities
             }
             catch (Exception e)
             {
-                _messageProvider.ReportStreamWriteException(e, _filePath, _writer);
+                _messageProvider.ReportStreamWriteException(e, _filePath, _diagnostics);
                 // Record if any exceptions are thrown during dispose
                 _failed = true;
             }

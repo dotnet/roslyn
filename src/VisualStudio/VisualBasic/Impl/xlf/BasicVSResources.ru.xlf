@@ -1,0 +1,312 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../BasicVSResources.resx">
+    <body>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
+        <target state="translated">В реляционных операторах: =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Microsoft_Visual_Basic">
+        <source>Microsoft Visual Basic</source>
+        <target state="translated">Microsoft Visual Basic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Snippet">
+        <source>Insert Snippet</source>
+        <target state="translated">Вставить фрагмент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
+        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
+        <target state="translated">Пере_местить локальное объявление в извлеченный метод, если оно больше нигде не используется</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
+        <source>Automatic _insertion of Interface and MustOverride members</source>
+        <target state="translated">Автоматическая в_ставка членов Interface и MustOverride</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Никогда </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
+        <source>Prefer 'Is Nothing' for reference equality checks</source>
+        <target state="translated">Предпочитать Is Nothing для проверок равенства ссылок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">Показать элементы из неимпортированных пространств имен (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="translated">_Показывать разделительные линии процедур</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
+        <source>_Don't put ByRef on custom structure</source>
+        <target state="translated">_Не помещать ByRef в пользовательскую структуру</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_Help">
+        <source>Editor Help</source>
+        <target state="translated">Справка по редактору</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_utomatic_insertion_of_end_constructs">
+        <source>A_utomatic insertion of end constructs</source>
+        <target state="translated">А_втоматическая вставка конечной конструкции</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="translated">Выделить связанные _ключевые слова под курсором</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="translated">_Выделить ссылки на символ под курсором</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pretty_listing_reformatting_of_code">
+        <source>_Pretty listing (reformatting) of code</source>
+        <target state="translated">Ав_томатическое форматирование кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>_Enter outlining mode when files open</source>
+        <target state="translated">_Включать режим создания структуры при открытии файлов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">Извлечение метода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>_Generate XML documentation comments for '''</source>
+        <target state="translated">_Создавать комментарии XML-документации для """</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighting">
+        <source>Highlighting</source>
+        <target state="translated">Выделение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optimize_for_solution_size">
+        <source>Optimize for solution size</source>
+        <target state="translated">Оптимизировать под размер решения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Large">
+        <source>Large</source>
+        <target state="translated">Большой</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular">
+        <source>Regular</source>
+        <target state="translated">обычный</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Small">
+        <source>Small</source>
+        <target state="translated">Малый</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performance">
+        <source>Performance</source>
+        <target state="translated">Производительность</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="translated">Показывать предпросмотр для _отслеживания переименований</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
+        <source>_Navigate to Object Browser for symbols defined in metadata</source>
+        <target state="translated">_Перейти в обозреватель объектов для символов, определенных в метаданных</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_to_Definition">
+        <source>Go to Definition</source>
+        <target state="translated">Перейти к определению</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Import_Directives">
+        <source>Import Directives</source>
+        <target state="translated">Директивы Import</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
+        <source>Suggest imports for types in _NuGet packages</source>
+        <target state="translated">Предлагать import для типов в _пакетах NuGet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
+        <source>Suggest imports for types in _reference assemblies</source>
+        <target state="translated">Предлагать import для типов в _эталонных сборках</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_imports">
+        <source>_Place 'System' directives first when sorting imports</source>
+        <target state="translated">_Размещать директивы import с "System" в начале при сортировке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_Me">
+        <source>Qualify event access with 'Me'</source>
+        <target state="translated">Квалифицировать доступ к событиям через "Me"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_Me">
+        <source>Qualify field access with 'Me'</source>
+        <target state="translated">Квалифицировать доступ к полям через "Me"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_Me">
+        <source>Qualify method access with 'Me'</source>
+        <target state="translated">Квалифицировать доступ к методам через "Me"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_Me">
+        <source>Qualify property access with 'Me'</source>
+        <target state="translated">Квалифицировать доступ к свойствам через "Me"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_Me">
+        <source>Do not prefer 'Me.'</source>
+        <target state="translated">Не предпочитать "Me."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_Me">
+        <source>Prefer 'Me.'</source>
+        <target state="translated">Предпочитать "Me."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Me_preferences_colon">
+        <source>'Me.' preferences:</source>
+        <target state="translated">'Предпочтения "Me.":</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Predefined_type_preferences_colon">
+        <source>Predefined type preferences:</source>
+        <target state="translated">Предпочтения для предопределенных типов:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="translated">_Выделять совпадающие части элементов списка завершения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item _filters</source>
+        <target state="translated">Показывать фильтр_ы элементов завершения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion_Lists">
+        <source>Completion Lists</source>
+        <target state="translated">Списки завершения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_key_behavior_colon">
+        <source>Enter key behavior:</source>
+        <target state="translated">Поведение при нажатии клавиши ВВОД:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="translated">До_бавлять новую строку при нажатии клавиши ВВОД только в конце полностью введенного слова</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>_Always add new line on enter</source>
+        <target state="translated">_Всегда добавлять символ новой строки при нажатии клавиши ВВОД</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>_Never add new line on enter</source>
+        <target state="translated">_Никогда не добавлять новую строку при нажатии клавиши ВВОД</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Всегда включать фрагменты кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Включать фрагменты кода, когда после идентификатора указывается "?-Tab"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Никогда не включать фрагменты кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets_behavior">
+        <source>Snippets behavior</source>
+        <target state="translated">Поведение фрагментов кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is _deleted</source>
+        <target state="translated">Показывать список завершения после удалени_я знака</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="translated">_Показывать список завершения после ввода знака</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">Не использовать локальный аргумент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_Coding_Conventions">
+        <source>VB Coding Conventions</source>
+        <target state="translated">Рекомендации по написанию кода VB</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="nothing_checking_colon">
+        <source>'nothing' checking:</source>
+        <target state="translated">'Проверка значений "nothing":</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fade_out_unused_imports">
+        <source>Fade out unused imports</source>
+        <target state="translated">Скрывать неиспользуемые импорты</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
+        <source>Report invalid placeholders in 'String.Format' calls</source>
+        <target state="translated">Сообщать о недопустимых заполнителях в вызовах "String.Format"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_import_directive_groups">
+        <source>Separate import directive groups</source>
+        <target state="translated">Разделять группы директив import</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</source>
+        <target state="translated">В арифметических операторах: ^   *   /   \   Mod   +   -   &amp;   &lt;&lt;   &gt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
+        <target state="translated">В других бинарных операторах:  And   AndAlso   Or   OrElse</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

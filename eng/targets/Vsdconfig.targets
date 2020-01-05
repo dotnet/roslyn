@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="$(MicrosoftVSSDKVSDConfigToolVersion)"
+      Condition="'$(IsWpfTempProject)' != 'true'">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <Target Name="VsdConfigOutputGroup" Outputs="@(VsdConfigOutputGroupOutput)"
+    Condition="'@(VsdConfigXmlFiles)'!=''"
+    DependsOnTargets="AddVsdbgConfigFileToOutputGroup">
+    <ItemGroup>
+      <VsdConfigOutputGroupOutput Include="$(OutDir)\$(AssemblyName).vsdconfig" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundExpression call = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
                 if (call == null)
                 {
-                    // This may happen if Object..ctor is not found or is unaccessible
+                    // This may happen if Object..ctor is not found or is inaccessible
                     return;
                 }
                 statements[statementIndex++] = F.ExpressionStatement(call);
@@ -166,10 +167,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //  Method body:
                 //
                 //  HASH_FACTOR = 0xa5555529;
-                //  INIT_HASH = (...((0 * HASH_FACTOR) + backingFld_1.Name.GetHashCode()) * HASH_FACTOR
-                //                                     + backingFld_2.Name.GetHashCode()) * HASH_FACTOR
+                //  INIT_HASH = (...((0 * HASH_FACTOR) + GetFNVHashCode(backingFld_1.Name)) * HASH_FACTOR
+                //                                     + GetFNVHashCode(backingFld_2.Name)) * HASH_FACTOR
                 //                                     + ...
-                //                                     + backingFld_N.Name.GetHashCode()
+                //                                     + GetFNVHashCode(backingFld_N.Name)
                 //
                 //  {
                 //      return (...((INITIAL_HASH * HASH_FACTOR) + EqualityComparer<T_1>.Default.GetHashCode(this.backingFld_1)) * HASH_FACTOR
@@ -177,6 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //                                               ...
                 //                                               + EqualityComparer<T_N>.Default.GetHashCode(this.backingFld_N)
                 //  }
+                //
+                // Where GetFNVHashCode is the FNV-1a hash code.
 
                 const int HASH_FACTOR = -1521134295; // (int)0xa5555529
 
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int initHash = 0;
                 foreach (var property in anonymousType.Properties)
                 {
-                    initHash = unchecked(initHash * HASH_FACTOR + property.BackingField.Name.GetHashCode());
+                    initHash = unchecked(initHash * HASH_FACTOR + Hash.GetFNVHashCode(property.BackingField.Name));
                 }
 
                 //  Generate expression for return statement

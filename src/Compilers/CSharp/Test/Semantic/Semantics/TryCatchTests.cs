@@ -31,14 +31,14 @@ class C
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
-            var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
+            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
             Assert.Equal("e", localSymbol.Name);
             Assert.Equal("System.IO.IOException", localSymbol.Type.ToDisplayString());
 
@@ -63,7 +63,7 @@ class C
     }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,16): error CS0155: The type caught or thrown must be derived from System.Exception
                 //         catch (int e)
                 Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(9, 16),

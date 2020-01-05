@@ -14,7 +14,7 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
-    internal partial class ContainedLanguage<TPackage, TLanguageService> : IVsContainedCode
+    internal partial class ContainedLanguage : IVsContainedCode
     {
         public int HostSpansUpdated()
         {
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private IList<TextSpanAndCookie> EnumOriginalCodeBlocksWorker(CancellationToken cancellationToken)
         {
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
-            Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return SpecializedCollections.EmptyList<TextSpanAndCookie>();

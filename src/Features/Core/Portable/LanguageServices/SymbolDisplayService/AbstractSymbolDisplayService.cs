@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected AbstractSymbolDisplayService(IAnonymousTypeDisplayService anonymousTypeDisplayService)
         {
-            this.AnonymousTypeDisplayService = anonymousTypeDisplayService;
+            AnonymousTypeDisplayService = anonymousTypeDisplayService;
         }
 
         public abstract ImmutableArray<SymbolDisplayPart> ToDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null);

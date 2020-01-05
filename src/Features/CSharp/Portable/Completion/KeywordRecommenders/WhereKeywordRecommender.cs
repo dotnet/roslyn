@@ -79,9 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // class C<T> : IGoo |
             var baseList = token.GetAncestor<BaseListSyntax>();
-            if (baseList.GetParent() is TypeDeclarationSyntax)
+            if (baseList?.Parent is TypeDeclarationSyntax typeDecl)
             {
-                var typeDecl = baseList.GetParent() as TypeDeclarationSyntax;
                 if (typeDecl.TypeParameterList != null &&
                     typeDecl.BaseList.Types.Any(t => token == t.GetLastToken(includeSkipped: true)))
                 {

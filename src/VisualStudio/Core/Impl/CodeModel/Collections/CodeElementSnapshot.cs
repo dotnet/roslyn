@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var count = codeElements.Count;
             var elementsBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance(count);
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 // We use "i + 1" since CodeModel indices are 1-based
                 if (ErrorHandler.Succeeded(codeElements.Item(i + 1, out var element)))

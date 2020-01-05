@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
         private class MockDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public const string Id = "MockDiagnostic";
-            private DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+            private readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(Id, "MockDiagnostic", "MockDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -48,18 +48,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MockDiagnos
              string source,
              params DiagnosticDescription[] expectedDiagnostics)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(source))
-            {
-                var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
-                actualDiagnostics.Verify(expectedDiagnostics);
-            }
+            using var workspace = TestWorkspace.CreateCSharp(source);
+            var actualDiagnostics = await this.GetDiagnosticsAsync(workspace, new TestParameters());
+            actualDiagnostics.Verify(expectedDiagnostics);
         }
 
         [WorkItem(906919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/906919")]
         [Fact]
         public async Task Bug906919()
         {
-            string source = "[|class C { }|]";
+            var source = "[|class C { }|]";
             await VerifyDiagnosticsAsync(source);
         }
     }

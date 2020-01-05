@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Exit(message);
         }
 
+        internal static void Install()
+        {
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ExitingTraceListener());
+        }
+
         private static void Exit(string originalMessage)
         {
             var builder = new StringBuilder();

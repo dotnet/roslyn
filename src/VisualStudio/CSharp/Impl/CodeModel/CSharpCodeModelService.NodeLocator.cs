@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     var lineText = lineAfterOpenBrace.ToString();
 
                     var lineEndColumn = lineText.GetColumnFromLineOffset(lineText.Length, indentSize);
-                    int indentColumn = memberStartColumn + indentSize;
+                    var indentColumn = memberStartColumn + indentSize;
                     var virtualSpaces = indentColumn - lineEndColumn;
 
                     return new VirtualTreePoint(openBrace.SyntaxTree, text, lineAfterOpenBrace.End, virtualSpaces);

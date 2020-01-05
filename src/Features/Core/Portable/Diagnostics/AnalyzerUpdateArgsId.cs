@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -11,22 +13,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public DiagnosticAnalyzer Analyzer => _Field1;
 
-        protected AnalyzerUpdateArgsId(DiagnosticAnalyzer analyzer) :
-            base(analyzer)
+        protected AnalyzerUpdateArgsId(DiagnosticAnalyzer analyzer)
+            : base(analyzer)
         {
         }
 
-        public override string BuildTool
-        {
-            get
-            {
-                if (Analyzer == null)
-                {
-                    return string.Empty;
-                }
-
-                return Analyzer.GetAnalyzerAssemblyName();
-            }
-        }
+        public override string BuildTool => Analyzer.GetAnalyzerAssemblyName();
     }
 }

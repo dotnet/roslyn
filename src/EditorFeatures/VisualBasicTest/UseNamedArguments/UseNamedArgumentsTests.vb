@@ -12,9 +12,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNamedArguments
             Return New VisualBasicUseNamedArgumentsCodeRefactoringProvider()
         End Function
 
+        Private Shared ReadOnly s_vb15Parameters As TestParameters =
+            New TestParameters(parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestFirstArgument() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
         M([||]1, 2)
@@ -24,7 +27,7 @@ End Class",
     Sub M(arg1 As Integer, arg2 As Integer)
         M(arg1:=1, arg2:=2)
     End Sub
-End Class")
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -82,7 +85,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestConditionalMethod() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Sub M(arg1 as Integer, arg2 as Integer)
         Me?.M([||]1, 2)
@@ -92,7 +95,7 @@ End Class",
     Sub M(arg1 as Integer, arg2 as Integer)
         Me?.M(arg1:=1, arg2:=2)
     End Sub
-End Class")
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -112,7 +115,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestConstructor() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Sub New(arg1 As Integer, arg2 As Integer)
         Dim c = New C([||]1, 2)
@@ -122,7 +125,7 @@ End Class",
     Sub New(arg1 As Integer, arg2 As Integer)
         Dim c = New C(arg1:=1, arg2:=2)
     End Sub
-End Class")
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
@@ -280,7 +283,7 @@ End Class")
         <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
         Public Async Function TestCaretPositionAtTheEnd2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class C
     Sub M(arg1 As Integer, arg2 As Integer)
         M(arg1[||], arg2)
@@ -290,7 +293,7 @@ End Class",
     Sub M(arg1 As Integer, arg2 As Integer)
         M(arg1:=arg1, arg2:=arg2)
     End Sub
-End Class")
+End Class", parameters:=s_vb15Parameters)
         End Function
 
         <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
@@ -328,14 +331,36 @@ End Class")
 
         <WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
-        Public Async Function TestMissingOnTuple() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        Public Async Function TestOnTuple() As Task
+            Await TestInRegularAndScript1Async(
 "Imports System.Linq
 Class C
     Sub M(arr as Integer())
         arr.Zip(arr, Function(p1, p2) ([||]p1, p2))
     End Sub
+End Class",
+"Imports System.Linq
+Class C
+    Sub M(arr as Integer())
+        arr.Zip(arr, resultSelector:=Function(p1, p2) (p1, p2))
+    End Sub
 End Class")
+        End Function
+
+        <WorkItem(23269, "https://github.com/dotnet/roslyn/issues/23269")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCharacterEscape() As Task
+            Await TestInRegularAndScript1Async(
+"Class C
+    Sub M([If] As Integer, [For] As Integer)
+        M([If][||], [For])
+    End Sub
+End Class",
+"Class C
+    Sub M([If] As Integer, [For] As Integer)
+        M([If]:=[If], [For]:=[For])
+    End Sub
+End Class", parameters:=s_vb15Parameters)
         End Function
     End Class
 End Namespace

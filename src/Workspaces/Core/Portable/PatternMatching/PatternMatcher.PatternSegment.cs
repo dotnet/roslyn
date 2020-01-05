@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             private static int CountTextChunks(string pattern)
             {
-                int count = 0;
-                int wordLength = 0;
+                var count = 0;
+                var wordLength = 0;
 
-                for (int i = 0; i < pattern.Length; i++)
+                for (var i = 0; i < pattern.Length; i++)
                 {
                     if (IsWordChar(pattern[i]))
                     {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             private static TextChunk[] BreakPatternIntoSubWords(string pattern, bool allowFuzzyMatching)
             {
-                int partCount = CountTextChunks(pattern);
+                var partCount = CountTextChunks(pattern);
 
                 if (partCount == 0)
                 {
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
 
                 var result = new TextChunk[partCount];
-                int resultIndex = 0;
-                int wordStart = 0;
-                int wordLength = 0;
+                var resultIndex = 0;
+                var wordStart = 0;
+                var wordLength = 0;
 
-                for (int i = 0; i < pattern.Length; i++)
+                for (var i = 0; i < pattern.Length; i++)
                 {
                     var ch = pattern[i];
                     if (IsWordChar(ch))

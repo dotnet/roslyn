@@ -1,0 +1,1359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../EditorFeaturesResources.resx">
+    <body>
+      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="translated">Встроенный сеанс переименования активен для идентификатора "{0}". Снова вызовите встроенное переименование, чтобы получить доступ к дополнительным параметрам. Вы можете в любое время продолжить изменение переименованного идентификатора.</target>
+        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      </trans-unit>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="translated">Применение изменений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="translated">Изменить конфигурацию</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="translated">Очистка кода не настроена</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="translated">Настройте ее сейчас</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="translated">Больше не показывать это сообщение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">Вы действительно хотите продолжить? Это может привести к появлению нерабочего кода.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">элементы из неимпортированных пространств имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">Расширитель</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">При работе метода извлечения возникли следующие ошибки:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">Фильтр</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="translated">При форматировании документа была выполнена дополнительная очистка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="translated">Перейти к базовому</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">Недопустимое имя сборки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Недопустимые символы в имени сборки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">Ключевое слово — управление</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="translated">Обнаружение баз…</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">Оператор — перегружен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">Вставить отслеживание</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preprocessor_Text">
+        <source>Preprocessor Text</source>
+        <target state="translated">Текст препроцессора</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Punctuation">
+        <source>Punctuation</source>
+        <target state="translated">Пунктуация</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file">
+        <source>Rename _file</source>
+        <target state="translated">Переименовать фай_л</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="translated">Переименовать фай_л (тип не соответствует имени файла)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="translated">Переименовать фай_л (недопустимо для разделяемых типов)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="translated">Строка — escape-символ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">Символ — статический</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="translated">У этого символа нет основания.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Переключить комментарий блока</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Переключить комментарий строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Переключение комментария блока...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Переключение комментария строки...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">Участники-пользователи — константы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">Участники-пользователи — элементы перечисления</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">Пользователи-участники — события</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">Участники-пользователи — методы расширения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">Участники-пользователи — поля</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">Участники-пользователи — метки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">Участники-пользователи — локальные</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">Участники-пользователи — методы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">Участники-пользователи — пространства имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">Участники-пользователи — параметры</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">Участники-пользователи — свойства</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Classes">
+        <source>User Types - Classes</source>
+        <target state="translated">Пользовательские типы — классы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Delegates">
+        <source>User Types - Delegates</source>
+        <target state="translated">Пользовательские типы — делегаты</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Enums">
+        <source>User Types - Enums</source>
+        <target state="translated">Пользовательские типы — перечисления</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Interfaces">
+        <source>User Types - Interfaces</source>
+        <target state="translated">Пользовательские типы — интерфейсы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Structures">
+        <source>User Types - Structures</source>
+        <target state="translated">Пользовательские типы — структуры</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Type_Parameters">
+        <source>User Types - Type Parameters</source>
+        <target state="translated">Пользовательские типы — параметры типа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Verbatim">
+        <source>String - Verbatim</source>
+        <target state="translated">Строка — Verbatim</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">Ожидание завершения фоновой работы…</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">Предупреждение</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Name">
+        <source>XML Doc Comments - Attribute Name</source>
+        <target state="translated">Комментарии XML Doc — имена атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_CData_Section">
+        <source>XML Doc Comments - CData Section</source>
+        <target state="translated">Комментарии XML Doc — раздел CData</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Text">
+        <source>XML Doc Comments - Text</source>
+        <target state="translated">Комментарии XML-документа — текст</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Delimiter">
+        <source>XML Doc Comments - Delimiter</source>
+        <target state="translated">Комментарии XML-документа — разделитель</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Comment">
+        <source>XML Doc Comments - Comment</source>
+        <target state="translated">Комментарии XML-документа — комментарий</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Modules">
+        <source>User Types - Modules</source>
+        <target state="translated">Пользовательские типы — модули</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Name">
+        <source>VB XML Literals - Attribute Name</source>
+        <target state="translated">Литералы VB XML — имена атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Quotes">
+        <source>VB XML Literals - Attribute Quotes</source>
+        <target state="translated">Литералы VB XML — кавычки атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Value">
+        <source>VB XML Literals - Attribute Value</source>
+        <target state="translated">Литералы VB XML — значения атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_CData_Section">
+        <source>VB XML Literals - CData Section</source>
+        <target state="translated">Литералы VB XML — раздел CData</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Comment">
+        <source>VB XML Literals - Comment</source>
+        <target state="translated">Литералы XML VB — комментарий</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Delimiter">
+        <source>VB XML Literals - Delimiter</source>
+        <target state="translated">Литералы XML VB — разделитель</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Embedded_Expression">
+        <source>VB XML Literals - Embedded Expression</source>
+        <target state="translated">Литералы VB XML — встроенные выражения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Entity_Reference">
+        <source>VB XML Literals - Entity Reference</source>
+        <target state="translated">Литералы VB XML — ссылки на сущности</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Name">
+        <source>VB XML Literals - Name</source>
+        <target state="translated">Литералы XML VB — имя</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Processing_Instruction">
+        <source>VB XML Literals - Processing Instruction</source>
+        <target state="translated">Литералы VB XML — инструкции по обработке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Text">
+        <source>VB XML Literals - Text</source>
+        <target state="translated">Литералы XML VB — текст</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Quotes">
+        <source>XML Doc Comments - Attribute Quotes</source>
+        <target state="translated">Комментарии XML Doc — кавычки атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Value">
+        <source>XML Doc Comments - Attribute Value</source>
+        <target state="translated">Комментарии XML Doc — значения атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_Code">
+        <source>Unnecessary Code</source>
+        <target state="translated">Ненужный код</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rude_Edit">
+        <source>Rude Edit</source>
+        <target state="translated">Грубая редакция</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_1_reference_in_1_file">
+        <source>Rename will update 1 reference in 1 file.</source>
+        <target state="translated">При переименовании будет обновлена одна ссылка в одном файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_0_references_in_1_file">
+        <source>Rename will update {0} references in 1 file.</source>
+        <target state="translated">При переименовании будут обновлены ссылки в количестве {0} шт. в одном файле.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_0_references_in_1_files">
+        <source>Rename will update {0} references in {1} files.</source>
+        <target state="translated">При переименовании будут обновлены ссылки в количестве {0} шт. в следующем числе файлов: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="translated">Основания: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_conflict_s_will_be_resolved">
+        <source>{0} conflict(s) will be resolved</source>
+        <target state="translated">Конфликтов будет разрешено: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_unresolvable_conflict_s">
+        <source>{0} unresolvable conflict(s)</source>
+        <target state="translated">{0} неразрешимые конфликты</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_0">
+        <source>Applying "{0}"...</source>
+        <target state="translated">Применение "{0}"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_to_1_with_content_colon">
+        <source>Adding '{0}' to '{1}' with content:</source>
+        <target state="translated">Добавление "{0}" к "{1}" с содержимым:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_project_0">
+        <source>Adding project '{0}'</source>
+        <target state="translated">Добавление проекта "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_project_0">
+        <source>Removing project '{0}'</source>
+        <target state="translated">Удаление проекта "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_references_for_0">
+        <source>Changing project references for '{0}'</source>
+        <target state="translated">Изменение ссылок проекта для "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_reference_0_to_1">
+        <source>Adding reference '{0}' to '{1}'</source>
+        <target state="translated">Добавление ссылки "{0}" в "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_reference_0_from_1">
+        <source>Removing reference '{0}' from '{1}'</source>
+        <target state="translated">Удаление ссылки "{0}" из "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_analyzer_reference_0_to_1">
+        <source>Adding analyzer reference '{0}' to '{1}'</source>
+        <target state="translated">Добавление ссылки анализатора "{0}" к "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_reference_0_from_1">
+        <source>Removing analyzer reference '{0}' from '{1}'</source>
+        <target state="translated">Удаление ссылки анализатора "{0}" из "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_End_Tag_Completion">
+        <source>XML End Tag Completion</source>
+        <target state="translated">Завершение конечных тегов XML</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completing_Tag">
+        <source>Completing Tag</source>
+        <target state="translated">Завершающий тег</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_Field">
+        <source>Encapsulate Field</source>
+        <target state="translated">Инкапсулировать поле</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_Encapsulate_Field_refactoring">
+        <source>Applying "Encapsulate Field" refactoring...</source>
+        <target state="translated">Применение рефакторинга "инкапсулирования поля" ...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
+        <source>Please select the definition of the field to encapsulate.</source>
+        <target state="translated">Выберите определение поля, которое нужно инкапсулировать.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Given_Workspace_doesn_t_support_Undo">
+        <source>Given Workspace doesn't support Undo</source>
+        <target state="translated">Заданная рабочая область не поддерживает отмену</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
+        <source>Document must be contained in the workspace that created this service</source>
+        <target state="translated">Документ должен находиться в рабочей области, в которой была создана эта служба.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searching">
+        <source>Searching...</source>
+        <target state="translated">Идет поиск...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Canceled">
+        <source>Canceled.</source>
+        <target state="translated">Отменено.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_information_found">
+        <source>No information found.</source>
+        <target state="translated">Информация не найдена.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_usages_found">
+        <source>No usages found.</source>
+        <target state="translated">Использований не обнаружено.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_">
+        <source>Implements</source>
+        <target state="translated">Реализует</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_By">
+        <source>Implemented By</source>
+        <target state="translated">Реализуется</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overrides_">
+        <source>Overrides</source>
+        <target state="translated">Переопределяет</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_By">
+        <source>Overridden By</source>
+        <target state="translated">Переопределяется</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directly_Called_In">
+        <source>Directly Called In</source>
+        <target state="translated">Прямой вызов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indirectly_Called_In">
+        <source>Indirectly Called In</source>
+        <target state="translated">Неявный вызов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Called_In">
+        <source>Called In</source>
+        <target state="translated">Вызов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Referenced_In">
+        <source>Referenced In</source>
+        <target state="translated">Имеются ссылки в</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_references_found">
+        <source>No references found.</source>
+        <target state="translated">Ссылки не найдены.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_derived_types_found">
+        <source>No derived types found.</source>
+        <target state="translated">Производных типов не найдено.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_implementations_found">
+        <source>No implementations found.</source>
+        <target state="translated">Реализаций не найдено.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Line_1">
+        <source>{0} - (Line {1})</source>
+        <target state="translated">{0} — (Строка {1})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class_Parts">
+        <source>Class Parts</source>
+        <target state="translated">Части класса</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_Parts">
+        <source>Struct Parts</source>
+        <target state="translated">Части структуры</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_Parts">
+        <source>Interface Parts</source>
+        <target state="translated">Части интерфейса</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Parts">
+        <source>Type Parts</source>
+        <target state="translated">Части типа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherits_">
+        <source>Inherits</source>
+        <target state="translated">Наследует</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_By">
+        <source>Inherited By</source>
+        <target state="translated">Наследуется</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Already_tracking_document_with_identical_key">
+        <source>Already tracking document with identical key</source>
+        <target state="translated">Документ с идентичным ключом уже отслеживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="document_is_not_currently_being_tracked">
+        <source>document is not currently being tracked</source>
+        <target state="translated">Документ в настоящее время не отслеживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_Rename_information">
+        <source>Computing Rename information...</source>
+        <target state="translated">Вычисление информации переименования...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_files">
+        <source>Updating files...</source>
+        <target state="translated">Идет обновление файлов...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
+        <source>Rename operation was cancelled or is not valid</source>
+        <target state="translated">Операция переименования была отменена или является недопустимой.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Symbol">
+        <source>Rename Symbol</source>
+        <target state="translated">Переименовать символ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_Buffer_Change">
+        <source>Text Buffer Change</source>
+        <target state="translated">Изменение буфера текста</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
+        <source>Rename operation was not properly completed. Some file might not have been updated.</source>
+        <target state="translated">Операция переименования завершена неправильно. Некоторые файлы должны быть обновлены.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">Переименовать "{0}" в "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Warning">
+        <source>Preview Warning</source>
+        <target state="translated">Предварительный просмотр предупреждения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_metadata">
+        <source>from metadata</source>
+        <target state="translated">из метаданных</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Line_Ender">
+        <source>Automatic Line Ender</source>
+        <target state="translated">Автоматическое окончание строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_completing">
+        <source>Automatically completing...</source>
+        <target state="translated">Автоматическое завершение...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Pair_Completion">
+        <source>Automatic Pair Completion</source>
+        <target state="translated">Автоматическое завершение пары</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
+        <source>An active inline rename session is still active. Complete it before starting a new one.</source>
+        <target state="translated">Встроенный сеанс переименования еще активен. Завершите его прежде, чем начинать новый.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
+        <source>The buffer is not part of a workspace.</source>
+        <target state="translated">Этот буфер не является частью рабочей области.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_token_is_not_contained_in_the_workspace">
+        <source>The token is not contained in the workspace.</source>
+        <target state="translated">Этот токен не помещен в рабочую область.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="translated">Необходимо переименовать идентификатор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="translated">Этот элемент переименовать нельзя.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="translated">Устраните ошибки в коде, прежде чем переименовать этот элемент.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="translated">Нельзя переименовать операторы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="translated">Нельзя переименовать элементы, определенные в метаданных.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="translated">Нельзя переименовать элементы из предыдущих отправок.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigation_Bars">
+        <source>Navigation Bars</source>
+        <target state="translated">Панели навигации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refreshing_navigation_bars">
+        <source>Refreshing navigation bars...</source>
+        <target state="translated">Идет обновление панелей переходов...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Token">
+        <source>Format Token</source>
+        <target state="translated">Токен формата</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Indenting">
+        <source>Smart Indenting</source>
+        <target state="translated">Интеллектуальные отступы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_References">
+        <source>Find References</source>
+        <target state="translated">Найти ссылки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_references">
+        <source>Finding references...</source>
+        <target state="translated">Поиск ссылок...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_references_of_0">
+        <source>Finding references of "{0}"...</source>
+        <target state="translated">Поиск ссылок на "{0}"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Selection">
+        <source>Comment Selection</source>
+        <target state="translated">Закомментировать выделенный фрагмент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uncomment_Selection">
+        <source>Uncomment Selection</source>
+        <target state="translated">Раскомментировать выделенный фрагмент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Commenting_currently_selected_text">
+        <source>Commenting currently selected text...</source>
+        <target state="translated">Комментирование выбранного текста...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uncommenting_currently_selected_text">
+        <source>Uncommenting currently selected text...</source>
+        <target state="translated">Раскомментирование выбранного текста...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_new_line">
+        <source>Insert new line</source>
+        <target state="translated">Вставить новую строку</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Documentation_Comment">
+        <source>Documentation Comment</source>
+        <target state="translated">Комментарий к документации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_documentation_comment">
+        <source>Inserting documentation comment...</source>
+        <target state="translated">Вставка комментария документации...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">Извлечение метода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_Extract_Method_refactoring">
+        <source>Applying "Extract Method" refactoring...</source>
+        <target state="translated">Применение рефакторинга "метода извлечения"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Document">
+        <source>Format Document</source>
+        <target state="translated">Форматировать документ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document...</source>
+        <target state="translated">Идет форматирование документа...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="translated">Форматирование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Selection">
+        <source>Format Selection</source>
+        <target state="translated">Форматировать выделенный фрагмент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_currently_selected_text">
+        <source>Formatting currently selected text...</source>
+        <target state="translated">Идет форматирование выбранного текста...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="translated">Не удается перейти к символу, на котором находится курсор.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_to_Definition">
+        <source>Go to Definition</source>
+        <target state="translated">Перейти к определению</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_definition">
+        <source>Navigating to definition...</source>
+        <target state="translated">Переход к определению...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_Document">
+        <source>Organize Document</source>
+        <target state="translated">Упорядочить документ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organizing_document">
+        <source>Organizing document...</source>
+        <target state="translated">Идет упорядочивание документа...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighted_Definition">
+        <source>Highlighted Definition</source>
+        <target state="translated">Выделенное определение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_new_name_is_not_a_valid_identifier">
+        <source>The new name is not a valid identifier.</source>
+        <target state="translated">Новое имя не является допустимым идентификатором.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Fixup">
+        <source>Inline Rename Fixup</source>
+        <target state="translated">Исправление встроенного переименования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Resolved_Conflict">
+        <source>Inline Rename Resolved Conflict</source>
+        <target state="translated">Разрешенный конфликт встроенного переименования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename">
+        <source>Inline Rename</source>
+        <target state="translated">Встроенное переименование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="translated">Переименование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Start_Rename">
+        <source>Start Rename</source>
+        <target state="translated">Начать переименование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_conflict_resolutions">
+        <source>Display conflict resolutions</source>
+        <target state="translated">Отобразить разрешение конфликтов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_token_to_rename">
+        <source>Finding token to rename...</source>
+        <target state="translated">Поиск токена для переименования...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict">
+        <source>Conflict</source>
+        <target state="translated">Конфликт</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_Navigation">
+        <source>Text Navigation</source>
+        <target state="translated">Навигация по тексту</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_word_extent">
+        <source>Finding word extent...</source>
+        <target state="translated">Поиск экстента слова...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_enclosing_span">
+        <source>Finding enclosing span...</source>
+        <target state="translated">Поиск вмещающего диапазона...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_span_of_next_sibling">
+        <source>Finding span of next sibling...</source>
+        <target state="translated">Поиск диапазона следующего одноуровневого элемента...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_span_of_previous_sibling">
+        <source>Finding span of previous sibling...</source>
+        <target state="translated">Поиск диапазона предыдущего одноуровневого элемента...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_colon_0">
+        <source>Rename: {0}</source>
+        <target state="translated">Переименовать: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Light_bulb_session_is_already_dismissed">
+        <source>Light bulb session is already dismissed.</source>
+        <target state="translated">Сеанс лампочки уже закрыт.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
+        <source>Automatic Pair Completion End Point Marker Color</source>
+        <target state="translated">Цвет маркера конечной точки автоматического завершения пары.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="translated">Переименование членов анонимного типа еще не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
+        <source>Engine must be attached to an Interactive Window.</source>
+        <target state="translated">Модуль должен быть подключен к Интерактивному окну.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes_the_current_prompt_settings">
+        <source>Changes the current prompt settings.</source>
+        <target state="translated">Изменения текущих настроек командной строки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_text_colon_0">
+        <source>Unexpected text: '{0}'</source>
+        <target state="translated">Непредвиденный текст: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
+        <source>The triggerSpan is not included in the given workspace.</source>
+        <target state="translated">Этот triggerSpan не входит в данную рабочую область.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_session_has_already_been_dismissed">
+        <source>This session has already been dismissed.</source>
+        <target state="translated">Этот сеанс уже закрыт.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_transaction_is_already_complete">
+        <source>The transaction is already complete.</source>
+        <target state="translated">Транзакция уже выполнена.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_a_source_error_line_column_unavailable">
+        <source>Not a source error, line/column unavailable</source>
+        <target state="translated">Не ошибка источника, строка или столбец недоступны</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
+        <source>Can't compare positions from different text snapshots</source>
+        <target state="translated">Не удается сравнить позиции из различных снимков текста</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Entity_Reference">
+        <source>XML Doc Comments - Entity Reference</source>
+        <target state="translated">Комментарии XML Doc — ссылки на сущности</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Name">
+        <source>XML Doc Comments - Name</source>
+        <target state="translated">Комментарии XML-документа — имя</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Processing_Instruction">
+        <source>XML Doc Comments - Processing Instruction</source>
+        <target state="translated">Комментарии XML Doc — инструкции по обработке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Active_Statement">
+        <source>Active Statement</source>
+        <target state="translated">Активный оператор</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_Peek_information">
+        <source>Loading Peek information...</source>
+        <target state="translated">Загрузка информации обзора...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Peek">
+        <source>Peek</source>
+        <target state="translated">Обзор</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="symbol_cannot_be_a_namespace">
+        <source>'symbol' cannot be a namespace.</source>
+        <target state="translated">'"символ" не может быть пространством имен.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply1">
+        <source>_Apply</source>
+        <target state="translated">_Применить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_overload_s">
+        <source>Include _overload(s)</source>
+        <target state="translated">Включить _перегрузки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_comments">
+        <source>Include _comments</source>
+        <target state="translated">Включить _комментарии</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_strings">
+        <source>Include _strings</source>
+        <target state="translated">Включить _строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply2">
+        <source>Apply</source>
+        <target state="translated">Применить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature">
+        <source>Change Signature</source>
+        <target state="translated">Изменить сигнатуру</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Changes_0">
+        <source>Preview Changes - {0}</source>
+        <target state="translated">Просмотреть изменения — {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Code_Changes_colon">
+        <source>Preview Code Changes:</source>
+        <target state="translated">Просмотр изменений кода:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Changes">
+        <source>Preview Changes</source>
+        <target state="translated">Просмотреть изменения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Paste">
+        <source>Format Paste</source>
+        <target state="translated">Форматировать при вставке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_pasted_text">
+        <source>Formatting pasted text...</source>
+        <target state="translated">Идет форматирование вставленного текста...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_definition_of_the_object_is_hidden">
+        <source>The definition of the object is hidden.</source>
+        <target state="translated">Определение объекта скрыто.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Formatting">
+        <source>Automatic Formatting</source>
+        <target state="translated">Автоматическое форматирование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
+Do you want to proceed?</source>
+        <target state="translated">Можно устранить ошибку без создания параметров "out/ref" структуры. 
+Вы хотите продолжить?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature_colon">
+        <source>Change Signature:</source>
+        <target state="translated">Изменить сигнатуру:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1_colon">
+        <source>Rename '{0}' to '{1}':</source>
+        <target state="translated">Переименование "{0}" в "{1}":</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_Field_colon">
+        <source>Encapsulate Field:</source>
+        <target state="translated">Инкапсулировать поле:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="translated">Иерархия вызовов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_0">
+        <source>Calls To '{0}'</source>
+        <target state="translated">Вызовы к "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Base_Member_0">
+        <source>Calls To Base Member '{0}'</source>
+        <target state="translated">Вызовы базового члена "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Interface_Implementation_0">
+        <source>Calls To Interface Implementation '{0}'</source>
+        <target state="translated">Вызовы реализации интерфейса "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_Call_Hierarchy_Information">
+        <source>Computing Call Hierarchy Information</source>
+        <target state="translated">Вычисление сведений об иерархии вызовов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_0">
+        <source>Implements '{0}'</source>
+        <target state="translated">Реализует "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initializers">
+        <source>Initializers</source>
+        <target state="translated">Инициализаторы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="References_To_Field_0">
+        <source>References To Field '{0}'</source>
+        <target state="translated">Ссылки на поле "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Overrides">
+        <source>Calls To Overrides</source>
+        <target state="translated">Вызовы переопределений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_changes1">
+        <source>_Preview changes</source>
+        <target state="translated">_Изменения в предварительной версии</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply3">
+        <source>Apply</source>
+        <target state="translated">Применить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cancel">
+        <source>Cancel</source>
+        <target state="translated">Отмена</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes">
+        <source>Changes</source>
+        <target state="translated">Изменения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_changes2">
+        <source>Preview changes</source>
+        <target state="translated">Предварительный просмотр изменений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense_Commit_Formatting">
+        <source>IntelliSense Commit Formatting</source>
+        <target state="translated">Форматирование при фиксации IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking">
+        <source>Rename Tracking</source>
+        <target state="translated">Отслеживание переименования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_from_1_with_content_colon">
+        <source>Removing '{0}' from '{1}' with content:</source>
+        <target state="translated">Идет удаление "{0}" из "{1}" с содержимым:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
+        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
+        <target state="translated">'"{0}" не поддерживает операцию "{1}", но может содержать вложенные "{2}" (см. "{2}.{3}"), которые поддерживают эту операцию.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Brace_Completion">
+        <source>Brace Completion</source>
+        <target state="translated">Завершение скобок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Исправить все случаи в</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
+        <source>Cannot apply operation while a rename session is active.</source>
+        <target state="translated">Невозможно применить операцию при активном сеансе переименования.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rename_tracking_session_was_cancelled_and_is_no_longer_available">
+        <source>The rename tracking session was cancelled and is no longer available.</source>
+        <target state="translated">Сеанс отслеживания переименования отменен и больше не доступен.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighted_Written_Reference">
+        <source>Highlighted Written Reference</source>
+        <target state="translated">Выделенная записанная ссылка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cursor_must_be_on_a_member_name">
+        <source>Cursor must be on a member name.</source>
+        <target state="translated">Курсор должен находиться на имени элемента.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Brace_Matching">
+        <source>Brace Matching</source>
+        <target state="translated">Соответствие скобок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_implementations">
+        <source>Locating implementations...</source>
+        <target state="translated">Поиск реализаций...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Implementation">
+        <source>Go To Implementation</source>
+        <target state="translated">Перейти к реализации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="translated">Этот символ не имеет реализации.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_name_colon_0">
+        <source>New name: {0}</source>
+        <target state="translated">Новое имя: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
+        <source>Modify any highlighted location to begin renaming.</source>
+        <target state="translated">Измените любое выделенное место, чтобы начать переименование.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">Вставить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating...</source>
+        <target state="translated">Идет переход...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion_ellipses">
+        <source>Suggestion ellipses (…)</source>
+        <target state="translated">Предложение с многоточием (…)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="translated">'Ссылки "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="translated">'Реализации "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_declarations">
+        <source>'{0}' declarations</source>
+        <target state="translated">'Объявления "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Conflict">
+        <source>Inline Rename Conflict</source>
+        <target state="translated">Конфликт встроенного переименования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Field_Background_and_Border">
+        <source>Inline Rename Field Background and Border</source>
+        <target state="translated">Цвет фона и цвет границы поля "Встроенное переименование"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Field_Text">
+        <source>Inline Rename Field Text</source>
+        <target state="translated">Текст поля "Встроенное переименование"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">Изменение блочных комментариев</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">Закомментировать/раскомментировать выбранный фрагмент</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">Завершение кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">Выполнять в интерактивном режиме</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">Извлечь интерфейс</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">Перейти к смежному элементу</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">Интерактивный режим</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Вставить в интерактивном режиме</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">Перейти к выделенной ссылке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">Структура</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">Отмена отслеживания переименования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">Справка по сигнатурам</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">Средство форматирования смарт-токена</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

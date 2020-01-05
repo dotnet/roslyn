@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 
         protected RQTypeOrNamespace(IList<string> namespaceNames)
         {
-            this.NamespaceNames = new ReadOnlyCollection<string>(namespaceNames);
+            NamespaceNames = new ReadOnlyCollection<string>(namespaceNames);
         }
 
         public INamespaceSymbol NamespaceIdentifier

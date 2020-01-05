@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests</AssemblyName>
+    <TargetFramework>net472</TargetFramework>
+    <VBRuntime>Default</VBRuntime>
+    <RootNamespace></RootNamespace>
+  </PropertyGroup>
+  <ItemGroup Label="File References">
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\Test\ResultProvider\Microsoft.CodeAnalysis.ResultProvider.Utilities.csproj" />
+    <!-- This reference is only needed to ensure correct build ordering (we link in all the necessary files as source). -->
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+    <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Compilers\VisualBasic\Portable\SymbolDisplay\ObjectDisplay.vb">
+      <Link>Compiler\SymbolDisplay\ObjectDisplay.vb</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />
+  <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
+</Project>

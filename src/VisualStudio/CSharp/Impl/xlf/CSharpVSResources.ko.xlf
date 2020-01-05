@@ -1,0 +1,802 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CSharpVSResources.resx">
+    <body>
+      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
+        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
+        <target state="translated">모든 C# 서식 규칙 적용(들여쓰기, 래핑, 간격 조정)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp">
+        <source>C#</source>
+        <target state="translated">C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Coding_Conventions">
+        <source>C# Coding Conventions</source>
+        <target state="translated">C# 코딩 규칙</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Formatting_Rules">
+        <source>C# Formatting Rules</source>
+        <target state="translated">C# 서식 설정 규칙</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard">
+        <source>Discard</source>
+        <target state="translated">폐기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document_settings">
+        <source>Format Document Settings (Experiment) </source>
+        <target state="translated">문서 서식 설정(실험)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="translated">일반</target>
+        <note>Title of the control group on the General Formatting options page</note>
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">이벤트 구독 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
+        <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inside_namespace">
+        <source>Inside namespace</source>
+        <target state="translated">namespace 내부</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">외부 namespace</target>
+        <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
+        <source>Perform additional code cleanup during formatting</source>
+        <target state="translated">서식을 지정하는 동안 추가 코드 정리 수행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_switch_expression">
+        <source>Prefer switch expression</source>
+        <target state="translated">switch 식 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preferred_using_directive_placement">
+        <source>Preferred 'using' directive placement</source>
+        <target state="translated">선호하는 'using' 지시문 배치</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">불필요한 Using 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_items_from_unimported_namespaces">
+        <source>Show items from unimported namespaces (experimental)</source>
+        <target state="translated">가져오지 않은 네임스페이스의 항목 표시(실험적)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Using 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
+        <source>Suggest usings for types in .NET Framework assemblies</source>
+        <target state="translated">.NET Framework 어셈블리의 형식에 using 제안</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Surround_With">
+        <source>Surround With</source>
+        <target state="translated">코드 감싸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Snippet">
+        <source>Insert Snippet</source>
+        <target state="translated">조각 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format _block on }</source>
+        <target state="translated">} 입력 시 블록 서식 자동 지정(_B)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on _paste</source>
+        <target state="translated">붙여넣을 때 서식 자동 지정(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format _statement on ;</source>
+        <target state="translated">; 입력 시 문 서식 자동 지정(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_members_in_anonymous_types_on_new_line">
+        <source>Place members in anonymous types on new line</source>
+        <target state="translated">익명 형식의 멤버를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Leave_block_on_single_line">
+        <source>Leave block on single line</source>
+        <target state="translated">블록을 한 줄에 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_catch_on_new_line">
+        <source>Place "catch" on new line</source>
+        <target state="translated">"catch"를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_else_on_new_line">
+        <source>Place "else" on new line</source>
+        <target state="translated">"else"를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_block_contents">
+        <source>Indent block contents</source>
+        <target state="translated">블록 내용 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_open_and_close_braces">
+        <source>Indent open and close braces</source>
+        <target state="translated">여는 중괄호 및 닫는 중괄호 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_contents">
+        <source>Indent case contents</source>
+        <target state="translated">case 내용 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_labels">
+        <source>Indent case labels</source>
+        <target state="translated">case 레이블 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_finally_on_new_line">
+        <source>Place "finally" on new line</source>
+        <target state="translated">"finally"를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_goto_labels_in_leftmost_column">
+        <source>Place goto labels in leftmost column</source>
+        <target state="translated">맨 왼쪽 열에 goto 레이블을 배치합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_labels_normally">
+        <source>Indent labels normally</source>
+        <target state="translated">보통 수준으로 레이블을 들여씁니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_goto_labels_one_indent_less_than_current">
+        <source>Place goto labels one indent less than current</source>
+        <target state="translated">goto 레이블을 현재 수준보다 한 수준 더 들여씁니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Label_Indentation">
+        <source>Label Indentation</source>
+        <target state="translated">레이블 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_members_in_object_initializers_on_new_line">
+        <source>Place members in object initializers on new line</source>
+        <target state="translated">개체 이니셜라이저의 멤버를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_methods">
+        <source>Place open brace on new line for anonymous methods</source>
+        <target state="translated">무명 메서드의 여는 중괄호를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_anonymous_types">
+        <source>Place open brace on new line for anonymous types</source>
+        <target state="translated">익명 형식의 여는 중괄호를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_control_blocks">
+        <source>Place open brace on new line for control blocks</source>
+        <target state="translated">제어 블록의 여는 중괄호를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_lambda_expression">
+        <source>Place open brace on new line for lambda expression</source>
+        <target state="translated">람다 식의 여는 중괄호를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
+        <source>Place open brace on new line for methods and local functions</source>
+        <target state="translated">메서드 및 로컬 함수의 여는 중괄호를 새 줄에 배치합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
+        <source>Place open brace on new line for object, collection and array initializers</source>
+        <target state="translated">개체, 컬렉션 및 배열 이니셜라이저의 여는 중괄호를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_types">
+        <source>Place open brace on new line for types</source>
+        <target state="translated">형식의 여는 중괄호를 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_query_expression_clauses_on_new_line">
+        <source>Place query expression clauses on new line</source>
+        <target state="translated">쿼리 식의 절을 새 줄에 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Leave_statements_and_member_declarations_on_the_same_line">
+        <source>Leave statements and member declarations on the same line</source>
+        <target state="translated">문과 멤버 선언을 같은 줄에 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_and_after_binary_operators">
+        <source>Insert space before and after binary operators</source>
+        <target state="translated">이항 연산자의 앞뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_spaces_around_binary_operators">
+        <source>Ignore spaces around binary operators</source>
+        <target state="translated">이항 연산자 주위의 공백 무시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_spaces_before_and_after_binary_operators">
+        <source>Remove spaces before and after binary operators</source>
+        <target state="translated">이항 연산자 앞뒤의 공백 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_colon_for_base_or_interface_in_type_declaration">
+        <source>Insert space after colon for base or interface in type declaration</source>
+        <target state="translated">형식 선언의 기본 또는 인터페이스에 대한 콜론 뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_comma">
+        <source>Insert space after comma</source>
+        <target state="translated">쉼표 뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_dot">
+        <source>Insert space after dot</source>
+        <target state="translated">점 뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_semicolon_in_for_statement">
+        <source>Insert space after semicolon in "for" statement</source>
+        <target state="translated">"for" 문의 세미콜론 뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_colon_for_base_or_interface_in_type_declaration">
+        <source>Insert space before colon for base or interface in type declaration</source>
+        <target state="translated">형식 선언의 기본 또는 인터페이스에 대한 콜론 앞에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_comma">
+        <source>Insert space before comma</source>
+        <target state="translated">쉼표 앞에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_dot">
+        <source>Insert space before dot</source>
+        <target state="translated">점 앞에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_semicolon_in_for_statement">
+        <source>Insert space before semicolon in "for" statement</source>
+        <target state="translated">"for" 문의 세미콜론 앞에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_argument_list_parentheses">
+        <source>Insert space within argument list parentheses</source>
+        <target state="translated">인수 목록 괄호의 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_argument_list_parentheses">
+        <source>Insert space within empty argument list parentheses</source>
+        <target state="translated">빈 인수 목록 괄호 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis1">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_parameter_list_parentheses">
+        <source>Insert space within empty parameter list parentheses</source>
+        <target state="translated">빈 매개 변수 목록 괄호 내에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_between_method_name_and_its_opening_parenthesis2">
+        <source>Insert space between method name and its opening parenthesis</source>
+        <target state="translated">메서드 이름과 여는 괄호 사이에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parameter_list_parentheses">
+        <source>Insert space within parameter list parentheses</source>
+        <target state="translated">매개 변수 목록 괄호 내에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_keywords_in_control_flow_statements">
+        <source>Insert space after keywords in control flow statements</source>
+        <target state="translated">제어 흐름 문의 키워드 뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses_of_expressions">
+        <source>Insert space within parentheses of expressions</source>
+        <target state="translated">식의 괄호 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_after_cast">
+        <source>Insert space after cast</source>
+        <target state="translated">캐스트 뒤에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_spaces_within_parentheses_of_control_flow_statements">
+        <source>Insert spaces within parentheses of control flow statements</source>
+        <target state="translated">제어 흐름 문의 괄호 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_parentheses_of_type_casts">
+        <source>Insert space within parentheses of type casts</source>
+        <target state="translated">형식 캐스팅의 괄호 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore_spaces_in_declaration_statements">
+        <source>Ignore spaces in declaration statements</source>
+        <target state="translated">선언문의 공백 무시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_other_spacing_options">
+        <source>Set other spacing options</source>
+        <target state="translated">기타 간격 옵션을 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_brackets">
+        <source>Set spacing for brackets</source>
+        <target state="translated">대괄호의 간격을 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_delimiters">
+        <source>Set spacing for delimiters</source>
+        <target state="translated">구분 기호의 간격을 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_method_calls">
+        <source>Set spacing for method calls</source>
+        <target state="translated">메서드 호출의 간격을 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_method_declarations">
+        <source>Set spacing for method declarations</source>
+        <target state="translated">메서드 선언의 간격을 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Set_spacing_for_operators">
+        <source>Set spacing for operators</source>
+        <target state="translated">연산자의 간격을 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_spaces_within_square_brackets">
+        <source>Insert spaces within square brackets</source>
+        <target state="translated">대괄호 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_before_open_square_bracket">
+        <source>Insert space before open square bracket</source>
+        <target state="translated">여는 대괄호 앞에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_space_within_empty_square_brackets">
+        <source>Insert space within empty square brackets</source>
+        <target state="translated">빈 대괄호의 내부에 공백 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_options_for_braces">
+        <source>New line options for braces</source>
+        <target state="translated">중괄호에 대한 줄 바꿈 옵션</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_options_for_expressions">
+        <source>New line options for expressions</source>
+        <target state="translated">식에 대한 줄 바꿈 옵션</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_options_for_keywords">
+        <source>New line options for keywords</source>
+        <target state="translated">키워드에 대한 줄 바꿈 옵션</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unused_local">
+        <source>Unused local</source>
+        <target state="translated">사용하지 않는 로컬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_var_when_generating_locals">
+        <source>Use 'var' when generating locals</source>
+        <target state="translated">지역 변수를 생성할 때 'var'을 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
+        <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
+        <target state="translated">다른 위치에서 사용되지 않는 로컬 선언을 추출된 메서드로 이동(_M)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="translated">프로시저 줄 구분선 표시(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
+        <source>_Don't put ref or out on custom struct</source>
+        <target state="translated">사용자 지정 구조체에 ref 또는 out 추가 안 함(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Editor_Help">
+        <source>Editor Help</source>
+        <target state="translated">편집기 도움말</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="translated">커서 아래의 관련 키워드 강조(_K)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="translated">커서 아래의 기호에 대한 참조 강조(_H)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter _outlining mode when files open</source>
+        <target state="translated">개요 모드로 파일 열기(_O)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">메서드 추출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>_Generate XML documentation comments for ///</source>
+        <target state="translated">///에 대해 XML 문서 주석 생성(_G)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighting">
+        <source>Highlighting</source>
+        <target state="translated">강조 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>_Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">/* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입(_I)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optimize_for_solution_size">
+        <source>Optimize for solution size</source>
+        <target state="translated">솔루션 크기에 맞게 최적화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Large">
+        <source>Large</source>
+        <target state="translated">크게</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regular">
+        <source>Regular</source>
+        <target state="translated">일반</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Small">
+        <source>Small</source>
+        <target state="translated">작게</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_Directives">
+        <source>Using Directives</source>
+        <target state="translated">Using 지시문</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Performance">
+        <source>Performance</source>
+        <target state="translated">성능</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>_Place 'System' directives first when sorting usings</source>
+        <target state="translated">using 정렬 시 'System' 지시문 먼저 배치(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_typed">
+        <source>_Show completion list after a character is typed</source>
+        <target state="translated">문자를 입력하면 완성 목록 표시(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_keywords_in_completion_lists">
+        <source>Place _keywords in completion lists</source>
+        <target state="translated">완성 목록에 키워드 배치(_K)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_code_snippets_in_completion_lists">
+        <source>Place _code snippets in completion lists</source>
+        <target state="translated">완성 목록에 코드 조각 배치(_C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion_Lists">
+        <source>Completion Lists</source>
+        <target state="translated">완성 목록</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_In_Completion_List">
+        <source>Selection In Completion List</source>
+        <target state="translated">완성 목록에서 선택</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="translated">이름 바꾸기 추적 미리 보기 표시(_T)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
+        <source>Place open brace on new line for property, indexer, and event accessors</source>
+        <target state="translated">속성, 인덱서 및 이벤트 접근자의 여는 중괄호를 새 줄에 배치합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
+        <source>Place open brace on new line for properties, indexers, and events</source>
+        <target state="translated">속성, 인덱서 및 이벤트의 여는 중괄호를 새 줄에 배치합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in _NuGet packages</source>
+        <target state="translated">NuGet 패키지의 형식에 대한 using 제안(_N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Inference_preferences_colon">
+        <source>Type Inference preferences:</source>
+        <target state="translated">형식 유추 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_built_in_types">
+        <source>For built-in types</source>
+        <target state="translated">기본 제공 형식인 경우</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Elsewhere">
+        <source>Elsewhere</source>
+        <target state="translated">다른 곳</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="translated">여러 줄일 때</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_variable_type_is_apparent">
+        <source>When variable type is apparent</source>
+        <target state="translated">변수 형식이 명백한 경우</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_event_access_with_this">
+        <source>Qualify event access with 'this'</source>
+        <target state="translated">this'를 사용하여 이벤트 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_field_access_with_this">
+        <source>Qualify field access with 'this'</source>
+        <target state="translated">this'를 사용하여 필드 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this">
+        <source>Qualify method access with 'this'</source>
+        <target state="translated">this'를 사용하여 메서드 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this">
+        <source>Qualify property access with 'this'</source>
+        <target state="translated">this'를 사용하여 속성 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_explicit_type">
+        <source>Prefer explicit type</source>
+        <target state="translated">명시적 형식 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this">
+        <source>Prefer 'this.'</source>
+        <target state="translated">this'를 기본으로 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_var">
+        <source>Prefer 'var'</source>
+        <target state="translated">var'을 기본으로 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_preferences_colon">
+        <source>'this.' preferences:</source>
+        <target state="translated">'this.' 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_preferences_colon">
+        <source>'using' preferences:</source>
+        <target state="translated">'using' 기본 설정:</target>
+        <note>'using' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="var_preferences_colon">
+        <source>'var' preferences:</source>
+        <target state="translated">'var' 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_prefer_this">
+        <source>Do not prefer 'this.'</source>
+        <target state="translated">this'를 기본으로 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="predefined_type_preferences_colon">
+        <source>predefined type preferences:</source>
+        <target state="translated">미리 정의된 형식 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on _enter</source>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할(_E)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
+        <source>_Highlight matching portions of completion list items</source>
+        <target state="translated">완성 목록 항목에서 일치하는 부분 강조 표시(_H)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_item_filters">
+        <source>Show completion item _filters</source>
+        <target state="translated">완성 항목 필터 표시(_F)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_key_behavior_colon">
+        <source>Enter key behavior:</source>
+        <target state="translated">&lt;Enter&gt; 키 기능:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>_Only add new line on enter after end of fully typed word</source>
+        <target state="translated">단어를 모두 입력한 후 &lt;Enter&gt; 키를 누르면 새 줄 추가(_O)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>_Always add new line on enter</source>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 항상 새 줄 추가(_A)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>_Never add new line on enter</source>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">코드 조각 항상 포함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">코드 조각 포함 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Snippets_behavior">
+        <source>Snippets behavior</source>
+        <target state="translated">코드 조각 동작</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
+        <source>Show completion list after a character is _deleted</source>
+        <target state="translated">문자를 삭제하면 완성 목록 표시(_D)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="null_checking_colon">
+        <source>'null' checking:</source>
+        <target state="translated">'null' 확인:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_throw_expression">
+        <source>Prefer throw-expression</source>
+        <target state="translated">throw 식 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_delegate_call">
+        <source>Prefer conditional delegate call</source>
+        <target state="translated">조건부 대리자 호출 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_is_with_cast_check">
+        <source>Prefer pattern matching over 'is' with 'cast' check</source>
+        <target state="translated">캐스트' 검사에서 'is'보다 패턴 일치 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
+        <source>Prefer pattern matching over 'as' with 'null' check</source>
+        <target state="translated">null' 검사에서 'as'보다 패턴 일치 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_block_body">
+        <source>Prefer block body</source>
+        <target state="translated">블록 본문 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_expression_body">
+        <source>Prefer expression body</source>
+        <target state="translated">식 본문 기본 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_return">
+        <source>Automatically format on return</source>
+        <target state="translated">반환할 때 서식 자동 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_when_typing">
+        <source>Automatically format when typing</source>
+        <target state="translated">입력할 때 서식 자동 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">안 함 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_on_single_line">
+        <source>When on single line</source>
+        <target state="translated">한 줄에 있는 경우</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_possible">
+        <source>When possible</source>
+        <target state="translated">가능한 경우</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_case_contents_when_block">
+        <source>Indent case contents (when block)</source>
+        <target state="translated">case 내용 들여쓰기(블록)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fade_out_unused_usings">
+        <source>Fade out unused usings</source>
+        <target state="translated">사용하지 않는 using 페이드 아웃</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
+        <source>Report invalid placeholders in 'string.Format' calls</source>
+        <target state="translated">String.Format' 호출에서 잘못된 자리 표시자 보고</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Separate_using_directive_groups">
+        <source>Separate using directive groups</source>
+        <target state="translated">using 지시문 그룹 구분</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_name_suggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">이름 제안 표시(_U)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
+        <target state="translated">산술 연산자:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  &amp;&amp;   ||   ??</source>
+        <target state="translated">기타 이항 연산자:  &amp;&amp;   ||   ??</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

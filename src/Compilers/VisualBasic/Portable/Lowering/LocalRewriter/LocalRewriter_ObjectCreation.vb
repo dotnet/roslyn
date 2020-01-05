@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' save the object initializer away to rewrite them later on and set the initializers to nothing to not rewrite them
             ' two times.
             Dim objectInitializer = node.InitializerOpt
-            node = node.Update(node.ConstructorOpt, node.Arguments, Nothing, node.Type)
+            node = node.Update(node.ConstructorOpt, node.Arguments, node.DefaultArguments, Nothing, node.Type)
 
             Dim ctor = node.ConstructorOpt
             Dim result As BoundExpression = node
@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 result = node.Update(ctor,
                                      RewriteCallArguments(node.Arguments, ctor.Parameters, temporaries, copyBack, False),
+                                     node.DefaultArguments,
                                      Nothing,
                                      ctor.ContainingType)
 
@@ -117,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' even if T is known to be a value type or reference type. This matches Dev10 VB.
 
             If _inExpressionLambda Then
-                ' NOTE: is we are in expression lambda, we want to keep BoundNewT 
-                ' NOTE: node, but we need to rewrite initializers if any
+                ' NOTE: If we are in expression lambda, we want to keep BoundNewT 
+                ' NOTE: node, but we need to rewrite initializers if any.
 
                 If node.InitializerOpt IsNot Nothing Then
                     Return VisitObjectCreationInitializer(node.InitializerOpt, node, node)
@@ -402,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case rewrittenObjectCreationExpression.Kind
                 Case BoundKind.ObjectCreationExpression
                     Dim objCreation = DirectCast(rewrittenObjectCreationExpression, BoundObjectCreationExpression)
-                    Return objCreation.Update(objCreation.ConstructorOpt, objCreation.Arguments, rewrittenInitializer, objCreation.Type)
+                    Return objCreation.Update(objCreation.ConstructorOpt, objCreation.Arguments, objCreation.DefaultArguments, rewrittenInitializer, objCreation.Type)
 
                 Case BoundKind.NewT
                     Dim newT = DirectCast(rewrittenObjectCreationExpression, BoundNewT)

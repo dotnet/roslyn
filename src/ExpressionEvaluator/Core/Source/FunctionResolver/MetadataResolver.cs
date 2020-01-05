@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return false;
             }
-            return methodParameters.SequenceEqual(parameters, MatchesParameter); 
+            return methodParameters.SequenceEqual(parameters, MatchesParameter);
         }
 
         private void OnFunctionResolved(

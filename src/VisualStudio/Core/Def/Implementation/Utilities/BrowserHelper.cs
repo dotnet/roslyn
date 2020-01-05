@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
@@ -10,13 +10,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     internal static class BrowserHelper
     {
         /// <summary>
-        /// unique VS session id
+        /// Unique VS session id. 
+        /// Internal for testing.
+        /// TODO: Revisit - static non-deterministic data https://github.com/dotnet/roslyn/issues/39415
         /// </summary>
-        private static readonly string s_requestId = Guid.NewGuid().ToString();
+        internal static readonly string EscapedRequestId = Guid.NewGuid().ToString();
 
-        private const string BingSearchString = "https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText={0}&mainLanguage={1}&projectType={2}&requestId={3}&clientId={4}&errorCode={5}";
+        private const string BingGetApiUrl = "https://bingdev.cloudapp.net/BingUrl.svc/Get";
+        private const int BingQueryArgumentMaxLength = 10240;
 
-        public static bool TryGetUri(string link, out Uri uri)
+        private static bool TryGetWellFormedHttpUri(string link, out Uri uri)
         {
             uri = null;
             if (string.IsNullOrWhiteSpace(link) || !Uri.IsWellFormedUriString(link, UriKind.Absolute))
@@ -34,29 +37,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             return true;
         }
 
-        public static Uri CreateBingQueryUri(DiagnosticData diagnostic)
-        {
-            var errorCode = diagnostic.Id;
-            var title = diagnostic.ENUMessageForBingSearch;
-            diagnostic.Workspace.GetLanguageAndProjectType(diagnostic.ProjectId, out var language, out var projectType);
+        public static Uri GetHelpLink(DiagnosticDescriptor descriptor, string language)
+            => GetHelpLink(descriptor.Id, descriptor.GetBingHelpMessage(), language, descriptor.HelpLinkUri);
 
-            return CreateBingQueryUri(errorCode, title, language, projectType);
+        public static Uri GetHelpLink(DiagnosticData data)
+            => GetHelpLink(data.Id, data.ENUMessageForBingSearch, data.Language, data.HelpLink);
+
+        private static Uri GetHelpLink(string diagnosticId, string title, string language, string rawHelpLink)
+        {
+            if (string.IsNullOrWhiteSpace(diagnosticId))
+            {
+                return null;
+            }
+
+            if (TryGetWellFormedHttpUri(rawHelpLink, out var link))
+            {
+                return link;
+            }
+
+            return new Uri(BingGetApiUrl +
+                "?selectedText=" + EscapeDataString(title) +
+                "&mainLanguage=" + EscapeDataString(language) +
+                "&requestId=" + EscapedRequestId +
+                "&errorCode=" + EscapeDataString(diagnosticId));
         }
 
-        public static Uri CreateBingQueryUri(string errorCode, string title, string language, string projectType)
+        private static string EscapeDataString(string str)
         {
-            errorCode = errorCode ?? string.Empty;
-            title = title ?? string.Empty;
-            language = language ?? string.Empty;
-            projectType = projectType ?? string.Empty;
+            if (str == null)
+            {
+                return string.Empty;
+            }
 
-            var url = string.Format(BingSearchString, Uri.EscapeDataString(title), Uri.EscapeDataString(language), Uri.EscapeDataString(projectType), Uri.EscapeDataString(s_requestId), Uri.EscapeDataString(string.Empty), Uri.EscapeDataString(errorCode));
-            return new Uri(url);
+            try
+            {
+                // Uri has limit on string size (32766 characters).
+                return Uri.EscapeDataString(str.Substring(0, Math.Min(str.Length, BingQueryArgumentMaxLength)));
+            }
+            catch (UriFormatException)
+            {
+                return string.Empty;
+            }
         }
+
+        public static string GetHelpLinkToolTip(DiagnosticData data)
+            => GetHelpLinkToolTip(data.Id, GetHelpLink(data));
+
+        public static string GetHelpLinkToolTip(string diagnosticId, Uri uri)
+        {
+            var strUri = uri.ToString();
+
+            var resourceName = strUri.StartsWith(BingGetApiUrl, StringComparison.Ordinal) ?
+                ServicesVSResources.Get_help_for_0_from_Bing : ServicesVSResources.Get_help_for_0;
+
+            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
+            return string.Format(resourceName, diagnosticId) + "\r\n" + strUri;
+        }
+
+        public static void StartBrowser(string uri)
+            => VsShellUtilities.OpenSystemBrowser(uri);
 
         public static void StartBrowser(Uri uri)
-        {
-            VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
-        }
+            => VsShellUtilities.OpenSystemBrowser(uri.AbsoluteUri);
     }
 }

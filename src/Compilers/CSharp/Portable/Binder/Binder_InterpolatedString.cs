@@ -29,14 +29,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.Interpolation:
                         {
                             var interpolation = (InterpolationSyntax)content;
-                            var value = BindValue(interpolation.Expression, diagnostics, Binder.BindValueKind.RValue);
+                            var value = BindValue(interpolation.Expression, diagnostics, BindValueKind.RValue);
+                            if (value.Type is null)
+                            {
+                                value = GenerateConversionForAssignment(objectType, value, diagnostics);
+                            }
+                            else
+                            {
+                                value = BindToNaturalType(value, diagnostics);
+                                _ = GenerateConversionForAssignment(objectType, value, diagnostics);
+                            }
+
                             // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
                             // when we perform overload resolution, to report a problem. So we do that check by calling
                             // GenerateConversionForAssignment with objectType. However we want to preserve the original expression's
                             // natural type so that overload resolution may select a specialized implementation of string.Format,
                             // so we discard the result of that call and only preserve its diagnostics.
-                            var discarded = GenerateConversionForAssignment(objectType, value, diagnostics);
-                            BoundExpression alignment = null, format = null;
+                            BoundExpression alignment = null;
+                            BoundLiteral format = null;
                             if (interpolation.AlignmentClause != null)
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);

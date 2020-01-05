@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
@@ -18,6 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IEnumerable<ResourceDescription> manifestResources)
             : base(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources)
         {
+        }
+
+        internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+        {
+            // Embedded attributes should never be synthesized in modules.
+            throw ExceptionUtilities.Unreachable;
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)

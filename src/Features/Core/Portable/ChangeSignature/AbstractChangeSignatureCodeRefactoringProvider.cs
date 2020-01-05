@@ -11,12 +11,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         Name = PredefinedCodeRefactoringProviderNames.ChangeSignature), Shared]
     internal class ChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        public ChangeSignatureCodeRefactoringProvider()
+        {
+        }
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            if (context.Span.IsEmpty)
+            var (document, span, cancellationToken) = context;
+            if (span.IsEmpty)
             {
-                var service = context.Document.GetLanguageService<AbstractChangeSignatureService>();
-                var actions = await service.GetChangeSignatureCodeActionAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+                var service = document.GetLanguageService<AbstractChangeSignatureService>();
+                var actions = await service.GetChangeSignatureCodeActionAsync(document, span, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(actions);
             }
         }

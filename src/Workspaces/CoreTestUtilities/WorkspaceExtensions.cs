@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -19,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var id = projectId.CreateDocumentId(name, folders);
             var oldSolution = workspace.CurrentSolution;
-            var newSolution = oldSolution.AddDocument(id, name, initialText, folders).GetDocument(id).WithSourceCodeKind(sourceCodeKind).Project.Solution;
+            var newSolution = oldSolution.AddDocument(id, name, initialText, folders).GetDocument(id)!.WithSourceCodeKind(sourceCodeKind).Project.Solution;
             workspace.TryApplyChanges(newSolution);
             return id;
         }
@@ -41,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// <summary>
         /// Create a new DocumentId based on a name and optional folders
         /// </summary>
-        public static DocumentId CreateDocumentId(this ProjectId projectId, string name, IEnumerable<string> folders = null)
+        public static DocumentId CreateDocumentId(this ProjectId projectId, string name, IEnumerable<string>? folders = null)
         {
             if (folders != null)
             {

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,28 +20,32 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingTypeResolution = reader.ReadSymbolKey();
                 var isIndexer = reader.ReadBoolean();
-                var refKinds = reader.ReadRefKindArray();
-                var originalParameterTypes = reader.ReadSymbolKeyArray().Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
 
-                if (originalParameterTypes.Any(s_typeIsNull))
+                using var refKinds = reader.ReadRefKindArray();
+                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>();
+
+                if (parameterTypes.IsDefault)
                 {
                     return default;
                 }
 
-                var properties = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>()
-                    .SelectMany(t => t.GetMembers())
-                    .OfType<IPropertySymbol>()
-                    .Where(p => p.Parameters.Length == refKinds.Length &&
-                                p.MetadataName == metadataName &&
-                                p.IsIndexer == isIndexer);
-                var matchingProperties = properties.Where(p =>
-                    ParameterRefKindsMatch(p.OriginalDefinition.Parameters, refKinds) &&
-                    reader.ParameterTypesMatch(p.OriginalDefinition.Parameters, originalParameterTypes));
+                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataNameOpt: null);
+                using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
+                foreach (var property in properties)
+                {
+                    if (property.Parameters.Length == refKinds.Count &&
+                        property.MetadataName == metadataName &&
+                        property.IsIndexer == isIndexer &&
+                        ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
+                        reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
+                    {
+                        result.AddIfNotNull(property);
+                    }
+                }
 
-                return CreateSymbolInfo(matchingProperties);
+                return CreateResolution(result);
             }
         }
     }

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken = cancellationToken;
             }
 
-            public Task ReportProgressAsync(int current, int maximum) 
+            public Task ReportProgressAsync(int current, int maximum)
                 => _progress.ReportProgressAsync(current, maximum);
 
             public async Task OnReferenceFoundAsync(

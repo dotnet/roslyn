@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
 
         Private Const BC37284 As String = NameOf(BC37284)
 
+        <ImportingConstructor>
         Public Sub New()
             MyBase.New(BC37284)
         End Sub

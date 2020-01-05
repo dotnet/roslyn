@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class SymbolDisplayPartExtensions
     {
-        public static SymbolDisplayPart MassageErrorTypeNames(this SymbolDisplayPart part, string replacement = null)
+        public static SymbolDisplayPart MassageErrorTypeNames(this SymbolDisplayPart part, string? replacement = null)
         {
             if (part.Kind == SymbolDisplayPartKind.ErrorTypeName)
             {

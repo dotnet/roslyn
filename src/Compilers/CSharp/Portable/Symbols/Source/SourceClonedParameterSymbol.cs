@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -29,10 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalParam = originalParam;
         }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+        public override bool IsImplicitlyDeclared => true;
+
+        public override bool IsDiscard => _originalParam.IsDiscard;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -83,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _originalParam.Type; }
+            get { return _originalParam.TypeWithAnnotations; }
         }
 
         public override RefKind RefKind
@@ -116,11 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override string Name
         {
             get { return _originalParam.Name; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _originalParam.CustomModifiers; }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -158,14 +150,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            get { return FlowAnalysisAnnotations.None; }
+        }
 
-            if (this.RefKind == RefKind.RefReadOnly)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
-            }
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return ImmutableHashSet<string>.Empty; }
         }
 
         #endregion

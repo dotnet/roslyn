@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Private _parser As Parser
             Private _declarationBlocksBeingVisited As ArrayBuilder(Of VisualBasicSyntaxNode) ' CompilationUnitSyntax is treated as a declaration block for our purposes
-            Private _parentsOfRegionDirectivesAwaitingClosure As ArrayBuilder(Of VisualBasicSyntaxNode) ' Nodes are coming from _declrationBlocksBeingVisited
+            Private _parentsOfRegionDirectivesAwaitingClosure As ArrayBuilder(Of VisualBasicSyntaxNode) ' Nodes are coming from _declarationBlocksBeingVisited
             Private _tokenWithDirectivesBeingVisited As SyntaxToken
 
             Private Sub New()

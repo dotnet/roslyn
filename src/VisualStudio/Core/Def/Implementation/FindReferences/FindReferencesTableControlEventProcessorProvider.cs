@@ -20,6 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     [Order(Before = Priority.Default)]
     internal class FindUsagesTableControlEventProcessorProvider : ITableControlEventProcessorProvider
     {
+        [ImportingConstructor]
+        public FindUsagesTableControlEventProcessorProvider()
+        {
+        }
+
         public ITableControlEventProcessor GetAssociatedEventProcessor(
             IWpfTableControl tableControl)
         {
@@ -33,6 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 if (entry.Identity is ISupportsNavigation supportsNavigation)
                 {
                     if (supportsNavigation.TryNavigateTo(e.IsPreview))
+                    {
+                        e.Handled = true;
+                        return;
+                    }
+                }
+
+                if (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) && item is ISupportsNavigation itemSupportsNavigation)
+                {
+                    if (itemSupportsNavigation.TryNavigateTo(e.IsPreview))
                     {
                         e.Handled = true;
                         return;

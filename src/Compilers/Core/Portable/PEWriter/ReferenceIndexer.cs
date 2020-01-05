@@ -28,7 +28,7 @@ namespace Microsoft.Cci
 
             Visit(module.GetAssemblyReferences(Context));
             Visit(module.GetSourceModuleAttributes());
-            Visit(module.GetTopLevelTypes(Context));
+            Visit(module.GetTopLevelTypeDefinitions(Context));
 
             foreach (var exportedType in module.GetExportedTypes(Context.Diagnostics))
             {
@@ -118,6 +118,10 @@ namespace Microsoft.Cci
                             break;
                         }
                     }
+                }
+                else if (!metadataWriter.MetadataOnly)
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

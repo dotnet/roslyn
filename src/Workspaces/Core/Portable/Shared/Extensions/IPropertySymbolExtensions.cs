@@ -1,16 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class IPropertySymbolExtensions
     {
-        public static IPropertySymbol RenameParameters(this IPropertySymbol property, IList<string> parameterNames)
+        public static IPropertySymbol RenameParameters(this IPropertySymbol property, ImmutableArray<string> parameterNames)
         {
             var parameterList = property.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -35,16 +38,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 property.IsIndexer);
         }
 
-        public static IPropertySymbol RemoveAttributeFromParameters(
-            this IPropertySymbol property, INamedTypeSymbol[] attributesToRemove)
+        public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
+            this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
         {
-            if (attributesToRemove == null)
-            {
-                return property;
-            }
-
             bool shouldRemoveAttribute(AttributeData a) =>
-                attributesToRemove.Where(attr => attr != null).Any(attr => attr.Equals(a.AttributeClass));
+                attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
 
             var someParameterHasAttribute = property.Parameters
                 .Any(p => p.GetAttributes().Any(shouldRemoveAttribute));
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsWritableInConstructor(this IPropertySymbol property)
             => (property.SetMethod != null || ContainsBackingField(property));
 
-        public static IFieldSymbol GetBackingFieldIfAny(this IPropertySymbol property)
+        public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
             => property.ContainingType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));

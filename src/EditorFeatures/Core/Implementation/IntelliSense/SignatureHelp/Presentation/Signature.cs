@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private string _content;
         public string Content => InitializedThis._content;
 
-        private int _parameterIndex = -1;
+        private readonly int _parameterIndex = -1;
         public IParameter CurrentParameter
         {
             get
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             var paramColumnCount = 0;
 
-            for (int i = 0; i < _signatureHelpItem.Parameters.Length; i++)
+            for (var i = 0; i < _signatureHelpItem.Parameters.Length; i++)
             {
                 var sigHelpParameter = _signatureHelpItem.Parameters[i];
 

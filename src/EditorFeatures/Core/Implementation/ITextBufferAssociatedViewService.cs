@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ITextBufferAssociatedViewService
     {
-        IEnumerable<IWpfTextView> GetAssociatedTextViews(ITextBuffer textBuffer);
+        IEnumerable<ITextView> GetAssociatedTextViews(ITextBuffer textBuffer);
 
         event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersConnected;
     }
@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor
     internal class SubjectBuffersConnectedEventArgs
     {
         public ReadOnlyCollection<ITextBuffer> SubjectBuffers { get; }
-        public IWpfTextView TextView { get; }
+        public ITextView TextView { get; }
 
-        public SubjectBuffersConnectedEventArgs(IWpfTextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
+        public SubjectBuffersConnectedEventArgs(ITextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
             this.TextView = textView;
             this.SubjectBuffers = subjectBuffers;

@@ -39,43 +39,43 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
 
             private bool TryInitialize(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var classType))
+                if (!service.TryInitializeState(semanticDocument, textSpan, cancellationToken, out var classType))
                 {
                     return false;
                 }
 
-                this.ClassType = classType;
+                ClassType = classType;
 
-                var baseType = this.ClassType.BaseType;
-                if (this.ClassType.IsStatic ||
+                var baseType = ClassType.BaseType;
+                if (ClassType.IsStatic ||
                     baseType == null ||
                     baseType.TypeKind == TypeKind.Error)
                 {
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                var classConstructors = this.ClassType.InstanceConstructors;
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+                var classConstructors = ClassType.InstanceConstructors;
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
+                var destinationProvider = semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(ClassType.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
-                this.UnimplementedConstructors =
+                UnimplementedConstructors =
                     baseType.InstanceConstructors
-                            .WhereAsArray(c => c.IsAccessibleWithin(this.ClassType) &&
+                            .WhereAsArray(c => c.IsAccessibleWithin(ClassType) &&
                                                IsMissing(c, classConstructors, isCaseSensitive));
 
-                return this.UnimplementedConstructors.Length > 0;
+                return UnimplementedConstructors.Length > 0;
             }
 
             private bool IsMissing(
-                IMethodSymbol constructor, 
-                ImmutableArray<IMethodSymbol> classConstructors, 
+                IMethodSymbol constructor,
+                ImmutableArray<IMethodSymbol> classConstructors,
                 bool isCaseSensitive)
             {
                 var matchingConstructor = classConstructors.FirstOrDefault(

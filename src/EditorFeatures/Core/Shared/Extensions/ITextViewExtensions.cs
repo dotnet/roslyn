@@ -99,6 +99,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             textView.Caret.MoveTo(isReversed ? spanInView.Start : spanInView.End);
         }
 
+        /// <summary>
+        /// Sets a multi selection with the last span as the primary selection.
+        /// Also maps up to the correct span in view before attempting to set the selection.
+        /// </summary>
+        public static void SetMultiSelection(this ITextView textView, IEnumerable<SnapshotSpan> spans)
+        {
+            var spansInView = spans.Select(s => new Selection(textView.GetSpanInView(s).Single()));
+            textView.GetMultiSelectionBroker().SetSelectionRange(spansInView, spansInView.Last());
+        }
+
         public static bool TryMoveCaretToAndEnsureVisible(this ITextView textView, SnapshotPoint point, IOutliningManagerService outliningManagerService = null, EnsureSpanVisibleOptions ensureSpanVisibleOptions = EnsureSpanVisibleOptions.None)
         {
             return textView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(point), outliningManagerService, ensureSpanVisibleOptions);
@@ -304,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var targetSpan = textView.BufferGraph.MapUpToSnapshot(
                 virtualSnapshotSpan.SnapshotSpan,
                 SpanTrackingMode.EdgeExclusive,
-                textView.TextSnapshot).FirstOrNullable();
+                textView.TextSnapshot).FirstOrNull();
 
             if (targetSpan.HasValue)
             {

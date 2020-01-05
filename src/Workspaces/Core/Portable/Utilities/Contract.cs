@@ -1,75 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     internal static class Contract
     {
         /// <summary>
-        /// Equivalent to Debug.Assert.  
-        ///
-        /// DevDiv 867813 covers removing this completely at a future date
-        /// </summary>
-        [Conditional("DEBUG")]
-        [DebuggerHidden]
-        public static void Requires(bool condition, string message = null)
-        {
-            Assert(condition, message);
-        }
-
-        /// <summary>
-        /// Equivalent to Debug.Assert.  
-        ///
-        /// DevDiv 867813 covers removing this completely at a future date
-        /// </summary>
-        [Conditional("DEBUG")]
-        [DebuggerHidden]
-        public static void Assert(bool condition, string message = null)
-        {
-            if (condition)
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(message))
-            {
-                Debug.Assert(condition);
-            }
-            else
-            {
-                Debug.Assert(condition, message);
-            }
-        }
-
-        /// <summary>
-        /// Equivalent to Debug.Assert.  
-        ///
-        /// DevDiv 867813 covers removing this completely at a future date
-        /// </summary>
-        [Conditional("DEBUG")]
-        public static void Assume(bool condition, string message = null)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                Debug.Assert(condition);
-            }
-            else
-            {
-                Debug.Assert(condition, message);
-            }
-        }
-
-        /// <summary>
         /// Throws a non-accessible exception if the provided value is null.  This method executes in
         /// all builds
         /// </summary>
-        public static void ThrowIfNull<T>(T value, string message = null) where T : class
+        public static void ThrowIfNull<T>([NotNull] T value, string? message = null) where T : class?
         {
             if (value == null)
             {
-                message = message ?? "Unexpected Null";
+                message ??= "Unexpected Null";
                 Fail(message);
             }
         }
@@ -78,11 +27,11 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is false.  This method executes
         /// in all builds
         /// </summary>
-        public static void ThrowIfFalse(bool condition, string message = null)
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string? message = null)
         {
             if (!condition)
             {
-                message = message ?? "Unexpected false";
+                message ??= "Unexpected false";
                 Fail(message);
             }
         }
@@ -91,22 +40,24 @@ namespace Roslyn.Utilities
         /// Throws a non-accessible exception if the provided value is true. This method executes in
         /// all builds.
         /// </summary>
-        public static void ThrowIfTrue(bool condition, string message = null)
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string? message = null)
         {
             if (condition)
             {
-                message = message ?? "Unexpected true";
+                message ??= "Unexpected true";
                 Fail(message);
             }
         }
 
         [DebuggerHidden]
+        [DoesNotReturn]
         public static void Fail(string message = "Unexpected")
         {
             throw new InvalidOperationException(message);
         }
 
         [DebuggerHidden]
+        [DoesNotReturn]
         public static T FailWithReturn<T>(string message = "Unexpected")
         {
             throw new InvalidOperationException(message);

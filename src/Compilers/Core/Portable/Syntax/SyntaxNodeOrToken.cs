@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     [StructLayout(LayoutKind.Auto)]
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
+    public readonly struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
     {
         // In a case if we are wrapping a SyntaxNode this is the SyntaxNode itself.
         // In a case where we are wrapping a token, this is the token's parent.
@@ -801,12 +801,13 @@ namespace Microsoft.CodeAnalysis
             return directives ?? SpecializedCollections.EmptyList<TDirective>();
         }
 
-        private static void GetDirectives<TDirective>(SyntaxNodeOrToken node, Func<TDirective, bool> filter, ref List<TDirective> directives)
+        private static void GetDirectives<TDirective>(in SyntaxNodeOrToken node, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
-            if (node._token != null)
+            if (node._token != null && node.AsToken() is var token && token.ContainsDirectives)
             {
-                GetDirectives(node.AsToken(), filter, ref directives);
+                GetDirectives(token.LeadingTrivia, filter, ref directives);
+                GetDirectives(token.TrailingTrivia, filter, ref directives);
             }
             else if (node._nodeOrParent != null)
             {
@@ -817,39 +818,20 @@ namespace Microsoft.CodeAnalysis
         private static void GetDirectives<TDirective>(SyntaxNode node, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
-            if (node.ContainsDirectives)
+            foreach (var trivia in node.DescendantTrivia(node => node.ContainsDirectives, descendIntoTrivia: true))
             {
-                foreach (var child in node.ChildNodesAndTokens())
-                {
-                    GetDirectives(child, filter, ref directives);
-                }
+                _ = GetDirectivesInTrivia(trivia, filter, ref directives);
             }
         }
 
-        private static void GetDirectives<TDirective>(SyntaxToken token, Func<TDirective, bool> filter, ref List<TDirective> directives)
+        private static bool GetDirectivesInTrivia<TDirective>(in SyntaxTrivia trivia, Func<TDirective, bool> filter, ref List<TDirective> directives)
             where TDirective : SyntaxNode
         {
-            if (token.ContainsDirectives)
+            if (trivia.IsDirective)
             {
-                GetDirectives(token.LeadingTrivia, filter, ref directives);
-                GetDirectives(token.TrailingTrivia, filter, ref directives);
-            }
-        }
-
-        private static void GetDirectives<TDirective>(SyntaxTriviaList trivia, Func<TDirective, bool> filter, ref List<TDirective> directives)
-            where TDirective : SyntaxNode
-        {
-            foreach (var tr in trivia)
-            {
-                if (tr.IsDirective)
+                if (trivia.GetStructure() is TDirective directive &&
+                    filter?.Invoke(directive) != false)
                 {
-                    var directive = tr.GetStructure() as TDirective;
-                    if (directive == null ||
-                        (filter != null && !filter(directive)))
-                    {
-                        continue;
-                    }
-
                     if (directives == null)
                     {
                         directives = new List<TDirective>();
@@ -857,9 +839,20 @@ namespace Microsoft.CodeAnalysis
 
                     directives.Add(directive);
                 }
-                else if (tr.HasStructure)
+
+                return true;
+            }
+            return false;
+        }
+
+        private static void GetDirectives<TDirective>(in SyntaxTriviaList trivia, Func<TDirective, bool> filter, ref List<TDirective> directives)
+            where TDirective : SyntaxNode
+        {
+            foreach (var tr in trivia)
+            {
+                if (!GetDirectivesInTrivia(tr, filter, ref directives) && tr.GetStructure() is SyntaxNode node)
                 {
-                    GetDirectives(tr.GetStructure(), filter, ref directives);
+                    GetDirectives(node, filter, ref directives);
                 }
             }
         }

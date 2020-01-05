@@ -1,0 +1,862 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CSharpFeaturesResources.resx">
+    <body>
+      <trans-unit id="Add_Await_and_ConfigureAwaitFalse">
+        <source>Add await and ConfigureAwait(false)</source>
+        <target state="translated">await 및 ConfigureAwait(false) 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_accessibility_modifiers">
+        <source>Add accessibility modifiers</source>
+        <target state="translated">접근성 한정자 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add await</source>
+        <target state="translated">await 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_missing_usings">
+        <source>Add missing usings</source>
+        <target state="translated">누락된 using 추가</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_remove_braces_for_single_line_control_statements">
+        <source>Add/remove braces for single-line control statements</source>
+        <target state="translated">한 줄 제어문에 대해 중괄호 추가/제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="translated">이 프로젝트에서 안전하지 않은 코드 허용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_expression_block_body_preferences">
+        <source>Apply expression/block body preferences</source>
+        <target state="translated">식/블록 본문 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_implicit_explicit_type_preferences">
+        <source>Apply implicit/explicit type preferences</source>
+        <target state="translated">암시적/명시적 형식 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_inline_out_variable_preferences">
+        <source>Apply inline 'out' variables preferences</source>
+        <target state="translated">인라인 'out' 변수 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_language_framework_type_preferences">
+        <source>Apply language/framework type preferences</source>
+        <target state="translated">언어/프레임워크 형식 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">개체/컬렉션 초기화 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_this_qualification_preferences">
+        <source>Apply 'this.' qualification preferences</source>
+        <target state="translated">'this.' 한정자 기본 설정 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters">
+        <source>Assign 'out' parameters</source>
+        <target state="translated">'out' 매개 변수 할당</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Assign_out_parameters_at_start">
+        <source>Assign 'out' parameters (at start)</source>
+        <target state="translated">'out' 매개 변수 할당(시작 시)</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_switch_statement_to_expression">
+        <source>Convert switch statement to expression</source>
+        <target state="translated">switch 문을 식으로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_method">
+        <source>Convert to method</source>
+        <target state="translated">메서드로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch_expression">
+        <source>Convert to 'switch' expression</source>
+        <target state="new">Convert to 'switch' expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_switch_statement">
+        <source>Convert to 'switch' statement</source>
+        <target state="new">Convert to 'switch' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="translated">Nullable로 선언</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="translated">반환 형식 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_temporary_variable">
+        <source>Inline temporary variable</source>
+        <target state="translated">인라인 임시 변수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict_s_detected">
+        <source>Conflict(s) detected.</source>
+        <target state="translated">충돌이 감지되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_private_field_readonly_when_possible">
+        <source>Make private fields readonly when possible</source>
+        <target state="translated">가능한 경우 프라이빗 필드를 읽기 전용으로 만들기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="translated">'ref struct'로 지정</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="translated">캡처된 변수를 인수로 전달</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">불필요한 캐스트 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">사용하지 않는 변수 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reverse_for_statement">
+        <source>Reverse 'for' statement</source>
+        <target state="new">Reverse 'for' statement</target>
+        <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Simplify_lambda_expression">
+        <source>Simplify lambda expression</source>
+        <target state="translated">람다 식 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_all_occurrences">
+        <source>Simplify all occurrences</source>
+        <target state="translated">모든 항목 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Usings">
+        <source>Remove Unnecessary Usings</source>
+        <target state="translated">불필요한 Using 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">접근성 한정자 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="translated">'{0}' 클래스 봉인 해제</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_switch_expression">
+        <source>Use 'switch' expression</source>
+        <target state="translated">'switch' 식 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
+        <source>Warning: Inlining temporary into conditional method call.</source>
+        <target state="translated">경고: 임시 작업을 조건부 메서드 호출로 인라인 처리합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="translated">경고: 로컬 함수 선언에 매개 변수를 추가할 경우 잘못된 코드가 생성될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_not_null_here">
+        <source>'{0}' is not null here.</source>
+        <target state="translated">'{0}'은(는) 여기에서 null이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_may_be_null_here">
+        <source>'{0}' may be null here.</source>
+        <target state="translated">'{0}'은(는) 여기에서 null일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="asynchronous_foreach_statement">
+        <source>asynchronous foreach statement</source>
+        <target state="translated">비동기 foreach 문</target>
+        <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="asynchronous_using_declaration">
+        <source>asynchronous using declaration</source>
+        <target state="translated">비동기 using 선언</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="translated">'if' 문을 간단하게 줄일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="lambda_expression">
+        <source>&lt;lambda expression&gt;</source>
+        <target state="translated">&lt;람다 식&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
+        <source>Autoselect disabled due to potential lambda declaration.</source>
+        <target state="translated">람다 선언이 있을 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_variable_declaration">
+        <source>local variable declaration</source>
+        <target state="translated">지역 변수 선언</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="member_name">
+        <source>&lt;member name&gt; = </source>
+        <target state="translated">&lt;멤버 이름&gt; =</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
+        <source>Autoselect disabled due to possible explicitly named anonymous type member creation.</source>
+        <target state="translated">명시적으로 이름이 지정된 익명 형식 멤버가 만들어질 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="element_name">
+        <source>&lt;element name&gt; : </source>
+        <target state="translated">&lt;요소 이름&gt;:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
+        <source>Autoselect disabled due to possible tuple type element creation.</source>
+        <target state="translated">가능한 튜플 형식 요소 만들기로 인해 자동 선택을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="range_variable">
+        <source>&lt;range variable&gt;</source>
+        <target state="translated">&lt;범위 변수&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
+        <source>Autoselect disabled due to potential range variable declaration.</source>
+        <target state="translated">범위 변수가 선언될 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_name_0">
+        <source>Simplify name '{0}'</source>
+        <target state="translated">{0}' 이름 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_member_access_0">
+        <source>Simplify member access '{0}'</source>
+        <target state="translated">멤버 액세스 '{0}' 단순화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_this_qualification">
+        <source>Remove 'this' qualification</source>
+        <target state="translated">this' 한정자 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">이름은 간단하게 줄일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
+        <source>Can't determine valid range of statements to extract</source>
+        <target state="translated">추출할 문의 유효한 범위를 결정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_all_code_paths_return">
+        <source>Not all code paths return</source>
+        <target state="translated">일부 코드 경로가 반환됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_node">
+        <source>Selection does not contain a valid node</source>
+        <target state="translated">선택 항목에 유효한 노드가 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="translated">잘못된 선택 항목입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="translated">선택 항목에 유효한 토큰이 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="translated">추출을 수행할 선택 항목이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="translated">추출에 필요한 일반 루트 노드가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_invalid_selection">
+        <source>Contains invalid selection.</source>
+        <target state="translated">잘못된 선택 항목을 포함합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selection_contains_syntactic_errors">
+        <source>The selection contains syntactic errors</source>
+        <target state="translated">선택 영역에 구문 오류가 포함되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_not_cross_over_preprocessor_directives">
+        <source>Selection can not cross over preprocessor directives.</source>
+        <target state="translated">여러 전처리기 지시문을 교차해서 선택할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_not_contain_a_yield_statement">
+        <source>Selection can not contain a yield statement.</source>
+        <target state="translated">선택 항목에는 yield 문이 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_not_contain_throw_statement">
+        <source>Selection can not contain throw statement.</source>
+        <target state="translated">선택 항목에는 throw 문이 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_not_be_part_of_constant_initializer_expression">
+        <source>Selection can not be part of constant initializer expression.</source>
+        <target state="translated">선택 항목은 상수 이니셜라이저 식의 일부일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_can_not_contain_a_pattern_expression">
+        <source>Selection can not contain a pattern expression.</source>
+        <target state="translated">선택 항목에 패턴 식이 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_selected_code_is_inside_an_unsafe_context">
+        <source>The selected code is inside an unsafe context.</source>
+        <target state="translated">선택한 코드가 안전하지 않은 컨텍스트 내에 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_statement_range_to_extract">
+        <source>No valid statement range to extract</source>
+        <target state="translated">추출하는 데 유효한 문 범위가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="deprecated">
+        <source>deprecated</source>
+        <target state="translated">사용되지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="extension">
+        <source>extension</source>
+        <target state="translated">확장</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="awaitable">
+        <source>awaitable</source>
+        <target state="translated">대기 가능</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="awaitable_extension">
+        <source>awaitable, extension</source>
+        <target state="translated">대기 가능, 확장</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_Usings">
+        <source>Organize Usings</source>
+        <target state="translated">Using 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_await">
+        <source>Insert 'await'.</source>
+        <target state="translated">Await'를 삽입합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_0_return_Task_instead_of_void">
+        <source>Make {0} return Task instead of void.</source>
+        <target state="translated">{0}에서 void 대신 Task를 반환하도록 설정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_return_type_from_0_to_1">
+        <source>Change return type from {0} to {1}</source>
+        <target state="translated">반환 형식을 {0}에서 {1}(으)로 변경</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_return_with_yield_return">
+        <source>Replace return with yield return</source>
+        <target state="translated">return을 yield return으로 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_explicit_conversion_operator_in_0">
+        <source>Generate explicit conversion operator in '{0}'</source>
+        <target state="translated">{0}'에서 명시적 변환 연산자 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_implicit_conversion_operator_in_0">
+        <source>Generate implicit conversion operator in '{0}'</source>
+        <target state="translated">{0}'에서 암시적 변환 연산자 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above">
+        <source>Do not change this code. Put cleanup code in Dispose(bool disposing) above.</source>
+        <target state="translated">이 코드를 변경하지 마세요. 위의 Dispose(bool disposing)에 정리 코드를 입력하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_a_finalizer_below">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.</source>
+        <target state="translated">TODO: 관리되지 않는 리소스(관리되지 않는 개체)를 해제하고 아래의 종료자를 재정의합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources">
+        <source>TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.</source>
+        <target state="translated">TODO: 위의 Dispose(bool disposing)에 관리되지 않는 리소스를 해제하는 코드가 포함되어 있는 경우에만 종료자를 재정의합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_code_added_to_correctly_implement_the_disposable_pattern">
+        <source>This code added to correctly implement the disposable pattern.</source>
+        <target state="translated">삭제 가능한 패턴을 올바르게 구현하기 위해 추가된 코드입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_uncomment_the_following_line_if_the_finalizer_is_overridden_above">
+        <source>TODO: uncomment the following line if the finalizer is overridden above.</source>
+        <target state="translated">TODO: 위의 종료자가 재정의된 경우 다음 코드 줄의 주석 처리를 제거합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_directive_is_unnecessary">
+        <source>Using directive is unnecessary.</source>
+        <target state="translated">Using 지시문은 필요하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="switch_statement">
+        <source>switch statement</source>
+        <target state="translated">switch 문</target>
+        <note>{Locked="switch"} "switch" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="switch_statement_case_clause">
+        <source>switch statement case clause</source>
+        <target state="translated">switch 문 case 절</target>
+        <note>{Locked="switch"}{Locked="case"} "switch" and "case" are a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="try_block">
+        <source>try block</source>
+        <target state="translated">try 블록</target>
+        <note>{Locked="try"} "try" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="catch_clause">
+        <source>catch clause</source>
+        <target state="translated">catch 절</target>
+        <note>{Locked="catch"} "catch" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="filter_clause">
+        <source>filter clause</source>
+        <target state="translated">filter 절</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="finally_clause">
+        <source>finally clause</source>
+        <target state="translated">finally 절</target>
+        <note>{Locked="finally"} "finally" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="fixed_statement">
+        <source>fixed statement</source>
+        <target state="translated">fixed 문</target>
+        <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="using_declaration">
+        <source>using declaration</source>
+        <target state="translated">using 선언</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="using_statement">
+        <source>using statement</source>
+        <target state="translated">using 문</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="lock_statement">
+        <source>lock statement</source>
+        <target state="translated">lock 문</target>
+        <note>{Locked="lock"} "lock" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="foreach_statement">
+        <source>foreach statement</source>
+        <target state="translated">foreach 문</target>
+        <note>{Locked="foreach"} "foreach" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="checked_statement">
+        <source>checked statement</source>
+        <target state="translated">checked 문</target>
+        <note>{Locked="checked"} "checked" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="unchecked_statement">
+        <source>unchecked statement</source>
+        <target state="translated">unchecked 문</target>
+        <note>{Locked="unchecked"} "unchecked" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="await_expression">
+        <source>await expression</source>
+        <target state="translated">await 식</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="lambda">
+        <source>lambda</source>
+        <target state="translated">람다</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="anonymous_method">
+        <source>anonymous method</source>
+        <target state="translated">무명 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_clause">
+        <source>from clause</source>
+        <target state="translated">from 절</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="join_clause">
+        <source>join clause</source>
+        <target state="translated">join 절</target>
+        <note>{Locked="join"} "join" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="let_clause">
+        <source>let clause</source>
+        <target state="translated">let 절</target>
+        <note>{Locked="let"} "let" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="where_clause">
+        <source>where clause</source>
+        <target state="translated">where 절</target>
+        <note>{Locked="where"} "where" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="orderby_clause">
+        <source>orderby clause</source>
+        <target state="translated">orderby 절</target>
+        <note>{Locked="orderby"} "orderby" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="select_clause">
+        <source>select clause</source>
+        <target state="translated">select 절</target>
+        <note>{Locked="select"} "select" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="groupby_clause">
+        <source>groupby clause</source>
+        <target state="translated">groupby 절</target>
+        <note>{Locked="groupby"} "groupby" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="query_body">
+        <source>query body</source>
+        <target state="translated">쿼리 본문</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_clause">
+        <source>into clause</source>
+        <target state="translated">into 절</target>
+        <note>{Locked="into"} "into" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="is_pattern">
+        <source>is pattern</source>
+        <target state="translated">is 패턴</target>
+        <note>{Locked="is"} "is" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="deconstruction">
+        <source>deconstruction</source>
+        <target state="translated">분해</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="tuple">
+        <source>tuple</source>
+        <target state="translated">튜플</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="local_function">
+        <source>local function</source>
+        <target state="translated">로컬 함수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="out_var">
+        <source>out variable</source>
+        <target state="translated">out 변수</target>
+        <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ref_local_or_expression">
+        <source>ref local or expression</source>
+        <target state="translated">ref 지역 또는 식</target>
+        <note>{Locked="ref"} "ref" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="global_statement">
+        <source>global statement</source>
+        <target state="translated">global 문</target>
+        <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="using_namespace">
+        <source>using namespace</source>
+        <target state="translated">using 네임스페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_directive">
+        <source>using directive</source>
+        <target state="translated">using 지시문</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="event_field">
+        <source>event field</source>
+        <target state="translated">이벤트 필드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="conversion_operator">
+        <source>conversion operator</source>
+        <target state="translated">변환 연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="destructor">
+        <source>destructor</source>
+        <target state="translated">소멸자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="indexer">
+        <source>indexer</source>
+        <target state="translated">인덱서</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_getter">
+        <source>property getter</source>
+        <target state="translated">속성 getter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="indexer_getter">
+        <source>indexer getter</source>
+        <target state="translated">인덱서 getter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_setter">
+        <source>property setter</source>
+        <target state="translated">속성 setter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="indexer_setter">
+        <source>indexer setter</source>
+        <target state="translated">인덱서 setter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="attribute_target">
+        <source>attribute target</source>
+        <target state="translated">특성 대상</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_contain_a_constructor_that_takes_that_many_arguments">
+        <source>'{0}' does not contain a constructor that takes that many arguments.</source>
+        <target state="translated">'{0}'에 해당 개수의 인수를 사용하는 생성자가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_name_0_does_not_exist_in_the_current_context">
+        <source>The name '{0}' does not exist in the current context.</source>
+        <target state="translated">이름 '{0}'이(가) 현재 컨텍스트에 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hide_base_member">
+        <source>Hide base member</source>
+        <target state="translated">기본 멤버 숨기기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate_invocation_can_be_simplified">
+        <source>Delegate invocation can be simplified.</source>
+        <target state="translated">대리자 호출을 간단하게 만들 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties">
+        <source>Properties</source>
+        <target state="translated">속성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicit_type_instead_of_var">
+        <source>Use explicit type instead of 'var'</source>
+        <target state="translated">var' 대신에 명시적 형식을 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicit_type">
+        <source>Use explicit type</source>
+        <target state="translated">명시적 형식 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="use_var_instead_of_explicit_type">
+        <source>use 'var' instead of explicit type</source>
+        <target state="translated">대신 명시적 형식의 'var'을 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_implicit_type">
+        <source>Use implicit type</source>
+        <target state="translated">암시적 형식 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
+        <source>Autoselect disabled due to namespace declaration.</source>
+        <target state="translated">네임스페이스 선언으로 인해 자동 선택을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="namespace_name">
+        <source>&lt;namespace name&gt;</source>
+        <target state="translated">&lt;네임스페이스 이름&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_type_declaration">
+        <source>Autoselect disabled due to type declaration.</source>
+        <target state="translated">형식 선언으로 인해 자동 선택을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
+        <source>Autoselect disabled due to possible deconstruction declaration.</source>
+        <target state="translated">가능한 분해 선언으로 인하여 자동 선택 사용이 중지되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_this_project_to_csharp_language_version_0">
+        <source>Upgrade this project to C# language version '{0}'</source>
+        <target state="translated">이 프로젝트를 C# 언어 버전 '{0}'(으)로 업그레이드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Upgrade_all_csharp_projects_to_language_version_0">
+        <source>Upgrade all C# projects to language version '{0}'</source>
+        <target state="translated">모든 C# 프로젝트를 언어 버전 '{0}'(으)로 업그레이드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="class_name">
+        <source>&lt;class name&gt;</source>
+        <target state="translated">&lt;클래스 이름&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="interface_name">
+        <source>&lt;interface name&gt;</source>
+        <target state="translated">&lt;인터페이스 이름&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="designation_name">
+        <source>&lt;designation name&gt;</source>
+        <target state="translated">&lt;지정명&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_name">
+        <source>&lt;struct name&gt;</source>
+        <target state="translated">&lt;구조체 이름&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async">
+        <source>Make method async</source>
+        <target state="translated">메서드를 비동기로 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_method_async_remain_void">
+        <source>Make method async (stay void)</source>
+        <target state="translated">메서드를 비동기로 설정(void 유지)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_this">
+        <source>Add 'this.'</source>
+        <target state="translated">this'를 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name">
+        <source>&lt;Name&gt;</source>
+        <target state="translated">&lt;이름&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Autoselect_disabled_due_to_member_declaration">
+        <source>Autoselect disabled due to member declaration</source>
+        <target state="translated">멤버 선언으로 인해 자동 선택을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggested_name">
+        <source>(Suggested name)</source>
+        <target state="translated">(제안된 이름)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_function">
+        <source>Remove unused function</source>
+        <target state="translated">사용하지 않는 함수 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_is_null_check">
+        <source>Use 'is null' check</source>
+        <target state="translated">is null' 검사 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="translated">괄호 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_foreach">
+        <source>Convert to 'foreach'</source>
+        <target state="translated">'foreach'로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_for">
+        <source>Convert to 'for'</source>
+        <target state="translated">'for'로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invert_if">
+        <source>Invert if</source>
+        <target state="translated">if 반전</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="translated">[Obsolete] 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_0">
+        <source>Use '{0}'</source>
+        <target state="translated">'{0}' 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_using_statement">
+        <source>Introduce 'using' statement</source>
+        <target state="translated">'using' 문 지정</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Misplaced_using_directive">
+        <source>Misplaced using directive</source>
+        <target state="translated">위치가 잘못된 using 지시문</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Move_misplaced_using_directives">
+        <source>Move misplaced using directives</source>
+        <target state="translated">위치가 잘못된 using 지시문 이동</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
+        <source>Using directives must be placed inside of a namespace declaration</source>
+        <target state="translated">Using 지시문은 namespace 선언 내부에 배치되어야 합니다.</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
+        <source>Using directives must be placed outside of a namespace declaration</source>
+        <target state="translated">Using 지시문은 namespace 선언 외부에 배치되어야 합니다.</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
+        <source>Warning: Moving using directives may change code meaning.</source>
+        <target state="translated">경고: using 지시문을 이동하면 코드 의미가 변경될 수 있습니다.</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="yield_break_statement">
+        <source>yield break statement</source>
+        <target state="translated">yield break 문</target>
+        <note>{Locked="yield break"} "yield break" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="yield_return_statement">
+        <source>yield return statement</source>
+        <target state="translated">yield return 문</target>
+        <note>{Locked="yield return"} "yield return" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

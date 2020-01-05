@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -24,14 +25,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         private class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
         {
             private readonly ISymbolSearchService _symbolSearchService;
-            private readonly CancellationToken _shutdownCancellation;
 
-            public RemoteSymbolSearchService(
-                ISymbolSearchService symbolSearchService,
-                CancellationToken shutdownCancellationToken)
+            public RemoteSymbolSearchService(ISymbolSearchService symbolSearchService)
             {
                 _symbolSearchService = symbolSearchService;
-                _shutdownCancellation = shutdownCancellationToken;
             }
 
             public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)

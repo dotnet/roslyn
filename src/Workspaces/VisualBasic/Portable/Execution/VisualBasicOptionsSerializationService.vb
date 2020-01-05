@@ -13,6 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
     Friend Class VisualBasicOptionsSerializationService
         Inherits AbstractOptionsSerializationService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Overrides Sub WriteTo(options As CompilationOptions, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteCompilationOptionsTo(options, writer, cancellationToken)
 
@@ -26,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             writer.WriteBoolean(vbOptions.OptionCompareText)
             writer.WriteBoolean(vbOptions.EmbedVbCoreRuntime)
 
-            ' save parse option for embeded types - My types
+            ' save parse option for embedded types - My types
             writer.WriteBoolean(vbOptions.ParseOptions IsNot Nothing)
             If vbOptions.ParseOptions IsNot Nothing Then
                 WriteTo(vbOptions.ParseOptions, writer, cancellationToken)
@@ -51,8 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
         Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
             WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken)
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
@@ -74,6 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             Dim concurrentBuild As Boolean
             Dim deterministic As Boolean
             Dim publicSign As Boolean
+            Dim metadataImportOptions As MetadataImportOptions = Nothing
             Dim xmlReferenceResolver As XmlReferenceResolver = Nothing
             Dim sourceReferenceResolver As SourceReferenceResolver = Nothing
             Dim metadataReferenceResolver As MetadataReferenceResolver = Nothing
@@ -83,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             ReadCompilationOptionsFrom(reader, outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                 optimizationLevel, checkOverflow, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, concurrentBuild, deterministic,
-                publicSign, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                cancellationToken)
+                publicSign, metadataImportOptions, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                assemblyIdentityComparer, strongNameProvider, cancellationToken)
 
             Dim globalImports = GlobalImport.Parse(reader.ReadArray(Of String)())
             Dim rootNamespace = reader.ReadString()
@@ -104,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
                                                      cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                                                      platform, generalDiagnosticOption, specificDiagnosticOptions, concurrentBuild, deterministic,
                                                      xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider,
-                                                     publicSign, reportSuppressedDiagnostics)
+                                                     publicSign, reportSuppressedDiagnostics, metadataImportOptions)
         End Function
 
         Public Overrides Function ReadParseOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As ParseOptions
@@ -120,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
             For i = 0 To count - 1
                 Dim key = reader.ReadString()
                 Dim value = reader.ReadValue()
-                builder.Add(KeyValuePair.Create(key, value))
+                builder.Add(KeyValuePairUtil.Create(key, value))
             Next
             Dim options = New VisualBasicParseOptions(languageVersion, documentationMode, kind, builder.MoveToImmutable())
             Return options.WithFeatures(features)
@@ -131,8 +134,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
 
             options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
             options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken)
 
             Return options
         End Function

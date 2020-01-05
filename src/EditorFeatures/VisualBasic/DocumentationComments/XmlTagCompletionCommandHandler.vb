@@ -2,23 +2,26 @@
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
-    <ExportCommandHandler("XmlTagCompletionCommandHandler", ContentTypeNames.VisualBasicContentType)>
-    <Order(Before:=PredefinedCommandHandlerNames.Completion)>
+    <Export(GetType(ICommandHandler))>
+    <ContentType(ContentTypeNames.VisualBasicContentType)>
+    <Name("XmlTagCompletionCommandHandler")>
+    <Order(Before:=PredefinedCompletionNames.CompletionCommandHandler)>
     Friend Class XmlTagCompletionCommandHandler
         Inherits AbstractXmlTagCompletionCommandHandler
 
         <ImportingConstructor>
-        Public Sub New(undoHistory As ITextUndoHistoryRegistry, waitIndicator As IWaitIndicator)
-            MyBase.New(undoHistory, waitIndicator)
+        Public Sub New(undoHistory As ITextUndoHistoryRegistry)
+            MyBase.New(undoHistory)
         End Sub
 
         Protected Overrides Sub TryCompleteTag(textView As ITextView, subjectBuffer As ITextBuffer, document As Document, position As SnapshotPoint, cancellationToken As CancellationToken)

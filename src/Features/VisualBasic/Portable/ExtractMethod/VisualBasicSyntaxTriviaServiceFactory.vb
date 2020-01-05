@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend Class VisualBasicSyntaxTriviaServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return New VisualBasicSyntaxTriviaService(provider)
         End Function

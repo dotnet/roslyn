@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     [ExportOptionProvider, Shared]
     internal class RemoteHostOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public RemoteHostOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RemoteHostOptions.RemoteHostTest);
     }
@@ -29,14 +34,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
     [ExportWorkspaceService(typeof(IRemoteHostClientFactory)), Shared]
     internal class InProcRemoteHostClientFactory : IRemoteHostClientFactory
     {
+        [ImportingConstructor]
+        public InProcRemoteHostClientFactory()
+        {
+        }
+
         public Task<RemoteHostClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
         {
             if (workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest))
             {
-                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: cancellationToken);
+                return InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false);
             }
 
-            return SpecializedTasks.Default<RemoteHostClient>();
+            return SpecializedTasks.Null<RemoteHostClient>();
         }
     }
 }

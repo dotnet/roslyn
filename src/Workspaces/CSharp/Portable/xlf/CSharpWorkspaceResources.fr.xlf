@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="fr" original="../CSharpWorkspaceResources.resx">
+    <body>
+      <trans-unit id="Code_block_preferences">
+        <source>Code-block preferences</source>
+        <target state="translated">Préférences de bloc de code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expression_bodied_members">
+        <source>Expression-bodied members</source>
+        <target state="translated">Membres expression-bodied</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">Préférences de mise en retrait</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_available_location_found_to_add_statements_to">
+        <source>No available location found to add statements to.</source>
+        <target state="translated">Aucun emplacement trouvé pour ajouter des instructions.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
+        <source>Namespace can not be added in this destination.</source>
+        <target state="translated">L'espace de noms ne peut pas être ajouté dans cette destination.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_string_or_char_literal">
+        <source>Expected string or char literal</source>
+        <target state="translated">Littéral char ou string attendu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_does_not_descend_from_root">
+        <source>Node does not descend from root.</source>
+        <target state="translated">Le nœud ne provient pas de la racine.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Node_not_in_parent_s_child_list">
+        <source>Node not in parent's child list</source>
+        <target state="translated">Le nœud ne figure pas dans la liste des enfants du parent</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_checking_preferences">
+        <source>Null-checking preferences</source>
+        <target state="translated">Préférences de vérification de valeur Null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pattern_matching_preferences">
+        <source>Pattern matching preferences</source>
+        <target state="translated">Préférences correspondants au modèle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_and_Sort_Usings">
+        <source>R&amp;emove and Sort Usings</source>
+        <target state="translated">Supprim&amp;er et trier les instructions using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_Usings">
+        <source>&amp;Sort Usings</source>
+        <target state="translated">&amp;Trier les using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">Préférences d'espace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Trivia_is_not_associated_with_token">
+        <source>Trivia is not associated with token</source>
+        <target state="translated">Trivia non associé au jeton</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
+        <source>Cannot retrieve the Span of a null syntax reference.</source>
+        <target state="translated">Impossible de récupérer l'étendue d'une référence de syntaxe null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
+        <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
+        <target state="translated">Seuls des attributs, des initialiseurs de constructeur, des expressions ou des instructions peuvent être explicites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_Interface">
+        <source>Implement Interface</source>
+        <target state="translated">Implémenter l'interface</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">Préférences d'enveloppement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_directive_preferences">
+        <source>'using' directive preferences</source>
+        <target state="translated">Préférences pour la directive 'using'</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="var_preferences">
+        <source>var preferences</source>
+        <target state="translated">Préférences de var</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

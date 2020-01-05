@@ -85,8 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 #endif
 
         protected AbstractAsynchronousTaggerProvider(
+            IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
+            : base(threadingContext)
         {
             _asyncListener = asyncListener;
             _notificationService = notificationService;
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
-            return new Tagger(_asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+            return new Tagger(ThreadingContext, _asyncListener, _notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
                 ProduceTagsSynchronously(
-                    context, spanToTag, 
+                    context, spanToTag,
                     GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
             }
         }
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected virtual void ProduceTagsSynchronously(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
@@ -249,8 +251,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public NormalizedSnapshotSpanCollection Added { get; }
             public NormalizedSnapshotSpanCollection Removed { get; }
 
-            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed) :
-                this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
+            public DiffResult(List<SnapshotSpan> added, List<SnapshotSpan> removed)
+                : this(added?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)added, removed?.Count == 0 ? null : (IEnumerable<SnapshotSpan>)removed)
             {
             }
 

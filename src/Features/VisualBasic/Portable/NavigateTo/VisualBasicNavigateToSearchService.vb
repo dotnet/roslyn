@@ -5,8 +5,12 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.NavigateTo
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.NavigateTo
-    <ExportLanguageService(GetType(INavigateToSearchService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicNavigateToSearchService
         Inherits AbstractNavigateToSearchService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
     End Class
 End Namespace

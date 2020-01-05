@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
 Namespace Tests
     Public Class XmlDocCommentCompletionProviderTests
@@ -18,14 +19,15 @@ Namespace Tests
             Return New XmlDocCommentCompletionProvider()
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(
+        Private Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                hasSuggestionItem As Boolean?) As Task
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
+                hasSuggestionItem As Boolean?, displayTextSuffix As String, inlineDescription As String,
+                matchingFilters As List(Of CompletionFilter)) As Task
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription, matchingFilters)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task
@@ -774,6 +776,66 @@ End Class
             Await VerifyItemsExistAsync(text, "cref", "langword")
         End Function
 
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestLangwordCompletionInPlainText() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text $$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsExistAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LangwordCompletionAfterAngleBracket1() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text <$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LangwordCompletionAfterAngleBracket2() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text <s$$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
+        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function LangwordCompletionAfterAngleBracket3() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' Some text < $$
+    ''' </summary>
+    Sub Goo()
+    End Sub
+End Class
+"
+            Await VerifyItemsAbsentAsync(text, "Nothing", "Shared", "True", "False", "Await")
+        End Function
+
         <WorkItem(11490, "https://github.com/dotnet/roslyn/issues/11490")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSeeLangwordAttributeValue() As Task
@@ -879,5 +941,23 @@ End Class
             Await VerifyItemsAbsentAsync(text, "i")
         End Function
 
+        <WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TermAndDescriptionInsideItem() As Task
+            Dim text = "
+class C
+    ''' <summary>
+    '''     <list type=""table"">
+    '''         <item>
+    '''             $$
+    '''         </item>
+    '''     </list>
+    ''' </summary>
+    sub Goo()
+    end sub
+end class"
+            Await VerifyItemExistsAsync(text, "term")
+            Await VerifyItemExistsAsync(text, "description")
+        End Function
     End Class
 End Namespace

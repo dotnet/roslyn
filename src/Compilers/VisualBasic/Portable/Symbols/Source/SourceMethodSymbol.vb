@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _lazyLocations As ImmutableArray(Of Location)
 
         Private _lazyDocComment As String
+        Private _lazyExpandedDocComment As String
 
         'Nothing if diags have never been computed. Initial binding diagnostics
         'are stashed here to optimize API usage patterns
@@ -806,13 +807,11 @@ lReportErrorOnTwoTokens:
         End Function
 
         Public NotOverridable Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            If _lazyDocComment Is Nothing Then
-                ' NOTE: replace Nothing with empty comment
-                Interlocked.CompareExchange(
-                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            If expandIncludes Then
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyExpandedDocComment, cancellationToken)
+            Else
+                Return GetAndCacheDocumentationComment(Me, preferredCulture, expandIncludes, _lazyDocComment, cancellationToken)
             End If
-
-            Return _lazyDocComment
         End Function
 
         ''' <summary>
@@ -1638,7 +1637,7 @@ lReportErrorOnTwoTokens:
                     Return
                 End If
 
-                Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).Value, String)
+                Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not MetadataHelpers.IsValidMetadataIdentifier(moduleName) Then
                     arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
                 End If
@@ -1661,7 +1660,7 @@ lReportErrorOnTwoTokens:
                 For Each namedArg In attrData.CommonNamedArguments
                     Select Case namedArg.Key
                         Case "EntryPoint"
-                            importName = TryCast(namedArg.Value.Value, String)
+                            importName = TryCast(namedArg.Value.ValueInternal, String)
                             If Not MetadataHelpers.IsValidMetadataIdentifier(importName) Then
                                 arguments.Diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(position).GetLocation(), attrData.AttributeClass)
                                 Return
@@ -1732,8 +1731,6 @@ lReportErrorOnTwoTokens:
                         Return
                     End If
                 End If
-
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 
@@ -1760,8 +1757,6 @@ lReportErrorOnTwoTokens:
 
             If attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonReturnTypeWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.ReturnValue, MessageProvider.Instance)
-            Else
-                MyBase.DecodeWellKnownAttribute(arguments)
             End If
         End Sub
 

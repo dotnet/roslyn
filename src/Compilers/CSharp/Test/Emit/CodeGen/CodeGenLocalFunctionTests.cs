@@ -1,8 +1,11 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -19,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 if (kvp.Key.Contains(localFunctionName))
                 {
                     Assert.Null(result); // more than one name matched
-                    result = kvp.Value.Method;
+                    result = ((MethodSymbol)kvp.Value.Method).GetPublicSymbol();
                 }
             }
             Assert.NotNull(result); // no methods matched
@@ -31,10 +34,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(37459, "https://github.com/dotnet/roslyn/pull/37459")]
+        public void StaticLocalFunctionCaptureConstants()
+        {
+            var src = @"
+using System;
+class C
+{
+    const int X = 1;
+
+    void M()
+    {
+        const int Y = 5;
+
+        local();
+        return;
+        static void local()
+        {
+            Console.WriteLine(X);
+            Console.WriteLine(Y);
+        }
+    }
+
+    public static void Main()
+    {
+        (new C()).M();
+    }
+}
+";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+1
+5");
+            verifier.VerifyIL("C.<M>g__local|1_0", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.WriteLine(int)""
+  IL_0006:  ldc.i4.5
+  IL_0007:  call       ""void System.Console.WriteLine(int)""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Linq;
 
@@ -68,9 +115,48 @@ internal class D : IDisposable
 public class E
 {
     public int Id;
-}", references: new[] { LinqAssemblyRef }, options: TestOptions.ReleaseExe);
+}", options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"1
 0");
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
+        public void Repro24647()
+        {
+            var comp = CreateCompilation(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void local() { } => new object();
+    }
+}");
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var creation = localFunction.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            var objectCreationOperation = model.GetOperation(creation);
+            var localFunctionOperation = (ILocalFunctionOperation)model.GetOperation(localFunction);
+            Assert.NotNull(objectCreationOperation);
+
+            comp.VerifyOperationTree(creation, expectedOperationTree:
+@"
+IObjectCreationOperation (Constructor: System.Object..ctor()) (OperationKind.ObjectCreation, Type: System.Object, IsInvalid) (Syntax: 'new object()')
+  Arguments(0)
+  Initializer: 
+    null
+");
+
+            Assert.Equal(OperationKind.ExpressionStatement, objectCreationOperation.Parent.Kind);
+            Assert.Equal(OperationKind.Block, objectCreationOperation.Parent.Parent.Kind);
+            Assert.Same(localFunctionOperation.IgnoredBody, objectCreationOperation.Parent.Parent);
+
+            var info = model.GetTypeInfo(creation);
+            Assert.Equal("System.Object", info.Type.ToTestDisplayString());
+            Assert.Equal("System.Object", info.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -109,7 +195,7 @@ static void Main(string[] args)
         [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
         public void Repro21768()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Linq;
 class C
@@ -135,7 +221,7 @@ class C
     {
         public int SomeField { get; set; }
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -143,7 +229,7 @@ class C
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -170,7 +256,7 @@ class Program
                 }
             });
     }
-}", references: new[] { LinqAssemblyRef });
+}");
         }
 
         [Fact]
@@ -662,7 +748,7 @@ class C
         [Fact]
         public void Repro20577()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Linq;
 
 public class Program {
@@ -677,7 +763,7 @@ public class Program {
             }
         }
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             CompileAndVerify(comp);
         }
 
@@ -768,7 +854,7 @@ class C
         L1();
         Console.WriteLine(_x);
     }
-}", expectedOutput: 
+}", expectedOutput:
 @"0
 1");
             verifier.VerifyIL("C.M()", @"
@@ -1052,7 +1138,7 @@ class C2
         [Fact]
         public void NameofRecursiveDefaultParameter()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -1272,7 +1358,7 @@ class C
 1");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(16895, "https://github.com/dotnet/roslyn/issues/16895")]
         public void CaptureVarNestedLambdaSkipScope7()
         {
@@ -1306,7 +1392,7 @@ class C
     }
 }";
             CompileAndVerify(src,
-                additionalRefs: new[] { MscorlibRef_v46 },
+                targetFramework: TargetFramework.Mscorlib46,
                 expectedOutput: @"1
 0");
         }
@@ -1344,8 +1430,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerify(src,
-                additionalRefs: new[] { MscorlibRef_v46 },
+            CompileAndVerifyWithMscorlib46(src,
                 expectedOutput: @"1
 0");
         }
@@ -1612,7 +1697,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -2486,9 +2571,8 @@ Console.Write(goo(2));
             var verify = VerifyOutputInMain(source, "2", "System");
             var goo = verify.FindLocalFunction("Goo");
             var program = verify.Compilation.GetTypeByMetadataName("Program");
-            Assert.False(goo.IsStatic);
-            Assert.Equal("<>c", goo.ContainingType.Name);
-            Assert.Equal(program, goo.ContainingType.ContainingType);
+            Assert.True(goo.IsStatic);
+            Assert.Equal(program, goo.ContainingType);
         }
 
         [Fact]
@@ -4484,7 +4568,7 @@ class Program
 2
 2
 ";
-            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
+            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0), verify: Verification.Passes);
         }
 
         [Fact]
@@ -4510,7 +4594,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4536,7 +4620,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4563,7 +4647,7 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4603,7 +4687,7 @@ class C
         Console.WriteLine(y);
     }
 }";
-            VerifyOutput(src, "10\r\n4", TestOptions.ReleaseExe.WithAllowUnsafe(true));
+            VerifyOutput(src, $"10{Environment.NewLine}4", TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4651,7 +4735,7 @@ while (i < 10)
 8
 9");
         }
-        
+
         [Fact]
         [WorkItem(15599, "https://github.com/dotnet/roslyn/issues/15599")]
         public void NestedLocalFuncCapture()
@@ -5001,13 +5085,12 @@ class Program
         c.M(""D"");
     }
 }";
-            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
-                additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA");
         }
 
         [Fact]
         [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
-        public void StructFrameInitUnnecesary()
+        public void StructFrameInitUnnecessary()
         {
             var c = CompileAndVerify(@"
     class Program
@@ -5072,15 +5155,15 @@ class Program
 ");
         }
 
-        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
-            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
+            return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 

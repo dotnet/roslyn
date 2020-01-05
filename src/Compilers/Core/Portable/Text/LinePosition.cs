@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Immutable representation of a line number and position within a SourceText instance.
     /// </summary>
-    public struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
+    public readonly struct LinePosition : IEquatable<LinePosition>, IComparable<LinePosition>
     {
         /// <summary>
         /// A <see cref="LinePosition"/> that represents position 0 at line 0.

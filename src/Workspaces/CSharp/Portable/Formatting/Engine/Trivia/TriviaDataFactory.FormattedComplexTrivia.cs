@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 int lineBreaks,
                 int spaces,
                 string originalString,
-                CancellationToken cancellationToken) :
-                base(context.OptionSet, LanguageNames.CSharp)
+                CancellationToken cancellationToken)
+                : base(context.OptionSet, LanguageNames.CSharp)
             {
                 Contract.ThrowIfNull(context);
                 Contract.ThrowIfNull(formattingRules);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 throw new NotImplementedException();
             }
 
-            public override void Format(FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)
+            public override void Format(FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TokenStream, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)
             {
                 throw new NotImplementedException();
             }

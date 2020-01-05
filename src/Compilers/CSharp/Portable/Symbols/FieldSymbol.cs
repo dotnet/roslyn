@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a field in a class, struct or enum
     /// </summary>
-    internal abstract partial class FieldSymbol : Symbol, IFieldSymbol
+    internal abstract partial class FieldSymbol : Symbol, IFieldSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -46,9 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of this field.
+        /// Gets the type of this field along with its annotations.
         /// </summary>
-        public TypeSymbol Type
+        public TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
@@ -56,12 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         /// <summary>
-        /// Gets the list of custom modifiers, if any, associated with the field.
+        /// Gets the type of this field.
         /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
+        public TypeSymbol Type => TypeWithAnnotations.Type;
+
+        internal abstract TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
@@ -83,22 +86,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsVolatile { get; }
 
         /// <summary>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static.
+        /// </summary>
+        public virtual bool RequiresInstanceReceiver => !IsStatic;
+
+        /// <summary>
         /// Returns true if this field was declared as "fixed".
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
-        public virtual bool IsFixed { get { return false; } }
+        public virtual bool IsFixedSizeBuffer { get { return false; } }
 
         /// <summary>
-        /// If IsFixed is true, the value between brackets in the fixed-size-buffer declaration.
-        /// If IsFixed is false FixedSize is 0.
+        /// If IsFixedSizeBuffer is true, the value between brackets in the fixed-size-buffer declaration.
+        /// If IsFixedSizeBuffer is false FixedSize is 0.
         /// Note that for fixed-a size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
         public virtual int FixedSize { get { return 0; } }
 
         /// <summary>
-        /// If this.IsFixed is true, returns the underlying implementation type for the
+        /// If this.IsFixedSizeBuffer is true, returns the underlying implementation type for the
         /// fixed-size buffer when emitted.  Otherwise returns null.
         /// </summary>
         internal virtual NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
@@ -306,11 +314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract int? TypeLayoutOffset { get; }
 
-        internal FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        internal virtual FieldSymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
-            return (newOwner == this.ContainingSymbol) ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
+            return newOwner.IsDefinition ? this : new SubstitutedFieldSymbol(newOwner as SubstitutedNamedTypeSymbol, this);
         }
 
         #region Use-Site Diagnostics
@@ -330,8 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.CustomModifiers))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations))
             {
                 return true;
             }
@@ -341,8 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, this, ref unificationCheckedTypes))
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
                 }
@@ -372,17 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
-
-        /// <summary>
-        /// Is this a field of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleField
-        {
-            get
-            {
-                return false;
-            }
-        }
 
         /// <summary>
         /// Returns True when field symbol is not mapped directly to a field in the underlying tuple struct.
@@ -415,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                return ContainingType.IsTupleType ? this : null;
             }
         }
 
@@ -432,6 +427,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if a given field is a tuple element
+        /// </summary>
+        internal bool IsTupleElement()
+        {
+            return this.CorrespondingTupleField is object;
+        }
+
+        /// <summary>
         /// If this is a field representing a tuple element,
         /// returns the index of the element (zero-based).
         /// Otherwise returns -1
@@ -444,53 +447,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #region IFieldSymbol Members
+        bool IFieldSymbolInternal.IsVolatile => this.IsVolatile;
 
-        ISymbol IFieldSymbol.AssociatedSymbol
+        protected override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.AssociatedSymbol;
-            }
+            return new PublicModel.FieldSymbol(this);
         }
-
-        ITypeSymbol IFieldSymbol.Type
-        {
-            get
-            {
-                return this.Type;
-            }
-        }
-
-        ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
-        {
-            get { return this.CustomModifiers; }
-        }
-
-        IFieldSymbol IFieldSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IFieldSymbol IFieldSymbol.CorrespondingTupleField
-        {
-            get { return this.CorrespondingTupleField; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitField(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitField(this);
-        }
-
-        #endregion
     }
 }

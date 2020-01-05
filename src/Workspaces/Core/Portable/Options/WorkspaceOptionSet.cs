@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -13,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Options
     {
         private readonly IOptionService _service;
 
-        private readonly object _gate = new object();
         private ImmutableDictionary<OptionKey, object> _values;
 
         internal WorkspaceOptionSet(IOptionService service)
@@ -28,18 +28,16 @@ namespace Microsoft.CodeAnalysis.Options
             _values = values;
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
         public override object GetOption(OptionKey optionKey)
         {
-            lock (_gate)
+            if (_values.TryGetValue(optionKey, out var value))
             {
-                if (!_values.TryGetValue(optionKey, out var value))
-                {
-                    value = _service != null ? _service.GetOption(optionKey) : optionKey.Option.DefaultValue;
-                    _values = _values.Add(optionKey, value);
-                }
-
                 return value;
             }
+
+            value = _service != null ? _service.GetOption(optionKey) : optionKey.Option.DefaultValue;
+            return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
         }
 
         public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)

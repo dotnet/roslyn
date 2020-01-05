@@ -1,15 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -21,13 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return nextHandler();
         }
 
-        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
+        public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            _waitIndicator.Wait(
-                title: EditorFeaturesResources.Format_Paste,
-                message: EditorFeaturesResources.Formatting_pasted_text,
-                allowCancel: true,
-                action: c => ExecuteCommandWorker(args, nextHandler, c.CancellationToken));
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text))
+            {
+                ExecuteCommandWorker(args, nextHandler, context.OperationContext.UserCancellationToken);
+            }
         }
 
         private void ExecuteCommandWorker(PasteCommandArgs args, Action nextHandler, CancellationToken cancellationToken)

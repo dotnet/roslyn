@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Replaces the existing tracking spans with specified active statement spans.
         /// </summary>
-        void UpdateActiveStatementSpans(SourceText source, IEnumerable<KeyValuePair<ActiveStatementId, TextSpan>> spans);
+        void UpdateActiveStatementSpans(SourceText source, IEnumerable<(ActiveStatementId, ActiveStatementTextSpan)> spans);
     }
 }

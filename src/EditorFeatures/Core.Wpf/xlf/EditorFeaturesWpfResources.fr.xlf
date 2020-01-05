@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="fr" original="../EditorFeaturesWpfResources.resx">
+    <body>
+      <trans-unit id="Downloading_index_failed">
+        <source>Downloading index failed</source>
+        <target state="translated">Échec du téléchargement de l'index</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_index_failed_0">
+        <source>Downloading index failed:{0}</source>
+        <target state="translated">Échec du téléchargement de l'index : {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Downloading_IntelliSense_index_for_0">
+        <source>Downloading IntelliSense index for {0}</source>
+        <target state="translated">Téléchargement de l'index IntelliSense pour {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="new">Gathering Suggestions - '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="new">Gathering Suggestions - Waiting for the solution to fully load</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regex - commentaire</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regex - classe de caractères</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regex - alternance</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regex - ancre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regex - quantificateur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regex - caractère auto-échappé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regex - regroupement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regex - texte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regex - autre échappement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="new">Suppress or Configure issues</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

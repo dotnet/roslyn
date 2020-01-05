@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         private abstract partial class CompilationTranslationAction
         {
-            internal class TouchDocumentAction : CompilationTranslationAction
+            internal sealed class TouchDocumentAction : CompilationTranslationAction
             {
                 private readonly DocumentState _oldState;
                 private readonly DocumentState _newState;
@@ -26,18 +28,10 @@ namespace Microsoft.CodeAnalysis
                     return UpdateDocumentInCompilationAsync(oldCompilation, _oldState, _newState, cancellationToken);
                 }
 
-                public DocumentId DocumentId => _newState.Info.Id;
+                public DocumentId DocumentId => _newState.Attributes.Id;
             }
 
-            private class RemoveAllDocumentsAction : CompilationTranslationAction
-            {
-                public override Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
-                {
-                    return Task.FromResult(oldCompilation.RemoveAllReferences());
-                }
-            }
-
-            private class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
+            internal sealed class RemoveDocumentAction : SimpleCompilationTranslationAction<DocumentState>
             {
                 private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
                     async (o, d, c) => o.RemoveSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
@@ -48,29 +42,51 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class AddDocumentAction : SimpleCompilationTranslationAction<DocumentState>
+            internal sealed class AddDocumentsAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, DocumentState, CancellationToken, Task<Compilation>> s_action =
-                    async (o, d, c) => o.AddSyntaxTrees(await d.GetSyntaxTreeAsync(c).ConfigureAwait(false));
+                private readonly ImmutableArray<DocumentState> _documents;
 
-                public AddDocumentAction(DocumentState document)
-                    : base(document, s_action)
+                public AddDocumentsAction(ImmutableArray<DocumentState> documents)
                 {
+                    _documents = documents;
+                }
+
+                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    var syntaxTrees = new List<SyntaxTree>();
+                    foreach (var document in _documents)
+                    {
+                        syntaxTrees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    return oldCompilation.AddSyntaxTrees(syntaxTrees);
                 }
             }
 
-            private class ProjectParseOptionsAction : SimpleCompilationTranslationAction<ProjectState>
+            internal sealed class ReplaceAllSyntaxTreesAction : CompilationTranslationAction
             {
-                private static readonly Func<Compilation, ProjectState, CancellationToken, Task<Compilation>> s_action =
-                    (o, d, c) => Task.Run(() => ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(o, d, c), c);
+                private readonly ProjectState _state;
 
-                public ProjectParseOptionsAction(ProjectState state)
-                    : base(state, s_action)
+                public ReplaceAllSyntaxTreesAction(ProjectState state)
                 {
+                    _state = state;
+                }
+
+                public override async Task<Compilation> InvokeAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+                {
+                    var syntaxTrees = new List<SyntaxTree>(capacity: _state.DocumentIds.Count);
+
+                    foreach (var documentState in _state.OrderedDocumentStates)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                    }
+
+                    return oldCompilation.RemoveAllSyntaxTrees().AddSyntaxTrees(syntaxTrees);
                 }
             }
 
-            private class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
+            internal sealed class ProjectCompilationOptionsAction : SimpleCompilationTranslationAction<CompilationOptions>
             {
                 private static readonly Func<Compilation, CompilationOptions, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.FromResult(o.WithOptions(d));
@@ -81,7 +97,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
+            internal sealed class ProjectAssemblyNameAction : SimpleCompilationTranslationAction<string>
             {
                 private static readonly Func<Compilation, string, CancellationToken, Task<Compilation>> s_action =
                     (o, d, c) => Task.FromResult(o.WithAssemblyName(d));
@@ -92,7 +108,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private class SimpleCompilationTranslationAction<T> : CompilationTranslationAction
+            internal class SimpleCompilationTranslationAction<T> : CompilationTranslationAction
             {
                 private readonly T _data;
                 private readonly Func<Compilation, T, CancellationToken, Task<Compilation>> _action;

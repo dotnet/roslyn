@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    configurable: false)
         {
@@ -30,16 +31,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSemanticModelAction(AnalyzeSemanticModel);
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var options = context.Options as WorkspaceAnalyzerOptions;
-            if (options == null)
+            if (!(context.Options is WorkspaceAnalyzerOptions options))
             {
                 return;
             }
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
+            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : Descriptor;
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));

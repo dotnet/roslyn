@@ -4,6 +4,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class ParameterSymbol
         Inherits Symbol
-        Implements IParameterSymbol
+        Implements IParameterSymbol, IParameterSymbolInternal
 
         ''' <summary>
         ''' Get the original definition of this symbol. If this symbol is derived from another
@@ -278,6 +279,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "IParameterSymbol"
 
+        Private ReadOnly Property IParameterSymbol_IsDiscard As Boolean Implements IParameterSymbol.IsDiscard
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind
             Get
                 ' TODO: Should we check if it has the <Out> attribute and return 'RefKind.Out' in
@@ -289,6 +296,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IParameterSymbol_Type As ITypeSymbol Implements IParameterSymbol.Type
             Get
                 Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IParameterSymbol_NullableAnnotation As NullableAnnotation Implements IParameterSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
             End Get
         End Property
 

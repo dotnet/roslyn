@@ -2,10 +2,12 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -17,13 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.ChangeSignatureDialog;
 
-        public BasicChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicChangeSignatureDialog))
+        public BasicChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicChangeSignatureDialog))
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -36,7 +37,7 @@ End Class");
             VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -57,7 +58,7 @@ Class C
 End Class", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -80,7 +81,7 @@ Class C
 End Class", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderAndRemoveParametersAcrossLanguages()
         {
             SetUpEditor(@"
@@ -113,7 +114,7 @@ public class CSharpClass
             VisualStudio.SolutionExplorer.AddProjectReference(project, csharpProjectReference);
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.vb");
 
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
 
             ChangeSignatureDialog.Invoke();
             ChangeSignatureDialog.VerifyOpen();

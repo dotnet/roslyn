@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,153 +16,120 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     {
         public Task<ImmutableArray<DiagnosticData>> GetSpecificCachedDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDECachedDiagnosticGetter(this, solution, id, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(cancellationToken);
+            if (!(id is LiveDiagnosticUpdateArgsId argsId))
+            {
+                return Task.FromResult(ImmutableArray<DiagnosticData>.Empty);
+            }
+
+            var (documentId, projectId) = (argsId.ProjectOrDocumentId is DocumentId docId) ? (docId, docId.ProjectId) : (null, (ProjectId)argsId.ProjectOrDocumentId);
+            return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(argsId.Analyzer, (AnalysisKind)argsId.Kind, cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDECachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
+            return new IdeCachedDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(Solution solution, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDELatestDiagnosticGetter(this, solution, id, includeSuppressedDiagnostics).GetSpecificDiagnosticsAsync(cancellationToken);
+            return new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds: null, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDELatestDiagnosticGetter(this, solution, projectId, documentId, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
+            return new IdeLatestDiagnosticGetter(this, solution, projectId, documentId, diagnosticIds, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, DocumentId documentId, ImmutableHashSet<string> diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId? projectId, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return new IDELatestDiagnosticGetter(this, diagnosticIds, solution, projectId, documentId, includeSuppressedDiagnostics).GetDiagnosticsAsync(cancellationToken);
-        }
-
-        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(Solution solution, ProjectId projectId, ImmutableHashSet<string> diagnosticIds, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
-        {
-            return new IDELatestDiagnosticGetter(this, diagnosticIds, solution, projectId, includeSuppressedDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
+            return new IdeLatestDiagnosticGetter(this, solution, projectId, documentId: null, diagnosticIds: diagnosticIds, includeSuppressedDiagnostics).GetProjectDiagnosticsAsync(cancellationToken);
         }
 
         private abstract class DiagnosticGetter
         {
             protected readonly DiagnosticIncrementalAnalyzer Owner;
 
-            protected readonly Solution CurrentSolution;
-            protected readonly ProjectId CurrentProjectId;
-            protected readonly DocumentId CurrentDocumentId;
-            protected readonly object Id;
+            protected readonly Solution Solution;
+            protected readonly ProjectId? ProjectId;
+            protected readonly DocumentId? DocumentId;
             protected readonly bool IncludeSuppressedDiagnostics;
 
-            private ImmutableArray<DiagnosticData>.Builder _builder;
+            private ImmutableArray<DiagnosticData>.Builder? _lazyDataBuilder;
 
             public DiagnosticGetter(
                 DiagnosticIncrementalAnalyzer owner,
                 Solution solution,
-                ProjectId projectId,
-                DocumentId documentId,
-                object id,
+                ProjectId? projectId,
+                DocumentId? documentId,
                 bool includeSuppressedDiagnostics)
             {
                 Owner = owner;
-                CurrentSolution = solution;
+                Solution = solution;
 
-                CurrentDocumentId = documentId;
-                CurrentProjectId = projectId ?? documentId?.ProjectId;
+                DocumentId = documentId;
+                ProjectId = projectId ?? documentId?.ProjectId;
 
-                Id = id;
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
-
-                // try to retrieve projectId/documentId from id if possible.
-                if (id is LiveDiagnosticUpdateArgsId argsId)
-                {
-                    CurrentDocumentId = CurrentDocumentId ?? argsId.Key as DocumentId;
-                    CurrentProjectId = CurrentProjectId ?? (argsId.Key as ProjectId) ?? CurrentDocumentId.ProjectId;
-                }
-
-                _builder = null;
             }
 
-            protected StateManager StateManager => this.Owner._stateManager;
-
-            protected Project CurrentProject => CurrentSolution.GetProject(CurrentProjectId);
-            protected Document CurrentDocument => CurrentSolution.GetDocument(CurrentDocumentId);
+            protected StateManager StateManager => Owner._stateManager;
 
             protected virtual bool ShouldIncludeDiagnostic(DiagnosticData diagnostic) => true;
 
             protected ImmutableArray<DiagnosticData> GetDiagnosticData()
             {
-                return _builder != null ? _builder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
+                return (_lazyDataBuilder != null) ? _lazyDataBuilder.ToImmutableArray() : ImmutableArray<DiagnosticData>.Empty;
             }
 
-            protected abstract Task<ImmutableArray<DiagnosticData>?> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId documentId, AnalysisKind kind, CancellationToken cancellationToken);
+            protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken);
             protected abstract Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken);
 
-            public async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(CancellationToken cancellationToken)
+            public async Task<ImmutableArray<DiagnosticData>> GetSpecificDiagnosticsAsync(DiagnosticAnalyzer analyzer, AnalysisKind analysisKind, CancellationToken cancellationToken)
             {
-                if (CurrentSolution == null)
-                {
-                    return ImmutableArray<DiagnosticData>.Empty;
-                }
-
-                var argsId = Id as LiveDiagnosticUpdateArgsId;
-                if (argsId == null)
-                {
-                    return ImmutableArray<DiagnosticData>.Empty;
-                }
-
-                if (CurrentProject == null)
+                var project = Solution.GetProject(ProjectId);
+                if (project == null)
                 {
                     // when we return cached result, make sure we at least return something that exist in current solution
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var stateSet = this.StateManager.GetOrCreateStateSet(CurrentProject, argsId.Analyzer);
+                var stateSet = StateManager.GetOrCreateStateSet(project, analyzer);
                 if (stateSet == null)
                 {
                     return ImmutableArray<DiagnosticData>.Empty;
                 }
 
-                var diagnostics = await GetDiagnosticsAsync(stateSet, CurrentProject, CurrentDocumentId, (AnalysisKind)argsId.Kind, cancellationToken).ConfigureAwait(false);
-                if (diagnostics == null)
-                {
-                    // Document or project might have been removed from the solution.
-                    return ImmutableArray<DiagnosticData>.Empty;
-                }
+                var diagnostics = await GetDiagnosticsAsync(stateSet, project, DocumentId, analysisKind, cancellationToken).ConfigureAwait(false);
 
-                return FilterSuppressedDiagnostics(diagnostics.Value);
+                return IncludeSuppressedDiagnostics ? diagnostics : diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (CurrentSolution == null)
+                if (ProjectId != null)
                 {
-                    return ImmutableArray<DiagnosticData>.Empty;
-                }
-
-                if (CurrentProjectId != null)
-                {
-                    if (CurrentProject == null)
+                    var project = Solution.GetProject(ProjectId);
+                    if (project == null)
                     {
                         return GetDiagnosticData();
                     }
 
-                    var documentIds = CurrentDocumentId != null ? SpecializedCollections.SingletonEnumerable(CurrentDocumentId) : CurrentProject.DocumentIds;
+                    var documentIds = (DocumentId != null) ? SpecializedCollections.SingletonEnumerable(DocumentId) : project.DocumentIds;
 
                     // return diagnostics specific to one project or document
-                    var includeProjectNonLocalResult = CurrentDocumentId == null;
-                    await AppendDiagnosticsAsync(CurrentProject, documentIds, includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
+                    var includeProjectNonLocalResult = DocumentId == null;
+                    await AppendDiagnosticsAsync(project, documentIds, includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
                     return GetDiagnosticData();
                 }
 
-                await AppendDiagnosticsAsync(CurrentSolution, cancellationToken).ConfigureAwait(false);
+                await AppendDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
                 return GetDiagnosticData();
             }
 
             protected async Task AppendDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
             {
-                // PERF; run projects parallely rather than running CompilationWithAnalyzer with concurrency == true.
-                //       we doing this to be safe (not get into thread starvation causing hundreds of threads to be spawn up).
+                // PERF: run projects in parallel rather than running CompilationWithAnalyzer with concurrency == true.
+                // We do this to not get into thread starvation causing hundreds of threads to be spawned.
                 var includeProjectNonLocalResult = true;
 
                 var tasks = new Task[solution.ProjectIds.Count];
@@ -175,21 +145,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
-            protected void AppendDiagnostics(IEnumerable<DiagnosticData> items)
+            protected void AppendDiagnostics(ImmutableArray<DiagnosticData> items)
             {
-                if (items == null)
+                Debug.Assert(!items.IsDefault);
+
+                if (_lazyDataBuilder == null)
                 {
-                    return;
+                    Interlocked.CompareExchange(ref _lazyDataBuilder, ImmutableArray.CreateBuilder<DiagnosticData>(), null);
                 }
 
-                if (_builder == null)
+                lock (_lazyDataBuilder)
                 {
-                    Interlocked.CompareExchange(ref _builder, ImmutableArray.CreateBuilder<DiagnosticData>(), null);
-                }
-
-                lock (_builder)
-                {
-                    _builder.AddRange(items.Where(ShouldIncludeSuppressedDiagnostic).Where(ShouldIncludeDiagnostic));
+                    _lazyDataBuilder.AddRange(items.Where(ShouldIncludeSuppressedDiagnostic).Where(ShouldIncludeDiagnostic));
                 }
             }
 
@@ -197,60 +164,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 return IncludeSuppressedDiagnostics || !diagnostic.IsSuppressed;
             }
-
-            private ImmutableArray<DiagnosticData> FilterSuppressedDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
-            {
-                if (IncludeSuppressedDiagnostics || diagnostics.IsDefaultOrEmpty)
-                {
-                    return diagnostics;
-                }
-
-                // create builder only if there is suppressed diagnostics
-                ImmutableArray<DiagnosticData>.Builder builder = null;
-                for (int i = 0; i < diagnostics.Length; i++)
-                {
-                    var diagnostic = diagnostics[i];
-                    if (diagnostic.IsSuppressed)
-                    {
-                        if (builder == null)
-                        {
-                            builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-                            for (int j = 0; j < i; j++)
-                            {
-                                builder.Add(diagnostics[j]);
-                            }
-                        }
-                    }
-                    else if (builder != null)
-                    {
-                        builder.Add(diagnostic);
-                    }
-                }
-
-                return builder != null ? builder.ToImmutable() : diagnostics;
-            }
         }
 
-        private class IDECachedDiagnosticGetter : DiagnosticGetter
+        private sealed class IdeCachedDiagnosticGetter : DiagnosticGetter
         {
-            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
-            {
-            }
-
-            public IDECachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IdeCachedDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics)
             {
             }
 
             protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
-                // when we return cached result, make sure we at least return something that exist in current solution
-                if (project == null)
-                {
-                    return;
-                }
-
                 foreach (var stateSet in StateManager.GetStateSets(project.Id))
                 {
                     foreach (var documentId in documentIds)
@@ -263,53 +187,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        DocumentId targetDocumentId = null;
-                        AppendDiagnostics(await GetProjectStateDiagnosticsAsync(stateSet, project, targetDocumentId, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
+                        AppendDiagnostics(await GetProjectStateDiagnosticsAsync(stateSet, project, documentId: null, AnalysisKind.NonLocal, cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
 
-            protected override async Task<ImmutableArray<DiagnosticData>?> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId documentId, AnalysisKind kind, CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var activeFileDiagnostics = GetActiveFileDiagnostics(stateSet, documentId, kind);
-                if (activeFileDiagnostics.HasValue)
+                // active file diagnostics:
+                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.TryGetActiveFileState(documentId, out var state))
                 {
-                    return activeFileDiagnostics.Value;
+                    return state.GetAnalysisData(kind).Items;
                 }
 
-                var projectDiagnostics = await GetProjectStateDiagnosticsAsync(stateSet, project, documentId, kind, cancellationToken).ConfigureAwait(false);
-                if (projectDiagnostics.HasValue)
-                {
-                    return projectDiagnostics.Value;
-                }
-
-                return null;
+                // project diagnostics:
+                return await GetProjectStateDiagnosticsAsync(stateSet, project, documentId, kind, cancellationToken).ConfigureAwait(false);
             }
 
-            private ImmutableArray<DiagnosticData>? GetActiveFileDiagnostics(StateSet stateSet, DocumentId documentId, AnalysisKind kind)
-            {
-                if (documentId == null || kind == AnalysisKind.NonLocal)
-                {
-                    return null;
-                }
-
-                if (!stateSet.TryGetActiveFileState(documentId, out var state))
-                {
-                    return null;
-                }
-
-                return state.GetAnalysisData(kind).Items;
-            }
-
-            private async Task<ImmutableArray<DiagnosticData>?> GetProjectStateDiagnosticsAsync(
-                StateSet stateSet, Project project, DocumentId documentId, AnalysisKind kind, CancellationToken cancellationToken)
+            private async Task<ImmutableArray<DiagnosticData>> GetProjectStateDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 if (!stateSet.TryGetProjectState(project.Id, out var state))
                 {
                     // never analyzed this project yet.
-                    return null;
+                    return ImmutableArray<DiagnosticData>.Empty;
                 }
 
                 if (documentId != null)
@@ -318,86 +220,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var document = project.Solution.GetDocument(documentId);
                     if (document == null)
                     {
-                        return null;
+                        return ImmutableArray<DiagnosticData>.Empty;
                     }
 
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    return GetResult(result, kind, documentId);
+                    var result = await state.GetAnalysisDataAsync(Owner.PersistentStorageService, document, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    return result.GetDocumentDiagnostics(documentId, kind);
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var nonLocalResult = await state.GetProjectAnalysisDataAsync(project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return nonLocalResult.Others;
+                var nonLocalResult = await state.GetProjectAnalysisDataAsync(Owner.PersistentStorageService, project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return nonLocalResult.GetOtherDiagnostics();
             }
         }
 
-        private class IDELatestDiagnosticGetter : DiagnosticGetter
+        private sealed class IdeLatestDiagnosticGetter : DiagnosticGetter
         {
-            private readonly ImmutableHashSet<string> _diagnosticIds;
+            private readonly ImmutableHashSet<string>? _diagnosticIds;
 
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, object id, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId: null, documentId: null, id: id, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
-            {
-                _diagnosticIds = null;
-            }
-
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
-            {
-                _diagnosticIds = null;
-            }
-
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, Solution solution, ProjectId projectId, bool includeSuppressedDiagnostics) :
-                this(owner, diagnosticIds, solution, projectId, documentId: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
-            {
-            }
-
-            public IDELatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, ImmutableHashSet<string> diagnosticIds, Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics) :
-                base(owner, solution, projectId, documentId, id: null, includeSuppressedDiagnostics: includeSuppressedDiagnostics)
+            public IdeLatestDiagnosticGetter(DiagnosticIncrementalAnalyzer owner, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics)
+                : base(owner, solution, projectId, documentId, includeSuppressedDiagnostics)
             {
                 _diagnosticIds = diagnosticIds;
             }
 
             public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
             {
-                if (CurrentSolution == null)
+                if (ProjectId != null)
                 {
+                    var project = Solution.GetProject(ProjectId);
+                    if (project != null)
+                    {
+                        await AppendDiagnosticsAsync(project, SpecializedCollections.EmptyEnumerable<DocumentId>(), includeProjectNonLocalResult: true, cancellationToken).ConfigureAwait(false);
+                    }
+
                     return GetDiagnosticData();
                 }
 
-                if (CurrentProjectId != null)
-                {
-                    var includeProjectNonLocalResult = true;
-                    await AppendDiagnosticsAsync(CurrentProject, SpecializedCollections.EmptyEnumerable<DocumentId>(), includeProjectNonLocalResult, cancellationToken).ConfigureAwait(false);
-                    return GetDiagnosticData();
-                }
-
-                await AppendDiagnosticsAsync(CurrentSolution, cancellationToken).ConfigureAwait(false);
+                await AppendDiagnosticsAsync(Solution, cancellationToken).ConfigureAwait(false);
                 return GetDiagnosticData();
             }
 
             protected override bool ShouldIncludeDiagnostic(DiagnosticData diagnostic)
-            {
-                return _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
-            }
+                => _diagnosticIds == null || _diagnosticIds.Contains(diagnostic.Id);
 
             protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
-                // when we return cached result, make sure we at least return something that exist in current solution
-                if (project == null)
-                {
-                    return;
-                }
-
                 // get analyzers that are not suppressed.
-                // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
-                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilation = await Owner.CreateCompilationWithAnalyzersAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var forceAnalyzerRun = true;
-                var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                var result = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun: true, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -405,23 +279,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var documentId in documentIds)
                     {
-                        AppendDiagnostics(GetResult(analysisResult, AnalysisKind.Syntax, documentId));
-                        AppendDiagnostics(GetResult(analysisResult, AnalysisKind.Semantic, documentId));
-                        AppendDiagnostics(GetResult(analysisResult, AnalysisKind.NonLocal, documentId));
+                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Syntax));
+                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.Semantic));
+                        AppendDiagnostics(analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal));
                     }
 
                     if (includeProjectNonLocalResult)
                     {
                         // include project diagnostics if there is no target document
-                        AppendDiagnostics(analysisResult.Others);
+                        AppendDiagnostics(analysisResult.GetOtherDiagnostics());
                     }
                 }
             }
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
-                // REVIEW: this can be expensive. any way to do this cheaper?
-                var diagnosticService = Owner.Owner;
+                var diagnosticService = Owner.AnalyzerService;
                 if (diagnosticService.IsAnalyzerSuppressed(stateSet.Analyzer, project))
                 {
                     return false;
@@ -435,16 +308,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            protected override async Task<ImmutableArray<DiagnosticData>?> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId documentId, AnalysisKind kind, CancellationToken cancellationToken)
+            protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(StateSet stateSet, Project project, DocumentId? documentId, AnalysisKind kind, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var stateSets = SpecializedCollections.SingletonCollection(stateSet);
 
                 // Here, we don't care what kind of analyzer (StateSet) is given. 
-                // We just create and use AnalyzerDriver with the given analyzer (StateSet). 
                 var forceAnalyzerRun = true;
-                var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                var compilation = await Owner.CreateCompilationWithAnalyzersAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 if (documentId != null)
                 {
@@ -455,24 +327,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         case AnalysisKind.Syntax:
                         case AnalysisKind.Semantic:
-                            {
-                                var result = await Owner._executor.GetDocumentAnalysisDataAsync(analyzerDriverOpt, document, stateSet, kind, cancellationToken).ConfigureAwait(false);
-                                return result.Items;
-                            }
+                            return (await Owner.GetDocumentAnalysisDataAsync(compilation, document, stateSet, kind, cancellationToken).ConfigureAwait(false)).Items;
+
                         case AnalysisKind.NonLocal:
-                            {
-                                var nonLocalDocumentResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                                var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
-                                return GetResult(analysisResult, AnalysisKind.NonLocal, documentId);
-                            }
+                            var nonLocalDocumentResult = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                            var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
+                            return analysisResult.GetDocumentDiagnostics(documentId, AnalysisKind.NonLocal);
+
                         default:
-                            return Contract.FailWithReturn<ImmutableArray<DiagnosticData>?>("shouldn't reach here");
+                            throw ExceptionUtilities.UnexpectedValue(kind);
                     }
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var projectResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
-                return projectResult.GetResult(stateSet.Analyzer).Others;
+                var projectResult = await Owner.GetProjectAnalysisDataAsync(compilation, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                return projectResult.GetResult(stateSet.Analyzer).GetOtherDiagnostics();
             }
         }
     }

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariantAllowEmbedded();
-                return this.TypeCustomModifiers.As<ICustomModifier>();
+                return this.TypeWithAnnotations.CustomModifiers.As<ICustomModifier>();
             }
         }
 

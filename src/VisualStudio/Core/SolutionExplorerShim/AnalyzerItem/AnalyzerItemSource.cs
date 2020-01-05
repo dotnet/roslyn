@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // The set of AnalyzerItems hasn't been realized yet. Just signal that HasItems
                 // may have changed.
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
                 return;
             }
 
@@ -108,14 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
-                for (int i = 0; i < sorted.Length; i++)
+                for (var i = 0; i < sorted.Length; i++)
                 {
                     _analyzerItems.Move(_analyzerItems.IndexOf(sorted[i]), i);
                 }
 
                 _analyzerItems.EndBulkOperation();
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
             }
         }
 
@@ -188,6 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
+                /*
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
                 var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();
 
@@ -195,6 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 {
                     return vsAnalyzersMap.Where(kvp => kvp.Value.HasLoadErrors).Select(kvp => kvp.Key).ToImmutableHashSet();
                 }
+                */
             }
 
             return ImmutableHashSet<string>.Empty;

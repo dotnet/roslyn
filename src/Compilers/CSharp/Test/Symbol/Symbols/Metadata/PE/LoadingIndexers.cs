@@ -720,12 +720,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var parameterModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterModopt");
                 Assert.True(parameterModoptIndexer.IsIndexer);
                 Assert.False(parameterModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in parameter type)
-                Assert.NotEqual(parameterModoptIndexer.Parameters.Last().CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().CustomModifiers.Length);
+                Assert.NotEqual(parameterModoptIndexer.Parameters.Last().TypeWithAnnotations.CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().TypeWithAnnotations.CustomModifiers.Length);
 
                 var returnTypeModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnTypeModopt");
                 Assert.True(returnTypeModoptIndexer.IsIndexer);
                 Assert.False(returnTypeModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in return type)
-                Assert.NotEqual(returnTypeModoptIndexer.TypeCustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeCustomModifiers.Length);
+                Assert.NotEqual(returnTypeModoptIndexer.TypeWithAnnotations.CustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeWithAnnotations.CustomModifiers.Length);
             });
         }
 

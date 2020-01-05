@@ -75,26 +75,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                             (operationContext) =>
                             {
-                                IVariableDeclarationsOperation declaration = (IVariableDeclarationsOperation)operationContext.Operation;
-                                foreach (IVariableDeclarationOperation variable in declaration.Declarations)
+                                IVariableDeclarationGroupOperation declaration = (IVariableDeclarationGroupOperation)operationContext.Operation;
+                                foreach (IVariableDeclaratorOperation variable in declaration.Declarations.SelectMany(decl => decl.Declarators))
                                 {
-                                    foreach (ILocalSymbol local in variable.Variables)
+                                    ILocalSymbol local = variable.Symbol;
+                                    if (!local.IsConst && !assignedToLocals.Contains(local))
                                     {
-                                        if (!local.IsConst && !assignedToLocals.Contains(local))
+                                        var localType = local.Type;
+                                        if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
                                         {
-                                            var localType = local.Type;
-                                            if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
+                                            IVariableInitializerOperation initializer = variable.GetVariableInitializer();
+                                            if (initializer != null && initializer.Value.ConstantValue.HasValue)
                                             {
-                                                if (variable.Initializer != null && variable.Initializer.Value.ConstantValue.HasValue)
-                                                {
-                                                    mightBecomeConstLocals.Add(local);
-                                                }
+                                                mightBecomeConstLocals.Add(local);
                                             }
                                         }
                                     }
                                 }
                             },
-                            OperationKind.VariableDeclarations);
+                            OperationKind.VariableDeclarationGroup);
 
                         operationBlockContext.RegisterOperationBlockEndAction(
                             (operationBlockEndContext) =>

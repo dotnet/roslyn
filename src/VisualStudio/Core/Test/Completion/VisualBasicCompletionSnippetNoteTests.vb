@@ -1,15 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Snippets
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
+    <[UseExportProvider]>
     Public Class VisualBasicCompletionSnippetNoteTests
         Private _markup As XElement = <document>
                                           <![CDATA[Imports System
@@ -77,10 +77,9 @@ End Class]]></document>
         End Function
 
         Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
-            Dim state = TestState.CreateVisualBasicTestState(
+            Dim state = TestStateFactory.CreateVisualBasicTestState(
                 xElement,
                 New CompletionProvider() {New MockCompletionProvider()},
-                Nothing,
                 New List(Of Type) From {GetType(TestVisualBasicSnippetInfoService)})
 
             Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ISnippetInfoService)(), TestVisualBasicSnippetInfoService)

@@ -16,14 +16,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
     internal class EditorTextFactoryService : ITextFactoryService
     {
+        private readonly ITextBufferCloneService _textBufferCloneService;
         private readonly ITextBufferFactoryService _textBufferFactory;
         private readonly IContentType _unknownContentType;
 
         [ImportingConstructor]
         public EditorTextFactoryService(
-                ITextBufferFactoryService textBufferFactoryService,
-                IContentTypeRegistryService contentTypeRegistryService)
+            ITextBufferCloneService textBufferCloneService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService)
         {
+            _textBufferCloneService = textBufferCloneService;
             _textBufferFactory = textBufferFactoryService;
             _unknownContentType = contentTypeRegistryService.UnknownContentType;
         }
@@ -65,13 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
         {
             // this API is for a case where user just wants to create a source text with explicit encoding.
-            var buffer = CreateTextBuffer(reader, cancellationToken);
+            var buffer = CreateTextBuffer(reader);
 
             // use the given encoding as it is.
-            return buffer.CurrentSnapshot.AsRoslynText(encoding);
+            return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, encoding);
         }
 
-        private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default)
+        private ITextBuffer CreateTextBuffer(TextReader reader)
         {
             return _textBufferFactory.CreateTextBuffer(reader, _unknownContentType);
         }
@@ -81,11 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             cancellationToken.ThrowIfCancellationRequested();
             stream.Seek(0, SeekOrigin.Begin);
 
-            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
-            {
-                var buffer = CreateTextBuffer(reader, cancellationToken);
-                return buffer.CurrentSnapshot.AsRoslynText(reader.CurrentEncoding ?? Encoding.UTF8);
-            }
+            using var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true);
+
+            var buffer = CreateTextBuffer(reader);
+            return buffer.CurrentSnapshot.AsRoslynText(_textBufferCloneService, reader.CurrentEncoding ?? Encoding.UTF8);
         }
     }
 }

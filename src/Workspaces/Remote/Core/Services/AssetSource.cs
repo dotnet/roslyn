@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage.SetAssetSource(this);
         }
 
-        public abstract Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken);
+        public abstract Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken);
+        public abstract Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
     }
 }

@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public InvokeDelegateWithConditionalAccessAnalyzer()
             : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
+                   CSharpCodeStyleOptions.PreferConditionalDelegateCall,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpFeaturesResources.Delegate_invocation_can_be_simplified), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources)))
         {
         }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(SyntaxNodeAction, SyntaxKind.IfStatement);
@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
 
             // look for the form "if (a != null)" or "if (null != a)"
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
             // ?. is only available in C# 6.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
             {
                 return;
@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var expressionStatement = (ExpressionStatementSyntax)innerStatement;
 
             // Check that it's of the form: "if (a != null) { a(); }
-            var invocationExpression = ((ExpressionStatementSyntax)innerStatement).Expression as InvocationExpressionSyntax;
-            if (invocationExpression == null)
+            if (!(expressionStatement.Expression is InvocationExpressionSyntax invocationExpression))
             {
                 return;
             }
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression,
-            DiagnosticSeverity severity)
+            ReportDiagnostic severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
 
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             StatementSyntax firstStatement,
             IfStatementSyntax ifStatement,
             ExpressionStatementSyntax expressionStatement,
-            DiagnosticSeverity severity,
+            ReportDiagnostic severity,
             List<Location> additionalLocations,
             string kind)
         {
@@ -179,9 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 additionalLocations, properties));
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 expressionStatement.GetLocation(),
+                severity,
                 additionalLocations, properties));
 
             // If the if-statement extends past the expression statement, then fade out the rest.
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             BinaryExpressionSyntax condition,
             ExpressionStatementSyntax expressionStatement,
             InvocationExpressionSyntax invocationExpression,
-            DiagnosticSeverity severity)
+            ReportDiagnostic severity)
         {
             var cancellationToken = syntaxContext.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
@@ -299,6 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
     }
 }

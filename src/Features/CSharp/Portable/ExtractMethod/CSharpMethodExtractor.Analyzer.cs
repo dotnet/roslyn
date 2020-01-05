@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -18,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
 
-            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
+            public static Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
             {
-                var analyzer = new CSharpAnalyzer(selectionResult, cancellationToken);
+                var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
                 return analyzer.AnalyzeAsync();
             }
 
-            public CSharpAnalyzer(SelectionResult selectionResult, CancellationToken cancellationToken) :
-                base(selectionResult, cancellationToken)
+            public CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+                : base(selectionResult, localFunction, cancellationToken)
             {
             }
 
@@ -44,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var numberOfOutParameters = 0;
                 var numberOfRefParameters = 0;
 
-                int outSymbolIndex = -1;
-                int refSymbolIndex = -1;
+                var outSymbolIndex = -1;
+                var refSymbolIndex = -1;
 
-                for (int i = 0; i < variableInfo.Count; i++)
+                for (var i = 0; i < variableInfo.Count; i++)
                 {
                     var variable = variableInfo[i];
 
@@ -128,6 +130,45 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var scope = this.SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
                 return scope == null;
+            }
+
+            protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
+            {
+                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+
+                switch (symbol)
+                {
+                    case ILocalSymbol localSymbol when localSymbol.NullableAnnotation == NullableAnnotation.Annotated:
+                    case IParameterSymbol parameterSymbol when parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated:
+
+                        // For local symbols and parameters, we can check what the flow state 
+                        // for refences to the symbols are and determine if we can change 
+                        // the nullability to a less permissive state.
+                        var references = selectionOperation.DescendantsAndSelf()
+                            .Where(IsSymbolReferencedByOperation);
+
+                        if (AreAllReferencesNotNull(references))
+                        {
+                            return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+                        }
+
+                        return base.GetSymbolType(semanticModel, symbol);
+
+                    default:
+                        return base.GetSymbolType(semanticModel, symbol);
+                }
+
+                bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
+                => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
+
+                bool IsSymbolReferencedByOperation(IOperation operation)
+                    => operation switch
+                    {
+                        ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
+                        IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
+                        IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
+                        _ => false
+                    };
             }
         }
     }

@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
     [ExportLanguageServiceFactory(typeof(IDesignerAttributeService), LanguageNames.CSharp), Shared]
     internal class CSharpDesignerAttributeServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpDesignerAttributeServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => new CSharpDesignerAttributeService(languageServices.WorkspaceServices.Workspace);
     }
@@ -26,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DesignerAttributes
 
         protected override IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode node)
         {
-            var compilationUnit = node as CompilationUnitSyntax;
-            if (compilationUnit == null)
+            if (!(node is CompilationUnitSyntax compilationUnit))
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }

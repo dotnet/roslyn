@@ -1,27 +1,53 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
-        public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
+        // ⚠ Verify IVTs do not use this method before removing it.
+        public static TLanguageService? GetLanguageService<TLanguageService>(this Document? document) where TLanguageService : class, ILanguageService
             => document?.Project?.LanguageServices?.GetService<TLanguageService>();
+
+        public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
+            => document.Project.LanguageServices.GetRequiredService<TLanguageService>();
+
+        public static async Task<SemanticModel> GetRequiredSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return semanticModel ?? throw new InvalidOperationException(string.Format(WorkspacesResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+        }
+
+        public static async Task<SyntaxTree> GetRequiredSyntaxTreeAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            return syntaxTree ?? throw new InvalidOperationException(string.Format(WorkspacesResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+        }
+
+        public static async Task<SyntaxNode> GetRequiredSyntaxRootAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return root ?? throw new InvalidOperationException(string.Format(WorkspacesResources.SyntaxTree_is_required_to_accomplish_the_task_but_is_not_supported_by_document_0, document.Name));
+        }
+
 
         public static bool IsOpen(this Document document)
         {
@@ -42,29 +68,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static async Task<SemanticModel> GetSemanticModelForSpanAsync(this Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            try
-            {
-                var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
-                if (semanticModelService == null || syntaxFactService == null)
-                {
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                }
+            Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var token = root.FindToken(span.Start);
-                if (token.Parent == null)
-                {
-                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                var node = token.Parent.AncestorsAndSelf().FirstOrDefault(a => a.FullSpan.Contains(span));
-                return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
+            if (semanticModelService == null || syntaxFactService == null)
             {
-                throw ExceptionUtilities.Unreachable;
+                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(root, "We shouldn't have a null root if the document supports semantic models");
+            var token = root.FindToken(span.Start);
+            if (token.Parent == null)
+            {
+                return (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
+            }
+
+            var node = token.Parent.AncestorsAndSelf().First(a => a.FullSpan.Contains(span));
+            return await GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, span, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -78,13 +100,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// also, symbols from the semantic model returned by this API might have out of date location information. 
         /// if exact location (not relative location) is needed from symbol, regular GetSemanticModel should be used.
         /// </summary>
-        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
         {
-            var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null || node == null)
             {
-                return document.GetSemanticModelAsync(cancellationToken);
+                return document.GetSemanticModelAsync(cancellationToken)!;
             }
 
             return GetSemanticModelForNodeAsync(semanticModelService, syntaxFactService, document, node, node.FullSpan, cancellationToken);
@@ -98,36 +120,36 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var speculativeBindingSpan = syntaxFactService.GetMemberBodySpanForSpeculativeBinding(node);
             if (!speculativeBindingSpan.Contains(span))
             {
-                return document.GetSemanticModelAsync(cancellationToken);
+                return document.GetSemanticModelAsync(cancellationToken)!;
             }
 
             return semanticModelService.GetSemanticModelForNodeAsync(document, node, cancellationToken);
         }
 
 #if DEBUG
-        public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string> ignoreErrorCode = null)
+        public static async Task<bool> HasAnyErrorsAsync(this Document document, CancellationToken cancellationToken, List<string>? ignoreErrorCode = null)
         {
             var errors = await GetErrorsAsync(document, cancellationToken, ignoreErrorCode).ConfigureAwait(false);
             return errors.Length > 0;
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, IList<string> ignoreErrorCode = null)
+        public static async Task<ImmutableArray<Diagnostic>> GetErrorsAsync(this Document document, CancellationToken cancellationToken, IList<string>? ignoreErrorCode = null)
         {
             if (!document.SupportsSemanticModel)
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            ignoreErrorCode = ignoreErrorCode ?? SpecializedCollections.EmptyList<string>();
+            ignoreErrorCode ??= SpecializedCollections.EmptyList<string>();
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return semanticModel.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
+            return semanticModel!.GetDiagnostics(cancellationToken: cancellationToken).WhereAsArray(
                 diag => diag.Severity == DiagnosticSeverity.Error && !ignoreErrorCode.Contains(diag.Id));
         }
 
         /// <summary>
         /// Debug only extension method to verify no errors were introduced by formatting, pretty listing and other related document altering service in error-free code.
         /// </summary>
-        public static async Task VerifyNoErrorsAsync(this Document newDocument, string message, CancellationToken cancellationToken, List<string> ignoreErrorCodes = null)
+        public static async Task VerifyNoErrorsAsync(this Document newDocument, string message, CancellationToken cancellationToken, List<string>? ignoreErrorCodes = null)
         {
             var errors = await newDocument.GetErrorsAsync(cancellationToken, ignoreErrorCodes).ConfigureAwait(false);
             if (errors.Length > 0)
@@ -170,18 +192,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
-            => SyntaxTreeIndex.GetIndexAsync(document, cancellationToken);
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken);
+
+        public static Task<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, bool loadOnly, CancellationToken cancellationToken)
+            => SyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken);
 
         /// <summary>
         /// Returns the semantic model for this document that may be produced from partial semantics. The semantic model
         /// is only guaranteed to contain the syntax tree for <paramref name="document"/> and nothing else.
         /// </summary>
-        public static async Task<SemanticModel> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<SemanticModel?> GetPartialSemanticModelAsync(this Document document, CancellationToken cancellationToken)
         {
             if (document.Project.TryGetCompilation(out var compilation))
             {
                 // We already have a compilation, so at this point it's fastest to just get a SemanticModel
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // Make sure the compilation is kept alive so that GetSemanticModelAsync() doesn't become expensive
+                GC.KeepAlive(compilation);
+                return semanticModel;
             }
             else
             {
@@ -194,6 +223,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var generatedCodeRecognitionService = document.GetLanguageService<IGeneratedCodeRecognitionService>();
             return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
+        }
+
+        public static async Task<SemanticModel> RequireSemanticModelAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return model ?? throw new InvalidOperationException();
         }
     }
 }

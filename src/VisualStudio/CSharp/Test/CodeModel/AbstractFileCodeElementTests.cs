@@ -4,7 +4,10 @@ using System;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Roslyn.Test.Utilities;
+using SyntaxNodeKey = Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.SyntaxNodeKey;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
@@ -12,18 +15,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     /// Base class of a all test-containing classes. Automatically creates a FileCodeModel for testing with the given
     /// file.
     /// </summary>
+    [UseExportProvider]
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
-        private readonly Tuple<TestWorkspace, FileCodeModel> _workspaceAndCodeModel;
+        private readonly string _contents;
+        private Tuple<TestWorkspace, FileCodeModel> _workspaceAndCodeModel;
+
+        public AbstractFileCodeElementTests(string contents)
+        {
+            _contents = contents;
+        }
+
+        public Tuple<TestWorkspace, FileCodeModel> WorkspaceAndCodeModel
+        {
+            get
+            {
+                return _workspaceAndCodeModel ?? (_workspaceAndCodeModel = CreateWorkspaceAndFileCodeModelAsync(_contents));
+            }
+        }
 
         protected TestWorkspace GetWorkspace()
         {
-            return _workspaceAndCodeModel.Item1;
+            return WorkspaceAndCodeModel.Item1;
         }
 
         protected FileCodeModel GetCodeModel()
         {
-            return _workspaceAndCodeModel.Item2;
+            return WorkspaceAndCodeModel.Item2;
         }
 
         protected Microsoft.CodeAnalysis.Solution GetCurrentSolution()
@@ -35,24 +53,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
             => GetCurrentProject().Documents.Single();
 
-        public AbstractFileCodeElementTests(string contents)
-        {
-            _workspaceAndCodeModel = CreateWorkspaceAndFileCodeModelAsync(contents);
-        }
-
         protected static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModelAsync(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected CodeElement GetCodeElement(params object[] path)
         {
-            WpfTestCase.RequireWpfFact("Tests create CodeElements which use the affinitized CleanableWeakComHandleTable");
+            WpfTestRunner.RequireWpfFact($"Tests create {nameof(CodeElement)}s which use the affinitized {nameof(CleanableWeakComHandleTable<SyntaxNodeKey, CodeElement>)}");
 
             if (path.Length == 0)
             {
                 throw new ArgumentException("path must be non-empty.", nameof(path));
             }
 
-            CodeElement codeElement = (GetCodeModel()).CodeElements.Item(path[0]);
+            var codeElement = (GetCodeModel()).CodeElements.Item(path[0]);
 
             foreach (var pathElement in path.Skip(1))
             {

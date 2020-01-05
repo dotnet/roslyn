@@ -1,0 +1,943 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../CodeAnalysisResources.resx">
+    <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Nie można określić nazwy języka dla tej opcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Nazwa języka musi zostać określona dla tej opcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="new">Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">Analizator „{0}” zgłosił następujący wyjątek:
+„{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">Pominięty identyfikator diagnostyki „{0}” nie pasuje do możliwego do pominięcia identyfikatora „{1}” dla danego deskryptora pomijania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">Dany blok operacji nie należy do bieżącego kontekstu analizy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">Parametr „{0}” musi być interfejsem „INamedTypeSymbol” lub „IAssemblySymbol”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">Parametr „{0}” musi być symbolem z tej kompilacji lub przywoływanym zestawem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="new">Module has invalid attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">Nie można pominąć niezgłoszonej diagnostyki o identyfikatorze „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">Dana operacja ma element nadrzędny inny niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">Dana operacja ma model semantyczny o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">Podana operacja nie może być częścią grafu przepływu sterowania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutputKindNotSupported">
+        <source>Output kind not supported.</source>
+        <target state="translated">Rodzaj wyjścia nie jest obsługiwany.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
+        <target state="translated">Ścieżka zwrócona przez element {0}.ResolveMetadataFile musi być bezwzględna: „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyMustHaveAtLeastOneModule">
+        <source>Assembly must have at least one module.</source>
+        <target state="translated">Zestaw musi mieć co najmniej jeden moduł.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
+        <source>Module copy can't be used to create an assembly metadata.</source>
+        <target state="translated">Nie można użyć kopii modułu do utworzenia metadanych zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">Analizator „{0}” zawiera deskryptor null we właściwości „SupportedDiagnostics”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">Analizator „{0}” zawiera deskryptor null we właściwości „SupportedSuppressions”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">Diagnostyka „{0}: {1}” została programowo pominięta przez interfejs DiagnosticSuppressor z identyfikatorem pominięcia „{2}” i uzasadnieniem „{3}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">Programowe pomijanie diagnostyki analizatora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">Interfejs DiagnosticDescriptor musi mieć identyfikator, który nie ma wartości null, nie jest ciągiem pustym ani nie jest ciągiem zawierającym tylko białe znaki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">Jeśli określono adnotacje elementów krotki z możliwością ustawiania wartości null, liczba adnotacji musi zgadzać się z kardynalnością krotki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="new">Unable to determine specific cause of the failure.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved">
+        <source>Unresolved: </source>
+        <target state="translated">Nierozpoznane: </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>assembly</source>
+        <target state="translated">zestaw</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class1">
+        <source>class</source>
+        <target state="translated">klasa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructor">
+        <source>constructor</source>
+        <target state="translated">konstruktor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate1">
+        <source>delegate</source>
+        <target state="translated">delegat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum1">
+        <source>enum</source>
+        <target state="translated">wyliczenie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event1">
+        <source>event</source>
+        <target state="translated">zdarzenie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field">
+        <source>field</source>
+        <target state="translated">pole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeParameter">
+        <source>type parameter</source>
+        <target state="translated">parametr typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface1">
+        <source>interface</source>
+        <target state="translated">interfejs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method">
+        <source>method</source>
+        <target state="translated">metoda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module">
+        <source>module</source>
+        <target state="translated">moduł</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter">
+        <source>parameter</source>
+        <target state="translated">parametr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property">
+        <source>property, indexer</source>
+        <target state="translated">właściwość, indeksator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Return1">
+        <source>return</source>
+        <target state="translated">zwracany</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct1">
+        <source>struct</source>
+        <target state="translated">struktura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToSubmission">
+        <source>Can't create a reference to a submission.</source>
+        <target state="translated">Nie można utworzyć odwołania do przesłanego elementu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToModule">
+        <source>Can't create a reference to a module.</source>
+        <target state="translated">Nie można utworzyć odwołania do modułu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryAssembly">
+        <source>&lt;in-memory assembly&gt;</source>
+        <target state="translated">&lt;zestaw w pamięci&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryModule">
+        <source>&lt;in-memory module&gt;</source>
+        <target state="translated">&lt;moduł w pamięci&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SizeHasToBePositive">
+        <source>Size has to be positive.</source>
+        <target state="translated">Rozmiar musi być wartością dodatnią.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyFileNotFound">
+        <source>Assembly file not found</source>
+        <target state="translated">Nie znaleziono pliku zestawu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotEmbedInteropTypesFromModule">
+        <source>Can't embed interop types from module.</source>
+        <target state="translated">Nie można osadzić typów międzyoperacyjnych z modułu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotAliasModule">
+        <source>Can't alias a module.</source>
+        <target state="translated">Nie można ustawić aliasu dla modułu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAlias">
+        <source>Invalid alias.</source>
+        <target state="translated">Nieprawidłowy alias.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetMetadataMustReturnInstance">
+        <source>{0}.GetMetadata() must return an instance of {1}.</source>
+        <target state="translated">Metoda {0}.GetMetadata() musi zwrócić wystąpienie {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">Zgłoszone pominięcie o identyfikatorze „{0}” nie jest obsługiwane przez eliminator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">Wartość jest zbyt duża, dlatego nie może być reprezentowana jako 30-bitowa liczba całkowita bez znaku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
+        <source>Arrays with more than one dimension cannot be serialized.</source>
+        <target state="translated">Nie można przeprowadzić serializacji tablic z więcej niż jednym wymiarem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name: '{0}'</source>
+        <target state="translated">Nieprawidłowa nazwa zestawu: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected.</source>
+        <target state="translated">Oczekiwano ścieżki bezwzględnej.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyKeyInPathMap">
+        <source>A key in the pathMap is empty.</source>
+        <target state="translated">Klucz w elemencie pathMap jest pusty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NullValueInPathMap">
+        <source>A value in the pathMap is null.</source>
+        <target state="translated">Wartość elementu pathMap to null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationOptionsMustNotHaveErrors">
+        <source>Compilation options must not have errors.</source>
+        <target state="translated">Opcje kompilacji nie mogą zawierać błędów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
+        <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
+        <target state="translated">Typ zwracany nie może być typem wartości, wskaźnikiem, elementem by-ref ani otwartym typem ogólnym.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
+        <source>Return type can't be void, by-ref or open generic type</source>
+        <target state="translated">Typ zwracany nie może być typem void, elementem by-ref ani otwartym typem ogólnym</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
+        <source>Type must be same as host object type of previous submission.</source>
+        <target state="translated">Typ musi być identyczny z typem obiektu hosta poprzedniego przesłanego elementu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreviousSubmissionHasErrors">
+        <source>Previous submission has errors.</source>
+        <target state="translated">Poprzedni przesłany element zawiera błędy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOutputKindForSubmission">
+        <source>Invalid output kind for submission. DynamicallyLinkedLibrary expected.</source>
+        <target state="translated">Nieprawidłowy rodzaj wyjścia przesłanego elementu. Oczekiwano elementu DynamicallyLinkedLibrary.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCompilationOptions">
+        <source>Invalid compilation options -- submission can't be signed.</source>
+        <target state="translated">Nieprawidłowe opcje kompilacji — nie można podpisać przesłanego elementu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamProviderShouldReturnNonNullStream">
+        <source>Resource stream provider should return non-null stream.</source>
+        <target state="translated">Dostawca strumienia zasobów powinien zwrócić strumień, który ma wartość inną niż null. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
+        <source>Reference resolver should return readable non-null stream.</source>
+        <target state="translated">Procedura rozpoznawania odwołań powinna zwrócić możliwy do odczytu strumień, który ma wartość inną niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidResourceName">
+        <source>Empty or invalid resource name</source>
+        <target state="translated">Pusta lub nieprawidłowa nazwa zasobu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidFileName">
+        <source>Empty or invalid file name</source>
+        <target state="translated">Pusta lub nieprawidłowa nazwa pliku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
+        <source>Resource data provider should return non-null stream</source>
+        <target state="translated">Dostawca danych zasobów powinien zwrócić strumień, który ma wartość inną niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileNotFound">
+        <source>File not found.</source>
+        <target state="translated">Nie znaleziono pliku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
+        <target state="translated">Ścieżka zwrócona przez element {0}.ResolveStrongNameKeyFile musi być bezwzględna: „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
+        <source>type must be a subclass of SyntaxAnnotation.</source>
+        <target state="translated">Typ musi być podklasą elementu SyntaxAnnotation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidModuleName">
+        <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
+        <target state="translated">Nieprawidłowa nazwa modułu została określona w module metadanych „{0}”: „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileSizeExceedsMaximumAllowed">
+        <source>File size exceeds maximum allowed size of a valid metadata file.</source>
+        <target state="translated">Rozmiar pliku przekracza maksymalny dozwolony rozmiar prawidłowego pliku metadanych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeNull">
+        <source>Name cannot be null.</source>
+        <target state="translated">Nazwa nie może być pusta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeEmpty">
+        <source>Name cannot be empty.</source>
+        <target state="translated">Nazwa nie może być pusta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotStartWithWhitespace">
+        <source>Name cannot start with whitespace.</source>
+        <target state="translated">Nazwa nie może rozpoczynać się od białego znaku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameContainsInvalidCharacter">
+        <source>Name contains invalid characters.</source>
+        <target state="translated">Nazwa zawiera nieprawidłowe znaki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeStartOfLine">
+        <source>The span does not include the start of a line.</source>
+        <target state="translated">Zakres nie obejmuje początku wiersza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeEndOfLine">
+        <source>The span does not include the end of a line.</source>
+        <target state="translated">Zakres nie obejmuje końca wiersza.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartMustNotBeNegative">
+        <source>'start' must not be negative</source>
+        <target state="translated">'Element „start” nie może być wartością ujemną</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'</source>
+        <target state="translated">'Element „end” nie może mieć mniejszej wartości niż element „start”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidContentType">
+        <source>Invalid content type</source>
+        <target state="translated">Nieprawidłowy typ zawartości</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedNonEmptyPublicKey">
+        <source>Expected non-empty public key</source>
+        <target state="translated">Oczekiwano klucza publicznego, który nie jest pusty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSizeOfPublicKeyToken">
+        <source>Invalid size of public key token.</source>
+        <target state="translated">Nieprawidłowy rozmiar tokenu klucza publicznego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Nieprawidłowe znaki w nazwie zestawu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyCultureName">
+        <source>Invalid characters in assembly culture name</source>
+        <target state="translated">Nieprawidłowe znaki w nazwie kultury zestawu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">Strumień musi obsługiwać operacje odczytu i wyszukiwania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportRead">
+        <source>Stream must be readable.</source>
+        <target state="translated">Strumień musi być możliwy do odczytania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportWrite">
+        <source>Stream must be writable.</source>
+        <target state="translated">Strumień musi być zapisywalny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
+        <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
+        <target state="translated">Nie należy podawać strumienia PDB podczas wbudowywania pliku PDB w strumieniu PE.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>PDB stream should not be given when emitting metadata only.</source>
+        <target state="translated">Strumień PDB nie powinien być podawany podczas emitowania samych metadanych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>Metadata PE stream should not be given when emitting metadata only.</source>
+        <target state="translated">Strumień PE metadanych nie powinien być podawany podczas emitowania samych metadanych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
+        <source>Including private members should not be used when emitting to the secondary assembly output.</source>
+        <target state="translated">Uwzględnianie prywatnych składowych nie powinno być używane podczas emitowania danych wyjściowych pomocniczego zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
+        <source>Must include private members unless emitting a ref assembly.</source>
+        <target state="translated">Musi zawierać prywatne składowe, chyba że emituje zestaw odwołania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
+        <source>Embedding PDB is not allowed when emitting metadata.</source>
+        <target state="translated">Osadzanie pliku PDB nie jest dozwolone podczas emitowania metadanych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
+        <source>Cannot target net module when emitting ref assembly.</source>
+        <target state="translated">Nie można ustawić modułu sieciowego jako docelowego podczas emitowania zestawu odwołania.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHash">
+        <source>Invalid hash.</source>
+        <target state="translated">Nieprawidłowy skrót.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedHashAlgorithm">
+        <source>Unsupported hash algorithm.</source>
+        <target state="translated">Nieobsługiwany algorytm wyznaczania wartości skrótu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentLanguageVersions">
+        <source>Inconsistent language versions</source>
+        <target state="translated">Niezgodne wersje językowe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidRelocation">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, mają co najmniej jedną nieprawidłową wartość nagłówka relokacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSectionSize">
+        <source>Win32 resources, assumed to be in COFF object format, have an invalid section size.</source>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, mają nieprawidłowy rozmiar sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSymbol">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid symbol values.</source>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, mają co najmniej jedną nieprawidłową wartość symbolu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceMissingSection">
+        <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
+        <target state="translated">Zasoby Win32, w przypadku których zakłada się, że format obiektu to COFF, nie zawierają jednej sekcji „rsrc$01” lub „rsrc$02” albo obu tych sekcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IconStreamUnexpectedFormat">
+        <source>Icon stream is not in the expected format.</source>
+        <target state="translated">Strumień ikony nie ma oczekiwanego formatu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCultureName">
+        <source>Invalid culture name: '{0}'</source>
+        <target state="translated">Nieprawidłowa nazwa kultury: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">Dla elementu diagnostyki „{0}” określono nieprawidłową ważność „{1}” w pliku konfiguracji analizatora — „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">Nieprawidłowa ważność w pliku konfiguracji analizatora.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WinRTIdentityCantBeRetargetable">
+        <source>WindowsRuntime identity can't be retargetable</source>
+        <target state="translated">Tożsamość WindowsRuntime nie może być elementem, który można ponownie ustawić jako cel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageNotAvailable">
+        <source>PE image not available.</source>
+        <target state="translated">Obraz PE jest niedostępny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblySigningNotSupported">
+        <source>Assembly signing not supported.</source>
+        <target state="translated">Podpisywanie zestawu nie jest obsługiwane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XmlReferencesNotSupported">
+        <source>References to XML documents are not supported.</source>
+        <target state="translated">Odwołania do dokumentów XML są nieobsługiwane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FailedToResolveRuleSetName">
+        <source>Could not locate the rule set file '{0}'.</source>
+        <target state="translated">Nie można odnaleźć pliku zestawu reguł „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRuleSetInclude">
+        <source>An error occurred while loading the included rule set file {0} - {1}</source>
+        <target state="translated">Podczas ładowania dołączonego pliku zestawu reguł wystąpił błąd {0} — {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerFailure">
+        <source>Analyzer Failure</source>
+        <target state="translated">Błąd analizatora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrows">
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
+        <target state="translated">Analizator „{0}” zgłosił wyjątek typu „{1}” z komunikatem „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverFailure">
+        <source>Analyzer Driver Failure</source>
+        <target state="translated">Błąd sterownika analizatora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrows">
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
+        <target state="translated">Sterownik analizatora zgłosił wyjątek typu „{0}” z komunikatem „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrowsDescription">
+        <source>Analyzer driver threw the following exception:
+'{0}'.</source>
+        <target state="translated">Sterownik analizatora zgłosił następujący wyjątek:
+„{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageDoesntContainManagedMetadata">
+        <source>PE image doesn't contain managed metadata.</source>
+        <target state="translated">Obraz PE nie zawiera zarządzanych metadanych.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="translated">Zmiany muszą być uporządkowane i nie mogą nakładać się na siebie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
+        <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">DiagnosticDescriptor musi mieć identyfikator, który nie ma wartości null, nie jest ciągiem pustym ani nie jest ciągiem zawierającym tylko puste miejsca.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetHasDuplicateRules">
+        <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
+        <target state="translated">Plik zestawu reguł ma zduplikowane reguły w przypadku elementu „{0}” z różniącymi się akcjami „{1}” i „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateModuleReferenceToAssembly">
+        <source>Can't create a module reference to an assembly.</source>
+        <target state="translated">Nie można utworzyć odwołania modułu do zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToDynamicAssembly">
+        <source>Can't create a metadata reference to a dynamic assembly.</source>
+        <target state="translated">Nie można utworzyć odwołania metadanych do zestawu dynamicznego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToAssemblyWithoutLocation">
+        <source>Can't create a metadata reference to an assembly without location.</source>
+        <target state="translated">Nie można utworzyć odwołania metadanych do zestawu bez lokalizacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentCannotBeEmpty">
+        <source>Argument cannot be empty.</source>
+        <target state="translated">Argument nie może być pusty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentElementCannotBeNull">
+        <source>Argument cannot have a null element.</source>
+        <target state="translated">Argument nie może zawierać elementu o wartości null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
+        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
+        <target state="translated">Analizator próbował zarejestrować akcję „async”, co nie jest obsługiwane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedDiagnosticReported">
+        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
+        <target state="translated">Zgłoszona diagnostyka z identyfikatorem „{0}” nie jest obsługiwana przez analizatora.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticIdReported">
+        <source>Reported diagnostic has an ID '{0}', which is not a valid identifier.</source>
+        <target state="translated">Zgłoszona diagnostyka ma identyfikator „{0}”, który nie jest prawidłowym identyfikatorem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticLocationReported">
+        <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
+        <target state="translated">Lokalizacja źródłowa zgłoszonych danych diagnostycznych „{0}” znajduje się w pliku „{1}”, który nie jest częścią analizowanej kompilacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
+        <source>The type '{0}' is not understood by the serialization binder.</source>
+        <target state="translated">Typ „{0}” nie jest zrozumiały dla integratora serializacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_deserialize_type_0">
+        <source>Cannot deserialize type '{0}'.</source>
+        <target state="translated">Nie można deserializować typu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_serialize_type_0">
+        <source>Cannot serialize type '{0}'.</source>
+        <target state="translated">Nie można serializować typu „{0}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidNodeToTrack">
+        <source>Node to track is not a descendant of the root.</source>
+        <target state="translated">Węzeł do śledzenia nie jest elementem podrzędnym elementu głównego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeOrTokenOutOfSequence">
+        <source>A node or token is out of sequence.</source>
+        <target state="translated">Węzeł lub token jest poza sekwencją.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedTypeOfNodeInList">
+        <source>A node in the list is not of the expected type.</source>
+        <target state="translated">Węzeł na liście nie ma oczekiwanego typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingListItem">
+        <source>The item specified is not the element of a list.</source>
+        <target state="translated">Określony element nie jest elementem listy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKey">
+        <source>Invalid public key.</source>
+        <target state="translated">Nieprawidłowy klucz publiczny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKeyToken">
+        <source>Invalid public key token.</source>
+        <target state="translated">Nieprawidłowy token klucza publicznego.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDataAtOffset">
+        <source>Invalid data at offset {0}: {1}{2}*{3}{4}</source>
+        <target state="translated">Nieprawidłowe dane w przesunięciu {0}: {1}{2}*{3}{4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterNotDeterministic">
+        <source>Windows PDB writer doesn't support deterministic compilation: '{0}'</source>
+        <target state="translated">Składnik zapisywania plików PDB systemu Windows nie obsługuje kompilacji deterministycznej: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterOlderVersionThanRequired">
+        <source>The version of Windows PDB writer is older than required: '{0}'</source>
+        <target state="translated">Wersja składnika zapisywania plików PDB systemu Windows jest starsza niż wymagana: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterDoesNotSupportSourceLink">
+        <source>Windows PDB writer doesn't support SourceLink feature: '{0}'</source>
+        <target state="translated">Składnik zapisywania plików PDB systemu Windows nie obsługuje funkcji SourceLink: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetBadAttributeValue">
+        <source>The attribute {0} has an invalid value of {1}.</source>
+        <target state="translated">Atrybut {0} ma nieprawidłową wartość {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetMissingAttribute">
+        <source>The element {0} is missing an attribute named {1}.</source>
+        <target state="translated">Element {0} nie ma atrybutu o nazwie {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsNotAnInteger">
+        <source>Argument to '/keepalive' option is not a 32-bit integer.</source>
+        <target state="translated">Argument opcji „/keepalive” nie jest 32-bitową liczbą całkowitą.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsTooSmall">
+        <source>Arguments to '/keepalive' option below -1 are invalid.</source>
+        <target state="translated">Argumenty opcji „/keepalive” mniejsze niż -1 są nieprawidłowe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveWithoutShared">
+        <source>'/keepalive' option is only valid with '/shared' option.</source>
+        <target state="translated">'Opcja „/keepalive” jest prawidłowa tylko z opcją „/shared”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MismatchedVersion">
+        <source>Roslyn compiler server reports different protocol version than build task.</source>
+        <target state="translated">Wersja protokołu zgłaszana przez serwer kompilatora programu Roslyn jest inna niż wersja dla zadania kompilacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKeepAlive">
+        <source>Missing argument for '/keepalive' option.</source>
+        <target state="translated">Brak argumentu opcji „/keepalive”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerTotalExecutionTime">
+        <source>Total analyzer execution time: {0} seconds.</source>
+        <target state="translated">Łączny czas wykonywania analizatora: {0} sek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MultithreadedAnalyzerExecutionNote">
+        <source>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</source>
+        <target state="translated">UWAGA: Czas, który upłynął, może być krótszy niż czas wykonywania analizatora, ponieważ analizatory mogą działać współbieżnie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerExecutionTimeColumnHeader">
+        <source>Time (s)</source>
+        <target state="translated">Czas (s)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerNameColumnHeader">
+        <source>Analyzer</source>
+        <target state="translated">Analizator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoAnalyzersFound">
+        <source>No analyzers found</source>
+        <target state="translated">Nie znaleziono analizatorów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateAnalyzerInstances">
+        <source>Argument contains duplicate analyzer instances.</source>
+        <target state="translated">Argument zawiera zduplikowane wystąpienia analizatora.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedAnalyzerInstance">
+        <source>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</source>
+        <target state="translated">Argument zawiera wystąpienie analizatora, które nie należy do elementu „Analizatory” dla tego wystąpienia CompilationWithAnalyzers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidTree">
+        <source>Syntax tree doesn't belong to the underlying 'Compilation'.</source>
+        <target state="translated">Drzewo składni nie należy do podstawowego elementu „Kompilacja”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamEndedUnexpectedly">
+        <source>Resource stream ended at {0} bytes, expected {1} bytes.</source>
+        <target state="translated">Strumień zasobów zakończył się przy następującej liczbie bajtów: {0}, oczekiwano następującej liczby bajtów: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SharedArgumentMissing">
+        <source>Value for argument '/shared:' must not be empty</source>
+        <target state="translated">Wartość argumentu „/shared:” nie może być pusta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionContext">
+        <source>Exception occurred with following context:
+{0}</source>
+        <target state="translated">Wystąpił wyjątek z następującym kontekstem:
+{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeMemberAndNamesCountMismatch2">
+        <source>{0} and {1} must have the same length.</source>
+        <target state="translated">Elementy {0} i {1} muszą mieć tę samą długość.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeArgumentCountMismatch2">
+        <source>{0} must either be 'default' or have the same length as {1}.</source>
+        <target state="translated">Element {0} musi mieć wartość „default” lub tę samą długość co element {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentSyntaxTreeFeature">
+        <source>Inconsistent syntax tree features</source>
+        <target state="translated">Niespójne funkcje drzewa składni</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceOfTypeIsInvalid1">
+        <source>Reference of type '{0}' is not valid for this compilation.</source>
+        <target state="translated">Odwołanie typu „{0}” jest nieprawidłowe dla tej kompilacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataRefNotFoundToRemove1">
+        <source>MetadataReference '{0}' not found to remove.</source>
+        <target state="translated">Nie znaleziono elementu MetadataReference „{0}” do usunięcia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameCountMismatch">
+        <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
+        <target state="translated">Jeśli określono nazwy elementów krotki, liczba tych nazw musi być zgodna z kardynalnością krotki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameEmpty">
+        <source>Tuple element name cannot be an empty string.</source>
+        <target state="translated">Nazwa elementu krotki nie może być pustym ciągiem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementLocationCountMismatch">
+        <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
+        <target state="translated">Jeśli określono lokalizacje elementów krotki, liczba lokalizacji musi zgadzać się z kardynalnością krotki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TuplesNeedAtLeastTwoElements">
+        <source>Tuples must have at least two elements.</source>
+        <target state="translated">Krotki muszą zawierać co najmniej dwa elementy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationReferencesAssembliesWithDifferentAutoGeneratedVersion">
+        <source>The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.</source>
+        <target state="translated">Kompilacja zawiera odwołania do wielu zestawów, których wersje różnią się tylko automatycznie wygenerowanymi numerami kompilacji i/lub poprawki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleUnderlyingTypeMustBeTupleCompatible">
+        <source>The underlying type for a tuple must be tuple-compatible.</source>
+        <target state="translated">Podstawowy typ krotki musi zapewniać obsługę krotek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnrecognizedResourceFileFormat">
+        <source>Unrecognized resource file format.</source>
+        <target state="translated">Nierozpoznany format pliku zasobów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SourceTextCannotBeEmbedded">
+        <source>SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction.</source>
+        <target state="translated">Nie można osadzić elementu SourceText. Podaj kodowanie lub ustawienie canBeEmbedded=true w konstrukcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamIsTooLong">
+        <source>Stream is too long.</source>
+        <target state="translated">Strumień jest za długi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddedTextsRequirePdb">
+        <source>Embedded texts are only supported when emitting a PDB.</source>
+        <target state="translated">Osadzony tekst jest obsługiwany tylko w przypadku emitowania pliku PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeWrittenTo">
+        <source>The stream cannot be written to.</source>
+        <target state="translated">Nie można zapisać do strumienia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ElementIsExpected">
+        <source>element is expected</source>
+        <target state="translated">element jest oczekiwany</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorIsExpected">
+        <source>separator is expected</source>
+        <target state="translated">oczekiwano separatora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeReadFrom">
+        <source>The stream cannot be read from.</source>
+        <target state="translated">Nie można odczytać ze strumienia.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
+        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
+        <target state="translated">Czytnik deserializacji dla elementu „{0}” odczytuje nieprawidłową liczbę wartości.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stream_contains_invalid_data">
+        <source>Stream contains invalid data</source>
+        <target state="translated">Strumień zawiera nieprawidłowe dane</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSpanReported">
+        <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
+        <target state="translated">Zgłoszone dane diagnostyczne „{0}” mają lokalizację źródłową „{1}” w pliku „{2}”, który jest spoza podanego pliku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="translated">Ostrzeżenie: Nie można włączyć wielordzeniowego kompilowania JIT z powodu wyjątku: {0}.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

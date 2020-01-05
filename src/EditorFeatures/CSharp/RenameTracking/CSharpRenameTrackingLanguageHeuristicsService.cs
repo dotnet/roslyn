@@ -9,9 +9,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RenameTracking
     [ExportLanguageService(typeof(IRenameTrackingLanguageHeuristicsService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpRenameTrackingLanguageHeuristicsService : IRenameTrackingLanguageHeuristicsService
     {
+        [ImportingConstructor]
+        public CSharpRenameTrackingLanguageHeuristicsService()
+        {
+        }
+
         public bool IsIdentifierValidForRenameTracking(string name)
         {
-            return name != "var" && name != "dynamic";
+            return name != "var" && name != "dynamic" && name != "_";
         }
     }
 }

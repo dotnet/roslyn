@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -19,6 +20,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Remote
     [ExportOptionProvider, Shared]
     internal class RemoteHostClientFactoryOptionsProvider : IOptionProvider
     {
+        [ImportingConstructor]
+        public RemoteHostClientFactoryOptionsProvider()
+        {
+        }
+
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             RemoteHostClientFactoryOptions.RemoteHost_InProc);
     }

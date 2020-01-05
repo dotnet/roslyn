@@ -150,6 +150,64 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickInt() As Task
+
+            Dim markup = <Text><![CDATA[
+<My(1$$)>
+Public Class Goo
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(i As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Byte)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As String)", String.Empty, Nothing, currentParameterIndex:=0))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
+        Public Async Function PickCorrectOverload_PickString() As Task
+
+            Dim markup = <Text><![CDATA[
+<My("Hello"$$)>
+Public Class Goo
+End Class
+
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Public Sub New(i As String)
+    End Sub
+    Public Sub New(i As Integer)
+    End Sub
+    Public Sub New(i As Byte)
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Byte)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As Integer)", String.Empty, Nothing, currentParameterIndex:=0))
+            expectedOrderedItems.Add(New SignatureHelpTestItem("MyAttribute(i As String)", String.Empty, Nothing, currentParameterIndex:=0, isSelected:=True))
+
+            Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestAttributeConstructor_OnInvocation() As Task
             Dim markup = <Text><![CDATA[
 Class SomethingAttribute

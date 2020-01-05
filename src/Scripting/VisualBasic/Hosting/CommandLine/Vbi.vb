@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Inherits VisualBasicCompiler
 
         Friend Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, buildPaths, Nothing, analyzerLoader)
+            MyBase.New(VisualBasicCommandLineParser.Script, responseFile, args, buildPaths, Nothing, analyzerLoader)
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
@@ -25,12 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
             End Get
         End Property
 
-        Friend Overrides Function GetAssemblyFileVersion() As String
-            Return Type.GetTypeInfo().Assembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version
-        End Function
-
         Public Overrides Sub PrintLogo(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetAssemblyFileVersion())
+            consoleOutput.WriteLine(VBScriptingResources.LogoLine1, GetCompilerVersion())
             consoleOutput.WriteLine(VBScriptingResources.LogoLine2)
             consoleOutput.WriteLine()
         End Sub

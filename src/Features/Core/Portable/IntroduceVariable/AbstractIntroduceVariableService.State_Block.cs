@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
     {
         private partial class State
         {
             private bool IsInBlockContext(
                 CancellationToken cancellationToken)
             {
-                if (!this.IsInTypeDeclarationOrValidCompilationUnit())
+                if (!IsInTypeDeclarationOrValidCompilationUnit())
                 {
                     return false;
                 }
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var type = GetTypeSymbol(this.Document, this.Expression, cancellationToken, objectAsDefault: false);
+                var type = GetTypeSymbol(Document, Expression, cancellationToken, objectAsDefault: false);
                 if (type == null || type.SpecialType == SpecialType.System_Void)
                 {
                     return false;

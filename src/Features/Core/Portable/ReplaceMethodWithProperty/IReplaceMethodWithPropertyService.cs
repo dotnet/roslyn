@@ -1,14 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     internal interface IReplaceMethodWithPropertyService : ILanguageService
     {
-        SyntaxNode GetMethodDeclaration(SyntaxToken token);
+        Task<SyntaxNode> GetMethodDeclarationAsync(CodeRefactoringContext context);
+
         void ReplaceGetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
         void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged);
 
@@ -20,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
     }
 
-    internal struct GetAndSetMethods
+    internal readonly struct GetAndSetMethods
     {
         public readonly IMethodSymbol GetMethod;
         public readonly IMethodSymbol SetMethod;

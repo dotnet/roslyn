@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                            ITypeSymbol type = increment.Type;
                                            Optional<object> constantValue = new Optional<object>(1);
                                            bool isImplicit = increment.IsImplicit;
-                                           var value = new LiteralExpression(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
+                                           var value = new LiteralOperation(operationContext.Compilation.GetSemanticModel(syntax.SyntaxTree), syntax, type, constantValue, isImplicit);
 
                                            AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
                                        }
@@ -96,9 +96,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                     (operationContext) =>
                                     {
                                         IVariableInitializerOperation initializer = (IVariableInitializerOperation)operationContext.Operation;
-                                        if (initializer.Parent is IVariableDeclarationOperation variableDeclaration)
+                                        // If the parent is a single variable declaration, just process that one variable. If it's a multi variable
+                                        // declaration, process all variables being assigned
+                                        if (initializer.Parent is IVariableDeclaratorOperation singleVariableDeclaration)
                                         {
-                                            foreach (ILocalSymbol local in variableDeclaration.Variables)
+                                            ILocalSymbol local = singleVariableDeclaration.Symbol;
+                                            AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
+                                        }
+                                        else if (initializer.Parent is IVariableDeclarationOperation multiVariableDeclaration)
+                                        {
+                                            foreach (ILocalSymbol local in multiVariableDeclaration.GetDeclaredVariables())
                                             {
                                                 AssignTo(local, local.Type, localsSourceTypes, initializer.Value);
                                             }
@@ -270,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (value.Kind == OperationKind.Conversion)
             {
                 IConversionOperation conversion = (IConversionOperation)value;
-                if (!conversion.IsExplicitInCode)
+                if (conversion.IsImplicit)
                 {
                     return conversion.Operand.Type;
                 }

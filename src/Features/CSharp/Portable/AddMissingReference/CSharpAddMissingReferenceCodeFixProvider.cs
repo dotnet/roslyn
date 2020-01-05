@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddMissingReference;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -19,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddMissingReference
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(CS0012);
 
+        [ImportingConstructor]
         public CSharpAddMissingReferenceCodeFixProvider()
         {
         }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure.MetadataAsSource
                 return;
             }
 
-            var firstComment = startToken.LeadingTrivia.FirstOrNullable(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia);
+            var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia);
 
             var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;
             var endPosition = endToken.SpanStart;

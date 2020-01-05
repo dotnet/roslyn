@@ -16,17 +16,22 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         private static readonly IAnalyzerAssemblyLoader s_loader = new NullLoader();
 
+        [ImportingConstructor]
+        public ReferenceSerializationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(
-                workspaceServices.GetService<ITemporaryStorageService>(),
+                workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2,
                 workspaceServices.GetService<IDocumentationProviderService>());
         }
 
         private sealed class Service : AbstractReferenceSerializationService
         {
-            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
-                base(service, documentationService)
+            public Service(ITemporaryStorageService2 service, IDocumentationProviderService documentationService)
+                : base(service, documentationService)
             {
             }
 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -92,8 +94,8 @@ namespace Microsoft.CodeAnalysis
                         break;
                     }
 
-                    
-                    if(values[i] > maxValue)
+
+                    if (values[i] > maxValue)
                     {
                         //The only way this can happen is if the value was 65536
                         //The old compiler would continue parsing from here
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// If build and/or revision numbers are 65535 they are replaced with time-based values.
         /// </summary>
-        public static Version GenerateVersionFromPatternAndCurrentTime(DateTime time, Version pattern)
+        public static Version? GenerateVersionFromPatternAndCurrentTime(DateTime time, Version pattern)
         {
             if (pattern == null || pattern.Revision != ushort.MaxValue)
             {

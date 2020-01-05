@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Cci.IMethodDefinition kickoffMethod,
             int catchHandlerOffset,
             ImmutableArray<int> yieldOffsets,
-            ImmutableArray<int> resumeOffsets) 
+            ImmutableArray<int> resumeOffsets)
             : base(kickoffMethod)
         {
             Debug.Assert(!yieldOffsets.IsDefault);

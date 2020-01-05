@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -10,25 +9,18 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Experiments;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     internal partial class RemoteHostClientServiceFactory
     {
         public class RemoteHostClientService : ForegroundThreadAffinitizedObject, IRemoteHostClientService
         {
-            // OOP killed more info page link
-            private const string OOPKilledMoreInfoLink = "https://go.microsoft.com/fwlink/?linkid=842308";
-
             /// <summary>
             /// this hold onto last remoteHostClient to make debugging easier
             /// </summary>
@@ -45,10 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private Task<RemoteHostClient> _remoteClientTask;
 
             public RemoteHostClientService(
+                IThreadingContext threadingContext,
                 IAsynchronousOperationListener listener,
                 Workspace workspace,
-                IDiagnosticAnalyzerService analyzerService) :
-                base()
+                IDiagnosticAnalyzerService analyzerService)
+                : base(threadingContext)
             {
                 _gate = new object();
 
@@ -138,10 +131,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
                 }
 
-                // shut it down outside of lock so that
-                // we don't call into different component while
-                // holding onto a lock
-                client?.Shutdown();
+                if (client != null)
+                {
+                    client.StatusChanged -= OnStatusChanged;
+
+                    // shut it down outside of lock so that
+                    // we don't call into different component while
+                    // holding onto a lock
+                    client.Shutdown();
+                }
+            }
+
+            bool IRemoteHostClientService.IsEnabled()
+            {
+                // We enable the remote host if either RemoteHostTest or RemoteHost are on.
+                if (!_workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest)
+                    && !_workspace.Options.GetOption(RemoteHostOptions.RemoteHost))
+                {
+                    // not turned on
+                    return false;
+                }
+
+                var remoteHostClientFactory = _workspace.Services.GetService<IRemoteHostClientFactory>();
+                if (remoteHostClientFactory is null)
+                {
+                    // not available
+                    return false;
+                }
+
+                return true;
             }
 
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
@@ -157,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 if (remoteClientTask == null)
                 {
                     // service is in shutdown mode or not enabled
-                    return SpecializedTasks.Default<RemoteHostClient>();
+                    return SpecializedTasks.Null<RemoteHostClient>();
                 }
 
                 return remoteClientTask;
@@ -168,8 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var x64 = _workspace.Options.GetOption(RemoteHostOptions.OOP64Bit);
                 if (!x64)
                 {
-                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(
-                        WellKnownExperimentNames.RoslynOOP64bit);
+                    x64 = _workspace.Services.GetService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RoslynOOP64bit);
                 }
 
                 // log OOP bitness
@@ -185,23 +202,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 // if we reached here, IRemoteHostClientFactory must exist.
                 // this will make VS.Next dll to be loaded
                 var client = await _workspace.Services.GetRequiredService<IRemoteHostClientFactory>().CreateAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (client == null)
+                if (client != null)
                 {
-                    return null;
+                    client.StatusChanged += OnStatusChanged;
+
+                    // set global assets on remote host
+                    var checksums = AddGlobalAssets(cancellationToken);
+
+                    // send over global asset
+                    var success = await client.TryRunRemoteAsync(
+                        WellKnownRemoteHostServices.RemoteHostService,
+                        nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
+                        new[] { (object)checksums },
+                        _workspace.CurrentSolution,
+                        callbackTarget: null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (success)
+                    {
+                        return client;
+                    }
                 }
 
-                client.StatusChanged += OnStatusChanged;
-
-                // set global assets on remote host
-                var checksums = AddGlobalAssets(cancellationToken);
-
-                // send over global asset
-                await client.TryRunRemoteAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
-                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
-                    (object)checksums, cancellationToken).ConfigureAwait(false);
-
-                return client;
+                return null;
             }
 
             private Checksum[] AddGlobalAssets(CancellationToken cancellationToken)
@@ -267,31 +290,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     // s_lastRemoteClientTask info should be saved in the dump
                     // report NFW when connection is closed unless it is proper shutdown
-                    FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
+                    WatsonReporter.Report(new Exception("Connection to remote host closed"), WatsonSeverity.Critical);
 
-                    // use info bar to show warning to users
-                    var infoBarUIs = new List<InfoBarUI>();
-
-                    infoBarUIs.Add(
-                        new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
-                            BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
-
-                    var allowRestarting = _workspace.Options.GetOption(RemoteHostOptions.RestartRemoteHostAllowed);
-                    if (allowRestarting)
-                    {
-                        // this is hidden restart option. by default, user can't restart remote host that got killed
-                        // by users
-                        infoBarUIs.Add(
-                            new InfoBarUI("Restart external process", InfoBarUI.UIKind.Button, () =>
-                            {
-                                // start off new remote host
-                                var unused = RequestNewRemoteHostAsync(CancellationToken.None);
-                            }, closeAfterAction: true));
-                    }
-
-                    _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(
-                        ServicesVSResources.Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio,
-                        infoBarUIs.ToArray());
+                    RemoteHostCrashInfoBar.ShowInfoBar(_workspace);
                 }
             }
 

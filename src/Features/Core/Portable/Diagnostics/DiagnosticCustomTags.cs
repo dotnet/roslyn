@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -44,12 +46,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Conditional("DEBUG")]
         private static void Assert(string[] customTags, params string[] tags)
         {
-            Contract.Requires(customTags.Length == tags.Length);
+            Debug.Assert(customTags.Length == tags.Length);
 
-            for (int i = 0; i < tags.Length; i++)
+            for (var i = 0; i < tags.Length; i++)
             {
-                Contract.Requires(customTags[i] == tags[i]);
+                Debug.Assert(customTags[i] == tags[i]);
             }
+        }
+
+        internal static string[] Create(bool isUnneccessary, bool isConfigurable, params string[] customTags)
+        {
+            if (customTags.Length == 0 && isConfigurable)
+            {
+                return isUnneccessary ? Unnecessary : Microsoft;
+            }
+
+            var customTagsBuilder = ImmutableArray.CreateBuilder<string>();
+            customTagsBuilder.AddRange(customTags.Concat(Microsoft));
+
+            if (!isConfigurable)
+            {
+                customTagsBuilder.Add(WellKnownDiagnosticTags.NotConfigurable);
+            }
+
+            if (isUnneccessary)
+            {
+                customTagsBuilder.Add(WellKnownDiagnosticTags.Unnecessary);
+            }
+
+            return customTagsBuilder.ToArray();
         }
     }
 }

@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+
+    <!-- 
+      Currently fails on CI against old versions of mono
+      See https://github.com/dotnet/roslyn/pull/30166#issuecomment-425571629
+    -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
+      <Aliases>csc</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
+      <Aliases>vbc</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
+    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
+    <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+</Project>

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         private IDictionary<OptionKey, object> CSharpOptionOffVBOptionOn()
         {
             var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp) , false);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), false);
             optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), true);
             return optionsSet;
         }
@@ -823,7 +824,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task Net45TestOutOfBounds()
         {
-             var input = @" 
+            var input = @" 
             < Workspace >
                 < Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferencesNet45=""true""> 
  <Document FilePath=""CurrentDocument.cs""><![CDATA[
@@ -963,6 +964,20 @@ class Program
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: FeaturesResources.Format_string_contains_invalid_placeholder);
+        }
+
+        [WorkItem(29398, "https://github.com/dotnet/roslyn/issues/29398")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task LocalFunctionNamedFormat()
+        {
+            await TestDiagnosticMissingAsync(@"public class C
+{
+    public void M()
+    {
+        Forma[||]t();
+        void Format() { }
+    }
+}");
         }
     }
 }

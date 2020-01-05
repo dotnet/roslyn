@@ -77,9 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 foreach (var itemKvp in supportedGlyphItems)
                 {
-                    string iconName = GetIconName(groupKvp.Value, itemKvp.Value);
-                    StandardGlyphGroup localGroup = groupKvp.Key;
-                    StandardGlyphItem localItem = itemKvp.Key;
+                    var iconName = GetIconName(groupKvp.Value, itemKvp.Value);
+                    var localGroup = groupKvp.Key;
+                    var localItem = itemKvp.Key;
                     iconService.AddIcon(iconName, iconName, () => glyphService.GetGlyph(localGroup, localItem));
                 }
             }

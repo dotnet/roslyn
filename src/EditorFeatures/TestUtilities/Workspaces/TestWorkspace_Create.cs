@@ -2,11 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -36,9 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string FeaturesAttributeName = "Features";
         private const string DocumentationModeAttributeName = "DocumentationMode";
         private const string DocumentElementName = "Document";
+        private const string AdditionalDocumentElementName = "AdditionalDocument";
+        private const string AnalyzerConfigDocumentElementName = "AnalyzerConfigDocument";
         private const string AnalyzerElementName = "Analyzer";
         private const string AssemblyNameAttributeName = "AssemblyName";
         private const string CommonReferencesAttributeName = "CommonReferences";
+        private const string CommonReferencesWithoutValueTupleAttributeName = "CommonReferencesWithoutValueTuple";
         private const string CommonReferencesWinRTAttributeName = "CommonReferencesWinRT";
         private const string CommonReferencesNet45AttributeName = "CommonReferencesNet45";
         private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
@@ -58,6 +64,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AnalyzerFullPathAttributeName = "FullPath";
         private const string AliasAttributeName = "Alias";
         private const string ProjectNameAttribute = "Name";
+        private const string CheckOverflowAttributeName = "CheckOverflow";
+        private const string AllowUnsafeAttributeName = "AllowUnsafe";
+        private const string OutputKindName = "OutputKind";
+        private const string NullableAttributeName = "Nullable";
 
         /// <summary>
         /// Creates a single buffer in a workspace.
@@ -122,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return Create(language, compilationOptions, parseOptions, files, exportProvider: null, workspaceKind: workspaceKind);
         }
 
+        internal static string GetDefaultTestSourceDocumentName(int index, string extension)
+           => "test" + (index + 1) + extension;
+
         internal static TestWorkspace Create(
             string language,
             CompilationOptions compilationOptions,
@@ -132,10 +145,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string workspaceKind = null,
             string extension = null,
             bool commonReferences = true,
-            bool openDocuments = true)
+            bool openDocuments = false)
         {
             var documentElements = new List<XElement>();
-            var index = 1;
+            var index = 0;
 
             if (extension == null)
             {
@@ -146,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             foreach (var file in files)
             {
-                documentElements.Add(CreateDocumentElement(file, "test" + index++ + extension, parseOptions));
+                documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
             }
 
             metadataReferences = metadataReferences ?? Array.Empty<string>();
@@ -168,13 +181,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             string[] files,
             ExportProvider exportProvider)
         {
-            Contract.Requires(parseOptions == null || (files.Length == parseOptions.Length), "Please specify a parse option for each file.");
+            Debug.Assert(parseOptions == null || (files.Length == parseOptions.Length), "Please specify a parse option for each file.");
 
             var documentElements = new List<XElement>();
-            var index = 1;
+            var index = 0;
             var extension = "";
 
-            for (int i = 0; i < files.Length; i++)
+            for (var i = 0; i < files.Length; i++)
             {
                 if (language == LanguageNames.CSharp)
                 {
@@ -193,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     extension = language;
                 }
 
-                documentElements.Add(CreateDocumentElement(files[i], "test" + index++ + extension, parseOptions == null ? null : parseOptions[i]));
+                documentElements.Add(CreateDocumentElement(files[i], GetDefaultTestSourceDocumentName(index++, extension), parseOptions == null ? null : parseOptions[i]));
             }
 
             var workspaceElement = CreateWorkspaceElement(
@@ -210,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null,
-            bool openDocuments = true)
+            bool openDocuments = false)
         {
             return CreateCSharp(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences, openDocuments);
         }
@@ -221,12 +234,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null,
-            bool openDocuments = true)
+            bool openDocuments = false)
         {
             return Create(LanguageNames.CSharp, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments);
         }
 
-        public static TestWorkspace CreateCSharp(
+        public static TestWorkspace CreateCSharp2(
             string[] files,
             ParseOptions[] parseOptions = null,
             CompilationOptions compilationOptions = null,
@@ -245,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null,
-            bool openDocuments = true)
+            bool openDocuments = false)
         {
             return CreateVisualBasic(new[] { file }, parseOptions, compilationOptions, exportProvider, metadataReferences, openDocuments);
         }
@@ -256,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ExportProvider exportProvider = null,
             string[] metadataReferences = null,
-            bool openDocuments = true)
+            bool openDocuments = false)
         {
             return Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, files, exportProvider, metadataReferences, openDocuments: openDocuments);
         }

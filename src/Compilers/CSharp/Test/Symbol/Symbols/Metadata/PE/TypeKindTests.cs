@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                select t).Single();
 
             Assert.Equal(TypeKind.Interface, ienumerable.TypeKind);
-            Assert.Null(ienumerable.BaseType);
+            Assert.Null(ienumerable.BaseType());
 
             var typeCode = (from t in system.GetTypeMembers()
                             where t.Name.Equals("TypeCode")

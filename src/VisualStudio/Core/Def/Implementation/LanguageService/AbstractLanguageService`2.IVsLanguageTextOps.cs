@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         public int Format(IVsTextLayer textLayer, TextSpan[] selections)
         {
             var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
-            int result = VSConstants.S_OK;
+            var result = VSConstants.S_OK;
             waitIndicator.Wait(
                 "Intellisense",
                 allowCancel: true,
@@ -51,8 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var ts = selections.Single();
-            int start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
-            int end = text.Lines[ts.iEndLine].Start + ts.iEndIndex;
+            var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
+            var end = text.Lines[ts.iEndLine].Start + ts.iEndIndex;
             var adjustedSpan = GetFormattingSpan(root, start, end);
 
             // Since we know we are on the UI thread, lets get the base indentation now, so that there is less

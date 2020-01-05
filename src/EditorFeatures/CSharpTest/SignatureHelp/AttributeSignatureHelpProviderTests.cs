@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -61,6 +62,52 @@ class D
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
             expectedOrderedItems.Add(new SignatureHelpTestItem("SomethingAttribute()", "Summary For Attribute", null, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_PickInt()
+        {
+            var markup = @"
+class SomethingAttribute : System.Attribute
+{
+    public SomethingAttribute(string i) => throw null;
+    public SomethingAttribute(int i) => throw null;
+    public SomethingAttribute(byte filtered) => throw null;
+}
+[[|Something(i: 1$$|])]
+class D { }
+";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("SomethingAttribute(int i)", currentParameterIndex: 0, isSelected: true),
+                new SignatureHelpTestItem("SomethingAttribute(string i)", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")]
+        public async Task PickCorrectOverload_PickString()
+        {
+            var markup = @"
+class SomethingAttribute : System.Attribute
+{
+    public SomethingAttribute(string i) => throw null;
+    public SomethingAttribute(int i) => throw null;
+    public SomethingAttribute(byte filtered) => throw null;
+}
+[[|Something(i: null$$|])]
+class D { }
+";
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("SomethingAttribute(int i)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("SomethingAttribute(string i)", currentParameterIndex: 0, isSelected: true),
+            };
 
             await TestAsync(markup, expectedOrderedItems);
         }

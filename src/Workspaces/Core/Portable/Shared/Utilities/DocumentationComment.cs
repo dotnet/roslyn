@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 if (reader.NodeType == XmlNodeType.Element)
                 {
-                    string localName = reader.LocalName;
+                    var localName = reader.LocalName;
                     if (XmlNames.ElementEquals(localName, XmlNames.ExampleElementName) && _comment.ExampleText == null)
                     {
                         _comment.ExampleText = TrimEachLine(reader.ReadInnerXml());
@@ -188,8 +188,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ParameterElementName))
                     {
-                        string name = reader.GetAttribute(XmlNames.NameAttributeName);
-                        string paramText = reader.ReadInnerXml();
+                        var name = reader.GetAttribute(XmlNames.NameAttributeName);
+                        var paramText = reader.ReadInnerXml();
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._parameterTexts.ContainsKey(name))
                         {
@@ -199,8 +199,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.TypeParameterElementName))
                     {
-                        string name = reader.GetAttribute(XmlNames.NameAttributeName);
-                        string typeParamText = reader.ReadInnerXml();
+                        var name = reader.GetAttribute(XmlNames.NameAttributeName);
+                        var typeParamText = reader.ReadInnerXml();
 
                         if (!string.IsNullOrWhiteSpace(name) && !_comment._typeParameterTexts.ContainsKey(name))
                         {
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.ExceptionElementName))
                     {
-                        string type = reader.GetAttribute(XmlNames.CrefAttributeName);
-                        string exceptionText = reader.ReadInnerXml();
+                        var type = reader.GetAttribute(XmlNames.CrefAttributeName);
+                        var exceptionText = reader.ReadInnerXml();
 
                         if (!string.IsNullOrWhiteSpace(type))
                         {
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.CompletionListElementName))
                     {
-                        string cref = reader.GetAttribute(XmlNames.CrefAttributeName);
+                        var cref = reader.GetAttribute(XmlNames.CrefAttributeName);
                         if (!string.IsNullOrWhiteSpace(cref))
                         {
                             _comment.CompletionListCref = cref;

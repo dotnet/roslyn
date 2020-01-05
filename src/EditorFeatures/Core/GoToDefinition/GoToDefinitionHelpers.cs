@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
+            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -90,24 +89,23 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
 
             definitions.Add(definitionItem);
-            return definitions.ToImmutableAndFree();
+            return definitions.ToImmutable();
         }
 
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Project project,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)
         {
             var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return presenter.TryNavigateToOrPresentItemsAsync(
+            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
 
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             ImmutableArray<DefinitionItem> definitions,
             Project project,
             string title,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken)
         {
             if (definitions.IsDefaultOrEmpty)
@@ -123,9 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 return false;
             }
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
-
-            return presenter.TryNavigateToOrPresentItemsAsync(
+            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
     }

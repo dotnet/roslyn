@@ -4,14 +4,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
+using Microsoft.CodeAnalysis.CSharp.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -262,14 +264,9 @@ if (true)
 {");
         }
 
-        private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
+        private QuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
-            return new SyntacticQuickInfoProvider(
-                workspace.GetService<IProjectionBufferFactoryService>(),
-                workspace.GetService<IEditorOptionsFactoryService>(),
-                workspace.GetService<ITextEditorFactoryService>(),
-                workspace.GetService<IGlyphService>(),
-                workspace.GetService<ClassificationTypeMap>());
+            return new CSharpSyntacticQuickInfoProvider();
         }
 
         protected override async Task AssertNoContentAsync(
@@ -278,23 +275,33 @@ if (true)
             int position)
         {
             var provider = CreateProvider(workspace);
-            Assert.Null(await provider.GetItemAsync(document, position, CancellationToken.None));
+            Assert.Null(await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None)));
         }
 
         protected override async Task AssertContentIsAsync(
             TestWorkspace workspace,
             Document document,
+            ITextSnapshot snapshot,
             int position,
             string expectedContent,
             string expectedDocumentationComment = null)
         {
             var provider = CreateProvider(workspace);
-            var state = await provider.GetItemAsync(document, position, cancellationToken: CancellationToken.None);
-            Assert.NotNull(state);
+            var info = await provider.GetQuickInfoAsync(new QuickInfoContext(document, position, CancellationToken.None));
+            Assert.NotNull(info);
+            Assert.NotEqual(0, info.RelatedSpans.Length);
 
-            var viewHostingControl = (ViewHostingControl)((ProjectionBufferDeferredContent)state.Content).Create();
-            var actualContent = viewHostingControl.GetText_TestOnly();
-            Assert.Equal(expectedContent, actualContent);
+            var trackingSpan = new Mock<ITrackingSpan>(MockBehavior.Strict);
+            var streamingPresenter = workspace.ExportProvider.GetExport<IStreamingFindUsagesPresenter>();
+            var quickInfoItem = await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, info, snapshot, document, streamingPresenter, CancellationToken.None);
+            var containerElement = quickInfoItem.Item as ContainerElement;
+
+            var textElements = containerElement.Elements.OfType<ClassifiedTextElement>();
+            Assert.NotEmpty(textElements);
+
+            var textElement = textElements.First();
+            var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
+            Assert.Equal(expectedContent, actualText);
         }
 
         protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)
@@ -322,20 +329,19 @@ if (true)
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
 
-                if (string.IsNullOrEmpty(expectedContent))
-                {
-                    await AssertNoContentAsync(workspace, document, position);
-                }
-                else
-                {
-                    await AssertContentIsAsync(workspace, document, position, expectedContent, expectedDocumentationComment);
-                }
+            if (string.IsNullOrEmpty(expectedContent))
+            {
+                await AssertNoContentAsync(workspace, document, position);
+            }
+            else
+            {
+                await AssertContentIsAsync(workspace, document, snapshot, position, expectedContent, expectedDocumentationComment);
             }
         }
     }

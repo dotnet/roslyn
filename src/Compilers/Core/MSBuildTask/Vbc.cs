@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// meaning that the code is compiled by using the Roslyn compiler server, rather
     /// than vbc.exe. The two should be functionally identical, but the compiler server
     /// should be significantly faster with larger projects and have a smaller memory
-    /// gootprint.
+    /// footprint.
     /// </summary>
     public class Vbc : ManagedCompiler
     {
@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(DisabledWarnings)] = value; }
             get { return (string)_store[nameof(DisabledWarnings)]; }
+        }
+
+        public bool DisableSdkPath
+        {
+            set { _store[nameof(DisableSdkPath)] = value; }
+            get { return _store.GetOrDefault(nameof(DisableSdkPath), false); }
         }
 
         public string DocumentationFile
@@ -227,7 +233,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        private static readonly string[] s_separator = { "\r\n" };
+        private static readonly string[] s_separator = { Environment.NewLine };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -420,6 +426,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/optionstrict:", this.OptionStrictType);
             commandLine.AppendWhenTrue("/nowarn", this._store, "NoWarnings");
             commandLine.AppendSwitchWithSplitting("/nowarn:", this.DisabledWarnings, ",", ';', ',');
+            commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
             commandLine.AppendPlusOrMinusSwitch("/optioninfer", this._store, "OptionInfer");
             commandLine.AppendWhenTrue("/nostdlib", this._store, "NoStandardLib");
             commandLine.AppendWhenTrue("/novbruntimeref", this._store, "NoVBRuntimeReference");
@@ -818,6 +825,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CheckHostObjectSupport(param = nameof(Analyzers), analyzerHostObject.SetAnalyzers(Analyzers));
                     CheckHostObjectSupport(param = nameof(CodeAnalysisRuleSet), analyzerHostObject.SetRuleSet(CodeAnalysisRuleSet));
                     CheckHostObjectSupport(param = nameof(AdditionalFiles), analyzerHostObject.SetAdditionalFiles(AdditionalFiles));
+                }
+
+                // For host objects which support them, set analyzer config files and potential analyzer config files
+                if (vbcHostObject is IAnalyzerConfigFilesHostObject analyzerConfigFilesHostObject)
+                {
+                    CheckHostObjectSupport(param = nameof(AnalyzerConfigFiles), analyzerConfigFilesHostObject.SetAnalyzerConfigFiles(AnalyzerConfigFiles));
+                    CheckHostObjectSupport(param = nameof(PotentialAnalyzerConfigFiles), analyzerConfigFilesHostObject.SetPotentialAnalyzerConfigFiles(PotentialAnalyzerConfigFiles));
                 }
 
                 CheckHostObjectSupport(param = nameof(BaseAddress), vbcHostObject.SetBaseAddress(TargetType, GetBaseAddressInHex()));

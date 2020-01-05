@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis.Serialization
         public TextDocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.TextDocumentChecksumCollection, checksums) { }
     }
 
+    internal class AnalyzerConfigDocumentChecksumCollection : ChecksumCollection
+    {
+        public AnalyzerConfigDocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
+        public AnalyzerConfigDocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.AnalyzerConfigDocumentChecksumCollection, checksums) { }
+    }
+
     internal class ProjectReferenceChecksumCollection : ChecksumCollection
     {
         public ProjectReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }

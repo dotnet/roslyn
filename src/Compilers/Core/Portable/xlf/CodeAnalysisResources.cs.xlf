@@ -1,0 +1,943 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../CodeAnalysisResources.resx">
+    <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">Pro tuto možnost se nesmí zadat název jazyka.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Pro tuto možnost se musí zadat název jazyka.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="new">Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">Analyzátor {0} vrátil následující výjimku:
+{1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">Potlačené ID diagnostiky {0} neodpovídá potlačitelnému ID {1} pro daný popisovač potlačení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">Blok dané operace nepatří do aktuálního analytického kontextu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">Parametr {0} musí být INamedTypeSymbol nebo IAssemblySymbol.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">Parametr {0} musí být symbol z této kompilace nebo některé odkazované sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="new">Module has invalid attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">Neohlášená diagnostika s ID {0} se nedá potlačit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">Daná operace má nadřazenou položku, která není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">Daná operace má sémantický model null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">Zadaná operace nesmí být součástí grafu toku řízení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutputKindNotSupported">
+        <source>Output kind not supported.</source>
+        <target state="translated">Druh výstupu se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
+        <target state="translated">Cesta vrácená procedurou {0}.ResolveMetadataFile musí být absolutní: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyMustHaveAtLeastOneModule">
+        <source>Assembly must have at least one module.</source>
+        <target state="translated">Sestavení musí mít nejmíň jeden modul.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
+        <source>Module copy can't be used to create an assembly metadata.</source>
+        <target state="translated">Kopie modulu se nedá použít k vytvoření metadat sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">Analyzátor {0} má v SupportedDiagnostics deskriptor s hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">Analyzátor {0} má v SupportedSuppressions popisovač s hodnotou null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">Diagnostika {0}: {1} se programově potlačila pomocí DiagnosticSuppressor s ID potlačení {2} a odůvodněním {3}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">Programové potlačení diagnostiky analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor musí mít ID, které není null, prázdný řetězec ani řetězec obsahující jenom prázdné znaky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">Pokud jsou zadané anotace prvků řazené kolekce členů s možnou hodnotou null, musí se počet anotací shodovat s kardinalitou této řazené kolekce členů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="new">Unable to determine specific cause of the failure.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved">
+        <source>Unresolved: </source>
+        <target state="translated">Nevyřešeno: </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>assembly</source>
+        <target state="translated">sestavení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class1">
+        <source>class</source>
+        <target state="translated">třída</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructor">
+        <source>constructor</source>
+        <target state="translated">konstruktor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate1">
+        <source>delegate</source>
+        <target state="translated">delegát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum1">
+        <source>enum</source>
+        <target state="translated">výčet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event1">
+        <source>event</source>
+        <target state="translated">událost</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field">
+        <source>field</source>
+        <target state="translated">pole</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeParameter">
+        <source>type parameter</source>
+        <target state="translated">parametr typu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface1">
+        <source>interface</source>
+        <target state="translated">rozhraní</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method">
+        <source>method</source>
+        <target state="translated">metoda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module">
+        <source>module</source>
+        <target state="translated">modul</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter">
+        <source>parameter</source>
+        <target state="translated">parametr</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property">
+        <source>property, indexer</source>
+        <target state="translated">vlastnost, indexer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Return1">
+        <source>return</source>
+        <target state="translated">návrat</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct1">
+        <source>struct</source>
+        <target state="translated">struktura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToSubmission">
+        <source>Can't create a reference to a submission.</source>
+        <target state="translated">Nejde vytvořit odkaz na odeslání.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToModule">
+        <source>Can't create a reference to a module.</source>
+        <target state="translated">Nejde vytvořit odkaz na modul.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryAssembly">
+        <source>&lt;in-memory assembly&gt;</source>
+        <target state="translated">&lt;sestavení v paměti&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryModule">
+        <source>&lt;in-memory module&gt;</source>
+        <target state="translated">&lt;modul v paměti&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SizeHasToBePositive">
+        <source>Size has to be positive.</source>
+        <target state="translated">Velikost musí být kladná.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyFileNotFound">
+        <source>Assembly file not found</source>
+        <target state="translated">Soubor sestavení se nenašel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotEmbedInteropTypesFromModule">
+        <source>Can't embed interop types from module.</source>
+        <target state="translated">Nejde vložit typy spolupráce z modulu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotAliasModule">
+        <source>Can't alias a module.</source>
+        <target state="translated">Modul nejde označit aliasem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAlias">
+        <source>Invalid alias.</source>
+        <target state="translated">Neplatný alias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetMetadataMustReturnInstance">
+        <source>{0}.GetMetadata() must return an instance of {1}.</source>
+        <target state="translated">{0}.GetMetadata() musí vracet instanci {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">Ohlášené potlačení s ID {0} se v potlačovacím modulu nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">Hodnota je moc velká, než aby se dala vyjádřit jako 30bitové nepodepsané celé číslo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
+        <source>Arrays with more than one dimension cannot be serialized.</source>
+        <target state="translated">Pole s víc než jedním rozměrem nejsou serializované.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name: '{0}'</source>
+        <target state="translated">Neplatný název sestavení: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected.</source>
+        <target state="translated">Očekávala se absolutní cesta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyKeyInPathMap">
+        <source>A key in the pathMap is empty.</source>
+        <target state="translated">Klíč v pathMap je prázdný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NullValueInPathMap">
+        <source>A value in the pathMap is null.</source>
+        <target state="translated">Hodnota v pathMap je null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationOptionsMustNotHaveErrors">
+        <source>Compilation options must not have errors.</source>
+        <target state="translated">Možnosti kompilace nesmí obsahovat chyby.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
+        <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
+        <target state="translated">Návratový typ nemůže být typ hodnoty, ukazatel, hodnota podle odkazu nebo otevřený obecný typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
+        <source>Return type can't be void, by-ref or open generic type</source>
+        <target state="translated">Návratový typ nemůže být prázdná hodnota, hodnota podle odkazu nebo otevřený obecný typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
+        <source>Type must be same as host object type of previous submission.</source>
+        <target state="translated">Typ musí být stejný jako u hostitelského objektu při předchozím odeslání.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreviousSubmissionHasErrors">
+        <source>Previous submission has errors.</source>
+        <target state="translated">Předchozí odeslání obsahuje chyby.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOutputKindForSubmission">
+        <source>Invalid output kind for submission. DynamicallyLinkedLibrary expected.</source>
+        <target state="translated">Neplatný druh výstupu pro odeslání Očekávalo se DynamicallyLinkedLibrary.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCompilationOptions">
+        <source>Invalid compilation options -- submission can't be signed.</source>
+        <target state="translated">Neplatné možnosti kompilace -- odeslání nejde podepsat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamProviderShouldReturnNonNullStream">
+        <source>Resource stream provider should return non-null stream.</source>
+        <target state="translated">Zprostředkovatel streamu prostředků by měl vrátit čitelný stream, který není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
+        <source>Reference resolver should return readable non-null stream.</source>
+        <target state="translated">Řešitel odkazů by měl vrátit čitelný stream, který není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidResourceName">
+        <source>Empty or invalid resource name</source>
+        <target state="translated">Prázdný nebo neplatný název zdroje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidFileName">
+        <source>Empty or invalid file name</source>
+        <target state="translated">Prázdný nebo neplatný název souboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
+        <source>Resource data provider should return non-null stream</source>
+        <target state="translated">Zprostředkovatel dat prostředků by měl vrátit čitelný stream, který není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileNotFound">
+        <source>File not found.</source>
+        <target state="translated">Soubor se nenašel.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
+        <target state="translated">Cesta vrácená procedurou {0}.ResolveStrongNameKeyFile musí být absolutní: {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
+        <source>type must be a subclass of SyntaxAnnotation.</source>
+        <target state="translated">Typ musí být podtřída SyntaxAnnotation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidModuleName">
+        <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
+        <target state="translated">Neplatný název oddílu určený v modulu metadat {0}: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileSizeExceedsMaximumAllowed">
+        <source>File size exceeds maximum allowed size of a valid metadata file.</source>
+        <target state="translated">Velikost souboru překračuje maximální povolenou velikost platného souboru metadat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeNull">
+        <source>Name cannot be null.</source>
+        <target state="translated">Název nemůže být null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeEmpty">
+        <source>Name cannot be empty.</source>
+        <target state="translated">Název nemůže být prázdný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotStartWithWhitespace">
+        <source>Name cannot start with whitespace.</source>
+        <target state="translated">Název nesmí začínat mezerou.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameContainsInvalidCharacter">
+        <source>Name contains invalid characters.</source>
+        <target state="translated">Název obsahuje neplatné znaky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeStartOfLine">
+        <source>The span does not include the start of a line.</source>
+        <target state="translated">Rozpětí nezahrnuje začátek řádku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeEndOfLine">
+        <source>The span does not include the end of a line.</source>
+        <target state="translated">Rozpětí nezahrnuje konec řádku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartMustNotBeNegative">
+        <source>'start' must not be negative</source>
+        <target state="translated">'Začátek musí být záporný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'</source>
+        <target state="translated">'Konec musí být míň než začátek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidContentType">
+        <source>Invalid content type</source>
+        <target state="translated">Neplatný typ obsahu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedNonEmptyPublicKey">
+        <source>Expected non-empty public key</source>
+        <target state="translated">Očekával se neprázdný veřejný klíč.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSizeOfPublicKeyToken">
+        <source>Invalid size of public key token.</source>
+        <target state="translated">Neplatná velikost tokenu veřejného klíče</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Neplatné znaky v názvu sestavení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyCultureName">
+        <source>Invalid characters in assembly culture name</source>
+        <target state="translated">Neplatné znaky v názvu sestavení jazykové verze</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">Stream musí podporovat operace read a seek.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportRead">
+        <source>Stream must be readable.</source>
+        <target state="translated">Stream musí být čitelný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportWrite">
+        <source>Stream must be writable.</source>
+        <target state="translated">Datový proud musí být zapisovatelný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
+        <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
+        <target state="translated">Při vkládání PDB do streamu PE by neměl být zadaný stream PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>PDB stream should not be given when emitting metadata only.</source>
+        <target state="translated">Když se generují jenom metadata, neměl by se zadávat stream PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>Metadata PE stream should not be given when emitting metadata only.</source>
+        <target state="translated">Když se generují jenom metadata, neměl by zadávat stream PE metadat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
+        <source>Including private members should not be used when emitting to the secondary assembly output.</source>
+        <target state="translated">Při generování do sekundárního výstupu sestavení by se neměly zahrnovat privátní členy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
+        <source>Must include private members unless emitting a ref assembly.</source>
+        <target state="translated">Pokud se negeneruje referenční sestavení, je třeba zahrnout soukromé členy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
+        <source>Embedding PDB is not allowed when emitting metadata.</source>
+        <target state="translated">Při generování metadat se vkládání PDB nepovoluje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
+        <source>Cannot target net module when emitting ref assembly.</source>
+        <target state="translated">Když se generuje referenční sestavení, nejde cílit na síťový modul.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHash">
+        <source>Invalid hash.</source>
+        <target state="translated">Neplatná hodnota hash</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedHashAlgorithm">
+        <source>Unsupported hash algorithm.</source>
+        <target state="translated">Nepodporovaný algoritmus hash</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentLanguageVersions">
+        <source>Inconsistent language versions</source>
+        <target state="translated">Nekonzistentní jazykové verze</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidRelocation">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
+        <target state="translated">Prostředky Win32, u kterých se předpokládá, že jsou ve formátu objektů COFF, mají nejmíň jednu neplatnou hodnotu hlavičky přemístění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSectionSize">
+        <source>Win32 resources, assumed to be in COFF object format, have an invalid section size.</source>
+        <target state="translated">Prostředky Win32, u kterých se předpokládá, že jsou ve formátu objektů COFF, mají neplatnou velikost sekce.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSymbol">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid symbol values.</source>
+        <target state="translated">Prostředky Win32, u kterých se předpokládá, že jsou ve formátu objektů COFF, mají nejmíň jednu neplatnou hodnotu symbolu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceMissingSection">
+        <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
+        <target state="translated">U prostředků Win32, u kterých se předpokládá, že jsou ve formátu objektů COFF, chybí nejmíň jedna ze sekcí .rsrc$01 a .rsrc$02.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IconStreamUnexpectedFormat">
+        <source>Icon stream is not in the expected format.</source>
+        <target state="translated">Stream ikon není v očekávaném formátu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCultureName">
+        <source>Invalid culture name: '{0}'</source>
+        <target state="translated">Neplatný název jazykové verze: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">Při diagnostice {0} byla v konfiguračním souboru analyzátoru v {2} předána neplatná závažnost {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">Neplatná závažnost v konfiguračním souboru analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WinRTIdentityCantBeRetargetable">
+        <source>WindowsRuntime identity can't be retargetable</source>
+        <target state="translated">U identity WindowsRuntime se nedá změnit cíl.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageNotAvailable">
+        <source>PE image not available.</source>
+        <target state="translated">Image PE není dostupná.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblySigningNotSupported">
+        <source>Assembly signing not supported.</source>
+        <target state="translated">Podepsání sestavení se nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XmlReferencesNotSupported">
+        <source>References to XML documents are not supported.</source>
+        <target state="translated">Odkazy na dokumenty XML se nepodporují.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FailedToResolveRuleSetName">
+        <source>Could not locate the rule set file '{0}'.</source>
+        <target state="translated">Nejde najít soubor sady pravidel {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRuleSetInclude">
+        <source>An error occurred while loading the included rule set file {0} - {1}</source>
+        <target state="translated">Při načítání zahrnutého souboru sady pravidel {0} došlo k chybě: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerFailure">
+        <source>Analyzer Failure</source>
+        <target state="translated">Chyba analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrows">
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
+        <target state="translated">Analyzátor {0} způsobil výjimku typu {1} se zprávou {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverFailure">
+        <source>Analyzer Driver Failure</source>
+        <target state="translated">Chyba ovladače analyzátoru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrows">
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
+        <target state="translated">Ovladač analyzátoru způsobil výjimku typu {0} se zprávou {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrowsDescription">
+        <source>Analyzer driver threw the following exception:
+'{0}'.</source>
+        <target state="translated">Ovladač analyzátoru způsobil tuto výjimku:
+{0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageDoesntContainManagedMetadata">
+        <source>PE image doesn't contain managed metadata.</source>
+        <target state="translated">Image PE neobsahuje spravovaná metadata.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="translated">Změny musí být seřazené a nesmí se překrývat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
+        <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">DiagnosticDescriptor musí mít ID, které není null, prázdný řetězec, ani řetězec obsahující jenom prázdné znaky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetHasDuplicateRules">
+        <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
+        <target state="translated">Soubor sady pravidel obsahuje duplicitní pravidla pro {0} s odlišnými akcemi {1} a {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateModuleReferenceToAssembly">
+        <source>Can't create a module reference to an assembly.</source>
+        <target state="translated">Nejde vytvořit odkaz modulu na sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToDynamicAssembly">
+        <source>Can't create a metadata reference to a dynamic assembly.</source>
+        <target state="translated">Nejde vytvořit odkaz metadat na dynamické sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToAssemblyWithoutLocation">
+        <source>Can't create a metadata reference to an assembly without location.</source>
+        <target state="translated">Nedá se vytvořit odkaz na metadata do sestavení bez umístění.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentCannotBeEmpty">
+        <source>Argument cannot be empty.</source>
+        <target state="translated">Argument nemůže být prázdný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentElementCannotBeNull">
+        <source>Argument cannot have a null element.</source>
+        <target state="translated">Argument nemůže mít element, který je null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
+        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
+        <target state="translated">Analyzátor se pokusil registrovat akci async, která se ale nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedDiagnosticReported">
+        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
+        <target state="translated">Ohlášená diagnostika s ID {0} se v analyzátoru nepodporuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticIdReported">
+        <source>Reported diagnostic has an ID '{0}', which is not a valid identifier.</source>
+        <target state="translated">Hlášená diagnostika má ID {0}, které není platným identifikátorem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticLocationReported">
+        <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
+        <target state="translated">Zdroj vykazované diagnostiky {0} je umístěný v souboru {1}, který není součástí analyzované kompilace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
+        <source>The type '{0}' is not understood by the serialization binder.</source>
+        <target state="translated">Vazač serializace nerozumí typu {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_deserialize_type_0">
+        <source>Cannot deserialize type '{0}'.</source>
+        <target state="translated">Typ {0} nejde deserializovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_serialize_type_0">
+        <source>Cannot serialize type '{0}'.</source>
+        <target state="translated">Typ {0} nejde serializovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidNodeToTrack">
+        <source>Node to track is not a descendant of the root.</source>
+        <target state="translated">Uzel určený ke sledování není potomkem kořene.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeOrTokenOutOfSequence">
+        <source>A node or token is out of sequence.</source>
+        <target state="translated">Uzel nebo token je mimo sekvenci.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedTypeOfNodeInList">
+        <source>A node in the list is not of the expected type.</source>
+        <target state="translated">Uzel v seznamu není očekávaného typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingListItem">
+        <source>The item specified is not the element of a list.</source>
+        <target state="translated">Zadaná položka není elementem seznamu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKey">
+        <source>Invalid public key.</source>
+        <target state="translated">Neplatný veřejný klíč</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKeyToken">
+        <source>Invalid public key token.</source>
+        <target state="translated">Neplatný token veřejného klíče</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDataAtOffset">
+        <source>Invalid data at offset {0}: {1}{2}*{3}{4}</source>
+        <target state="translated">Neplatná data na pozici {0}: {1}{2}*{3}{4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterNotDeterministic">
+        <source>Windows PDB writer doesn't support deterministic compilation: '{0}'</source>
+        <target state="translated">Zapisovač Windows PDB nepodporuje deterministickou kompilaci: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterOlderVersionThanRequired">
+        <source>The version of Windows PDB writer is older than required: '{0}'</source>
+        <target state="translated">Verze zapisovače Windows PDB je starší, než se vyžaduje: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterDoesNotSupportSourceLink">
+        <source>Windows PDB writer doesn't support SourceLink feature: '{0}'</source>
+        <target state="translated">Zapisovač Windows PDB nepodporuje funkci SourceLink: {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetBadAttributeValue">
+        <source>The attribute {0} has an invalid value of {1}.</source>
+        <target state="translated">Atribut {0} má neplatnou hodnotu {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetMissingAttribute">
+        <source>The element {0} is missing an attribute named {1}.</source>
+        <target state="translated">V elementu {0} chybí atribut s názvem {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsNotAnInteger">
+        <source>Argument to '/keepalive' option is not a 32-bit integer.</source>
+        <target state="translated">Argument pro možnost /keepalive není 32bitové celé číslo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsTooSmall">
+        <source>Arguments to '/keepalive' option below -1 are invalid.</source>
+        <target state="translated">Argumenty možnosti /keepalive nižší než -1 nejsou platné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveWithoutShared">
+        <source>'/keepalive' option is only valid with '/shared' option.</source>
+        <target state="translated">'Možnost /keepalive je platná jenom s možností /shared.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MismatchedVersion">
+        <source>Roslyn compiler server reports different protocol version than build task.</source>
+        <target state="translated">Server kompilátoru Roslyn hlásí jinou verzi protokolu, než má úloha sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKeepAlive">
+        <source>Missing argument for '/keepalive' option.</source>
+        <target state="translated">Chybí argument pro možnost /keepalive.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerTotalExecutionTime">
+        <source>Total analyzer execution time: {0} seconds.</source>
+        <target state="translated">Celková doba spuštění analyzátoru: {0} sekund</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MultithreadedAnalyzerExecutionNote">
+        <source>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</source>
+        <target state="translated">POZNÁMKA: Uplynulý čas může být kratší než čas spuštění analyzátoru, protože analyzátory můžou běžet současně.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerExecutionTimeColumnHeader">
+        <source>Time (s)</source>
+        <target state="translated">Doba (s)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerNameColumnHeader">
+        <source>Analyzer</source>
+        <target state="translated">Analyzátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoAnalyzersFound">
+        <source>No analyzers found</source>
+        <target state="translated">Nenašly se žádné analyzátory.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateAnalyzerInstances">
+        <source>Argument contains duplicate analyzer instances.</source>
+        <target state="translated">Argument obsahuje duplicitní instance analyzátoru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedAnalyzerInstance">
+        <source>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</source>
+        <target state="translated">Argument obsahuje instanci analyzátoru, který nepatří mezi Analyzátory pro tuto instanci CompilationWithAnalyzers.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidTree">
+        <source>Syntax tree doesn't belong to the underlying 'Compilation'.</source>
+        <target state="translated">Strom syntaxe nepatří do zdrojové kompilace.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamEndedUnexpectedly">
+        <source>Resource stream ended at {0} bytes, expected {1} bytes.</source>
+        <target state="translated">Datový proud prostředků skončil na {0} bajtech, očekávalo se {1} bajtů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SharedArgumentMissing">
+        <source>Value for argument '/shared:' must not be empty</source>
+        <target state="translated">Hodnota argumentu /shared: nesmí být prázdná.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionContext">
+        <source>Exception occurred with following context:
+{0}</source>
+        <target state="translated">Došlo k výjimce s tímto kontextem:
+{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeMemberAndNamesCountMismatch2">
+        <source>{0} and {1} must have the same length.</source>
+        <target state="translated">{0} a {1} musí mít stejnou délku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeArgumentCountMismatch2">
+        <source>{0} must either be 'default' or have the same length as {1}.</source>
+        <target state="translated">{0} musí být buď default, nebo musí mít stejnou délku jako {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentSyntaxTreeFeature">
+        <source>Inconsistent syntax tree features</source>
+        <target state="translated">Nekonzistentní funkce stromu syntaxe</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceOfTypeIsInvalid1">
+        <source>Reference of type '{0}' is not valid for this compilation.</source>
+        <target state="translated">Odkaz typu {0} není pro tuto kompilaci platný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataRefNotFoundToRemove1">
+        <source>MetadataReference '{0}' not found to remove.</source>
+        <target state="translated">Nenašel se odkaz na metadata {0}, který by se dal odebrat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameCountMismatch">
+        <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
+        <target state="translated">Pokud jsou zadané názvy prvků řazené kolekce členů, musí se počet názvů členů shodovat s kardinalitou této řazené kolekce členů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameEmpty">
+        <source>Tuple element name cannot be an empty string.</source>
+        <target state="translated">Názvem prvku řazené kolekce členů nemůže být prázdný řetězec.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementLocationCountMismatch">
+        <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
+        <target state="translated">Pokud jsou zadaná umístění prvků řazené kolekce členů, musí se počet umístění shodovat s kardinalitou této řazené kolekce členů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TuplesNeedAtLeastTwoElements">
+        <source>Tuples must have at least two elements.</source>
+        <target state="translated">Řazené kolekce členů musí mít aspoň dva elementy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationReferencesAssembliesWithDifferentAutoGeneratedVersion">
+        <source>The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.</source>
+        <target state="translated">Kompilace odkazuje na víc sestavení, jejichž verze se liší jenom v automaticky generovaném buildu a/nebo číslech revizí.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleUnderlyingTypeMustBeTupleCompatible">
+        <source>The underlying type for a tuple must be tuple-compatible.</source>
+        <target state="translated">Základní typ pro řazenou kolekci členů musí být s řazenou kolekcí členů kompatibilní.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnrecognizedResourceFileFormat">
+        <source>Unrecognized resource file format.</source>
+        <target state="translated">Nerozpoznaný formát souboru prostředku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SourceTextCannotBeEmbedded">
+        <source>SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction.</source>
+        <target state="translated">SourceText se nedá vložit. Při vytváření zadejte kódování nebo canBeEmbedded=true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamIsTooLong">
+        <source>Stream is too long.</source>
+        <target state="translated">Stream je moc dlouhý.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddedTextsRequirePdb">
+        <source>Embedded texts are only supported when emitting a PDB.</source>
+        <target state="translated">Vložené texty jsou podporované jen při vydávání souboru PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeWrittenTo">
+        <source>The stream cannot be written to.</source>
+        <target state="translated">Do streamu se nedá zapisovat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ElementIsExpected">
+        <source>element is expected</source>
+        <target state="translated">Očekával se element.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorIsExpected">
+        <source>separator is expected</source>
+        <target state="translated">Očekával se oddělovač.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeReadFrom">
+        <source>The stream cannot be read from.</source>
+        <target state="translated">Ze streamu se nedá číst.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
+        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
+        <target state="translated">Čtečka deserializace pro {0} přečetla nesprávný počet hodnot.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stream_contains_invalid_data">
+        <source>Stream contains invalid data</source>
+        <target state="translated">Stream obsahuje neplatná data.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSpanReported">
+        <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
+        <target state="translated">Zdroj vykazované diagnostiky {0} má umístění {1} v souboru {2}, což je mimo daný soubor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="translated">Upozornění: Nešlo povolit vícejádrový režim JIT kvůli výjimce: {0}.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

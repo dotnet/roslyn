@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         protected abstract bool IncludePrerelease { get; }
 
+        public override abstract FixAllProvider GetFixAllProvider();
+
         protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
             CodeFixContext context, ISet<string> assemblyNames)
         {
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                 searchNugetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                foreach (var packageSource in installerService.PackageSources)
+                foreach (var packageSource in installerService.GetPackageSources())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
                     {
                         codeActions.Add(new InstallPackageParentCodeAction(
                             installerService, packageSource.Source,
-                            package.PackageName, this.IncludePrerelease, document));
+                            package.PackageName, IncludePrerelease, document));
                     }
                 }
             }

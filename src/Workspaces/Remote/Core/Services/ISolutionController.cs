@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal interface ISolutionController
     {
-        Task<Solution> GetSolutionAsync(Checksum solutionChecksum, bool fromPrimaryBranch, CancellationToken cancellationToken);
+        Task<Solution> GetSolutionAsync(Checksum solutionChecksum, bool fromPrimaryBranch, int workspaceVersion, CancellationToken cancellationToken);
 
-        Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
+        Task UpdatePrimaryWorkspaceAsync(Checksum solutionChecksum, int workspaceVersion, CancellationToken cancellationToken);
     }
 }

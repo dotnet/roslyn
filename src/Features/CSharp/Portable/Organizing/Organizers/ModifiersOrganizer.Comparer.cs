@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 {
@@ -23,24 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     return 0;
                 }
 
-                // partial always goes last.
-                if (x.Kind() == SyntaxKind.PartialKeyword)
-                {
-                    return 1;
-                }
-
-                if (y.Kind() == SyntaxKind.PartialKeyword)
-                {
-                    return -1;
-                }
-
-                var xOrdering = GetOrdering(x);
-                var yOrdering = GetOrdering(y);
-
-                return xOrdering - yOrdering;
+                return ComparerWithState.CompareTo(x, y, s_comparers);
             }
 
-            private Ordering GetOrdering(SyntaxToken token)
+            private readonly static ImmutableArray<Func<SyntaxToken, IComparable>> s_comparers =
+                ImmutableArray.Create<Func<SyntaxToken, IComparable>>(t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t));
+
+            private static Ordering GetOrdering(SyntaxToken token)
             {
                 switch (token.Kind())
                 {

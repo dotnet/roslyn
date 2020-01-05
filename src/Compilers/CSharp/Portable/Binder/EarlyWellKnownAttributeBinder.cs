@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal new CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
         {
             Debug.Assert(false, "Don't call this overload.");
+            diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
             return base.GetAttribute(node, boundAttributeType, diagnostics);
         }
 
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (objectCreation.Initializer == null)
                         {
                             var unusedDiagnostics = DiagnosticBag.GetInstance();
-                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics);
+                            var type = typeBinder.BindType(objectCreation.Type, unusedDiagnostics).Type;
                             unusedDiagnostics.Free();
 
                             var kind = TypedConstant.GetTypedConstantKind(type, typeBinder.Compilation);

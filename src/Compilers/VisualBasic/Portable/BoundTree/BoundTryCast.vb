@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -32,6 +31,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, operand, conversionKind, constantValueOpt, relaxationLambdaOpt:=Nothing, type:=type, hasErrors:=hasErrors)
         End Sub
+
+        Public Overrides ReadOnly Property ExplicitCastInCode As Boolean
+            Get
+                Return True
+            End Get
+        End Property
 
 #If DEBUG Then
         Private Sub Validate()

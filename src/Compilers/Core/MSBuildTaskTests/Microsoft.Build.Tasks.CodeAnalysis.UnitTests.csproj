@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>net472</TargetFramework>
+
+    <!-- Multiple test failures -->
+    <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+    <ProjectReference Include="..\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestResources\**\*.*" />
+    <EmbeddedResource Include="TestResources\**\*.*" />
+  </ItemGroup>
+  <PropertyGroup>
+    <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetSdkVersion.g.cs</_DotNetSdkVersionFile>
+  </PropertyGroup>
+  <Target Name="_GenerateSdkVersionAttribute" BeforeTargets="CoreCompile" Outputs="$(_DotNetSdkVersionFile)">
+    <ItemGroup>
+      <_Attribute Include="Microsoft.CodeAnalysis.BuildTasks.UnitTests.DotNetSdkVersionAttribute">
+        <_Parameter1>$(NETCoreSdkVersion)</_Parameter1>
+      </_Attribute>
+    </ItemGroup>
+    <WriteCodeFragment AssemblyAttributes="@(_Attribute)" Language="$(Language)" OutputFile="$(_DotNetSdkVersionFile)">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+    </WriteCodeFragment>
+  </Target>
+</Project>

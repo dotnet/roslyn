@@ -1,0 +1,943 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../CodeAnalysisResources.resx">
+    <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">言語名は、このオプションでは指定できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">このオプションの言語名を指定する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="new">Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">アナライザー '{0}'が、次の例をスローしました:
+'{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">抑制された診断 ID '{0}' が、指定された抑制記述子の抑制可能な ID '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">指定した操作ブロックが現在の分析コンテストに属していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">パラメーター '{0}' は、'INamedTypeSymbol' または 'IAssemblySymbol' でなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">パラメーター '{0}' は、このコンパイルまたはいくつかの参照アセンブリのシンボルにする必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="new">Module has invalid attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">ID '{0}' を持つ未報告の診断を抑制することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">指定した操作の親が null 以外です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">指定した操作のセマンティック モデルが null です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">指定された操作を制御フロー グラフの一部にすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutputKindNotSupported">
+        <source>Output kind not supported.</source>
+        <target state="translated">出力の種類がサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
+        <target state="translated">{0}.ResolveMetadataFile は絶対パスを返す必要があります: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyMustHaveAtLeastOneModule">
+        <source>Assembly must have at least one module.</source>
+        <target state="translated">アセンブリには、1 つ以上のモジュールが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
+        <source>Module copy can't be used to create an assembly metadata.</source>
+        <target state="translated">モジュールのコピーは、アセンブリ メタデータの作成には使用できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">アナライザー '{0}' の 'SupportedDiagnostics' に null 記述子が含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">アナライザー '{0}' の 'SupportedSuppressions' に null 記述子が含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">診断 '{0}: {1}' は、抑制 ID '{2}' と理由 '{3}' で DiagnosticSuppressor によってプログラムで抑制されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">アナライザー診断のプログラムによる抑制</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor では、null でも、空の文字列でも、空白のみの文字列でもない ID が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">タプル要素の Null 許容の注釈を指定する場合、注釈の数はタプルの基数と一致する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="new">Unable to determine specific cause of the failure.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved">
+        <source>Unresolved: </source>
+        <target state="translated">未解決: </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>assembly</source>
+        <target state="translated">アセンブリ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class1">
+        <source>class</source>
+        <target state="translated">クラス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructor">
+        <source>constructor</source>
+        <target state="translated">コンストラクター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate1">
+        <source>delegate</source>
+        <target state="translated">デリゲート</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum1">
+        <source>enum</source>
+        <target state="translated">列挙型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event1">
+        <source>event</source>
+        <target state="translated">イベント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field">
+        <source>field</source>
+        <target state="translated">フィールド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeParameter">
+        <source>type parameter</source>
+        <target state="translated">型パラメーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface1">
+        <source>interface</source>
+        <target state="translated">インターフェイス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method">
+        <source>method</source>
+        <target state="translated">メソッド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module">
+        <source>module</source>
+        <target state="translated">モジュール</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter">
+        <source>parameter</source>
+        <target state="translated">パラメーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property">
+        <source>property, indexer</source>
+        <target state="translated">プロパティ、インデクサー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Return1">
+        <source>return</source>
+        <target state="translated">戻る</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct1">
+        <source>struct</source>
+        <target state="translated">構造体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToSubmission">
+        <source>Can't create a reference to a submission.</source>
+        <target state="translated">送信への参照は作成できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToModule">
+        <source>Can't create a reference to a module.</source>
+        <target state="translated">モジュールへの参照は作成できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryAssembly">
+        <source>&lt;in-memory assembly&gt;</source>
+        <target state="translated">&lt;メモリ内アセンブリ&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryModule">
+        <source>&lt;in-memory module&gt;</source>
+        <target state="translated">&lt;メモリ内モジュール&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SizeHasToBePositive">
+        <source>Size has to be positive.</source>
+        <target state="translated">サイズには正の値が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyFileNotFound">
+        <source>Assembly file not found</source>
+        <target state="translated">アセンブリ ファイルが見つかりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotEmbedInteropTypesFromModule">
+        <source>Can't embed interop types from module.</source>
+        <target state="translated">モジュールから相互運用型を埋め込むことはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotAliasModule">
+        <source>Can't alias a module.</source>
+        <target state="translated">モジュールにエイリアスを付けることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAlias">
+        <source>Invalid alias.</source>
+        <target state="translated">エイリアスが無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetMetadataMustReturnInstance">
+        <source>{0}.GetMetadata() must return an instance of {1}.</source>
+        <target state="translated">{0}.GetMetadata() は {1} のインスタンスを返す必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">ID '{0}' の報告済みの抑制はサプレッサーによってサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">値が大きすぎるため、30 ビットの符号なし整数として表すことができません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
+        <source>Arrays with more than one dimension cannot be serialized.</source>
+        <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name: '{0}'</source>
+        <target state="translated">無効なアセンブリ名: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected.</source>
+        <target state="translated">絶対パスが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyKeyInPathMap">
+        <source>A key in the pathMap is empty.</source>
+        <target state="translated">pathMap のキーが空です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NullValueInPathMap">
+        <source>A value in the pathMap is null.</source>
+        <target state="translated">pathMap の値は null です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationOptionsMustNotHaveErrors">
+        <source>Compilation options must not have errors.</source>
+        <target state="translated">コンパイル オプションにエラーがあってはなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
+        <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
+        <target state="translated">戻り値の型は、値型、ポインター、参照渡し、オープン ジェネリック型にはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
+        <source>Return type can't be void, by-ref or open generic type</source>
+        <target state="translated">戻り値の型は、void、参照渡し、オープン ジェネリック型にはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
+        <source>Type must be same as host object type of previous submission.</source>
+        <target state="translated">種類は、前回の送信のホスト オブジェクトの種類と同じでなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreviousSubmissionHasErrors">
+        <source>Previous submission has errors.</source>
+        <target state="translated">前回の送信にはエラーがあります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOutputKindForSubmission">
+        <source>Invalid output kind for submission. DynamicallyLinkedLibrary expected.</source>
+        <target state="translated">送信の出力の種類が無効です。DynamicallyLinkedLibrary が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCompilationOptions">
+        <source>Invalid compilation options -- submission can't be signed.</source>
+        <target state="translated">無効なコンパイル オプション -- 送信は署名できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamProviderShouldReturnNonNullStream">
+        <source>Resource stream provider should return non-null stream.</source>
+        <target state="translated">リソース ストリーム プロバイダーは Null 以外のストリームを返す必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
+        <source>Reference resolver should return readable non-null stream.</source>
+        <target state="translated">参照リゾルバーは Null 以外の読み取り可能なストリームを返す必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidResourceName">
+        <source>Empty or invalid resource name</source>
+        <target state="translated">リソース名が空または無効です</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidFileName">
+        <source>Empty or invalid file name</source>
+        <target state="translated">ファイル名が空または無効です</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
+        <source>Resource data provider should return non-null stream</source>
+        <target state="translated">リソース データ プロバイダーは Null 以外のストリームを返す必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileNotFound">
+        <source>File not found.</source>
+        <target state="translated">ファイルが見つかりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
+        <target state="translated">{0}.ResolveStrongNameKeyFile は絶対パスを返す必要があります: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
+        <source>type must be a subclass of SyntaxAnnotation.</source>
+        <target state="translated">種類は SyntaxAnnotation のサブクラスでなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidModuleName">
+        <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
+        <target state="translated">メタデータ モジュール '{0}' に無効なモジュール名が指定されています: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileSizeExceedsMaximumAllowed">
+        <source>File size exceeds maximum allowed size of a valid metadata file.</source>
+        <target state="translated">ファイルのサイズが有効なメタデータ ファイルの最大許容サイズを超えています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeNull">
+        <source>Name cannot be null.</source>
+        <target state="translated">名前を null にすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeEmpty">
+        <source>Name cannot be empty.</source>
+        <target state="translated">名前は空にできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotStartWithWhitespace">
+        <source>Name cannot start with whitespace.</source>
+        <target state="translated">名前は空白文字で開始できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameContainsInvalidCharacter">
+        <source>Name contains invalid characters.</source>
+        <target state="translated">名前に無効な文字が含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeStartOfLine">
+        <source>The span does not include the start of a line.</source>
+        <target state="translated">範囲には、行の先頭が含まれません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeEndOfLine">
+        <source>The span does not include the end of a line.</source>
+        <target state="translated">範囲に、行の末尾が含まれません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartMustNotBeNegative">
+        <source>'start' must not be negative</source>
+        <target state="translated">'start' は負の値であってはなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'</source>
+        <target state="translated">'end' は、'start' より小さい値であってはなりません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidContentType">
+        <source>Invalid content type</source>
+        <target state="translated">無効なコンテンツ タイプ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedNonEmptyPublicKey">
+        <source>Expected non-empty public key</source>
+        <target state="translated">空でない公開キーが必要です</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSizeOfPublicKeyToken">
+        <source>Invalid size of public key token.</source>
+        <target state="translated">公開キーのトークンのサイズが無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">アセンブリ名に無効な文字があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyCultureName">
+        <source>Invalid characters in assembly culture name</source>
+        <target state="translated">アセンブリのカルチャ名に無効な文字があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">ストリームは、読み取りとシーク操作をサポートする必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportRead">
+        <source>Stream must be readable.</source>
+        <target state="translated">ストリームは読み取り可能でなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportWrite">
+        <source>Stream must be writable.</source>
+        <target state="translated">ストリームは書き込み可能でなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
+        <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
+        <target state="translated">PDB を PE ストリームに埋め込むとき、PDB ストリームを使ってはなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>PDB stream should not be given when emitting metadata only.</source>
+        <target state="translated">メタデータのみを生成している場合、PDB ストリームは指定しないでください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>Metadata PE stream should not be given when emitting metadata only.</source>
+        <target state="translated">メタデータのみを生成している場合、メタデータ PE ストリームは指定しないでください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
+        <source>Including private members should not be used when emitting to the secondary assembly output.</source>
+        <target state="translated">セカンダリ アセンブリ出力に対して生成している場合、プライベート メンバーのインクルードは使用しないでください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
+        <source>Must include private members unless emitting a ref assembly.</source>
+        <target state="translated">参照アセンブリを出力しない限り、プライベート メンバーを含める必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
+        <source>Embedding PDB is not allowed when emitting metadata.</source>
+        <target state="translated">メタデータを生成している場合、PDB を埋め込むことは許可されていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
+        <source>Cannot target net module when emitting ref assembly.</source>
+        <target state="translated">参照アセンブリを生成している場合、ネット モジュールをターゲットにすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHash">
+        <source>Invalid hash.</source>
+        <target state="translated">無効なハッシュです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedHashAlgorithm">
+        <source>Unsupported hash algorithm.</source>
+        <target state="translated">サポートされていないハッシュ アルゴリズムです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentLanguageVersions">
+        <source>Inconsistent language versions</source>
+        <target state="translated">一貫性のない言語バージョン</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidRelocation">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
+        <target state="translated">Win32 リソースは、COFF オブジェクト形式であると見なされますが、1 つ以上の再配置ヘッダー値が無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSectionSize">
+        <source>Win32 resources, assumed to be in COFF object format, have an invalid section size.</source>
+        <target state="translated">Win32 リソースは、COFF オブジェクト形式であると見なされますが、セクション サイズが無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSymbol">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid symbol values.</source>
+        <target state="translated">Win32 リソースは、COFF オブジェクト形式であると見なされますが、1 つ以上のシンボル値が無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceMissingSection">
+        <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
+        <target state="translated">Win32 リソースは、COFF オブジェクト形式であると見なされますが、セクションの '.rsrc$01' と '.rsrc$02' のいずれかまたは両方がありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IconStreamUnexpectedFormat">
+        <source>Icon stream is not in the expected format.</source>
+        <target state="translated">アイコン ストリームの形式が正しくありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCultureName">
+        <source>Invalid culture name: '{0}'</source>
+        <target state="translated">無効なカルチャ名: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">アナライザー構成ファイルの '{2}' で、診断 '{0}' に無効な重要度 '{1}' が指定されました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">アナライザー構成ファイルの重大度が無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WinRTIdentityCantBeRetargetable">
+        <source>WindowsRuntime identity can't be retargetable</source>
+        <target state="translated">WindowsRuntime の ID を再ターゲット可能にすることはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageNotAvailable">
+        <source>PE image not available.</source>
+        <target state="translated">PE イメージは使用できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblySigningNotSupported">
+        <source>Assembly signing not supported.</source>
+        <target state="translated">アセンブリの署名はサポートされません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XmlReferencesNotSupported">
+        <source>References to XML documents are not supported.</source>
+        <target state="translated">XML ドキュメントへの参照はサポートされません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FailedToResolveRuleSetName">
+        <source>Could not locate the rule set file '{0}'.</source>
+        <target state="translated">規則セット ファイル '{0}' が見つかりませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRuleSetInclude">
+        <source>An error occurred while loading the included rule set file {0} - {1}</source>
+        <target state="translated">含まれている規則セット ファイル {0} - {1} の読み込み中にエラーが発生しました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerFailure">
+        <source>Analyzer Failure</source>
+        <target state="translated">アナライザー エラー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrows">
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
+        <target state="translated">アナライザー '{0}' が型 '{1}' の例外をメッセージ '{2}' 付きでスローしました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverFailure">
+        <source>Analyzer Driver Failure</source>
+        <target state="translated">アナライザー ドライバー エラー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrows">
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
+        <target state="translated">アナライザー ドライバーが型 '{0}' の例外をメッセージ '{1}' 付きでスローしました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrowsDescription">
+        <source>Analyzer driver threw the following exception:
+'{0}'.</source>
+        <target state="translated">アナライザー ドライバーが次の例外をスローしました:
+'{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageDoesntContainManagedMetadata">
+        <source>PE image doesn't contain managed metadata.</source>
+        <target state="translated">PE イメージには、管理されたメタデータが含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="translated">変更は順序付けする必要があり、重複は許可されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
+        <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">DiagnosticDescriptor の ID は、null、空の文字列、または空白のみの文字列でもない必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetHasDuplicateRules">
+        <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
+        <target state="translated">規則セット ファイルは、異なるアクション '{1}' と '{2}' を持つ '{0}' の規則が重複しています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateModuleReferenceToAssembly">
+        <source>Can't create a module reference to an assembly.</source>
+        <target state="translated">アセンブリのモジュール参照を作成できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToDynamicAssembly">
+        <source>Can't create a metadata reference to a dynamic assembly.</source>
+        <target state="translated">動的アセンブリのメタデータ参照を作成できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToAssemblyWithoutLocation">
+        <source>Can't create a metadata reference to an assembly without location.</source>
+        <target state="translated">位置が指定されていないアセンブリのメタデータ参照を作成できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentCannotBeEmpty">
+        <source>Argument cannot be empty.</source>
+        <target state="translated">引数を空にすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentElementCannotBeNull">
+        <source>Argument cannot have a null element.</source>
+        <target state="translated">引数に null 要素は指定できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
+        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
+        <target state="translated">アナライザーが "非同期" アクションを登録しようとしましたが、それはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedDiagnosticReported">
+        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
+        <target state="translated">ID '{0}' の報告済みの診断はアナライザーによってサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticIdReported">
+        <source>Reported diagnostic has an ID '{0}', which is not a valid identifier.</source>
+        <target state="translated">報告された診断に有効な識別子ではない ID '{0}' があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticLocationReported">
+        <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
+        <target state="translated">報告された診断 '{0}' のソースの場所がファイル '{1}' にありますが、これは、分析対象のコンパイルの一部ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
+        <source>The type '{0}' is not understood by the serialization binder.</source>
+        <target state="translated">型 '{0}' がシリアル化バインダーで認識されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_deserialize_type_0">
+        <source>Cannot deserialize type '{0}'.</source>
+        <target state="translated">型 '{0}' を逆シリアル化できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_serialize_type_0">
+        <source>Cannot serialize type '{0}'.</source>
+        <target state="translated">型 '{0}' をシリアル化できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidNodeToTrack">
+        <source>Node to track is not a descendant of the root.</source>
+        <target state="translated">追跡するノードは、ルートの子孫ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeOrTokenOutOfSequence">
+        <source>A node or token is out of sequence.</source>
+        <target state="translated">ノードまたはトークンの順序が正しくありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedTypeOfNodeInList">
+        <source>A node in the list is not of the expected type.</source>
+        <target state="translated">リスト内のノードが、予期された型ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingListItem">
+        <source>The item specified is not the element of a list.</source>
+        <target state="translated">指定した項目は、リストの要素ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKey">
+        <source>Invalid public key.</source>
+        <target state="translated">公開キーが無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKeyToken">
+        <source>Invalid public key token.</source>
+        <target state="translated">公開キーのトークンが無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDataAtOffset">
+        <source>Invalid data at offset {0}: {1}{2}*{3}{4}</source>
+        <target state="translated">オフセット {0} にある無効なデータ: {1}{2}*{3}{4}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterNotDeterministic">
+        <source>Windows PDB writer doesn't support deterministic compilation: '{0}'</source>
+        <target state="translated">Windows PDB ライターは、決定論的コンパイルをサポートしていません: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterOlderVersionThanRequired">
+        <source>The version of Windows PDB writer is older than required: '{0}'</source>
+        <target state="translated">Windows PDB ライターのバージョンが、必要なバージョンより古いものです: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterDoesNotSupportSourceLink">
+        <source>Windows PDB writer doesn't support SourceLink feature: '{0}'</source>
+        <target state="translated">Windows PDB ライターは、SourceLink 機能をサポートしていません: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetBadAttributeValue">
+        <source>The attribute {0} has an invalid value of {1}.</source>
+        <target state="translated">属性 {0} に {1} の無効な値が含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetMissingAttribute">
+        <source>The element {0} is missing an attribute named {1}.</source>
+        <target state="translated">要素 {0} に {1} という属性がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsNotAnInteger">
+        <source>Argument to '/keepalive' option is not a 32-bit integer.</source>
+        <target state="translated">/keepalive' オプションへの引数は 32 ビットの整数ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsTooSmall">
+        <source>Arguments to '/keepalive' option below -1 are invalid.</source>
+        <target state="translated">-1 より小さい '/keepalive' オプションへの引数は無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveWithoutShared">
+        <source>'/keepalive' option is only valid with '/shared' option.</source>
+        <target state="translated">'/keepalive' オプションが有効になるのは、'/shared' オプションと一緒に使用する場合のみです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MismatchedVersion">
+        <source>Roslyn compiler server reports different protocol version than build task.</source>
+        <target state="translated">Roslyn コンパイル サーバーは、ビルド タスクとは異なるバージョンのプロトコルを報告しています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKeepAlive">
+        <source>Missing argument for '/keepalive' option.</source>
+        <target state="translated">/keepalive' オプションの引数がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerTotalExecutionTime">
+        <source>Total analyzer execution time: {0} seconds.</source>
+        <target state="translated">アナライザー実行の合計時間: {0} 秒。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MultithreadedAnalyzerExecutionNote">
+        <source>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</source>
+        <target state="translated">メモ: 複数のアナライザーが同時に実行される可能性があるので、経過時間はアナライザーの実行時間よりも短くなる場合があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerExecutionTimeColumnHeader">
+        <source>Time (s)</source>
+        <target state="translated">時間 (秒)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerNameColumnHeader">
+        <source>Analyzer</source>
+        <target state="translated">アナライザー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoAnalyzersFound">
+        <source>No analyzers found</source>
+        <target state="translated">アナライザーが見つかりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateAnalyzerInstances">
+        <source>Argument contains duplicate analyzer instances.</source>
+        <target state="translated">引数にアナライザーのインスタンスが重複して含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedAnalyzerInstance">
+        <source>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</source>
+        <target state="translated">引数には、この CompilationWithAnalyzers インスタンスの 'アナライザー' に属していないアナライザー インスタンスが含まれています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidTree">
+        <source>Syntax tree doesn't belong to the underlying 'Compilation'.</source>
+        <target state="translated">構文ツリーは、基になる 'コンパイル' に属していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamEndedUnexpectedly">
+        <source>Resource stream ended at {0} bytes, expected {1} bytes.</source>
+        <target state="translated">リソース ストリームが {0} バイトで終了しました。{1} バイトが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SharedArgumentMissing">
+        <source>Value for argument '/shared:' must not be empty</source>
+        <target state="translated">引数 '/shared:' の値を空にすることはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionContext">
+        <source>Exception occurred with following context:
+{0}</source>
+        <target state="translated">次のコンテキストで例外が発生しました:
+{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeMemberAndNamesCountMismatch2">
+        <source>{0} and {1} must have the same length.</source>
+        <target state="translated">{0} と {1} は、同じ長さである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeArgumentCountMismatch2">
+        <source>{0} must either be 'default' or have the same length as {1}.</source>
+        <target state="translated">{0} は 'default' もしくは {1} と同じ長さである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentSyntaxTreeFeature">
+        <source>Inconsistent syntax tree features</source>
+        <target state="translated">不整合の構文ツリーの機能</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceOfTypeIsInvalid1">
+        <source>Reference of type '{0}' is not valid for this compilation.</source>
+        <target state="translated">型 '{0}' の参照は、このコンパイルで有効ではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataRefNotFoundToRemove1">
+        <source>MetadataReference '{0}' not found to remove.</source>
+        <target state="translated">削除する MetadataReference '{0}' が見つかりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameCountMismatch">
+        <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
+        <target state="translated">タプル要素名を指定する場合、要素名の数は、タプルの基数と一致する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameEmpty">
+        <source>Tuple element name cannot be an empty string.</source>
+        <target state="translated">タプル要素名を空の文字列にすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementLocationCountMismatch">
+        <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
+        <target state="translated">タプル要素の場所を指定する場合、場所の数はタプルの基数と一致する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TuplesNeedAtLeastTwoElements">
+        <source>Tuples must have at least two elements.</source>
+        <target state="translated">タプルには 2 つ以上の要素が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationReferencesAssembliesWithDifferentAutoGeneratedVersion">
+        <source>The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.</source>
+        <target state="translated">コンパイルは、自動生成ビルド番号またはリビジョン番号 (あるいはその両方) のみが異なるバージョンの複数のアセンブリを参照しています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleUnderlyingTypeMustBeTupleCompatible">
+        <source>The underlying type for a tuple must be tuple-compatible.</source>
+        <target state="translated">タプルの基になる型は、タプルと互換性がなければなりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnrecognizedResourceFileFormat">
+        <source>Unrecognized resource file format.</source>
+        <target state="translated">認識されないリソース ファイル形式です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SourceTextCannotBeEmbedded">
+        <source>SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction.</source>
+        <target state="translated">SourceText を埋め込むことはできません。構築においてエンコードまたは canBeEmbedded=true を使用してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamIsTooLong">
+        <source>Stream is too long.</source>
+        <target state="translated">ストリームが長すぎます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddedTextsRequirePdb">
+        <source>Embedded texts are only supported when emitting a PDB.</source>
+        <target state="translated">埋め込みのテキストは、PDB の生成時にのみサポートされます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeWrittenTo">
+        <source>The stream cannot be written to.</source>
+        <target state="translated">ストリームを書き込めません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ElementIsExpected">
+        <source>element is expected</source>
+        <target state="translated">要素が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorIsExpected">
+        <source>separator is expected</source>
+        <target state="translated">区切り記号が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeReadFrom">
+        <source>The stream cannot be read from.</source>
+        <target state="translated">ストリームを読み取れません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
+        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
+        <target state="translated">{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stream_contains_invalid_data">
+        <source>Stream contains invalid data</source>
+        <target state="translated">ストリームに無効なデータが含まれています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSpanReported">
+        <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
+        <target state="translated">報告された診断 '{0}' のソースの場所はファイル '{2}' 内の '{1}' ですが、これは指定されたファイルの外です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="translated">警告: 次の例外によりマルチコア JIT を有効にできませんでした: {0}。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

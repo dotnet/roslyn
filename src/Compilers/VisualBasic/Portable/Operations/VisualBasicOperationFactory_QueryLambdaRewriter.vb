@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
                 LocalRewriter.PopulateRangeVariableMapForQueryLambdaRewrite(node, _rangeVariableMap, inExpressionLambda:=True)
                 Dim rewrittenBody As BoundExpression = VisitExpressionWithStackGuard(node.Expression)
-                Dim rewrittenStatement As BoundStatement = LocalRewriter.CreateReturnStatementForQueryLambdaBody(rewrittenBody, node)
+                Dim rewrittenStatement As BoundStatement = LocalRewriter.CreateReturnStatementForQueryLambdaBody(rewrittenBody, node, hasErrors:=node.LambdaSymbol.ReturnType Is LambdaSymbol.ReturnTypePendingDelegate)
                 LocalRewriter.RemoveRangeVariables(node, _rangeVariableMap)
                 Return LocalRewriter.RewriteQueryLambda(rewrittenStatement, node)
             End Function
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                         Dim access = DirectCast(expression, BoundPropertyAccess)
                         expression = New BoundPropertyAccess(node.Syntax, access.PropertySymbol, access.PropertyGroupOpt, access.AccessKind,
                                                              access.IsWriteable, access.IsWriteable, access.ReceiverOpt, access.Arguments,
-                                                             access.Type, access.HasErrors)
+                                                             access.DefaultArguments, access.Type, access.HasErrors)
                     Case Else
                         Debug.Fail($"Unexpected bound kind '{expression.Kind}' generated for range variable rewrite by method '{NameOf(LocalRewriter.PopulateRangeVariableMapForQueryLambdaRewrite)}'")
                 End Select
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End Function
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
-                If node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod AndAlso Not _uniqueNodes.Add(node) Then
+                If (node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod).GetValueOrDefault() AndAlso Not _uniqueNodes.Add(node) Then
                     Dim wasCompilerGenerated As Boolean = node.WasCompilerGenerated
                     node = New BoundParameter(node.Syntax, node.ParameterSymbol, node.IsLValue, node.SuppressVirtualCalls, node.Type, node.HasErrors)
                     If wasCompilerGenerated Then

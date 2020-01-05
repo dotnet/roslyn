@@ -13,17 +13,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="path">The directory path to delete</param>
         public static void DeleteRecursively(string path)
         {
-            string[] files = Directory.GetFiles(path);
-            string[] dirs = Directory.GetDirectories(path);
+            var files = Directory.GetFiles(path);
+            var dirs = Directory.GetDirectories(path);
 
-            foreach (string file in files)
+            foreach (var file in files)
             {
                 // If there were read-only attributes on the file, the delete would throw, so set normal permissions.
                 File.SetAttributes(file, FileAttributes.Normal);
                 File.Delete(file);
             }
 
-            foreach (string dir in dirs)
+            foreach (var dir in dirs)
             {
                 DeleteRecursively(dir);
             }

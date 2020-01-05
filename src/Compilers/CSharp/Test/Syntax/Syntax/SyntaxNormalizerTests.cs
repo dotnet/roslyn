@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TestNormalizeExpression("(IList<int>)args", "(IList<int>)args");
             TestNormalizeExpression("(IList<IList<int>>)args", "(IList<IList<int>>)args");
+
+            TestNormalizeExpression("(IList<string?>)args", "(IList<string?>)args");
         }
 
         private void TestNormalizeExpression(string text, string expected)
@@ -233,6 +235,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // parameter attributes
             TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
+        public void TestSpacingOnInvocationLikeKeywords()
+        {
+            // no space between typeof and (
+            TestNormalizeExpression("typeof (T)", "typeof(T)");
+
+            // no space between sizeof and (
+            TestNormalizeExpression("sizeof (T)", "sizeof(T)");
+
+            // no space between default and (
+            TestNormalizeExpression("default (T)", "default(T)");
+
+            // no space between new and (
+            // newline between > and where
+            TestNormalizeDeclaration(
+                "class C<T> where T : new() { }",
+                "class C<T>\r\n  where T : new()\r\n{\r\n}");
+
+            // no space between this and (
+            TestNormalizeDeclaration(
+                "class C { C() : this () { } }",
+                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+
+            // no space between base and (
+            TestNormalizeDeclaration(
+                "class C { C() : base () { } }",
+                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+
+            // no space between checked and (
+            TestNormalizeExpression("checked (a)", "checked(a)");
+
+            // no space between unchecked and (
+            TestNormalizeExpression("unchecked (a)", "unchecked(a)");
+
+            // no space between __arglist and (
+            TestNormalizeExpression("__arglist (a)", "__arglist(a)");
+        }
+
+        [Fact]
+        [WorkItem(24454, "https://github.com/dotnet/roslyn/issues/24454")]
+        public void TestSpacingOnInterpolatedString()
+        {
+            TestNormalizeExpression("$\"{3:C}\"", "$\"{3:C}\"");
+            TestNormalizeExpression("$\"{3: C}\"", "$\"{3: C}\"");
+        }
+
+        [Fact]
+        [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
+        public void TestSpacingOnMethodConstraint()
+        {
+            // newline between ) and where
+            TestNormalizeDeclaration(
+                "class C { void M<T>() where T : struct { } }",
+                "class C\r\n{\r\n  void M<T>()\r\n    where T : struct\r\n  {\r\n  }\r\n}");
         }
 
         [WorkItem(541684, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541684")]
@@ -490,6 +549,18 @@ $"  ///  </summary>{Environment.NewLine}" +
             var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
             var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        [WorkItem(29390, "https://github.com/dotnet/roslyn/issues/29390")]
+        public void TestNormalizeTuples()
+        {
+            TestNormalizeDeclaration("new(string prefix,string uri)[10]", "new (string prefix, string uri)[10]");
+            TestNormalizeDeclaration("(string prefix,string uri)[]ns", "(string prefix, string uri)[] ns");
+            TestNormalizeDeclaration("(string prefix,(string uri,string help))ns", "(string prefix, (string uri, string help)) ns");
+            TestNormalizeDeclaration("(string prefix,string uri)ns", "(string prefix, string uri) ns");
+            TestNormalizeDeclaration("public void Foo((string prefix,string uri)ns)", "public void Foo((string prefix, string uri) ns)");
+            TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

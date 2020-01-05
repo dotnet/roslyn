@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text.Operations;
@@ -29,12 +32,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private bool _transactionAlive;
 
             public WorkspaceUndoTransaction(
+                IThreadingContext threadingContext,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
                 IVsLinkedUndoTransactionManager undoManager,
                 Workspace workspace,
                 string description,
                 GlobalUndoService service)
-                : base(assertIsForeground: true)
+                : base(threadingContext, assertIsForeground: true)
             {
                 _undoHistoryRegistry = undoHistoryRegistry;
                 _undoManager = undoManager;
@@ -48,34 +52,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public void AddDocument(DocumentId id)
             {
-                var vsWorkspace = (VisualStudioWorkspaceImpl)_workspace;
-                Contract.ThrowIfNull(vsWorkspace);
+                var visualStudioWorkspace = (VisualStudioWorkspace)_workspace;
+                Contract.ThrowIfNull(visualStudioWorkspace);
 
-                var solution = vsWorkspace.CurrentSolution;
-                if (!solution.ContainsDocument(id))
+                var solution = visualStudioWorkspace.CurrentSolution;
+                var document = solution.GetDocument(id);
+                if (document == null)
                 {
                     // document is not part of the workspace (newly created document that is not applied to the workspace yet?)
                     return;
                 }
 
-                if (vsWorkspace.IsDocumentOpen(id))
+                if (visualStudioWorkspace.IsDocumentOpen(id))
                 {
-                    var document = vsWorkspace.GetHostDocument(id);
-                    var undoHistory = _undoHistoryRegistry.RegisterHistory(document.GetOpenTextBuffer());
+                    var container = document.GetTextAsync().WaitAndGetResult(CancellationToken.None).Container;
+                    var textBuffer = container.TryGetTextBuffer();
+                    var undoHistory = _undoHistoryRegistry.RegisterHistory(textBuffer);
 
-                    using (var undoTransaction = undoHistory.CreateTransaction(_description))
-                    {
-                        undoTransaction.AddUndo(new NoOpUndoPrimitive());
-                        undoTransaction.Complete();
-                    }
-
-                    return;
+                    using var undoTransaction = undoHistory.CreateTransaction(_description);
+                    undoTransaction.AddUndo(new NoOpUndoPrimitive());
+                    undoTransaction.Complete();
                 }
-
-                // open and close the document so that it is included in the global undo transaction
-                using (vsWorkspace.OpenInvisibleEditor(id))
+                else
                 {
-                    // empty
+                    // open and close the document so that it is included in the global undo transaction
+                    using (visualStudioWorkspace.OpenInvisibleEditor(id))
+                    {
+                        // empty
+                    }
                 }
             }
 
@@ -124,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ~WorkspaceUndoTransaction()
             {
                 // make sure we closed it correctly
-                Contract.Requires(!_transactionAlive);
+                Debug.Assert(!_transactionAlive);
             }
 #endif
 #pragma warning restore CA1821 // Remove empty Finalizers

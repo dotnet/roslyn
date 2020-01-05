@@ -1,0 +1,943 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CodeAnalysisResources.resx">
+    <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">無法指定此選項的語言名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">必須指定此選項的語言名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
+        <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
+        <target state="new">Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrowsDescription">
+        <source>Analyzer '{0}' threw the following exception:
+'{1}'.</source>
+        <target state="translated">分析器 '{0}' 擲回下列例外狀況:
+'{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSuppressionReported">
+        <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
+        <target state="translated">隱藏的診斷識別碼 '{0}' 不符合指定隱藏描述項的可隱藏識別碼 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOperationBlockForAnalysisContext">
+        <source>Given operation block does not belong to the current analysis context.</source>
+        <target state="translated">指定的作業區塊不屬於目前的分析內容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleBadWithin">
+        <source>Parameter '{0}' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</source>
+        <target state="translated">參數 '{0}' 必須是 'INamedTypeSymbol' 或 'IAssemblySymbol’。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IsSymbolAccessibleWrongAssembly">
+        <source>Parameter '{0}' must be a symbol from this compilation or some referenced assembly.</source>
+        <target state="translated">參數 '{0}' 必須是此編譯或某些參考組件中的符號。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleHasInvalidAttributes">
+        <source>Module has invalid attributes.</source>
+        <target state="new">Module has invalid attributes.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
+        <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
+        <target state="translated">無法隱藏識別碼為 '{0}' 的非回報診斷。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NotARootOperation">
+        <source>Given operation has a non-null parent.</source>
+        <target state="translated">指定的作業有非 null 的父代。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationHasNullSemanticModel">
+        <source>Given operation has a null semantic model.</source>
+        <target state="translated">指定的作業有 null 的語意模型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OperationMustNotBeControlFlowGraphPart">
+        <source>The provided operation must not be part of a Control Flow Graph.</source>
+        <target state="translated">提供的運算不得為控制流程圖的一部分。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="OutputKindNotSupported">
+        <source>Output kind not supported.</source>
+        <target state="translated">輸出種類不支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
+        <target state="translated">{0} 傳回的路徑。ResolveMetadataFile 必須是絕對路徑: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyMustHaveAtLeastOneModule">
+        <source>Assembly must have at least one module.</source>
+        <target state="translated">組件至少必須要有一個模組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ModuleCopyCannotBeUsedToCreateAssemblyMetadata">
+        <source>Module copy can't be used to create an assembly metadata.</source>
+        <target state="translated">不可使用模組複本建立組件中繼資料。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
+        <target state="translated">分析器 '{0}' 在其 'SupportedDiagnostics' 中包含一個 null 描述項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SupportedSuppressionsHasNullDescriptor">
+        <source>Analyzer '{0}' contains a null descriptor in its 'SupportedSuppressions'.</source>
+        <target state="translated">分析器 '{0}' 在其 'SupportedSuppressions' 中包含一個 null 描述項。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorMessage">
+        <source>Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'</source>
+        <target state="translated">隱藏識別碼為 '{2}' 且理由為 '{3}' 的 DiagnosticSuppressor，以程式設計的方式隱藏了診斷 '{0}: {1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionDiagnosticDescriptorTitle">
+        <source>Programmatic suppression of an analyzer diagnostic</source>
+        <target state="translated">以程式設計方式隱藏分析器診斷</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SuppressionIdCantBeNullOrWhitespace">
+        <source>A SuppressionDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">SuppressionDescriptor 的識別碼不得為 null、空白字串或只包含空白字元的字串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNullableAnnotationCountMismatch">
+        <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
+        <target state="translated">如果指定元組元素可為 Null 的註釋，註釋數目就必須符合元組的基數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToDetermineSpecificCauseOfFailure">
+        <source>Unable to determine specific cause of the failure.</source>
+        <target state="new">Unable to determine specific cause of the failure.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unresolved">
+        <source>Unresolved: </source>
+        <target state="translated">未解析: </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Assembly">
+        <source>assembly</source>
+        <target state="translated">組件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class1">
+        <source>class</source>
+        <target state="translated">類別</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructor">
+        <source>constructor</source>
+        <target state="translated">建構函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate1">
+        <source>delegate</source>
+        <target state="translated">委派</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enum1">
+        <source>enum</source>
+        <target state="translated">列舉</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Event1">
+        <source>event</source>
+        <target state="translated">事件</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field">
+        <source>field</source>
+        <target state="translated">欄位</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeParameter">
+        <source>type parameter</source>
+        <target state="translated">類型參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface1">
+        <source>interface</source>
+        <target state="translated">介面</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method">
+        <source>method</source>
+        <target state="translated">方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Module">
+        <source>module</source>
+        <target state="translated">模組</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter">
+        <source>parameter</source>
+        <target state="translated">參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property">
+        <source>property, indexer</source>
+        <target state="translated">屬性, 索引子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Return1">
+        <source>return</source>
+        <target state="translated">返回</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct1">
+        <source>struct</source>
+        <target state="translated">結構</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToSubmission">
+        <source>Can't create a reference to a submission.</source>
+        <target state="translated">無法建立對提交的參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotCreateReferenceToModule">
+        <source>Can't create a reference to a module.</source>
+        <target state="translated">無法建立對模組的參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryAssembly">
+        <source>&lt;in-memory assembly&gt;</source>
+        <target state="translated">&lt;記憶體內組件&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InMemoryModule">
+        <source>&lt;in-memory module&gt;</source>
+        <target state="translated">&lt;記憶體內部模組&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SizeHasToBePositive">
+        <source>Size has to be positive.</source>
+        <target state="translated">大小必須為正值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyFileNotFound">
+        <source>Assembly file not found</source>
+        <target state="translated">找不到組件檔案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotEmbedInteropTypesFromModule">
+        <source>Can't embed interop types from module.</source>
+        <target state="translated">無法從模組內嵌 interop 類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotAliasModule">
+        <source>Can't alias a module.</source>
+        <target state="translated">無法指定模組別名。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAlias">
+        <source>Invalid alias.</source>
+        <target state="translated">別名無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GetMetadataMustReturnInstance">
+        <source>{0}.GetMetadata() must return an instance of {1}.</source>
+        <target state="translated">{0}.GetMetadata() 必須傳回 {1} 的執行個體。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedSuppressionReported">
+        <source>Reported suppression with ID '{0}' is not supported by the suppressor.</source>
+        <target state="translated">隱藏器不支援識別碼為 '{0}' 的回報隱藏。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">值太大，無法呈現為 30 位元不帶正負號的整數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
+        <source>Arrays with more than one dimension cannot be serialized.</source>
+        <target state="translated">無法序列化包含多個維度的陣列。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name: '{0}'</source>
+        <target state="translated">組件名稱無效: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected.</source>
+        <target state="translated">必須是絕對路徑。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyKeyInPathMap">
+        <source>A key in the pathMap is empty.</source>
+        <target state="translated">pathMap 中的索引鍵為空白。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NullValueInPathMap">
+        <source>A value in the pathMap is null.</source>
+        <target state="translated">pathMap 中有值為 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationOptionsMustNotHaveErrors">
+        <source>Compilation options must not have errors.</source>
+        <target state="translated">編譯選項不可有錯誤。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
+        <source>Return type can't be a value type, pointer, by-ref or open generic type</source>
+        <target state="translated">傳回類型不可為值類型、指標、by-ref 或開放式泛型類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReturnTypeCannotBeVoidByRefOrOpen">
+        <source>Return type can't be void, by-ref or open generic type</source>
+        <target state="translated">傳回類型不可為 void、by-ref 或開放式泛型類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeSameAsHostObjectTypeOfPreviousSubmission">
+        <source>Type must be same as host object type of previous submission.</source>
+        <target state="translated">類型必須與上次提交的主物件類型相同。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PreviousSubmissionHasErrors">
+        <source>Previous submission has errors.</source>
+        <target state="translated">上一個提交出現錯誤。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidOutputKindForSubmission">
+        <source>Invalid output kind for submission. DynamicallyLinkedLibrary expected.</source>
+        <target state="translated">提交的輸出種類無效。必須是 DynamicallyLinkedLibrary。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCompilationOptions">
+        <source>Invalid compilation options -- submission can't be signed.</source>
+        <target state="translated">編譯選項無效 -- 無法簽署提交。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamProviderShouldReturnNonNullStream">
+        <source>Resource stream provider should return non-null stream.</source>
+        <target state="translated">資源資料流提供者應傳回非 null 資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceResolverShouldReturnReadableNonNullStream">
+        <source>Reference resolver should return readable non-null stream.</source>
+        <target state="translated">參考解析程式應傳回可讀取的非 null 資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidResourceName">
+        <source>Empty or invalid resource name</source>
+        <target state="translated">資源名稱是空的，或其無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmptyOrInvalidFileName">
+        <source>Empty or invalid file name</source>
+        <target state="translated">檔案名稱是空的，或其無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceDataProviderShouldReturnNonNullStream">
+        <source>Resource data provider should return non-null stream</source>
+        <target state="translated">資源資料提供者應傳回非 null 資料流</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileNotFound">
+        <source>File not found.</source>
+        <target state="translated">找不到檔案。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
+        <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
+        <target state="translated">{0} 傳回的路徑。ResolveStrongNameKeyFile 必須是絕對路徑: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
+        <source>type must be a subclass of SyntaxAnnotation.</source>
+        <target state="translated">類型必須是 SyntaxAnnotation 的子類別。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidModuleName">
+        <source>Invalid module name specified in metadata module '{0}': '{1}'</source>
+        <target state="translated">中繼資料模組 '{0}' 中指定了無效的模組名稱: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FileSizeExceedsMaximumAllowed">
+        <source>File size exceeds maximum allowed size of a valid metadata file.</source>
+        <target state="translated">檔案大小超出有效中繼資料檔案大小的上限。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeNull">
+        <source>Name cannot be null.</source>
+        <target state="translated">名稱不可為 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotBeEmpty">
+        <source>Name cannot be empty.</source>
+        <target state="translated">名稱不可為空白。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameCannotStartWithWhitespace">
+        <source>Name cannot start with whitespace.</source>
+        <target state="translated">名稱開頭不可為空白。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NameContainsInvalidCharacter">
+        <source>Name contains invalid characters.</source>
+        <target state="translated">名稱包含無效的字元。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeStartOfLine">
+        <source>The span does not include the start of a line.</source>
+        <target state="translated">Span 不包含行首。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SpanDoesNotIncludeEndOfLine">
+        <source>The span does not include the end of a line.</source>
+        <target state="translated">Span 不包含行尾。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartMustNotBeNegative">
+        <source>'start' must not be negative</source>
+        <target state="translated">'start' 不可為負值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EndMustNotBeLessThanStart">
+        <source>'end' must not be less than 'start'</source>
+        <target state="translated">'end' 不可小於 'start'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidContentType">
+        <source>Invalid content type</source>
+        <target state="translated">內容類型無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedNonEmptyPublicKey">
+        <source>Expected non-empty public key</source>
+        <target state="translated">必須是非空的公用金鑰</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidSizeOfPublicKeyToken">
+        <source>Invalid size of public key token.</source>
+        <target state="translated">公用金鑰語彙基元大小無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">組件名稱包含無效的字元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyCultureName">
+        <source>Invalid characters in assembly culture name</source>
+        <target state="translated">組件文化特性名稱包含無效的字元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">資料流必須支援讀取及搜尋作業。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportRead">
+        <source>Stream must be readable.</source>
+        <target state="translated">資料流必須可讀取。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamMustSupportWrite">
+        <source>Stream must be writable.</source>
+        <target state="translated">必須可寫入資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmbedding">
+        <source>PDB stream should not be given when embedding PDB into the PE stream.</source>
+        <target state="translated">將 PDB 內嵌 PE 資料流中時，不應提供 PDB 資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PdbStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>PDB stream should not be given when emitting metadata only.</source>
+        <target state="translated">只有在發出中繼資料時，才無須指定 PDB 資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataPeStreamUnexpectedWhenEmittingMetadataOnly">
+        <source>Metadata PE stream should not be given when emitting metadata only.</source>
+        <target state="translated">只有在發出中繼資料時，才無須指定中繼資料 PE 資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncludingPrivateMembersUnexpectedWhenEmittingToMetadataPeStream">
+        <source>Including private members should not be used when emitting to the secondary assembly output.</source>
+        <target state="translated">發出至次要組件輸出時，應使用包含私人成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
+        <source>Must include private members unless emitting a ref assembly.</source>
+        <target state="translated">除非發出參考組件，否則必須包含 private 成員。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
+        <source>Embedding PDB is not allowed when emitting metadata.</source>
+        <target state="translated">發出中繼資料時，不得內嵌 PDB。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
+        <source>Cannot target net module when emitting ref assembly.</source>
+        <target state="translated">發出參考組件時，目標不可以是網路模組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidHash">
+        <source>Invalid hash.</source>
+        <target state="translated">雜湊無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedHashAlgorithm">
+        <source>Unsupported hash algorithm.</source>
+        <target state="translated">不支援的雜湊演算法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentLanguageVersions">
+        <source>Inconsistent language versions</source>
+        <target state="translated">不一致的語言版本</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidRelocation">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</source>
+        <target state="translated">Win32 資源 (假設為 COFF 物件格式) 包含一或多個無效的重新配置標頭值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSectionSize">
+        <source>Win32 resources, assumed to be in COFF object format, have an invalid section size.</source>
+        <target state="translated">Win32 資源 (假設為 COFF 物件格式) 包含無效的區段大小。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceInvalidSymbol">
+        <source>Win32 resources, assumed to be in COFF object format, have one or more invalid symbol values.</source>
+        <target state="translated">Win32 資源 (假設為 COFF 物件格式) 包含一或多個無效的符號值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CoffResourceMissingSection">
+        <source>Win32 resources, assumed to be in COFF object format, are missing one or both of sections '.rsrc$01' and '.rsrc$02'</source>
+        <target state="translated">Win32 資源 (假設為 COFF 物件格式) 遺漏 '.rsrc$01' 及 (或) '.rsrc$02' 區段之一，或同時缺少兩者。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IconStreamUnexpectedFormat">
+        <source>Icon stream is not in the expected format.</source>
+        <target state="translated">圖示資料流的格式不正確。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCultureName">
+        <source>Invalid culture name: '{0}'</source>
+        <target state="translated">文化特性名稱無效: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
+        <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
+        <target state="translated">在分析器組態檔的 '{2}' 處，為診斷 '{0}' 提供了無效的嚴重性 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
+        <source>Invalid severity in analyzer config file.</source>
+        <target state="translated">分析器組態檔中的嚴重性無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WinRTIdentityCantBeRetargetable">
+        <source>WindowsRuntime identity can't be retargetable</source>
+        <target state="translated">無法重新指定 WindowsRuntime 身分識別目標</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageNotAvailable">
+        <source>PE image not available.</source>
+        <target state="translated">PE 映像無法使用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblySigningNotSupported">
+        <source>Assembly signing not supported.</source>
+        <target state="translated">不支援組件簽署。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XmlReferencesNotSupported">
+        <source>References to XML documents are not supported.</source>
+        <target state="translated">不支援對 XML 文件的參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FailedToResolveRuleSetName">
+        <source>Could not locate the rule set file '{0}'.</source>
+        <target state="translated">找不到規則集檔案 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidRuleSetInclude">
+        <source>An error occurred while loading the included rule set file {0} - {1}</source>
+        <target state="translated">載入包含的規則集檔案 {0} 時發生錯誤 - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerFailure">
+        <source>Analyzer Failure</source>
+        <target state="translated">分析器失敗</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilerAnalyzerThrows">
+        <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</source>
+        <target state="translated">分析器 '{0}' 擲回類型 '{1}' 的例外狀況，訊息為 '{2}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverFailure">
+        <source>Analyzer Driver Failure</source>
+        <target state="translated">分析器驅動程式失敗</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrows">
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
+        <target state="translated">分析器驅動程式擲回類型 '{0}' 的例外狀況，訊息為 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerDriverThrowsDescription">
+        <source>Analyzer driver threw the following exception:
+'{0}'.</source>
+        <target state="translated">分析器驅動程式擲回下列例外狀況:
+'{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PEImageDoesntContainManagedMetadata">
+        <source>PE image doesn't contain managed metadata.</source>
+        <target state="translated">PE 映像不包含 Managed 中繼資料。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="translated">變更必須排序且不可重疊。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
+        <source>A DiagnosticDescriptor must have an Id that is neither null nor an empty string nor a string that only contains white space.</source>
+        <target state="translated">DiagnosticDescriptor 的識別碼不得為 null、空白字串或只包含空白字元的字串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetHasDuplicateRules">
+        <source>The rule set file has duplicate rules for '{0}' with differing actions '{1}' and '{2}'.</source>
+        <target state="translated">規則集檔案中 '{0}' 的規則重複，差異在於動作 '{1}' 及 '{2}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateModuleReferenceToAssembly">
+        <source>Can't create a module reference to an assembly.</source>
+        <target state="translated">無法為組件建立模組參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToDynamicAssembly">
+        <source>Can't create a metadata reference to a dynamic assembly.</source>
+        <target state="translated">無法為動態組件建立中繼資料參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantCreateReferenceToAssemblyWithoutLocation">
+        <source>Can't create a metadata reference to an assembly without location.</source>
+        <target state="translated">無法對沒有位置的組件建立中繼資料參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentCannotBeEmpty">
+        <source>Argument cannot be empty.</source>
+        <target state="translated">引數不可為空白。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentElementCannotBeNull">
+        <source>Argument cannot have a null element.</source>
+        <target state="translated">引數不能有 null 元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
+        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
+        <target state="translated">分析器嘗試註冊不受支援的 'async' 動作。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedDiagnosticReported">
+        <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
+        <target state="translated">分析器不支援識別碼為 '{0}' 的回報診斷。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticIdReported">
+        <source>Reported diagnostic has an ID '{0}', which is not a valid identifier.</source>
+        <target state="translated">回報的診斷具有 ID '{0}'，這不是有效的識別碼。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticLocationReported">
+        <source>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</source>
+        <target state="translated">回報的診斷 '{0}' 在檔案 '{1}' 中具有來源位置，其不屬於正在進行分析的編譯。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
+        <source>The type '{0}' is not understood by the serialization binder.</source>
+        <target state="translated">序列化繫結器無法辨識類型 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_deserialize_type_0">
+        <source>Cannot deserialize type '{0}'.</source>
+        <target state="translated">無法將類型 '{0}' 還原序列化。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_serialize_type_0">
+        <source>Cannot serialize type '{0}'.</source>
+        <target state="translated">無法將類型 '{0}' 序列化。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidNodeToTrack">
+        <source>Node to track is not a descendant of the root.</source>
+        <target state="translated">要追蹤的節點不是根的子代。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NodeOrTokenOutOfSequence">
+        <source>A node or token is out of sequence.</source>
+        <target state="translated">節點或語彙基元超出序列。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnexpectedTypeOfNodeInList">
+        <source>A node in the list is not of the expected type.</source>
+        <target state="translated">清單中的節點並非預期的類型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingListItem">
+        <source>The item specified is not the element of a list.</source>
+        <target state="translated">指定的項目不是清單中的元素。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKey">
+        <source>Invalid public key.</source>
+        <target state="translated">公開金鑰無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidPublicKeyToken">
+        <source>Invalid public key token.</source>
+        <target state="translated">公開金鑰語彙基元無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDataAtOffset">
+        <source>Invalid data at offset {0}: {1}{2}*{3}{4}</source>
+        <target state="translated">位移 {0}: {1}{2}*{3}{4} 處的資料無效</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterNotDeterministic">
+        <source>Windows PDB writer doesn't support deterministic compilation: '{0}'</source>
+        <target state="translated">Windows PDB 寫入器不支援確定性編譯: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterOlderVersionThanRequired">
+        <source>The version of Windows PDB writer is older than required: '{0}'</source>
+        <target state="translated">Windows PDB 寫入器版本較所需的版本舊: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SymWriterDoesNotSupportSourceLink">
+        <source>Windows PDB writer doesn't support SourceLink feature: '{0}'</source>
+        <target state="translated">Windows PDB 寫入器不支援 SourceLink 功能: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetBadAttributeValue">
+        <source>The attribute {0} has an invalid value of {1}.</source>
+        <target state="translated">屬性 {0} 有無效的 {1} 值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RuleSetMissingAttribute">
+        <source>The element {0} is missing an attribute named {1}.</source>
+        <target state="translated">項目 {0} 遺漏名稱為 {1} 的屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsNotAnInteger">
+        <source>Argument to '/keepalive' option is not a 32-bit integer.</source>
+        <target state="translated">/keepalive' 選項的引數並非 32 位元整數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveIsTooSmall">
+        <source>Arguments to '/keepalive' option below -1 are invalid.</source>
+        <target state="translated">/keepalive' 選項的引數若小於 -1 即為無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeepAliveWithoutShared">
+        <source>'/keepalive' option is only valid with '/shared' option.</source>
+        <target state="translated">'/keepalive' 選項只可與 '/shared' 選項並用。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MismatchedVersion">
+        <source>Roslyn compiler server reports different protocol version than build task.</source>
+        <target state="translated">Roslyn 編譯器伺服器回報了不同於建置工作的通訊協定版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MissingKeepAlive">
+        <source>Missing argument for '/keepalive' option.</source>
+        <target state="translated">/keepalive' 選項遺漏引數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerTotalExecutionTime">
+        <source>Total analyzer execution time: {0} seconds.</source>
+        <target state="translated">分析器執行時間總計: {0} 秒。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MultithreadedAnalyzerExecutionNote">
+        <source>NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently.</source>
+        <target state="translated">注意: 因為分析器可以同時執行，所以已耗用時間可能小於分析器執行時間。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerExecutionTimeColumnHeader">
+        <source>Time (s)</source>
+        <target state="translated">時間 (秒)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnalyzerNameColumnHeader">
+        <source>Analyzer</source>
+        <target state="translated">分析器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NoAnalyzersFound">
+        <source>No analyzers found</source>
+        <target state="translated">找不到任何分析器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DuplicateAnalyzerInstances">
+        <source>Argument contains duplicate analyzer instances.</source>
+        <target state="translated">引數含有重複的分析器執行個體。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedAnalyzerInstance">
+        <source>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</source>
+        <target state="translated">引數含有分析器執行個體，其不屬於此 CompilationWithAnalyzers 執行個體的 'Analyzers'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidTree">
+        <source>Syntax tree doesn't belong to the underlying 'Compilation'.</source>
+        <target state="translated">語法樹狀結構不屬於基礎 'Compilation'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ResourceStreamEndedUnexpectedly">
+        <source>Resource stream ended at {0} bytes, expected {1} bytes.</source>
+        <target state="translated">資源資料流於 {0} 個位元組結束，必須是 {1} 個位元組。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SharedArgumentMissing">
+        <source>Value for argument '/shared:' must not be empty</source>
+        <target state="translated">引數 '/shared:' 的值不可為空白</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionContext">
+        <source>Exception occurred with following context:
+{0}</source>
+        <target state="translated">下列內容發生例外狀況:
+{0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeMemberAndNamesCountMismatch2">
+        <source>{0} and {1} must have the same length.</source>
+        <target state="translated">{0} 及 {1} 的長度必須相同。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnonymousTypeArgumentCountMismatch2">
+        <source>{0} must either be 'default' or have the same length as {1}.</source>
+        <target state="translated">{0} 必須是「預設值」，或其長度必須與 {1} 相同。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InconsistentSyntaxTreeFeature">
+        <source>Inconsistent syntax tree features</source>
+        <target state="translated">不一致的語法樹功能</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ReferenceOfTypeIsInvalid1">
+        <source>Reference of type '{0}' is not valid for this compilation.</source>
+        <target state="translated">類型 '{0}' 的參考對此編譯無效。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MetadataRefNotFoundToRemove1">
+        <source>MetadataReference '{0}' not found to remove.</source>
+        <target state="translated">找不到 MetadataReference '{0}' 可移除。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameCountMismatch">
+        <source>If tuple element names are specified, the number of element names must match the cardinality of the tuple.</source>
+        <target state="translated">如果已指定元組元素名稱，元素名稱的數目就必須符合元組的基數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementNameEmpty">
+        <source>Tuple element name cannot be an empty string.</source>
+        <target state="translated">元組元素名稱不可為空字串。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleElementLocationCountMismatch">
+        <source>If tuple element locations are specified, the number of locations must match the cardinality of the tuple.</source>
+        <target state="translated">如果指定了元組元素位置，位置數目就必須符合元組的基數。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TuplesNeedAtLeastTwoElements">
+        <source>Tuples must have at least two elements.</source>
+        <target state="translated">元組必須有至少兩個項目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CompilationReferencesAssembliesWithDifferentAutoGeneratedVersion">
+        <source>The compilation references multiple assemblies whose versions only differ in auto-generated build and/or revision numbers.</source>
+        <target state="translated">此編譯參考多項組件，其差異只在自動產生的組建編號及 (或) 修訂編號。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TupleUnderlyingTypeMustBeTupleCompatible">
+        <source>The underlying type for a tuple must be tuple-compatible.</source>
+        <target state="translated">元組的基礎類型必須與元組相容。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnrecognizedResourceFileFormat">
+        <source>Unrecognized resource file format.</source>
+        <target state="translated">無法辨識的資源檔格式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SourceTextCannotBeEmbedded">
+        <source>SourceText cannot be embedded. Provide encoding or canBeEmbedded=true at construction.</source>
+        <target state="translated">無法內嵌 SourceText。請於建構提供編碼或 canBeEmbedded = true。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StreamIsTooLong">
+        <source>Stream is too long.</source>
+        <target state="translated">資料流過長。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EmbeddedTextsRequirePdb">
+        <source>Embedded texts are only supported when emitting a PDB.</source>
+        <target state="translated">只在發出 PDB 時才支援內嵌文字。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeWrittenTo">
+        <source>The stream cannot be written to.</source>
+        <target state="translated">無法寫入資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ElementIsExpected">
+        <source>element is expected</source>
+        <target state="translated">必須是元素</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SeparatorIsExpected">
+        <source>separator is expected</source>
+        <target state="translated">必須是分隔符號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TheStreamCannotBeReadFrom">
+        <source>The stream cannot be read from.</source>
+        <target state="translated">無法讀取資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
+        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
+        <target state="translated">{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stream_contains_invalid_data">
+        <source>Stream contains invalid data</source>
+        <target state="translated">資料流包含無效的資料</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidDiagnosticSpanReported">
+        <source>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</source>
+        <target state="translated">回報之診斷 '{0}' 中的來源位置 '{1}' 位於檔案 '{2}' 內，而該檔案不在指定的檔案內。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionEnablingMulticoreJit">
+        <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
+        <target state="translated">警告: 因為例外狀況: {0}，所以無法啟用 multicore JIT。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

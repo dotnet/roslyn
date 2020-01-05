@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Options;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
 
             // What EditorBrowsable settings were we previously passed in (if it mattered)?
-            bool hideAdvancedMembers = false;
+            var hideAdvancedMembers = false;
             if (item.Properties.TryGetValue(HideAdvancedMembers, out var hideAdvancedMembersString))
             {
                 bool.TryParse(hideAdvancedMembersString, out hideAdvancedMembers);

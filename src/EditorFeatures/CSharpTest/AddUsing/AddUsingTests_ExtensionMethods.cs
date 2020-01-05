@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1115,6 +1116,287 @@ namespace N
         public static void Deconstruct(this Program p, out int x, out int y) { }
     }
 }",
+parseOptions: null);
+        }
+
+        [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestAddUsingForAddExtentionMethodWithSameNameAsProperty()
+        {
+            await TestAsync(
+@"
+namespace A
+{
+    public class Foo
+    {
+        public void Bar()
+        {
+            var self = this.[|Self()|];
+        }
+
+        public Foo Self
+        {
+            get { return this; }
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class FooExtensions
+    {
+        public static Foo Self(this Foo foo)
+        {
+            return foo;
+        }
+    }
+}",
+@"
+using A.Extensions;
+
+namespace A
+{
+    public class Foo
+    {
+        public void Bar()
+        {
+            var self = this.Self();
+        }
+
+        public Foo Self
+        {
+            get { return this; }
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class FooExtensions
+    {
+        public static Foo Self(this Foo foo)
+        {
+            return foo;
+        }
+    }
+}");
+        }
+
+        [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExtensionGetAwaiterOverload()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Runtime.CompilerServices;
+
+namespace A
+{
+    public class Foo
+    {
+        async void M(Foo foo)
+        {
+            [|await foo|];
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static Extension.FooAwaiter GetAwaiter(this string s) => default;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static FooAwaiter GetAwaiter(this Foo foo) => default;
+    }
+
+    public struct FooAwaiter : INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+
+        public void OnCompleted(Action continuation)
+        {
+        }
+
+        public void GetResult()
+        {
+        }
+    }
+}
+",
+@"
+using System;
+using System.Runtime.CompilerServices;
+using A.Extension;
+
+namespace A
+{
+    public class Foo
+    {
+        async void M(Foo foo)
+        {
+            await foo;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static Extension.FooAwaiter GetAwaiter(this string s) => default;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static FooAwaiter GetAwaiter(this Foo foo) => default;
+    }
+
+    public struct FooAwaiter : INotifyCompletion
+    {
+        public bool IsCompleted { get; }
+
+        public void OnCompleted(Action continuation)
+        {
+        }
+
+        public void GetResult()
+        {
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExtensionSelectOverload()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            _ = [|from x in foo|] select x;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static IEnumerable<int> Select(this string foo, Func<int, int> f) => null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static IEnumerable<int> Select(this Foo foo, Func<int, int> f) => null;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+using A.Extension;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            _ = from x in foo select x;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static IEnumerable<int> Select(this string foo, Func<int, int> f) => null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static IEnumerable<int> Select(this Foo foo, Func<int, int> f) => null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestExtensionDeconstructOverload()
+        {
+            await TestAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            var (x, y) = [|foo|];
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static void Deconstruct(this string foo, out int a, out int b) => throw null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static void Deconstruct(this Foo foo, out int a, out int b) => throw null;
+    }
+}
+",
+@"
+using System;
+using System.Collections.Generic;
+using A.Extension;
+
+namespace A
+{
+    public class Foo
+    {
+        void M(Foo foo)
+        {
+            var (x, y) = foo;
+        }
+    }
+
+    public static class BarExtensions
+    {
+        public static void Deconstruct(this string foo, out int a, out int b) => throw null;
+    }
+}
+
+namespace A.Extension
+{
+    public static class FooExtensions
+    {
+        public static void Deconstruct(this Foo foo, out int a, out int b) => throw null;
+    }
+}
+",
 parseOptions: null);
         }
     }

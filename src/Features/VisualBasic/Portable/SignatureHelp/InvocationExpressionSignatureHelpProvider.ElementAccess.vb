@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 throughType = semanticModel.GetTypeInfo(leftExpression, cancellationToken).Type
             End If
 
-            Dim accessibleDefaultProperties = defaultProperties.Where(Function(m) m.IsAccessibleWithin(within, throughTypeOpt:=throughType)).ToList()
+            Dim accessibleDefaultProperties = defaultProperties.Where(Function(m) m.IsAccessibleWithin(within, throughType:=throughType)).ToList()
             If accessibleDefaultProperties.Count = 0 Then
                 Return SpecializedCollections.EmptyEnumerable(Of SignatureHelpItem)()
             End If

@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -291,13 +288,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
+            if (token1 == token2)
+            {
+                return true;
+            }
+
             var tree = token1.SyntaxTree;
             if (tree != null && tree.TryGetText(out var text))
             {
                 return text.AreOnSameLine(token1, token2);
             }
 
-            return CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
+            return !CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
         }
 
         private static SyntaxToken GetAppropriatePreviousToken(SyntaxToken startToken, bool canTokenBeFirstInABlock = false)
@@ -361,7 +363,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.FinallyClause ||
                 node.Kind() == SyntaxKind.LabeledStatement ||
                 node.Kind() == SyntaxKind.LockStatement ||
-                node.Kind() == SyntaxKind.FixedStatement;
+                node.Kind() == SyntaxKind.FixedStatement ||
+                node.Kind() == SyntaxKind.GetAccessorDeclaration ||
+                node.Kind() == SyntaxKind.SetAccessorDeclaration ||
+                node.Kind() == SyntaxKind.AddAccessorDeclaration ||
+                node.Kind() == SyntaxKind.RemoveAccessorDeclaration;
         }
 
         private static SyntaxNode GetTopContainingNode(SyntaxNode node)
@@ -391,9 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool IsColonInSwitchLabel(SyntaxToken token)
         {
-            var switchLabel = token.Parent as SwitchLabelSyntax;
             return token.Kind() == SyntaxKind.ColonToken &&
-                switchLabel != null &&
+                token.Parent is SwitchLabelSyntax switchLabel &&
                 switchLabel.ColonToken == token;
         }
 

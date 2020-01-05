@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingField.IsImplicitlyDeclared; }
         }
 
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return _underlyingField.FlowAnalysisAnnotations; }
+        }
+
         public override Accessibility DeclaredAccessibility
         {
             get
@@ -84,6 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _underlyingField.IsNotSerialized;
             }
         }
+
+        internal override bool HasPointerType => _underlyingField.HasPointerType;
 
         internal override bool IsMarshalledExplicitly
         {

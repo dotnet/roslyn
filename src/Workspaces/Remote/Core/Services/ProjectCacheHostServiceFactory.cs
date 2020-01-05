@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private const int ImplicitCacheTimeoutInMS = 10000;
 
+        [ImportingConstructor]
+        public ProjectCacheHostServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -19,10 +22,12 @@ namespace Microsoft.CodeAnalysis.Collections
     /// </remarks>
     internal sealed class OrderPreservingMultiDictionary<K, V> :
         IEnumerable<KeyValuePair<K, OrderPreservingMultiDictionary<K, V>.ValueSet>>
+        where K : notnull
+        where V : notnull
     {
         #region Pooling
 
-        private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>> _pool;
+        private readonly ObjectPool<OrderPreservingMultiDictionary<K, V>>? _pool;
 
         private OrderPreservingMultiDictionary(ObjectPool<OrderPreservingMultiDictionary<K, V>> pool)
         {
@@ -52,8 +57,9 @@ namespace Microsoft.CodeAnalysis.Collections
         // if someone needs to create a pool;
         public static ObjectPool<OrderPreservingMultiDictionary<K, V>> CreatePool()
         {
-            ObjectPool<OrderPreservingMultiDictionary<K, V>> pool = null;
-            pool = new ObjectPool<OrderPreservingMultiDictionary<K, V>>(() => new OrderPreservingMultiDictionary<K, V>(pool), 16); // Size is a guess.
+            var pool = new ObjectPool<OrderPreservingMultiDictionary<K, V>>(
+                pool => new OrderPreservingMultiDictionary<K, V>(pool),
+                16); // Size is a guess.
             return pool;
         }
 
@@ -71,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new Dictionary<K, ValueSet>();
 
         // The underlying dictionary we store our data in.  null if we are empty.
-        private PooledDictionary<K, ValueSet> _dictionary;
+        private PooledDictionary<K, ValueSet>? _dictionary;
 
         public OrderPreservingMultiDictionary()
         {
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private void EnsureDictionary()
         {
-            _dictionary = _dictionary ?? PooledDictionary<K, ValueSet>.GetInstance();
+            _dictionary ??= PooledDictionary<K, ValueSet>.GetInstance();
         }
 
         public bool IsEmpty => _dictionary == null;
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public void Add(K k, V v)
         {
-            if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
+            if (_dictionary is object && _dictionary.TryGetValue(k, out var valueSet))
             {
                 Debug.Assert(valueSet.Count >= 1);
                 // Have to re-store the ValueSet in case we upgraded the existing ValueSet from 
@@ -99,13 +105,13 @@ namespace Microsoft.CodeAnalysis.Collections
             else
             {
                 this.EnsureDictionary();
-                _dictionary[k] = new ValueSet(v);
+                _dictionary![k] = new ValueSet(v);
             }
         }
 
         public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
         {
-            return IsEmpty ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
+            return _dictionary is null ? s_emptyDictionary.GetEnumerator() : _dictionary.GetEnumerator();
         }
 
         IEnumerator<KeyValuePair<K, ValueSet>> IEnumerable<KeyValuePair<K, ValueSet>>.GetEnumerator()
@@ -126,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
+                if (_dictionary is object && _dictionary.TryGetValue(k, out var valueSet))
                 {
                     Debug.Assert(valueSet.Count >= 1);
                     return valueSet.Items;
@@ -138,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool Contains(K key, V value)
         {
-            return !this.IsEmpty &&
+            return _dictionary is object &&
                 _dictionary.TryGetValue(key, out var valueSet) &&
                 valueSet.Contains(value);
         }
@@ -148,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public Dictionary<K, ValueSet>.KeyCollection Keys
         {
-            get { return this.IsEmpty ? s_emptyDictionary.Keys : _dictionary.Keys; }
+            get { return _dictionary is null ? s_emptyDictionary.Keys : _dictionary.Keys; }
         }
 
         public struct ValueSet : IEnumerable<V>

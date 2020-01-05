@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal abstract class AbstractCodePageEditorFactory : IVsEditorFactory
     {
-        private AbstractEditorFactory _editorFactory;
+        private readonly AbstractEditorFactory _editorFactory;
 
         protected AbstractCodePageEditorFactory(AbstractEditorFactory editorFactory)
         {

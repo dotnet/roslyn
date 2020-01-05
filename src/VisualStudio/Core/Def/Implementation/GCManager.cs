@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Runtime;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -33,14 +33,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (root != null)
                     {
-                        using (var key = root.OpenSubKey("Performance"))
+                        using var key = root.OpenSubKey("Performance");
+                        const string name = "SustainedLowLatencyDuration";
+                        if (key != null && key.GetValue(name) != null && key.GetValueKind(name) == Microsoft.Win32.RegistryValueKind.DWord)
                         {
-                            const string name = "SustainedLowLatencyDuration";
-                            if (key != null && key.GetValue(name) != null && key.GetValueKind(name) == Microsoft.Win32.RegistryValueKind.DWord)
-                            {
-                                s_delayMilliseconds = (int)key.GetValue(name, s_delayMilliseconds);
-                                return;
-                            }
+                            s_delayMilliseconds = (int)key.GetValue(name, s_delayMilliseconds);
+                            return;
                         }
                     }
                 }
@@ -57,28 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         internal static void TurnOffLowLatencyMode()
         {
-            if (s_delayMilliseconds <= 0)
-            {
-                // if it is already turned off, we don't do anything.
-                return;
-            }
-
-            // first set delay to 0 to turn it off
+            // set delay to 0 to turn off the use of sustained low latency
             s_delayMilliseconds = 0;
-
-            // explictly call Full GC to remove impact of SustainedLowLatency
-            // this is based on finding on https://github.com/dotnet/roslyn/issues/6802
-            // one of reason we do this here is so that GC do compact on fragmented memory.
-            // which will in return let us have bigger continuous free memory chunk.
-            //
-            // we do this 5 times to make sure we release all pending memories. something
-            // most of our tests do. previous collect can put objects in finalizer and running
-            // finalizer can release even more memory so we repeat this 5 times.
-            for (var i = 0; i < 5; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
         }
 
         /// <summary>
@@ -105,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 // Restore the LatencyMode a short duration after the
                 // last request to UseLowLatencyModeForProcessingUserInput.
-                currentDelay = new ResettableDelay(s_delayMilliseconds);
+                currentDelay = new ResettableDelay(s_delayMilliseconds, AsynchronousOperationListenerProvider.NullListener);
                 currentDelay.Task.SafeContinueWith(_ => RestoreGCLatencyMode(currentMode), TaskScheduler.Default);
                 s_delay = currentDelay;
             }
@@ -116,14 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.GC.Collect", Justification = "We are using GCCollectionMode.Optimized and this is called on a threadpool thread.")]
         private static void RestoreGCLatencyMode(GCLatencyMode originalMode)
         {
             GCSettings.LatencyMode = originalMode;
             s_delay = null;
-
-            // hint to the GC that if it postponed a gen 2 collection, now might be a good time to do it.
-            GC.Collect(2, GCCollectionMode.Optimized);
         }
     }
 }

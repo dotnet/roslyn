@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitClassSymbol()
         {
-            var c = CreateCompilation(@"
+            var c = CreateEmptyCompilation(@"
 namespace N
 {
     void Goo()
@@ -26,8 +26,8 @@ namespace N
             var n = ((NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single());
             var implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.Equal(0, implicitClass.GetAttributes().Length);
-            Assert.Equal(0, implicitClass.Interfaces.Length);
-            Assert.Equal(c.ObjectType, implicitClass.BaseType);
+            Assert.Equal(0, implicitClass.Interfaces().Length);
+            Assert.Equal(c.ObjectType, implicitClass.BaseType());
             Assert.Equal(0, implicitClass.Arity);
             Assert.True(implicitClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
@@ -39,24 +39,24 @@ namespace N
             n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
             implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
-            Assert.Equal(0, implicitClass.Interfaces.Length);
-            Assert.Equal(c2.ObjectType, implicitClass.BaseType);
+            Assert.Equal(0, implicitClass.Interfaces().Length);
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType());
         }
 
         [Fact]
         public void ScriptClassSymbol()
         {
-            var c = CreateStandardCompilation(@"
+            var c = CreateCompilation(@"
 base.ToString();
 void Goo()
 {
 }
 ", parseOptions: TestOptions.Script);
 
-            var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
+            var scriptClass = (NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMember("Script");
             Assert.Equal(0, scriptClass.GetAttributes().Length);
-            Assert.Equal(0, scriptClass.Interfaces.Length);
-            Assert.Null(scriptClass.BaseType);
+            Assert.Equal(0, scriptClass.Interfaces().Length);
+            Assert.Null(scriptClass.BaseType());
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
             Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
@@ -81,15 +81,15 @@ event System.Action e;
 
             c.VerifyDiagnostics();
 
-            var evnt = c.ScriptClass.GetMember<EventSymbol>("e");
-            Assert.NotNull(evnt.Type);
+            var @event = c.ScriptClass.GetMember<EventSymbol>("e");
+            Assert.False(@event.TypeWithAnnotations.IsDefault);
         }
 
         [WorkItem(598860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598860")]
         [Fact]
         public void AliasQualifiedNamespaceName()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 namespace N::A
 {
     void Goo()

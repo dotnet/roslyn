@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly HashSet<LabeledStatementSyntax> _entryPoints = new HashSet<LabeledStatementSyntax>();
 
-        private new void Analyze(ref bool badRegion)
+        private void Analyze(ref bool badRegion)
         {
             // We only need to scan in a single pass.
             Scan(ref badRegion);

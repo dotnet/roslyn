@@ -132,10 +132,11 @@ namespace Microsoft.CodeAnalysis.Interop
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             [In, MarshalAs(UnmanagedType.U4)] int dwInFlags);
 
-        [return: MarshalAs(UnmanagedType.I1)]
-        byte StrongNameSignatureVerificationEx(
+        [return: MarshalAs(UnmanagedType.Bool)]
+        bool StrongNameSignatureVerificationEx(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
-            [In, MarshalAs(UnmanagedType.I1)] byte fForceVerification);
+            [In, MarshalAs(UnmanagedType.Bool)] bool fForceVerification,
+            out IntPtr ptr);
 
         [return: MarshalAs(UnmanagedType.U4)]
         int StrongNameSignatureVerificationFromImage(

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         public event EventHandler Started;
         public event EventHandler<GlobalOperationEventArgs> Stopped;
 
+        [ImportingConstructor]
         public RemoteGlobalOperationNotificationService()
         {
         }

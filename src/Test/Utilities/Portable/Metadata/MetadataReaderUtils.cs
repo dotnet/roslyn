@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
                 || headers.CoffHeader.Machine == Machine.IA64;
         }
 
-        public static string GetString(this MetadataReader[] readers, StringHandle handle)
+        public static string GetString(this IEnumerable<MetadataReader> readers, StringHandle handle)
         {
             int index = MetadataTokens.GetHeapOffset(handle);
             foreach (var reader in readers)
@@ -96,7 +96,7 @@ namespace Roslyn.Test.Utilities
             return null;
         }
 
-        public static string[] GetStrings(this MetadataReader[] readers, StringHandle[] handles)
+        public static string[] GetStrings(this IEnumerable<MetadataReader> readers, IEnumerable<StringHandle> handles)
         {
             return handles.Select(handle => readers.GetString(handle)).ToArray();
         }
@@ -114,6 +114,11 @@ namespace Roslyn.Test.Utilities
         public static StringHandle[] GetTypeDefNames(this MetadataReader reader)
         {
             return reader.TypeDefinitions.Select(handle => reader.GetTypeDefinition(handle).Name).ToArray();
+        }
+
+        public static (StringHandle Namespace, StringHandle Name)[] GetTypeDefFullNames(this MetadataReader reader)
+        {
+            return reader.TypeDefinitions.Select(handle => { var td = reader.GetTypeDefinition(handle); return (td.Namespace, td.Name); }).ToArray();
         }
 
         public static StringHandle[] GetTypeRefNames(this MetadataReader reader)
@@ -156,11 +161,34 @@ namespace Roslyn.Test.Utilities
             switch (token.Kind)
             {
                 case HandleKind.TypeReference:
-                    var typeRef = reader.GetTypeReference((TypeReferenceHandle)token);
-                    return typeRef.Name;
+                    return reader.GetTypeReference((TypeReferenceHandle)token).Name;
+                case HandleKind.TypeDefinition:
+                    return reader.GetTypeDefinition((TypeDefinitionHandle)token).Name;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(token.Kind);
             }
+        }
+
+        private delegate T ReadBlobItemDelegate<T>(ref BlobReader blobReader);
+
+        private static ImmutableArray<T> ReadArray<T>(this MetadataReader reader, BlobHandle blobHandle, ReadBlobItemDelegate<T> readItem)
+        {
+            var blobReader = reader.GetBlobReader(blobHandle);
+            // Prolog
+            blobReader.ReadUInt16();
+            // Array size
+            int n = blobReader.ReadInt32();
+            var builder = ArrayBuilder<T>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                builder.Add(readItem(ref blobReader));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<byte> ReadByteArray(this MetadataReader reader, BlobHandle blobHandle)
+        {
+            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadByte());
         }
 
         public static IEnumerable<CustomAttributeRow> GetCustomAttributeRows(this MetadataReader reader)
@@ -170,6 +198,25 @@ namespace Roslyn.Test.Utilities
                 var attribute = reader.GetCustomAttribute(handle);
                 yield return new CustomAttributeRow(attribute.Parent, attribute.Constructor);
             }
+        }
+
+        public static string GetCustomAttributeName(this MetadataReader reader, CustomAttributeRow row)
+        {
+            EntityHandle parent;
+            var token = row.ConstructorToken;
+            switch (token.Kind)
+            {
+                case HandleKind.MemberReference:
+                    parent = reader.GetMemberReference((MemberReferenceHandle)token).Parent;
+                    break;
+                case HandleKind.MethodDefinition:
+                    parent = reader.GetMethodDefinition((MethodDefinitionHandle)token).GetDeclaringType();
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(token.Kind);
+            }
+            var strHandle = reader.GetName(parent);
+            return reader.GetString(strHandle);
         }
 
         public static bool IsIncluded(this ImmutableArray<byte> metadata, string str)
@@ -281,32 +328,56 @@ namespace Roslyn.Test.Utilities
                 case HandleKind.AssemblyReference:
                     return reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
                 case HandleKind.TypeDefinition:
-                    return reader.GetString(reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name);
+                    {
+                        TypeDefinition type = reader.GetTypeDefinition((TypeDefinitionHandle)handle);
+                        return getQualifiedName(type.Namespace, type.Name);
+                    }
                 case HandleKind.MethodDefinition:
                     {
-                        var method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);
+                        MethodDefinition method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);
                         var blob = reader.GetBlobReader(method.Signature);
                         var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
                         var parameters = signature.ParameterTypes.Join(", ");
-                        return $"{signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
+                        return $"{signature.ReturnType} {DumpRec(reader, method.GetDeclaringType())}.{reader.GetString(method.Name)}({parameters})";
                     }
                 case HandleKind.MemberReference:
                     {
-                        var member = reader.GetMemberReference((MemberReferenceHandle)handle);
+                        MemberReference member = reader.GetMemberReference((MemberReferenceHandle)handle);
                         var blob = reader.GetBlobReader(member.Signature);
                         var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
                         var signature = decoder.DecodeMethodSignature(ref blob);
                         var parameters = signature.ParameterTypes.Join(", ");
-                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}{reader.GetString(member.Name)}({parameters})";
+                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}.{reader.GetString(member.Name)}({parameters})";
                     }
                 case HandleKind.TypeReference:
                     {
-                        var type = reader.GetTypeReference((TypeReferenceHandle)handle);
-                        return $"{reader.GetString(type.Namespace)}.{reader.GetString(type.Name)}";
+                        TypeReference type = reader.GetTypeReference((TypeReferenceHandle)handle);
+                        return getQualifiedName(type.Namespace, type.Name);
+                    }
+                case HandleKind.FieldDefinition:
+                    {
+                        FieldDefinition field = reader.GetFieldDefinition((FieldDefinitionHandle)handle);
+                        var name = reader.GetString(field.Name);
+
+                        var blob = reader.GetBlobReader(field.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var type = decoder.DecodeFieldSignature(ref blob);
+
+                        return $"{type} {name}";
                     }
                 default:
                     return null;
+            }
+
+            string getQualifiedName(StringHandle leftHandle, StringHandle rightHandle)
+            {
+                string name = reader.GetString(rightHandle);
+                if (!leftHandle.IsNil)
+                {
+                    name = reader.GetString(leftHandle) + "." + name;
+                }
+                return name;
             }
         }
 

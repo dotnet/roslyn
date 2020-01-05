@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             SyntaxToken invocationNameToken,
             SyntaxNode methodDeclarationNode)
         {
-            this.Status = status;
+            Status = status;
 
-            this.Succeeded = status.Succeeded() && !status.HasSuggestion();
-            this.SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
+            Succeeded = status.Succeeded() && !status.HasSuggestion();
+            SucceededWithSuggestion = status.Succeeded() && status.HasSuggestion();
 
-            this.Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
+            Reasons = (reasons ?? SpecializedCollections.EmptyEnumerable<string>()).ToReadOnlyCollection();
 
-            this.Document = document;
-            this.InvocationNameToken = invocationNameToken;
-            this.MethodDeclarationNode = methodDeclarationNode;
+            Document = document;
+            InvocationNameToken = invocationNameToken;
+            MethodDeclarationNode = methodDeclarationNode;
         }
 
         /// <summary>

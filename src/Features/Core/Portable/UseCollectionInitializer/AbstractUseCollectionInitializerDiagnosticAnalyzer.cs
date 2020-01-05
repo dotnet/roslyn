@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         TInvocationExpressionSyntax,
         TExpressionStatementSyntax,
         TVariableDeclaratorSyntax>
-        : AbstractCodeStyleDiagnosticAnalyzer
+        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -30,11 +29,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+                   CodeStyleOptions.PreferCollectionInitializer,
                    new LocalizableResourceString(nameof(FeaturesResources.Simplify_collection_initialization), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Collection_initialization_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -109,11 +109,13 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Value;
-            context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity(severity),
+            var severity = option.Notification.Severity;
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
                 objectCreationExpression.GetLocation(),
-                additionalLocations: locations));
+                severity,
+                additionalLocations: locations,
+                properties: null));
 
             FadeOutCode(context, optionSet, matches.Value, locations);
         }

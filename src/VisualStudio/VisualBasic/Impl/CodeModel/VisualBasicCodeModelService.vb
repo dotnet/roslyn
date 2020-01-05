@@ -36,8 +36,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
-                New LineAdjustmentFormattingRule(),
-                New EndRegionFormattingRule())
+                LineAdjustmentFormattingRule.Instance,
+                EndRegionFormattingRule.Instance)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
@@ -384,6 +384,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return GetAttributeNodes(DirectCast(node, FieldDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ParameterSyntax Then
                 Return GetAttributeNodes(DirectCast(node, ParameterSyntax).AttributeLists)
+            ElseIf TypeOf node Is EnumMemberDeclarationSyntax Then
+                Return GetAttributeNodes(DirectCast(node, EnumMemberDeclarationSyntax).AttributeLists)
             ElseIf TypeOf node Is ModifiedIdentifierSyntax OrElse
                    TypeOf node Is VariableDeclaratorSyntax Then
                 Return GetAttributeNodes(node.Parent)
@@ -941,11 +943,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
+            ' In all cases, the resulting syntax for the new name has elastic trivia attached,
+            ' whether via this call to SyntaxFactory.Identifier or via explicitly added elastic
+            ' markers.
             Dim identifier As SyntaxToken = SyntaxFactory.Identifier(name)
 
             Select Case node.Kind
                 Case SyntaxKind.Attribute
-                    Return DirectCast(node, AttributeSyntax).WithName(SyntaxFactory.ParseTypeName(name))
+                    Return DirectCast(node, AttributeSyntax).WithName(
+                        SyntaxFactory.ParseTypeName(name) _
+                            .WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)) _
+                            .WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)))
                 Case SyntaxKind.ClassStatement
                     Return DirectCast(node, ClassStatementSyntax).WithIdentifier(identifier)
                 Case SyntaxKind.InterfaceStatement
@@ -960,7 +968,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.DelegateSubStatement
                     Return DirectCast(node, DelegateStatementSyntax).WithIdentifier(identifier)
                 Case SyntaxKind.NamespaceStatement
-                    Return DirectCast(node, NamespaceStatementSyntax).WithName(SyntaxFactory.ParseName(name))
+                    Return DirectCast(node, NamespaceStatementSyntax).WithName(
+                        SyntaxFactory.ParseName(name) _
+                            .WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)) _
+                            .WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)))
                 Case SyntaxKind.SubStatement,
                      SyntaxKind.FunctionStatement,
                      SyntaxKind.SubNewStatement

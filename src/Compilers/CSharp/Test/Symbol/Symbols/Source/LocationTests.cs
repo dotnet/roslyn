@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // 000000000011111111112222222222333333333344444444445555555555666666666677777777778
             // 012345678901234567890123456789012345678901234567890123456789012345678901234567890
-            var comp = CreateCompilation(text, new[] { MscorlibRef });
+            var comp = CreateEmptyCompilation(text, new[] { MscorlibRef });
             var global = comp.GlobalNamespace;
             var n = global.GetMembers("N").Single() as NamespaceSymbol;
             AssertPos(n, 10, 1);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertPos(s, 12, 1);
             var c = s.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             AssertPos(c, 20, 1);
-            var obj = c.BaseType;
+            var obj = c.BaseType();
             Assert.Equal("MetadataFile(CommonLanguageRuntimeLibrary)", obj.Locations[0].ToString());
             var f = c.GetMembers("F").Single() as FieldSymbol;
             AssertPos(f, 26, 1);

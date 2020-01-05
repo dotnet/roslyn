@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -50,7 +52,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Reads all bytes from the current postion of the given stream to its end.
+        /// Reads all bytes from the current position of the given stream to its end.
         /// </summary>
         public static byte[] ReadAllBytes(this Stream stream)
         {

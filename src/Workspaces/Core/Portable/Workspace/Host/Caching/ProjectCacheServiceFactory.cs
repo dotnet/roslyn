@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Host
     [Shared]
     internal class ProjectCacheServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public ProjectCacheServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var hostService = workspaceServices.GetService<IProjectCacheHostService>();

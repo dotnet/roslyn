@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _builder.AddRange(items, offset, length);
         }
 
-        public void AddRange(SeparatedSyntaxList<TNode> nodes)
+        public void AddRange(in SeparatedSyntaxList<TNode> nodes)
         {
             _builder.AddRange(nodes.GetWithSeparators());
         }
 
-        public void AddRange(SeparatedSyntaxList<TNode> nodes, int count)
+        public void AddRange(in SeparatedSyntaxList<TNode> nodes, int count)
         {
             var list = nodes.GetWithSeparators();
             this._builder.AddRange(list, this.Count, Math.Min(count * 2, list.Count));
@@ -115,12 +115,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             get { return _builder; }
         }
 
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SeparatedSyntaxList<TNode>(in SeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder.ToList();
         }
 
-        public static implicit operator SyntaxListBuilder(SeparatedSyntaxListBuilder<TNode> builder)
+        public static implicit operator SyntaxListBuilder(in SeparatedSyntaxListBuilder<TNode> builder)
         {
             return builder._builder;
         }

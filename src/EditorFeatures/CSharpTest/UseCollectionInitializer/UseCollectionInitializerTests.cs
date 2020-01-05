@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1009,6 +1010,27 @@ class MyClass
 
         int horse = 1;
     }
+}");
+        }
+
+        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        public async Task TestMissingWithExplicitImplementedAddMethod()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+using System.Dynamic;
+
+public class Goo
+{
+    public void M()
+    {
+        IDictionary<string, object> obj = [||]new ExpandoObject();
+        obj.Add(""string"", ""v"");
+        obj.Add(""int"", 1);
+        obj.Add("" object"", new { X = 1, Y = 2 });
+        }
 }");
         }
     }

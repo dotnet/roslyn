@@ -9,11 +9,11 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-    <Export(GetType(IWpfTextViewConnectionListener))>
+    <Export(GetType(ITextViewConnectionListener))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <TextViewRole(PredefinedTextViewRoles.Editable)>
     Friend Class CommitConnectionListener
-        Implements IWpfTextViewConnectionListener
+        Implements ITextViewConnectionListener
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
         Private ReadOnly _textBufferAssociatedViewService As ITextBufferAssociatedViewService
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             _waitIndicator = waitIndicator
         End Sub
 
-        Public Sub SubjectBuffersConnected(view As IWpfTextView, reason As ConnectionReason, subjectBuffers As Collection(Of ITextBuffer)) Implements IWpfTextViewConnectionListener.SubjectBuffersConnected
+        Public Sub SubjectBuffersConnected(view As ITextView, reason As ConnectionReason, subjectBuffers As IReadOnlyCollection(Of ITextBuffer)) Implements ITextViewConnectionListener.SubjectBuffersConnected
             ' Make sure we have a view manager
             view.Properties.GetOrCreateSingletonProperty(
                 Function() New CommitViewManager(view, _commitBufferManagerFactory, _textBufferAssociatedViewService, _textUndoHistoryRegistry, _waitIndicator))
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Next
         End Sub
 
-        Public Sub SubjectBuffersDisconnected(view As IWpfTextView, reason As ConnectionReason, subjectBuffers As Collection(Of ITextBuffer)) Implements IWpfTextViewConnectionListener.SubjectBuffersDisconnected
+        Public Sub SubjectBuffersDisconnected(view As ITextView, reason As ConnectionReason, subjectBuffers As IReadOnlyCollection(Of ITextBuffer)) Implements ITextViewConnectionListener.SubjectBuffersDisconnected
             For Each buffer In subjectBuffers
                 _commitBufferManagerFactory.CreateForBuffer(buffer).RemoveReferencingView()
             Next

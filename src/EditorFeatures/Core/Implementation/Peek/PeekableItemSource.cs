@@ -21,20 +21,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly ITextBuffer _textBuffer;
         private readonly IPeekableItemFactory _peekableItemFactory;
         private readonly IPeekResultFactory _peekResultFactory;
-        private readonly IMetadataAsSourceFileService _metadataAsSourceService;
         private readonly IWaitIndicator _waitIndicator;
 
         public PeekableItemSource(
             ITextBuffer textBuffer,
             IPeekableItemFactory peekableItemFactory,
             IPeekResultFactory peekResultFactory,
-            IMetadataAsSourceFileService metadataAsSourceService,
             IWaitIndicator waitIndicator)
         {
             _textBuffer = textBuffer;
             _peekableItemFactory = peekableItemFactory;
             _peekResultFactory = peekResultFactory;
-            _metadataAsSourceService = metadataAsSourceService;
             _waitIndicator = waitIndicator;
         }
 
@@ -95,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var mappingResult = symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken)
                                                             .WaitAndGetResult(cancellationToken);
 
-                    mappingResult = mappingResult ?? new SymbolMappingResult(document.Project, symbol);
+                    mappingResult ??= new SymbolMappingResult(document.Project, symbol);
 
                     results = _peekableItemFactory.GetPeekableItemsAsync(mappingResult.Symbol, mappingResult.Project, _peekResultFactory, cancellationToken)
                                                  .WaitAndGetResult(cancellationToken);
@@ -120,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var document = item.Document;
                     if (navigationService.CanNavigateToPosition(workspace, document.Id, item.SourceSpan.Start))
                     {
-                        var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        var text = document.GetTextSynchronously(cancellationToken);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
                         yield return new ExternalFilePeekableItem(
                             new FileLinePositionSpan(document.FilePath, linePositionSpan),

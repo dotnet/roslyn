@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.PickMembers
         }
 
         public PickMembersResult(
-            ImmutableArray<ISymbol> members, 
+            ImmutableArray<ISymbol> members,
             ImmutableArray<PickMembersOption> options)
         {
             Members = members;

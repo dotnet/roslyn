@@ -44,8 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     edits:=edits,
                     isAddedSymbol:=isAddedSymbol)
             Catch e As NotSupportedException
-                ' TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName)
+                ' TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
                 Return New EmitDifferenceResult(success:=False, diagnostics:=diagnostics.ToReadOnlyAndFree(), baseline:=Nothing)
             End Try
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             If compilation.Compile(moduleBeingBuilt,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
-                                   filterOpt:=AddressOf changes.RequiresCompilation,
+                                   filterOpt:=Function(s) changes.RequiresCompilation(s.GetISymbol()),
                                    cancellationToken:=cancellationToken) Then
 
                 ' Map the definitions from the previous compilation to the current compilation.
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
-            Dim currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers()
+            Dim currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers()
 
             ' Mapping from previous compilation to the current.
             Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()

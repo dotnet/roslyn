@@ -45,24 +45,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var temporaryStorage = service.CreateTemporaryStreamStorage(System.Threading.CancellationToken.None);
 
-            using (var data = SerializableBytes.CreateWritableStream())
+            using var data = SerializableBytes.CreateWritableStream();
+            for (var i = 0; i < SharedPools.ByteBufferSize; i++)
             {
-                for (int i = 0; i < SharedPools.ByteBufferSize; i++)
-                {
-                    data.WriteByte((byte)(i % 2));
-                }
+                data.WriteByte((byte)(i % 2));
+            }
 
-                data.Position = 0;
-                temporaryStorage.WriteStreamAsync(data).Wait();
-                using (var result = temporaryStorage.ReadStreamAsync().Result)
-                {
-                    Assert.Equal(data.Length, result.Length);
+            data.Position = 0;
+            temporaryStorage.WriteStreamAsync(data).Wait();
+            using var result = temporaryStorage.ReadStreamAsync().Result;
+            Assert.Equal(data.Length, result.Length);
 
-                    for (int i = 0; i < SharedPools.ByteBufferSize; i++)
-                    {
-                        Assert.Equal(i % 2, result.ReadByte());
-                    }
-                }
+            for (var i = 0; i < SharedPools.ByteBufferSize; i++)
+            {
+                Assert.Equal(i % 2, result.ReadByte());
             }
         }
 
@@ -136,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var buffer = new MemoryStream(257 * 1024 + 1);
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 buffer.WriteByte((byte)i);
             }
@@ -144,28 +140,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Do a relatively cheap concurrent stress test of the backing MemoryMappedFile management
             var tasks = Enumerable.Range(1, 257).Select(async i =>
             {
-                for (int j = 1; j < 5; j++)
+                for (var j = 1; j < 5; j++)
                 {
-                    using (ITemporaryStreamStorage storage1 = service.CreateTemporaryStreamStorage(CancellationToken.None),
-                        storage2 = service.CreateTemporaryStreamStorage(CancellationToken.None))
-                    {
-                        var storage3 = service.CreateTemporaryStreamStorage(CancellationToken.None); // let the finalizer run for this instance
+                    using ITemporaryStreamStorage storage1 = service.CreateTemporaryStreamStorage(CancellationToken.None),
+                        storage2 = service.CreateTemporaryStreamStorage(CancellationToken.None);
+                    var storage3 = service.CreateTemporaryStreamStorage(CancellationToken.None); // let the finalizer run for this instance
 
-                        storage1.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1));
-                        storage2.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i));
-                        storage3.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1));
+                    storage1.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1));
+                    storage2.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i));
+                    storage3.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1));
 
-                        await Task.Yield();
+                    await Task.Yield();
 
-                        using (Stream s1 = storage1.ReadStream(),
-                            s2 = storage2.ReadStream(),
-                            s3 = storage3.ReadStream())
-                        {
-                            Assert.Equal(1024 * i - 1, s1.Length);
-                            Assert.Equal(1024 * i, s2.Length);
-                            Assert.Equal(1024 * i + 1, s3.Length);
-                        }
-                    }
+                    using Stream s1 = storage1.ReadStream(),
+                        s2 = storage2.ReadStream(),
+                        s3 = storage3.ReadStream();
+                    Assert.Equal(1024 * i - 1, s1.Length);
+                    Assert.Equal(1024 * i, s2.Length);
+                    Assert.Equal(1024 * i + 1, s3.Length);
                 }
             });
 
@@ -186,32 +178,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var textFactory = new TextFactoryService();
                 var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-                using (var data = SerializableBytes.CreateWritableStream())
+                using var data = SerializableBytes.CreateWritableStream();
+                for (var i = 0; i < 1024 * 128; i++)
                 {
-                    for (int i = 0; i < 1024 * 128; i++)
-                    {
-                        data.WriteByte(1);
-                    }
+                    data.WriteByte(1);
+                }
 
-                    // Create 4GB of memory mapped files
-                    int fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
-                    var storageHandles = new List<ITemporaryStreamStorage>(fileCount);
-                    for (int i = 0; i < fileCount; i++)
-                    {
-                        var s = service.CreateTemporaryStreamStorage(CancellationToken.None);
-                        storageHandles.Add(s);
-                        data.Position = 0;
-                        s.WriteStreamAsync(data).Wait();
-                    }
+                // Create 4GB of memory mapped files
+                var fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
+                var storageHandles = new List<ITemporaryStreamStorage>(fileCount);
+                for (var i = 0; i < fileCount; i++)
+                {
+                    var s = service.CreateTemporaryStreamStorage(CancellationToken.None);
+                    storageHandles.Add(s);
+                    data.Position = 0;
+                    s.WriteStreamAsync(data).Wait();
+                }
 
-                    for (int i = 0; i < 1024 * 5; i++)
-                    {
-                        using (var s = storageHandles[i].ReadStreamAsync().Result)
-                        {
-                            Assert.Equal(1, s.ReadByte());
-                            storageHandles[i].Dispose();
-                        }
-                    }
+                for (var i = 0; i < 1024 * 5; i++)
+                {
+                    using var s = storageHandles[i].ReadStreamAsync().Result;
+                    Assert.Equal(1, s.ReadByte());
+                    storageHandles[i].Dispose();
                 }
             }
         }
@@ -223,26 +211,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
-                {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
+                expected.WriteByte((byte)(i % byte.MaxValue));
+            }
 
-                expected.Position = 0;
-                storage.WriteStream(expected);
+            expected.Position = 0;
+            storage.WriteStream(expected);
 
-                expected.Position = 0;
-                using (var stream = storage.ReadStream())
-                {
-                    Assert.Equal(expected.Length, stream.Length);
+            expected.Position = 0;
+            using var stream = storage.ReadStream();
+            Assert.Equal(expected.Length, stream.Length);
 
-                    for (var i = 0; i < expected.Length; i++)
-                    {
-                        Assert.Equal(expected.ReadByte(), stream.ReadByte());
-                    }
-                }
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.Equal(expected.ReadByte(), stream.ReadByte());
             }
         }
 
@@ -253,37 +237,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            for (var i = 0; i < 10000; i++)
             {
-                for (var i = 0; i < 10000; i++)
+                expected.WriteByte((byte)(i % byte.MaxValue));
+            }
+
+            expected.Position = 0;
+            storage.WriteStream(expected);
+
+            expected.Position = 0;
+            using var stream = storage.ReadStream();
+            Assert.Equal(expected.Length, stream.Length);
+
+            var index = 0;
+            int count;
+            var bytes = new byte[1000];
+
+            while ((count = stream.Read(bytes, 0, bytes.Length)) > 0)
+            {
+                for (var i = 0; i < count; i++)
                 {
-                    expected.WriteByte((byte)(i % byte.MaxValue));
-                }
-
-                expected.Position = 0;
-                storage.WriteStream(expected);
-
-                expected.Position = 0;
-                using (var stream = storage.ReadStream())
-                {
-                    Assert.Equal(expected.Length, stream.Length);
-
-                    int index = 0;
-                    int count;
-                    var bytes = new byte[1000];
-
-                    while ((count = stream.Read(bytes, 0, bytes.Length)) > 0)
-                    {
-                        for (var i = 0; i < count; i++)
-                        {
-                            Assert.Equal((byte)(index % byte.MaxValue), bytes[i]);
-                            index++;
-                        }
-                    }
-
-                    Assert.Equal(index, stream.Length);
+                    Assert.Equal((byte)(index % byte.MaxValue), bytes[i]);
+                    index++;
                 }
             }
+
+            Assert.Equal(index, stream.Length);
         }
 
         [Fact]
@@ -293,35 +273,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
-            using (var expected = new MemoryStream())
+            using var expected = new MemoryStream();
+            var random = new Random(Environment.TickCount);
+            for (var i = 0; i < 100; i++)
             {
-                var random = new Random(Environment.TickCount);
-                for (var i = 0; i < 100; i++)
+                var position = random.Next(10000);
+                expected.Position = position;
+
+                var value = (byte)(i % byte.MaxValue);
+                expected.WriteByte(value);
+            }
+
+            expected.Position = 0;
+            storage.WriteStream(expected);
+
+            expected.Position = 0;
+            using var stream = storage.ReadStream();
+            Assert.Equal(expected.Length, stream.Length);
+
+            for (var i = 0; i < expected.Length; i++)
+            {
+                var value = expected.ReadByte();
+                if (value != 0)
                 {
-                    var position = random.Next(10000);
-                    expected.Position = position;
-
-                    var value = (byte)(i % byte.MaxValue);
-                    expected.WriteByte(value);
-                }
-
-                expected.Position = 0;
-                storage.WriteStream(expected);
-
-                expected.Position = 0;
-                using (var stream = storage.ReadStream())
-                {
-                    Assert.Equal(expected.Length, stream.Length);
-
-                    for (int i = 0; i < expected.Length; i++)
-                    {
-                        var value = expected.ReadByte();
-                        if (value != 0)
-                        {
-                            stream.Position = i;
-                            Assert.Equal(value, stream.ReadByte());
-                        }
-                    }
+                    stream.Position = i;
+                    Assert.Equal(value, stream.ReadByte());
                 }
             }
         }

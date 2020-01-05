@@ -11,8 +11,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class GetXmlNamespaceExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of GetXmlNamespaceExpressionSyntax)
 
-        Protected Overrides Function GetIntrinsicOperatorDocumentation(node As GetXmlNamespaceExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
-            Return {New GetXmlNamespaceExpressionDocumentation()}
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As GetXmlNamespaceExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New GetXmlNamespaceExpressionDocumentation()})
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

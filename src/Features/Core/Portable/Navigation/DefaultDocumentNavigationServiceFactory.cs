@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.Navigation
     {
         private IDocumentNavigationService _singleton;
 
+        [ImportingConstructor]
+        public DefaultDocumentNavigationServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             if (_singleton == null)

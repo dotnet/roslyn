@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartIndentProviderTests
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>

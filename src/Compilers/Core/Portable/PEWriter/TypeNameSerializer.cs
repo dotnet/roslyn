@@ -113,8 +113,8 @@ namespace Microsoft.Cci
                 goto done;
             }
 
-        // TODO: error
-        done:
+// TODO: error
+done:
             if (isAssemblyQualified)
             {
                 AppendAssemblyQualifierIfNecessary(sb, UnwrapTypeReference(typeReference, context), out isAssemblyQualified, context);

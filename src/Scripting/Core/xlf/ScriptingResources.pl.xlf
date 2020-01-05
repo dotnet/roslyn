@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../ScriptingResources.resx">
+    <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">Nie można ustawić opcji {1} specyficznej dla elementu {0}, ponieważ opcje zostały już skonfigurowane dla innego języka.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackOverflowWhileEvaluating">
+        <source>!&lt;Stack overflow while evaluating object&gt;</source>
+        <target state="translated">!&lt;Przepełnienie stosu podczas szacowania obiektu&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantAssignTo">
+        <source>Can't assign '{0}' to '{1}'.</source>
+        <target state="translated">Nie można przypisać „{0}” do „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedAnAssemblyReference">
+        <source>Expected an assembly reference.</source>
+        <target state="translated">Oczekiwano odwołania do zestawu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisplayNameOrPathCannotBe">
+        <source>Display name or path cannot be empty.</source>
+        <target state="translated">Ścieżka lub nazwa wyświetlana nie może być pusta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="translated">Oczekiwano ścieżki bezwzględnej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalsNotAssignable">
+        <source>The globals of type '{0}' is not assignable to '{1}'</source>
+        <target state="translated">Wartości globalnych typu „{0}” nie można przypisać do elementu „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartingStateIncompatible">
+        <source>Starting state was incompatible with script.</source>
+        <target state="translated">Stan początkowy był niezgodny ze skryptem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name</source>
+        <target state="translated">Nieprawidłowa nazwa zestawu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assemblyName</source>
+        <target state="translated">Nieprawidłowe znaki w nazwie assemblyName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ScriptRequiresGlobalVariables">
+        <source>The script requires access to global variables but none were given</source>
+        <target state="translated">Skrypt wymaga praw dostępu do zmiennych globalnych, ale jeszcze ich nie nadano</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalVariablesWithoutGlobalType">
+        <source>Global variables passed to a script without a global type</source>
+        <target state="translated">Zmienne globalne przekazane do skryptu bez typu globalnego</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalError">
+        <source>+ additional {0} error</source>
+        <target state="translated">+ dodatkowy błąd ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalErrors">
+        <source>+ additional {0} errors</source>
+        <target state="translated">+ dodatkowe błędy ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AtFileLine">
+        <source> at {0} : {1}</source>
+        <target state="translated"> — {0}: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetReadOnlyVariable">
+        <source>Cannot set a read-only variable</source>
+        <target state="translated">Nie można ustawić zmiennej tylko do odczytu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetConstantVariable">
+        <source>Cannot set a constant variable</source>
+        <target state="translated">Nie można ustawić zmiennej stałej</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpPrompt">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">Wpisz polecenie „#help”, aby uzyskać więcej informacji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpText">
+        <source>Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-C        Exit the REPL.
+REPL commands:
+  #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
+  #load         Load specified script file and execute it, e.g. #load "myScript.csx".</source>
+        <target state="translated">Skróty klawiaturowe:
+  Enter           Jeśli wprowadzane dane są kompletne, przeprowadź dla nich obliczenia. W przeciwnym razie wstaw nowy wiersz.
+  Escape          Wyczyść aktualnie wprowadzone dane.
+  Strzałka w górę Zastąp aktualnie wprowadzone dane danymi wprowadzonymi poprzednio.
+  Strzałka w dół  Zastąp aktualnie wprowadzone dane kolejnymi danymi (po wcześniejszej nawigacji wstecz).
+  Ctrl+C        Zamknij konsolę REPL.
+Polecenia REPL:
+  #help           Wyświetl pomoc dla dostępnych poleceń i powiązań klawiszy.
+Dyrektywy skryptu:
+  #r              Dodaj odwołanie do metadanych do określonego zestawu i wszystkich jego zależności, np. #r "myLib.dll".
+  #load           Załaduj określony plik skryptu i wykonaj go, np. #load "myScript.csx".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoaded">
+        <source>Assembly '{0}, Version={1}' has already been loaded from '{2}'. A different assembly with the same name and version can't be loaded: '{3}'.</source>
+        <target state="translated">Zestaw „{0}”, wersja =„{1}” został już załadowany z „{2}”. Nie można załadować innego zestawu o takiej samej nazwie i wersji: „{3}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoadedNotSigned">
+        <source>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</source>
+        <target state="translated">Zestaw „{0}” został już załadowany z „{1}”. Nie można załadować innego zestawu o takiej samej nazwie, chyba że jest podpisany: „{2}”.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

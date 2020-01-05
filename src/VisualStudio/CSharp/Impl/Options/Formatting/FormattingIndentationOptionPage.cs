@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     [Guid(Guids.CSharpOptionPageFormattingIndentationIdString)]
     internal class FormattingIndentationOptionPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new OptionPreviewControl(serviceProvider, (o, s) => new IndentationViewModel(o, s));
+            return new OptionPreviewControl(serviceProvider, optionStore, (o, s) => new IndentationViewModel(o, s));
         }
     }
 }

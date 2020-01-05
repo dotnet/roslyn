@@ -16,5 +16,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
 <ClassDeclaration>Delegate _
 |</ClassDeclaration>, "Sub", "Function")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
+            Await VerifyRecommendationsAreExactlyAsync(
+<ClassDeclaration>Delegate _ ' Test
+|</ClassDeclaration>, "Sub", "Function")
+        End Function
     End Class
 End Namespace

@@ -367,7 +367,7 @@ class C
 {
     void M()
     {
-        System.Action a = (() => { });
+        System.Action a = () => { };
     }
 }
 </code>
@@ -401,13 +401,12 @@ class C
     void M()
     {
         System.Action a = null;
-        a = (() => { });
+        a = () => { };
     }
 }
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -435,7 +434,7 @@ class C
 {
     void M()
     {
-        Goo((() => "Goo"));
+        Goo(() => "Goo");
     }
 
     void Goo&lt;T&gt;(System.Func&lt;T&gt; f) { }
@@ -471,7 +470,7 @@ class C
 {
     void M()
     {
-        Goo(f: (() => "Goo"));
+        Goo(f: () => "Goo");
     }
 
     void Goo&lt;T&gt;(System.Func&lt;T&gt; f) { }
@@ -3207,7 +3206,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>((y => Goo(1)))(null);
+        new Action<string>(y => Goo(1))(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3254,7 +3253,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>(((y) => { string x = y; x.Goo(); }))(null);
+        new Action<string>((y) => { string x = y; x.Goo(); })(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3397,7 +3396,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string, object>(((y, z) => { object x = y; z.Goo(); }))(null, null);
+        new Action<string, object>((y, z) => { object x = y; z.Goo(); })(null, null);
     }
 
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3533,7 +3532,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Func<Exception> f = (() => new ArgumentException());
+        Func<Exception> f = () => new ArgumentException();
     }
 }
 ]]>
@@ -5036,6 +5035,128 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotSimplifyNullableGeneric() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+using System.Threading.Tasks;
+class Program
+{
+    Task<string?> M()
+    {
+        string s1 = "test";
+        return {|Simplify:Task.FromResult<string?>|}(s1);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+using System.Threading.Tasks;
+class Program
+{
+    Task<string?> M()
+    {
+        string s1 = "test";
+        return Task.FromResult<string?>(s1);
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyNullableWithNullableSuppressionOperator() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string s2 = {|Simplify:M1<string>|}(s1!, "hello");
+    }
+
+    static T M1<T>(T t1, T t2) where T : class? =>
+        t1 ?? t2;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string s2 = M1(s1!, "hello");
+    }
+
+    static T M1<T>(T t1, T t2) where T : class? =>
+        t1 ?? t2;
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/36884"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_SimplifyNullableMethodTypeArgument() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string? s2 = {|Simplify:M1<string?>|}(s1);
+    }
+
+    static T M1<T>(T t) where T : class? => t;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+#nullable enable
+class Program
+{
+    void M()
+    {
+        string? s1 = null;
+        string? s2 = M1(s1);
+    }
+
+    static T M1<T>(T t) where T : class? => t;
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
 #End Region
 
 #Region "Visual Basic tests"

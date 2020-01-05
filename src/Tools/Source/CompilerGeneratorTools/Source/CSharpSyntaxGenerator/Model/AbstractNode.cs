@@ -7,7 +7,6 @@ namespace CSharpSyntaxGenerator
 {
     public class AbstractNode : TreeType
     {
-        [XmlElement(ElementName = "Field", Type = typeof(Field))]
-        public List<Field> Fields;
+        public readonly List<Field> Fields = new List<Field>();
     }
 }

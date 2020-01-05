@@ -15,12 +15,13 @@ namespace RunTests.Cache
         private readonly IDataStorage _dataStorage;
 
         public IDataStorage DataStorage => _dataStorage;
+        public TestExecutionOptions Options => _testExecutor.Options;
 
-        internal CachingTestExecutor(TestExecutionOptions options, ITestExecutor testExecutor, IDataStorage dataStorage)
+        internal CachingTestExecutor(ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
             _dataStorage = dataStorage;
-            _contentUtil = new ContentUtil(options);
+            _contentUtil = new ContentUtil(_testExecutor.Options);
         }
 
         public string GetCommandLine(AssemblyInfo assemblyInfo)
@@ -83,19 +84,20 @@ namespace RunTests.Cache
             return testResult;
         }
 
+        private string GetResultsFilePath(AssemblyInfo assemblyInfo)
+            => Path.Combine(_testExecutor.Options.OutputDirectory, assemblyInfo.ResultsFileName);
+
         /// <summary>
         /// Recreate the on disk artifacts for the cached data and return the correct <see cref="TestResult"/>
         /// value.
         /// </summary>
         private TestResult Migrate(AssemblyInfo assemblyInfo, CachedTestResult cachedTestResult)
         {
-            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
-            FileUtil.EnsureDirectory(resultsDir);
-            var resultsFilePath = Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
+            var resultsFilePath = GetResultsFilePath(assemblyInfo);
+            FileUtil.EnsureDirectory(Path.GetDirectoryName(resultsFilePath));
             File.WriteAllText(resultsFilePath, cachedTestResult.ResultsFileContent);
             var testResultInfo = new TestResultInfo(
                 exitCode: cachedTestResult.ExitCode,
-                resultsDirectory: resultsDir,
                 resultsFilePath: resultsFilePath,
                 elapsed: TimeSpan.FromMilliseconds(0),
                 standardOutput: cachedTestResult.StandardOutput,

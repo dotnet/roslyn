@@ -7,9 +7,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     internal abstract class AbstractSpecialTypePreselectingKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
         public AbstractSpecialTypePreselectingKeywordRecommender(
-            SyntaxKind keywordKind, 
-            bool isValidInPreprocessorContext = false, 
-            bool shouldFormatOnCommit = false) 
+            SyntaxKind keywordKind,
+            bool isValidInPreprocessorContext = false,
+            bool shouldFormatOnCommit = false)
             : base(keywordKind, isValidInPreprocessorContext, shouldFormatOnCommit)
         {
         }

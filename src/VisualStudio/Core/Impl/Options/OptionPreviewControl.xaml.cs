@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     {
         internal AbstractOptionPreviewViewModel ViewModel;
         private readonly IServiceProvider _serviceProvider;
-        private readonly Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
+        private readonly Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> _createViewModel;
 
 
-        internal OptionPreviewControl(IServiceProvider serviceProvider, Func<OptionSet, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(serviceProvider)
+        internal OptionPreviewControl(IServiceProvider serviceProvider, OptionStore optionStore, Func<OptionStore, IServiceProvider, AbstractOptionPreviewViewModel> createViewModel) : base(optionStore)
         {
             InitializeComponent();
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             listViewContentControl.Content = listview;
 
-             _serviceProvider = serviceProvider;
+            _serviceProvider = serviceProvider;
             _createViewModel = createViewModel;
         }
 
@@ -87,18 +87,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal override void SaveSettings()
+        internal override void OnLoad()
         {
-            var optionSet = this.OptionService.GetOptions();
-            var changedOptions = this.ViewModel.ApplyChangedOptions(optionSet);
-
-            this.OptionService.SetOptions(changedOptions);
-            OptionLogger.Log(optionSet, changedOptions);
-        }
-
-        internal override void LoadSettings()
-        {
-            this.ViewModel = _createViewModel(this.OptionService.GetOptions(), _serviceProvider);
+            this.ViewModel = _createViewModel(this.OptionStore, _serviceProvider);
 
             // Use the first item's preview.
             var firstItem = this.ViewModel.Items.OfType<CheckBoxOptionViewModel>().First();

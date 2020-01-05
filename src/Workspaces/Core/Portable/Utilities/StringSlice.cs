@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         private static bool EqualsOrdinalIgnoreCase(char thisChar, char otherChar)
         {
             // Do a fast check first before converting to lowercase characters.
-            return 
+            return
                 thisChar == otherChar ||
                 CaseInsensitiveComparison.ToLower(thisChar) == CaseInsensitiveComparison.ToLower(otherChar);
         }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         {
             var thisEnd = this._span.End;
             var otherEnd = other._span.End;
-            for (int i = this._span.Start, j = other._span.Start; 
+            for (int i = this._span.Start, j = other._span.Start;
                  i < thisEnd && j < otherEnd;
                  i++, j++)
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             public override bool Equals(StringSlice x, StringSlice y)
                 => x.EqualsOrdinalIgnoreCase(y);
 
-            public override int GetHashCode(StringSlice obj) 
+            public override int GetHashCode(StringSlice obj)
                 => obj.GetHashCodeOrdinalIgnoreCase();
         }
 

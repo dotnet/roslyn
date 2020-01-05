@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 if (NestedHierarchyHasProjectTreeCapability(item, "AnalyzerDependency"))
                 {
-                    var projectRootItem = FindProjectRootItem(item, out string targetFrameworkMoniker);
+                    var projectRootItem = FindProjectRootItem(item, out var targetFrameworkMoniker);
                     if (projectRootItem != null)
                     {
                         return CreateCollectionSourceCore(projectRootItem, item, targetFrameworkMoniker);
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             var projectTreeCapabilities = GetProjectTreeCapabilities(hierarchy, itemId);
 
-            bool isTargetNode = false;
+            var isTargetNode = false;
             string potentialTFM = null;
             foreach (var capability in projectTreeCapabilities)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
                 var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                if (hierarchy.GetCanonicalName(itemId, out string projectCanonicalName) == VSConstants.S_OK)
+                if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
                 {
                     return new CpsDiagnosticItemSource(workspace, projectCanonicalName, projectId, item, _commandHandler, analyzerService);
                 }

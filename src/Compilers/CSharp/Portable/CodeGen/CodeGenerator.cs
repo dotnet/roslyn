@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         // There are scenarios where rvalues need to be passed to ref/in parameters
         // in such cases the values must be spilled into temps and retained for the entirety of
-        // the most encompasing expression.       
+        // the most encompassing expression.       
         private ArrayBuilder<LocalDefinition> _expressionTemps;
 
         // not 0 when in a protected region with a handler. 
@@ -63,6 +63,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         private LocalDefinition _returnTemp;
+
+        /// <summary>
+        /// True if there was a <see cref="ILOpCode.Localloc"/> anywhere in the method. This will
+        /// affect whether or not we require the locals init flag to be marked, since locals init
+        /// affects <see cref="ILOpCode.Localloc"/>.
+        /// </summary>
+        private bool _sawStackalloc;
 
         public CodeGenerator(
             MethodSymbol method,
@@ -129,7 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _boundBody = boundBody;
             }
 
-            _methodBodySyntaxOpt = (method as SourceMemberMethodSymbol)?.BodySyntax;
+            var sourceMethod = method as SourceMemberMethodSymbol;
+            (BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody) = sourceMethod?.Bodies ?? default;
+            _methodBodySyntaxOpt = (SyntaxNode)blockBody ?? expressionBody ?? sourceMethod?.SyntaxNode;
         }
 
         private bool IsDebugPlus()
@@ -137,10 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return _module.Compilation.Options.DebugPlusMode;
         }
 
-        private bool EnablePEVerifyCompat()
-        {
-            return _module.Compilation.FeaturePEVerifyCompatEnabled;
-        }
+        private bool IsPeVerifyCompatEnabled() => _module.Compilation.IsPeVerifyCompatEnabled;
 
         private LocalDefinition LazyReturnTemp
         {
@@ -158,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
-                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(bodySyntax), bodySyntax.SyntaxTree);
+                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
                             type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
@@ -184,23 +190,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool IsStackLocal(LocalSymbol local)
-        {
-            return _stackLocals != null && _stackLocals.Contains(local);
-        }
+        internal static bool IsStackLocal(LocalSymbol local, HashSet<LocalSymbol> stackLocalsOpt)
+            => stackLocalsOpt?.Contains(local) ?? false;
 
-        public void Generate()
+        private bool IsStackLocal(LocalSymbol local) => IsStackLocal(local, _stackLocals);
+
+        public void Generate(out bool hasStackalloc)
         {
             this.GenerateImpl();
+            hasStackalloc = _sawStackalloc;
 
             Debug.Assert(_asyncCatchHandlerOffset < 0);
             Debug.Assert(_asyncYieldPoints == null);
             Debug.Assert(_asyncResumePoints == null);
         }
 
-        public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
+        public void Generate(
+            out int asyncCatchHandlerOffset,
+            out ImmutableArray<int> asyncYieldPoints,
+            out ImmutableArray<int> asyncResumePoints,
+            out bool hasStackAlloc)
         {
             this.GenerateImpl();
+            hasStackAlloc = _sawStackalloc;
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
             asyncCatchHandlerOffset = _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
@@ -445,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_expressionTemps?.Count > 0)
             {
                 // release in reverse order to keep same temps on top of the temp stack if possible
-                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
                 {
                     var temp = _expressionTemps[i];
                     FreeTemp(temp);

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal partial class FixAllState
     {
+        internal readonly int CorrelationId = LogAggregator.GetNextId();
+
         internal FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
 
         public FixAllProvider FixAllProvider { get; }
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return new FixAllState(
                 this.FixAllProvider,
-                this.Document, this.Project, this.CodeFixProvider, 
+                this.Document, this.Project, this.CodeFixProvider,
                 scope, codeActionEquivalenceKey,
                 this.DiagnosticIds, this.DiagnosticProvider);
         }
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var diagnosticIds = this.DiagnosticIds;
             string diagnosticId;
-            if (diagnosticIds.Count() == 1)
+            if (diagnosticIds.Count == 1)
             {
                 diagnosticId = diagnosticIds.Single();
             }
@@ -155,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
-                triggerDocument, codeFixProvider, 
-                FixAllScope.Custom, codeActionEquivalenceKey, 
+                triggerDocument, codeFixProvider,
+                FixAllScope.Custom, codeActionEquivalenceKey,
                 diagnosticIds, diagnosticProvider);
         }
 
@@ -171,8 +174,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
-                triggerProject, codeFixProvider, 
-                FixAllScope.Custom, codeActionEquivalenceKey, 
+                triggerProject, codeFixProvider,
+                FixAllScope.Custom, codeActionEquivalenceKey,
                 diagnosticIds, diagnosticProvider);
         }
 

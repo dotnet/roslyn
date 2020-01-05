@@ -132,7 +132,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim firstFieldOrProperty = initializer.FieldsOrProperties.First
-                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty)
+                    Dim additionalSymbols = If(initializer.FieldsOrProperties.Length > 1, initializer.FieldsOrProperties.RemoveAt(0), ImmutableArray(Of Symbol).Empty)
+                    Dim initializerBinder = BinderBuilder.CreateBinderForInitializer(parentBinder, firstFieldOrProperty, additionalSymbols)
                     If initializerNode.Kind = SyntaxKind.ModifiedIdentifier Then
                         ' Array field with no explicit initializer.
                         Debug.Assert(initializer.FieldsOrProperties.Length = 1)
@@ -339,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If propertySymbol.IsReadOnly AndAlso propertySymbol.AssociatedField IsNot Nothing Then
                 ' For ReadOnly auto-implemented properties we have to write directly to the backing field.
-                Debug.Assert(propertySymbol.Type = propertySymbol.AssociatedField.Type)
+                Debug.Assert(TypeSymbol.Equals(propertySymbol.Type, propertySymbol.AssociatedField.Type, TypeCompareKind.ConsiderEverything))
                 Debug.Assert(propertySymbols.Length = 1)
                 boundPropertyOrFieldAccess = New BoundFieldAccess(syntaxNode,
                                                                   boundReceiver,

@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -72,7 +73,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateClassFromASingleConstraintClause()
+        public async Task TestGenerateInternalClassFromASingleConstraintClause()
         {
             await TestInRegularAndScriptAsync(
 @"class EmployeeList<T> where T : [|Employee|], new()
@@ -88,6 +89,25 @@ internal class Employee
 index: 1);
         }
 
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClause()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class EmployeeList<T> where T : [|Employee|], new()
+{
+}",
+@"public class EmployeeList<T> where T : Employee, new()
+{
+}
+
+public class Employee
+{
+}",
+index: 1);
+        }
+
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
         {
@@ -98,7 +118,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateClassFromMultipleTypeConstraintClauses()
+        public async Task TestGenerateInternalClassFromMultipleTypeConstraintClauses()
         {
             await TestInRegularAndScriptAsync(
 @"class Derived<T, U>
@@ -113,6 +133,27 @@ index: 1);
 }
 
 internal class Base
+{
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromMultipleTypeConstraintClauses()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Derived<T, U>
+    where U : struct
+    where T : [|Base|], new()
+{
+}",
+@"public class Derived<T, U>
+    where U : struct
+    where T : Base, new()
+{
+}
+
+public class Base
 {
 }",
 index: 1);
@@ -138,6 +179,202 @@ index: 1);
 }",
 count: 3,
 parameters: new TestParameters(Options.Regular));
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IEmployeeList<T> where T : [|Employee|], new()
+{
+}",
+@"interface IEmployeeList<T> where T : Employee, new()
+{
+}
+
+internal class Employee
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGeneratePublicClassFromASingleConstraintClausePublicInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface IEmployeeList<T> where T : [|Employee|], new()
+{
+}",
+@"public interface IEmployeeList<T> where T : Employee, new()
+{
+}
+
+public class Employee
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalDelegate()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    internal delegate void Action<T>() where T : [|Command|];
+}",
+@"class Employee
+{
+    internal delegate void Action<T>() where T : Command;
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClausePublicDelegate()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    public delegate void Action<T>() where T : [|Command|];
+}",
+@"class Employee
+{
+    public delegate void Action<T>() where T : Command;
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    internal void Action<T>() where T : [|Command|] {}
+}",
+@"class Employee
+{
+    internal void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClausePublicMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    public void Action<T>() where T : [|Command|] {}
+}",
+@"class Employee
+{
+    public void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Employee
+{
+    void Action<T>() where T : [|Command|] {}
+}",
+@"class Employee
+{
+    void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseMethodInInterface()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface Employee
+{
+    void Action<T>() where T : [|Command|] {}
+}",
+@"interface Employee
+{
+    void Action<T>() where T : Command {}
+}
+
+internal class Command
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [InlineData("public", "internal", "internal")]
+        [InlineData("public", "private", "internal")]
+        [InlineData("internal", "protected", "internal")]
+        [InlineData("public", "protected internal", "public")]
+        [InlineData("protected", "protected", "public")]
+        [InlineData("protected internal", "protected", "public")]
+        [InlineData("protected", "protected private", "internal")]
+        [InlineData("protected private", "protected", "internal")]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseNestedClass(string middleAccessibility, string accessibility, string generatedAccessibility)
+        {
+            await TestInRegularAndScriptAsync(
+$@"public class A
+{{
+    {middleAccessibility} class B
+    {{
+        {accessibility} class C<T> where T : [|D|]
+        {{
+
+        }}
+    }}
+}}",
+$@"public class A
+{{
+    {middleAccessibility} class B
+    {{
+        {accessibility} class C<T> where T : D
+        {{
+
+        }}
+    }}
+}}
+
+{generatedAccessibility} class D
+{{
+}}",
+index: 1);
         }
 
         #endregion
@@ -199,6 +436,27 @@ index: 2);
 @"class Class
 {
     Goo f;
+
+    private class Goo
+    {
+    }
+}",
+index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateClassFromNullableFieldDeclarationIntoSameType()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    [|Goo?|] f;
+}",
+@"#nullable enable
+class Class
+{
+    Goo? f;
 
     private class Goo
     {
@@ -1149,6 +1407,76 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = null;
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string? s;
+
+    public T(string? s)
+    {
+        this.s = s;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithNullableParameterThatIsNotNull()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        string? s = ""asdf"";
+        new [|T|](s);
+    }
+}
+
+internal class T
+{
+    private string s;
+
+    public T(string s)
+    {
+        this.s = s;
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithNamedParameter()
         {
             await TestInRegularAndScriptAsync(
@@ -1274,7 +1602,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateWithOutParameters2()
+        public async Task GenerateWithOutParameters2_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -1301,6 +1629,40 @@ internal class T
     public T(out DateTime d)
     {
         d = default(DateTime);
+    }
+}",
+index: 1,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"using System;
+
+class Class
+{
+    void M(DateTime d)
+    {
+        new T(out d);
+    }
+}
+
+internal class T
+{
+    public T(out DateTime d)
+    {
+        d = default;
     }
 }",
 index: 1);
@@ -1398,7 +1760,7 @@ index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GenerateWithOutParameters6()
+        public async Task GenerateWithOutParameters6_CSharp7()
         {
             await TestInRegularAndScriptAsync(
 @"class Class<X>
@@ -1420,6 +1782,36 @@ index: 1);
         public T(out X d)
         {
             d = default(X);
+        }
+    }
+}",
+index: 2,
+parseOptions: TestOptions.Regular7);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithOutParameters6()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new [|T|](out d);
+    }
+}",
+@"class Class<X>
+{
+    void M(X d)
+    {
+        new T(out d);
+    }
+
+    private class T
+    {
+        public T(out X d)
+        {
+            d = default;
         }
     }
 }",
@@ -1804,6 +2196,41 @@ class Base
     protected Base(out int o)
     {
     }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateWithDelegatingConstructorAssigningToNullableField()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+class Base
+{
+}",
+@"#nullable enable
+class Class
+{
+    void M()
+    {
+        Base? b = new [|T|]();
+    }
+}
+
+internal class T : Base
+{
+}
+
+class Base
+{
 }",
 index: 1);
         }
@@ -4093,7 +4520,7 @@ class A<T>
     {
     }
 }",
-count: 3);
+count: 6);
         }
 
         [WorkItem(543061, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543061")]
@@ -4874,6 +5301,57 @@ internal class Goo
 }",
     expectedContainers: ImmutableArray<string>.Empty,
     expectedDocumentName: "Goo.cs");
+        }
+
+        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [InlineData("void")]
+        [InlineData("int")]
+        public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
+        {
+            await TestInRegularAndScriptAsync(
+    $@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+class C
+{{
+    void M()
+    {{
+        new [|Class|](Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+    $@"
+class C
+{{
+    void M()
+    {{
+        new Class(Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+
+internal class Class
+{{
+    private global::System.Object method;
+
+    public Class(global::System.Object method)
+    {{
+        this.method = method;
+    }}
+}}",
+    index: 1);
         }
     }
 

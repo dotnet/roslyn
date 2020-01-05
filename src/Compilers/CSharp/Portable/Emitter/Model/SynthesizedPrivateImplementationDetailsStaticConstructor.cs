@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CSharpSyntaxNode syntax = this.GetNonNullSyntaxNode();
             SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, syntax, compilationState, diagnostics);
-            factory.CurrentMethod = this;
+            factory.CurrentFunction = this;
             ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance();
 
             // Initialize the payload root for each kind of dynamic analysis instrumentation.

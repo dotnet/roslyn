@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -19,13 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class SymbolDistinguisher
     {
-        private readonly Compilation _compilation;
+        private readonly CSharpCompilation _compilation;
         private readonly Symbol _symbol0;
         private readonly Symbol _symbol1;
 
         private ImmutableArray<string> _lazyDescriptions;
 
-        public SymbolDistinguisher(Compilation compilation, Symbol symbol0, Symbol symbol1)
+        public SymbolDistinguisher(CSharpCompilation compilation, Symbol symbol0, Symbol symbol1)
         {
             Debug.Assert(symbol0 != symbol1);
             CheckSymbolKind(symbol0);
@@ -36,12 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _symbol1 = symbol1;
         }
 
-        public IMessageSerializable First
+        public IFormattable First
         {
             get { return new Description(this, 0); }
         }
 
-        public IMessageSerializable Second
+        public IFormattable Second
         {
             get { return new Description(this, 1); }
         }
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string GetLocationString(Compilation compilation, Symbol unwrappedSymbol)
+        private static string GetLocationString(CSharpCompilation compilation, Symbol unwrappedSymbol)
         {
             Debug.Assert((object)unwrappedSymbol == UnwrapSymbol(unwrappedSymbol));
 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyDescriptions[index];
         }
 
-        private sealed class Description : IMessageSerializable
+        private sealed class Description : IFormattable
         {
             private readonly SymbolDistinguisher _distinguisher;
             private readonly int _index;
@@ -235,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override string ToString()
             {
                 return _distinguisher.GetDescription(_index);
+            }
+
+            string IFormattable.ToString(string format, IFormatProvider formatProvider)
+            {
+                return ToString();
             }
         }
     }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NamespaceBindingInInteractiveCode()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 using Z = Goo.Bar.Script.C;
 
 class C { }
@@ -39,7 +39,7 @@ namespace Goo.Bar
             var baseType = symbol?.BaseType;
             Assert.NotNull(baseType);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
-            Assert.Equal(LookupResultKind.Inaccessible, ((ErrorTypeSymbol)baseType).ResultKind); // Script class members are private.
+            Assert.Equal(LookupResultKind.Inaccessible, baseType.GetSymbol<ErrorTypeSymbol>().ResultKind); // Script class members are private.
         }
 
         [Fact]
@@ -121,7 +121,7 @@ int field = constantField;
             Assert.Equal(SpecialType.System_Int32, bindInfo.Type.SpecialType);
             var symbol = bindInfo.Symbol;
             Assert.Equal("System.Int32 local1", symbol.ToTestDisplayString());
-            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol);
+            Assert.IsAssignableFrom<SourceLocalSymbol>(symbol.GetSymbol());
         }
 
         [WorkItem(540513, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540513")]
@@ -349,8 +349,7 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
 
         private CompilationUtils.SemanticInfoSummary GetBindInfoForTest(string testSrc)
         {
-            var compilation = CreateStandardCompilation(
-                testSrc, parseOptions: TestOptions.Script, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(testSrc, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));

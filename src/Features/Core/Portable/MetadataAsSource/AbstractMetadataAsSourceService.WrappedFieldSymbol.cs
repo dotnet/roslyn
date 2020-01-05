@@ -35,7 +35,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public bool IsVolatile => _symbol.IsVolatile;
 
+            public bool IsFixedSizeBuffer => _symbol.IsFixedSizeBuffer;
+
             public ITypeSymbol Type => _symbol.Type;
+
+            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
         }
     }
 }

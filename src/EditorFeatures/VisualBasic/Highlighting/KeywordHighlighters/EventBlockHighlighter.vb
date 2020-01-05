@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Text
@@ -10,13 +11,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class EventBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim eventBlock = node.GetAncestor(Of EventBlockSyntax)()
             If eventBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)()
 
             With eventBlock
                 With .EventStatement
@@ -31,8 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                 highlights.Add(.EndEventStatement.Span)
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

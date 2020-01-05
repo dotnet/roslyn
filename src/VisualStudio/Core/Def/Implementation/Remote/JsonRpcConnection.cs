@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -22,19 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public JsonRpcConnection(
             TraceSource logger,
-            object callbackTarget,
+            object? callbackTarget,
             Stream serviceStream,
             ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc)
         {
             Contract.ThrowIfNull(dataRpc);
 
-            _serviceRpc = new ServiceJsonRpcEx(logger, serviceStream, callbackTarget);
+            _serviceRpc = new ServiceJsonRpcEx(dataRpc.Target.Workspace, logger, serviceStream, callbackTarget);
             _remoteDataRpc = dataRpc;
-        }
-
-        protected override async Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
-        {
-            await InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, new object[] { scope.SolutionInfo }, CancellationToken.None).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
@@ -57,13 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return _serviceRpc.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
-        protected override void OnDisposed()
+        protected override void Dispose(bool disposing)
         {
-            base.OnDisposed();
+            if (disposing)
+            {
+                // dispose service and snapshot channels
+                _serviceRpc.Dispose();
+                _remoteDataRpc.Dispose();
+            }
 
-            // dispose service and snapshot channels
-            _serviceRpc.Dispose();
-            _remoteDataRpc.Dispose();
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -73,14 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// </summary>
         private sealed class ServiceJsonRpcEx : JsonRpcEx
         {
-            private readonly object _callbackTarget;
-
-            public ServiceJsonRpcEx(TraceSource logger, Stream stream, object callbackTarget)
-                : base(logger, stream, callbackTarget, useThisAsCallback: false)
+            public ServiceJsonRpcEx(Workspace workspace, TraceSource logger, Stream stream, object? callbackTarget)
+                : base(workspace, logger, stream, callbackTarget, useThisAsCallback: false)
             {
-                // this one doesn't need cancellation token since it has nothing to cancel
-                _callbackTarget = callbackTarget;
-
                 StartListening();
             }
 

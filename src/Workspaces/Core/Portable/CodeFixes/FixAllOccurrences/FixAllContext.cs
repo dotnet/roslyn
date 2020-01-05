@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     /// <summary>
-    /// Context for "Fix all occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
+    /// Context for "Fix all occurrences" code fixes provided by a <see cref="FixAllProvider"/>.
     /// </summary>
     public partial class FixAllContext
     {
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), 
+            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
                   new ProgressTracker(), cancellationToken)
         {
             if (document == null)
@@ -172,28 +172,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets all the project-level diagnostics, i.e. diagnostics with no source location, in the given project filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
+        public Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false).ConfigureAwait(false);
+            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false);
         }
 
         /// <summary>
         /// Gets all the diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
         /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
+        public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true).ConfigureAwait(false);
+            return GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true);
         }
 
         /// <summary>

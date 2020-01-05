@@ -19,21 +19,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
     /// This class is not instantiatable as a Task just by itself.
     /// </summary>
-    public abstract class ManagedCompiler : ToolTask
+    public abstract class ManagedCompiler : ManagedToolTask
     {
         private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
 
-        static ManagedCompiler()
-        {
-            AssemblyResolution.Install();
-        }
-
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;
+
+            // If there is a crash, the runtime error is output to stderr and
+            // we want MSBuild to print it out regardless of verbosity.
+            LogStandardErrorAsError = true;
         }
 
         #region Properties
@@ -61,6 +60,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(EmbeddedFiles)] = value; }
             get { return (ITaskItem[])_store[nameof(EmbeddedFiles)]; }
+        }
+
+        public bool EmbedAllSources
+        {
+            set { _store[nameof(EmbedAllSources)] = value; }
+            get { return _store.GetOrDefault(nameof(EmbedAllSources), false); }
         }
 
         public ITaskItem[] Analyzers
@@ -131,6 +136,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(PublicSign)] = value; }
             get { return _store.GetOrDefault(nameof(PublicSign), false); }
+        }
+
+        public ITaskItem[] AnalyzerConfigFiles
+        {
+            set { _store[nameof(AnalyzerConfigFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(AnalyzerConfigFiles)]; }
         }
 
         public bool EmitDebugInformation
@@ -238,6 +249,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(Platform)] = value; }
             get { return (string)_store[nameof(Platform)]; }
+        }
+
+        public ITaskItem[] PotentialAnalyzerConfigFiles
+        {
+            set { _store[nameof(PotentialAnalyzerConfigFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(PotentialAnalyzerConfigFiles)]; }
         }
 
         public bool Prefer32Bit
@@ -409,57 +426,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        internal static DotnetHost CreateDotnetHostInfo(string toolPath, string toolExe, string toolName, string commandLine)
-        {
-            // ToolExe delegates back to ToolName if the override is not
-            // set.  So, if ToolExe == ToolName, we know ToolExe is not
-            // explicitly overriden.  So, if both ToolPath is unset and
-            // ToolExe == ToolName, we know nothing is overridden, and
-            // we can use our own csc.
-            if (string.IsNullOrEmpty(toolPath) && toolExe == toolName)
-            {
-                return DotnetHost.CreateManagedInvocationTool(toolName, commandLine);
-            }
-            else
-            {
-                // Explicitly provided ToolPath or ToolExe, don't try to
-                // figure anything out
-                return DotnetHost.CreateNativeInvocationTool(Path.Combine(toolPath ?? "", toolExe), commandLine);
-            }
-        }
+        // ToolExe delegates back to ToolName if the override is not
+        // set.  So, if ToolExe == ToolName, we know ToolExe is not
+        // explicitly overridden.  So, if both ToolPath is unset and
+        // ToolExe == ToolName, we know nothing is overridden, and
+        // we can use our own csc.
+        private bool HasToolBeenOverridden => !(string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName);
 
-        private DotnetHost _dotnetHostInfo;
-        private DotnetHost DotnetHostInfo
-        {
-            get
-            {
-                if (_dotnetHostInfo is null)
-                {
-                    CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
-                    AddCommandLineCommands(commandLineBuilder);
-                    var commandLine = commandLineBuilder.ToString();
-
-                    _dotnetHostInfo = CreateDotnetHostInfo(ToolPath, ToolExe, ToolName, commandLine);
-                }
-                return _dotnetHostInfo;
-            }
-        }
-
-        protected abstract string ToolNameWithoutExtension { get; }
-
-        internal static string GenerateToolName(string toolNameWithoutExtension)
-        {
-            if (CoreClrShim.IsRunningOnCoreClr)
-            {
-                return $"{toolNameWithoutExtension}.dll";
-            }
-            else
-            {
-                return $"{toolNameWithoutExtension}.exe";
-            }
-        }
-
-        protected sealed override string ToolName => GenerateToolName(ToolNameWithoutExtension);
+        protected sealed override bool IsManagedTool => !HasToolBeenOverridden;
 
         /// <summary>
         /// Method for testing only
@@ -469,20 +443,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateFullPathToTool();
         }
 
-        /// <summary>
-        /// Return the path to the tool to execute.
-        /// </summary>
-        protected override string GenerateFullPathToTool()
-        {
-            var pathToTool = DotnetHostInfo.PathToToolOpt;
+        protected sealed override string PathToManagedTool => Utilities.GenerateFullPathToTool(ToolName);
 
-            if (null == pathToTool)
-            {
-                Log.LogErrorWithCodeFromResources("General_ToolFileNotFound", ToolName);
-            }
-
-            return pathToTool;
-        }
+        protected sealed override string PathToNativeTool => Path.Combine(ToolPath ?? "", ToolExe);
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -499,9 +462,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
+                var workingDir = CurrentDirectoryToUse();
+                string tempDir = BuildServerConnection.GetTempPath(workingDir);
+
                 if (!UseSharedCompilation ||
-                !DotnetHostInfo.IsManagedInvocation ||
-                !BuildServerConnection.IsCompilerServerSupported)
+                    HasToolBeenOverridden ||
+                    !BuildServerConnection.IsCompilerServerSupported(tempDir))
                 {
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
@@ -512,25 +478,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                    var clientDir = Path.GetDirectoryName(pathToTool);
+                    var clientDir = Path.GetDirectoryName(PathToManagedTool);
 
                     // Note: we can't change the "tool path" printed to the console when we run
                     // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
                     // we'll just print our own message that contains the real client location
                     Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
 
-                    var workingDir = CurrentDirectoryToUse();
                     var buildPaths = new BuildPathsAlt(
                         clientDir: clientDir,
                         // MSBuild doesn't need the .NET SDK directory
                         sdkDir: null,
                         workingDir: workingDir,
-                        tempDir: BuildServerConnection.GetTempPath(workingDir));
+                        tempDir: tempDir);
 
+                    // Note: using ToolArguments here (the property) since
+                    // commandLineCommands (the parameter) may have been mucked with
+                    // (to support using the dotnet cli)
                     var responseTask = BuildServerConnection.RunServerCompilation(
                         Language,
                         string.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
-                        GetArguments(commandLineCommands, responseFileCommands).ToList(),
+                        GetArguments(ToolArguments, responseFileCommands).ToList(),
                         buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
@@ -570,9 +538,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         public override void Cancel()
         {
-            base.Cancel();
-
+            // This must be cancelled first. Otherwise we risk that MSBuild cancellation logic will take down
+            // our pipes and tasks in an order we're not expecting.
             _sharedCompileCts?.Cancel();
+
+            base.Cancel();
         }
 
         /// <summary>
@@ -653,12 +623,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
+                case BuildResponse.ResponseType.IncorrectHash:
+                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    LogErrorOutput($"Recieved an unrecognized response from the server: {response.Type}");
+                    LogErrorOutput($"Received an unrecognized response from the server: {response.Type}");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
         }
@@ -670,7 +644,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static void LogErrorOutput(string output, TaskLoggingHelper log)
         {
-            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();
@@ -727,9 +701,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return GenerateCommandLineCommands();
         }
 
-        protected override string GenerateCommandLineCommands()
+        protected sealed override string ToolArguments
         {
-            return DotnetHostInfo.CommandLineArgs;
+            get
+            {
+                var builder = new CommandLineBuilderExtension();
+                AddCommandLineCommands(builder);
+                return builder.ToString();
+            }
         }
 
         /// <summary>
@@ -836,6 +815,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);
+            AddAnalyzerConfigFilesToCommandLine(commandLine);
         }
 
         /// <summary>
@@ -891,11 +871,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private void AddEmbeddedFilesToCommandLine(CommandLineBuilderExtension commandLine)
         {
+            if (EmbedAllSources)
+            {
+                commandLine.AppendSwitch("/embed");
+            }
+
             if (EmbeddedFiles != null)
             {
                 foreach (ITaskItem embeddedFile in EmbeddedFiles)
                 {
                     commandLine.AppendSwitchIfNotNull("/embed:", embeddedFile.ItemSpec);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a "/editorconfig:" switch to the command line for each .editorconfig file.
+        /// </summary>
+        private void AddAnalyzerConfigFilesToCommandLine(CommandLineBuilderExtension commandLine)
+        {
+            if (AnalyzerConfigFiles != null)
+            {
+                foreach (ITaskItem analyzerConfigFile in AnalyzerConfigFiles)
+                {
+                    commandLine.AppendSwitchIfNotNull("/analyzerconfig:", analyzerConfigFile.ItemSpec);
                 }
             }
         }

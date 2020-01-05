@@ -29,7 +29,7 @@ class C
     static int P { get { return 3; } }
     object Q { get { return 4; } }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -86,7 +86,7 @@ class C
     const string F = ""str"";
     const int G = 2;
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -116,7 +116,7 @@ class C
         return c;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -152,7 +152,7 @@ class B : A
         return 2;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "B");
@@ -184,7 +184,7 @@ class A<T> where T : class
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "A.B");
@@ -237,7 +237,7 @@ namespace N
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "N.C");
@@ -264,10 +264,10 @@ namespace N
                 context = CreateTypeContext(runtime, "N.C");
                 testData = new CompilationTestData();
                 result = context.CompileExpression("typeof(A.C) ?? typeof(B) ?? typeof(C)", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)", error);
                 testData = new CompilationTestData();
                 result = context.CompileExpression("typeof(B) ?? typeof(C)", out error, testData);
-                Assert.Equal(error, "error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)");
+                Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
             });
         }
 
@@ -280,14 +280,14 @@ namespace N
 class C
 {
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
                 string error;
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("$ReturnValue", out error, testData);
-                Assert.Equal(error, "error CS0103: The name '$ReturnValue' does not exist in the current context");
+                Assert.Equal("error CS0103: The name '$ReturnValue' does not exist in the current context", error);
             });
         }
 
@@ -303,7 +303,7 @@ class C
         return f();
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -334,7 +334,7 @@ class C
 {
     object F = ""f"";
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "C");
@@ -346,9 +346,9 @@ class C
                 // Format specifiers.
                 result = context.CompileExpression("F, nq,ac", out error);
                 Assert.NotNull(result.Assembly);
-                Assert.Equal(result.FormatSpecifiers.Count, 2);
-                Assert.Equal(result.FormatSpecifiers[0], "nq");
-                Assert.Equal(result.FormatSpecifiers[1], "ac");
+                Assert.Equal(2, result.FormatSpecifiers.Count);
+                Assert.Equal("nq", result.FormatSpecifiers[0]);
+                Assert.Equal("ac", result.FormatSpecifiers[1]);
             });
         }
 
@@ -375,7 +375,7 @@ public class Derived : Base
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateTypeContext(runtime, "Derived");

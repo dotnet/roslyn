@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsValidContextForMember(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsMemberDeclarationContext(validModifiers: SyntaxKindSet.AllMemberModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 return CheckPreviousAccessibilityModifiers(context);
             }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool IsValidContextForType(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsTypeDeclarationContext(validModifiers: SyntaxKindSet.AllTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 // protected things can't be in namespaces.
                 var typeDecl = context.ContainingTypeDeclaration;

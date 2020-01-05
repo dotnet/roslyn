@@ -2,15 +2,15 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.EditorUtilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
 {
+    [UseExportProvider]
     public class TagSpanIntervalTreeTests
     {
         private TagSpanIntervalTree<ITextMarkerTag> CreateTree(string text, params Span[] spans)

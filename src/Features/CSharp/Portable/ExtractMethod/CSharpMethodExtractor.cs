@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -17,15 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result) :
-            base(result)
+        public CSharpMethodExtractor(CSharpSelectionResult result, bool localFunction)
+            : base(result, localFunction)
         {
         }
 
-        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
-        {
-            return CSharpAnalyzer.AnalyzeAsync(selectionResult, cancellationToken);
-        }
+        protected override Task<AnalyzerResult> AnalyzeAsync(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
+            => CSharpAnalyzer.AnalyzeAsync(selectionResult, localFunction, cancellationToken);
 
         protected override async Task<InsertionPoint> GetInsertionPointAsync(SemanticDocument document, int position, CancellationToken cancellationToken)
         {
@@ -34,9 +33,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var basePosition = root.FindToken(position);
 
+            if (LocalFunction)
+            {
+                // If we are extracting a local function and are within a local function, then we want the new function to be created within the
+                // existing local function instead of the overarching method.
+                var localMethodNode = basePosition.GetAncestor<LocalFunctionStatementSyntax>(node => node.SpanStart != basePosition.SpanStart);
+                if (localMethodNode is object)
+                {
+                    return await InsertionPoint.CreateAsync(document, localMethodNode, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
             var memberNode = basePosition.GetAncestor<MemberDeclarationSyntax>();
             Contract.ThrowIfNull(memberNode);
             Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
+
+            if (LocalFunction && memberNode is BasePropertyDeclarationSyntax propertyDeclaration)
+            {
+                var accessorNode = basePosition.GetAncestor<AccessorDeclarationSyntax>();
+                if (accessorNode is object)
+                {
+                    return await InsertionPoint.CreateAsync(document, accessorNode, cancellationToken).ConfigureAwait(false);
+                }
+            }
 
             if (memberNode is GlobalStatementSyntax globalStatement)
             {
@@ -69,12 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<MethodExtractor.GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken)
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }
@@ -112,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !currentType.Equals(typeParameter))
+                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, typeParameter))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
@@ -122,6 +141,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             return OperationStatus.Succeeded;
+        }
+
+        protected override async Task<(Document document, SyntaxToken methodName, SyntaxNode methodDefinition)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+            Document document,
+            SyntaxToken methodName,
+            SyntaxNode methodDefinition,
+            CancellationToken cancellationToken)
+        {
+            // Checking to see if there is already an empty line before the local method declaration.
+            var leadingTrivia = methodDefinition.GetLeadingTrivia();
+            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
+            {
+                var originalMethodDefinition = methodDefinition;
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
+
+                // Generating the new document and associated variables.
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                document = document.WithSyntaxRoot(root.ReplaceNode(originalMethodDefinition, methodDefinition));
+
+                var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                methodName = newRoot.FindToken(methodName.SpanStart);
+            }
+
+            return (document, methodName, methodDefinition);
         }
     }
 }

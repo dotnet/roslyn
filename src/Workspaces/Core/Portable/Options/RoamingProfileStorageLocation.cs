@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public string GetKeyNameForLanguage(string languageName)
         {
-            string unsubstitutedKeyName = _keyNameFromLanguageName(languageName);
+            var unsubstitutedKeyName = _keyNameFromLanguageName(languageName);
 
             if (languageName == null)
             {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
             else
             {
-                string substituteLanguageName = languageName == LanguageNames.CSharp ? "CSharp" :
+                var substituteLanguageName = languageName == LanguageNames.CSharp ? "CSharp" :
                                                 languageName == LanguageNames.VisualBasic ? "VisualBasic" :
                                                 languageName;
 

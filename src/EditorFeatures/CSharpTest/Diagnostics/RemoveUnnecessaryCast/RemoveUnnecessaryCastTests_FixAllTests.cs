@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnecessaryCast
@@ -175,7 +175,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -319,7 +319,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected);
         }
 
         [Fact]
@@ -463,7 +463,7 @@ class Program3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey: null);
+            await TestInRegularAndScriptAsync(input, expected);
         }
         #endregion
     }

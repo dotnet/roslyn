@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Utilities
@@ -14,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Partial Friend Class VisualBasicGenerateConstructorService
         Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, ArgumentSyntax, AttributeSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function GenerateNameForArgument(semanticModel As SemanticModel, argument As ArgumentSyntax, cancellationToken As CancellationToken) As String
             Return semanticModel.GenerateNameForArgument(argument, cancellationToken)
         End Function
@@ -22,8 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 semanticModel As SemanticModel,
                 arguments As IEnumerable(Of ArgumentSyntax),
                 reservedNames As IList(Of String),
+                parameterNamingRule As NamingRule,
                 cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, cancellationToken)
+            Return semanticModel.GenerateParameterNames(arguments?.ToList(), reservedNames, parameterNamingRule, cancellationToken)
         End Function
 
         Protected Overrides Function GetArgumentType(
@@ -192,8 +198,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                 Dim speculativeModel As SemanticModel = Nothing
                 If document.SemanticModel.TryGetSpeculativeSemanticModel(invocationStatement.SpanStart, newInvocationStatement, speculativeModel) Then
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newInvocation, cancellationToken)
-                    Return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    Dim delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
+
+                    If (delegatingConstructor Is Nothing OrElse meOrMybaseExpression.IsKind(SyntaxKind.MyBaseExpression)) Then
+                        Return delegatingConstructor
+                    End If
+
+                    Return If(CanDelegeteThisConstructor(state, document, delegatingConstructor, cancellationToken), delegatingConstructor, Nothing)
                 End If
             Else
                 Dim oldNode = oldToken.Parent _
@@ -203,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim typeNameToReplace = DirectCast(oldToken.Parent, TypeSyntax)
                 Dim newTypeName As TypeSyntax
-                If namedType IsNot state.TypeToGenerateIn Then
+                If Not Equals(namedType, state.TypeToGenerateIn) Then
                     While True
                         Dim parentType = TryCast(typeNameToReplace.Parent, TypeSyntax)
                         If parentType Is Nothing Then
@@ -226,12 +238,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
                     If newArgumentList IsNot oldArgumentList Then
                         newNode = newNode.ReplaceNode(oldArgumentList, newArgumentList)
-                        newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                     End If
                 End If
 
                 Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, document.SemanticModel)
                 If speculativeModel IsNot Nothing Then
+                    ' Since the SpeculationAnalyzer will generate a new tree when speculating an AsNewClause, always find the newTypeName
+                    ' node from the tree the speculation model is generated from.
+                    newTypeName = speculativeModel.SyntaxTree.GetRoot().GetAnnotatedNodes(Of TypeSyntax)(s_annotation).Single()
+
                     Dim symbolInfo = speculativeModel.GetSymbolInfo(newTypeName.Parent, cancellationToken)
                     Return GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
@@ -248,6 +263,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
             Dim newArguments = oldArgumentList.Arguments.Take(argumentCount)
             Return SyntaxFactory.ArgumentList(New SeparatedSyntaxList(Of ArgumentSyntax)().AddRange(newArguments))
+        End Function
+
+        Protected Overrides Function GetCurrentConstructor(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As IMethodSymbol
+            Return semanticModel.GetDeclaredSymbol(token.GetAncestor(Of ConstructorBlockSyntax)().SubNewStatement, cancellationToken)
+        End Function
+
+        Protected Overrides Function GetDelegatedConstructor(semanticModel As SemanticModel, constructor As IMethodSymbol, cancellationToken As CancellationToken) As IMethodSymbol
+            Dim constructorStatements = constructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
+            If (constructorStatements.IsEmpty()) Then
+                Return Nothing
+            End If
+            Dim constructorInitializerSyntax = constructorStatements(0)
+            Dim expressionStatement = TryCast(constructorInitializerSyntax, ExpressionStatementSyntax)
+            If (expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression)) Then
+                Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(expressionStatement.Expression, cancellationToken).Symbol, IMethodSymbol)
+                Return If(methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.Constructor, methodSymbol, Nothing)
+            End If
+            Return Nothing
         End Function
     End Class
 End Namespace

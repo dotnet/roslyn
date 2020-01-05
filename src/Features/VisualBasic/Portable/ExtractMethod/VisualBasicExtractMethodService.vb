@@ -11,13 +11,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend Class VisualBasicExtractMethodService
         Inherits AbstractExtractMethodService(Of VisualBasicSelectionValidator, VisualBasicMethodExtractor, VisualBasicSelectionResult)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function CreateSelectionValidator(document As SemanticDocument,
                                                               textSpan As TextSpan,
                                                               options As OptionSet) As VisualBasicSelectionValidator
             Return New VisualBasicSelectionValidator(document, textSpan, options)
         End Function
 
-        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult) As VisualBasicMethodExtractor
+        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult, localFunction As Boolean) As VisualBasicMethodExtractor
             Return New VisualBasicMethodExtractor(selectionResult)
         End Function
     End Class

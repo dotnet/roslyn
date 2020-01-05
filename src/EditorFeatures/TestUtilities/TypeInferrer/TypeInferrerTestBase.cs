@@ -4,16 +4,19 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 {
+    [UseExportProvider]
     public abstract class TypeInferrerTestBase<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>, IDisposable
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
-        protected TWorkspaceFixture fixture;
+        protected readonly TWorkspaceFixture fixture;
 
         protected TypeInferrerTestBase(TWorkspaceFixture workspaceFixture)
         {
@@ -22,49 +25,49 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 
         public override void Dispose()
         {
-            this.fixture.CloseTextView();
+            this.fixture.DisposeAfterTest();
             base.Dispose();
         }
 
         private static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
-            var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var service = document.GetLanguageService<ISyntaxFactsService>();
             var node = (await document.GetSyntaxRootAsync()).FindToken(position).Parent;
 
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected async Task TestAsync(string text, string expectedType, bool testNode = true, bool testPosition = true)
+        /// <summary>
+        /// Specifies which overload of the <see cref="ITypeInferenceService"/> will be tested.
+        /// </summary>
+        public enum TestMode
+        {
+            /// <summary>
+            /// Specifies the test is going to call into <see cref="ITypeInferenceService.InferTypes(SemanticModel, SyntaxNode, string, System.Threading.CancellationToken)"/>.
+            /// </summary>
+            Node,
+
+            /// <summary>
+            /// Specifies the test is going to call into <see cref="ITypeInferenceService.InferTypes(SemanticModel, int, string, System.Threading.CancellationToken)"/>.
+            /// </summary>
+            Position
+        }
+
+        protected async Task TestAsync(string text, string expectedType, TestMode mode,
+            SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             MarkupTestFile.GetSpan(text.NormalizeLineEndings(), out text, out var textSpan);
 
-            if (testNode)
-            {
-                await TestWithAndWithoutSpeculativeSemanticModelAsync(text, textSpan, expectedType, useNodeStartPosition: false);
-            }
-
-            if (testPosition)
-            {
-                await TestWithAndWithoutSpeculativeSemanticModelAsync(text, textSpan, expectedType, useNodeStartPosition: true);
-            }
-        }
-
-        private async Task TestWithAndWithoutSpeculativeSemanticModelAsync(
-            string text,
-            TextSpan textSpan,
-            string expectedType,
-            bool useNodeStartPosition)
-        {
-            var document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
-            await TestWorkerAsync(document, textSpan, expectedType, useNodeStartPosition);
+            var document = fixture.UpdateDocument(text, sourceCodeKind);
+            await TestWorkerAsync(document, textSpan, expectedType, mode);
 
             if (await CanUseSpeculativeSemanticModelAsync(document, textSpan.Start))
             {
-                var document2 = fixture.UpdateDocument(text, SourceCodeKind.Regular, cleanBeforeUpdate: false);
-                await TestWorkerAsync(document2, textSpan, expectedType, useNodeStartPosition);
+                var document2 = fixture.UpdateDocument(text, sourceCodeKind, cleanBeforeUpdate: false);
+                await TestWorkerAsync(document2, textSpan, expectedType, mode);
             }
         }
 
-        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, bool useNodeStartPosition);
+        protected abstract Task TestWorkerAsync(Document document, TextSpan textSpan, string expectedType, TestMode mode);
     }
 }

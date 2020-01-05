@@ -78,6 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get
+            {
+                return UnderlyingMethod.AreLocalsZeroed;
+            }
+        }
+
         public override ImmutableArray<Location> Locations
         {
             get
@@ -107,6 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return UnderlyingMethod.IsStatic;
+            }
+        }
+
+        public override bool RequiresInstanceReceiver
+        {
+            get
+            {
+                return UnderlyingMethod.RequiresInstanceReceiver;
             }
         }
 
@@ -297,6 +313,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => UnderlyingMethod.ReturnTypeFlowAnalysisAnnotations;
+
+        public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => UnderlyingMethod.ReturnNotNullIfParameterNotNull;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => UnderlyingMethod.FlowAnalysisAnnotations;
+
         internal override bool ReturnValueIsMarshalledExplicitly
         {
             get
@@ -320,5 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.GenerateDebugInfo;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
     }
 }

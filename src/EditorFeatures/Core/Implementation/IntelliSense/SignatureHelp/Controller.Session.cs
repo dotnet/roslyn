@@ -9,17 +9,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal partial class Session : Session<Controller, Model, ISignatureHelpPresenterSession>
         {
-            /// <summary>
-            /// When ther user moves the caret we issue retrigger commands.  There may be a long
-            /// chain of these, and they may take time for each to process.  This can be visible 
-            /// to the user as a long delay before the signature help items update.  To avoid this
-            /// we keep track if there is new outstanding retrigger command and we bail on the
-            /// computation if another is in the queue.
-            /// </summary>
-            private int _retriggerId;
-
             public Session(Controller controller, ISignatureHelpPresenterSession presenterSession)
-                : base(controller, new ModelComputation<Model>(controller, TaskScheduler.Default), presenterSession)
+                : base(controller, new ModelComputation<Model>(controller.ThreadingContext, controller, TaskScheduler.Default), presenterSession)
             {
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
             }

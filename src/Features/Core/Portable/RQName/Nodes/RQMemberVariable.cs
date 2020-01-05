@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQMemberVariable(RQUnconstructedType containingType, string name)
             : base(containingType)
         {
-            this.Name = name;
+            Name = name;
         }
 
         public override string MemberName
         {
-            get { return this.Name; }
+            get { return Name; }
         }
 
         protected override string RQKeyword
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         protected override void AppendChildren(List<SimpleTreeNode> childList)
         {
             base.AppendChildren(childList);
-            childList.Add(new SimpleGroupNode(RQNameStrings.MembVarName, this.Name));
+            childList.Add(new SimpleGroupNode(RQNameStrings.MembVarName, Name));
         }
     }
 }

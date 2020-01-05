@@ -2,16 +2,18 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace()
+        protected override TestWorkspace CreateWorkspace(ExportProvider exportProvider = null)
         {
-            return TestWorkspace.CreateCSharp(
+            return TestWorkspace.CreateCSharp2(
                 new string[] { string.Empty, },
-                new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), });
+                new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), },
+                exportProvider: exportProvider);
         }
     }
 }

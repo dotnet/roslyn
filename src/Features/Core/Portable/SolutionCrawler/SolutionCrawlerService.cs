@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         [ExportWorkspaceService(typeof(ISolutionCrawlerService), ServiceLayer.Default), Shared]
         internal class SolutionCrawlerService : ISolutionCrawlerService
         {
+            [ImportingConstructor]
+            public SolutionCrawlerService()
+            {
+            }
+
             public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything

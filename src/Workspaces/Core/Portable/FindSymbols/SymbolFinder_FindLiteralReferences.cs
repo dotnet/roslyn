@@ -19,15 +19,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
-                var handled = await TryFindLiteralReferencesInServiceProcessAsync(
-                    value, typeCode, solution, progress, cancellationToken).ConfigureAwait(false);
-                if (handled)
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    return;
+                    // Create a callback that we can pass to the server process to hear about the 
+                    // results as it finds them.  When we hear about results we'll forward them to
+                    // the 'progress' parameter which will then update the UI.
+                    var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
+
+                    var success = await client.TryRunRemoteAsync(
+                        WellKnownServiceHubServices.CodeAnalysisService,
+                        nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
+                        new object[] { value, typeCode },
+                        solution,
+                        serverCallback,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (success)
+                    {
+                        return;
+                    }
                 }
 
-                await FindLiteralReferencesInCurrentProcessAsync(
-                    value, solution, progress, cancellationToken).ConfigureAwait(false);
+                await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -39,26 +53,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var engine = new FindLiteralsSearchEngine(
                 solution, progress, value, cancellationToken);
             return engine.FindReferencesAsync();
-        }
-
-        private static async Task<bool> TryFindLiteralReferencesInServiceProcessAsync(
-            object value,
-            TypeCode typeCode,
-            Solution solution,
-            IStreamingFindLiteralReferencesProgress progress,
-            CancellationToken cancellationToken)
-        {
-            // Create a callback that we can pass to the server process to hear about the 
-            // results as it finds them.  When we hear about results we'll forward them to
-            // the 'progress' parameter which will then update the UI.
-            var serverCallback = new FindLiteralsServerCallback(solution, progress, cancellationToken);
-
-            return await solution.TryRunCodeAnalysisRemoteAsync(
-                RemoteFeatureOptions.SymbolFinderEnabled,
-                serverCallback,
-                nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
-                new object[] { value, typeCode },
-                cancellationToken).ConfigureAwait(false);
         }
     }
 }

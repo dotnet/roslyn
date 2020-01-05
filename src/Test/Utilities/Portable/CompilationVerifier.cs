@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
+using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -28,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public ImmutableArray<byte> EmittedAssemblyData;
         public ImmutableArray<byte> EmittedAssemblyPdb;
 
-        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> _visualizeRealIL;
+        private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> _visualizeRealIL;
 
         internal CompilationVerifier(
             Compilation compilation,
-            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> visualizeRealIL = null,
+            Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, bool, string> visualizeRealIL = null,
             IEnumerable<ModuleData> dependencies = null)
         {
             _compilation = compilation;
@@ -44,53 +46,172 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public Compilation Compilation => _compilation;
         internal ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
-        internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
+        internal Metadata GetMetadata()
         {
             if (EmittedAssemblyData == null)
             {
                 throw new InvalidOperationException("You must call Emit before calling GetAllModuleMetadata.");
             }
 
-            ImmutableArray<ModuleMetadata> modules = ImmutableArray.Create(ModuleMetadata.CreateFromImage(EmittedAssemblyData));
-
-            if (_allModuleData != null)
+            if (_compilation.Options.OutputKind.IsNetModule())
             {
-                var netModules = _allModuleData.Where(m => m.Kind == OutputKind.NetModule);
-                if (netModules.Any())
-                {
-                    modules = modules.Concat(
-                        ImmutableArray.CreateRange(netModules.Select(m => ModuleMetadata.CreateFromImage(m.Image))));
-                }
+                var metadata = ModuleMetadata.CreateFromImage(EmittedAssemblyData);
+                metadata.Module.PretendThereArentNoPiaLocalTypes();
+                return metadata;
             }
+            else
+            {
+                var images = new List<ImmutableArray<byte>>
+                {
+                    EmittedAssemblyData
+                };
 
-            return modules;
+                if (_allModuleData != null)
+                {
+                    images.AddRange(_allModuleData.Where(m => m.Kind == OutputKind.NetModule).Select(m => m.Image));
+                }
+
+                return AssemblyMetadata.Create(images.Select(image =>
+                {
+                    var metadata = ModuleMetadata.CreateFromImage(image);
+                    metadata.Module.PretendThereArentNoPiaLocalTypes();
+                    return metadata;
+                }));
+            }
         }
 
-        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+        public string Dump(string methodName = null)
         {
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
-                string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
-                _allModuleData = testEnvironment.GetAllModuleData();
+                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+                IList<ModuleData> moduleDatas = testEnvironment.GetAllModuleData();
+                var mainModule = moduleDatas.Single(md => md.FullName == mainModuleFullName);
+                RuntimeEnvironmentUtilities.DumpAssemblyData(moduleDatas, out var dumpDir);
 
-                if (peVerify)
+                string extension = mainModule.Kind == OutputKind.ConsoleApplication ? ".exe" : ".dll";
+                string modulePath = Path.Combine(dumpDir, mainModule.SimpleName + extension);
+
+                var decompiler = new ICSharpCode.Decompiler.CSharp.CSharpDecompiler(modulePath,
+                    new ICSharpCode.Decompiler.DecompilerSettings() { AsyncAwait = false });
+
+                if (methodName != null)
                 {
-                    testEnvironment.PeVerify();
-                }
+                    var map = new Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod>();
+                    listMethods(decompiler.TypeSystem.MainModule.RootNamespace, map);
 
-                if (expectedSignatures != null)
-                {
-                    MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
-                }
-
-                if (expectedOutput != null || expectedReturnCode != null)
-                {
-                    var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
-
-                    if (expectedReturnCode is int exCode)
+                    if (map.TryGetValue(methodName, out var method))
                     {
-                        Assert.Equal(exCode, returnCode);
+                        return decompiler.DecompileAsString(method.MetadataToken);
                     }
+                    else
+                    {
+                        throw new Exception($"Didn't find method '{methodName}'. Available/distinguishable methods are: \r\n{string.Join("\r\n", map.Keys)}");
+                    }
+                }
+
+                return decompiler.DecompileWholeModuleAsString();
+            }
+
+            void listMethods(ICSharpCode.Decompiler.TypeSystem.INamespace @namespace, Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod> result)
+            {
+                foreach (var nestedNS in @namespace.ChildNamespaces)
+                {
+                    if (nestedNS.FullName != "System" &&
+                        nestedNS.FullName != "Microsoft")
+                    {
+                        listMethods(nestedNS, result);
+                    }
+                }
+
+                foreach (var type in @namespace.Types)
+                {
+                    listMethodsInType(type, result);
+                }
+            }
+
+            void listMethodsInType(ICSharpCode.Decompiler.TypeSystem.ITypeDefinition type, Dictionary<string, ICSharpCode.Decompiler.TypeSystem.IMethod> result)
+            {
+                foreach (var nestedType in type.NestedTypes)
+                {
+                    listMethodsInType(nestedType, result);
+                }
+
+                foreach (var method in type.Methods)
+                {
+                    if (result.ContainsKey(method.FullName))
+                    {
+                        // There is a bug with FullName on methods in generic types
+                        result.Remove(method.FullName);
+                    }
+                    else
+                    {
+                        result.Add(method.FullName, method);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+		/// Asserts that the emitted IL for a type is the same as the expected IL.
+		/// Many core library types are in different assemblies on .Net Framework, and .Net Core.
+		/// Therefore this test is likely to fail unless you  only run it only only on one of these frameworks,
+		/// or you run it on both, but provide a different expected output string for each.
+		/// See <see cref="ExecutionConditionUtil"/>.
+		/// </summary>
+		/// <param name="typeName">The non-fully-qualified name of the type</param>
+		/// <param name="expected">The expected IL</param>
+        public void VerifyTypeIL(string typeName, string expected)
+        {
+            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
+            {
+                string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
+                IList<ModuleData> moduleData = testEnvironment.GetAllModuleData();
+                var mainModule = moduleData.Single(md => md.FullName == mainModuleFullName);
+                using (var moduleMetadata = ModuleMetadata.CreateFromImage(testEnvironment.GetMainImage()))
+                {
+                    var peFile = new PEFile(mainModuleFullName, moduleMetadata.Module.PEReaderOpt);
+                    var metadataReader = moduleMetadata.GetMetadataReader();
+
+                    bool found = false;
+                    foreach (var typeDefHandle in metadataReader.TypeDefinitions)
+                    {
+                        var typeDef = metadataReader.GetTypeDefinition(typeDefHandle);
+                        if (metadataReader.GetString(typeDef.Name) == typeName)
+                        {
+                            var disassembler = new ICSharpCode.Decompiler.Disassembler.ReflectionDisassembler(output, default);
+                            disassembler.DisassembleType(peFile, typeDefHandle);
+                            found = true;
+                            break;
+                        }
+                    }
+                    Assert.True(found, "Could not find type named " + typeName);
+                }
+            }
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
+        }
+
+        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
+        {
+            using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
+
+            string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
+            _allModuleData = testEnvironment.GetAllModuleData();
+            testEnvironment.Verify(peVerify);
+
+            if (expectedSignatures != null)
+            {
+                MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
+            }
+
+            if (expectedOutput != null || expectedReturnCode != null)
+            {
+                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
+
+                if (expectedReturnCode is int exCode)
+                {
+                    Assert.Equal(exCode, returnCode);
                 }
             }
         }
@@ -102,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleName = Emit(testEnvironment, null, null);
-                string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
+                string[] actualOutput = testEnvironment.VerifyModules(new[] { mainModuleName });
                 Assert.Equal(expectedPeVerifyOutput, actualOutput);
             }
         }
@@ -182,6 +303,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (sequencePoints != null)
             {
+                if (EmittedAssemblyPdb == null)
+                {
+                    throw new InvalidOperationException($"{nameof(EmittedAssemblyPdb)} is not set");
+                }
+
+                if (EmittedAssemblyData == null)
+                {
+                    throw new InvalidOperationException($"{nameof(EmittedAssemblyData)} is not set");
+                }
+
                 var actualPdbXml = PdbToXmlConverter.ToXml(
                     pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
                     peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
@@ -191,6 +322,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                              PdbToXmlOptions.ExcludeCustomDebugInformation |
                              PdbToXmlOptions.ExcludeScopes,
                     methodName: sequencePoints);
+
+                if (actualPdbXml.StartsWith("<error>"))
+                {
+                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                }
 
                 markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
             }
@@ -202,10 +338,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_lazyModuleSymbol == null)
             {
-                _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
+                var targetReference = LoadTestEmittedExecutableForSymbolValidation(EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
             }
 
-            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
+            if (_lazyModuleSymbol != null)
+            {
+                if (_visualizeRealIL == null)
+                {
+                    throw new InvalidOperationException("IL visualization function is not set");
+                }
+
+
+                return _visualizeRealIL(_lazyModuleSymbol, methodData, markers, _testData.Module.GetMethodBody(methodData.Method).AreLocalsZeroed);
+            }
+
+            return null;
         }
 
         public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
@@ -220,42 +368,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return this;
         }
 
-        public IModuleSymbol GetModuleSymbolForEmittedImage()
-        {
-            return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
-        }
-
-        private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
-        {
-            if (peImage.IsDefault)
-            {
-                return null;
-            }
-            var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-            var references = _compilation.References.Concat(new[] { targetReference });
-            var assemblies = GetReferencesToModuleSymbols(references, importOptions);
-            return assemblies.Last();
-        }
-
-        private IEnumerable<IModuleSymbol> GetReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions)
+        internal IModuleSymbol GetSymbolFromMetadata(MetadataReference metadataReference, MetadataImportOptions importOptions)
         {
             var dummy = _compilation
                 .RemoveAllSyntaxTrees()
-                .WithReferences(references)
+                .AddReferences(metadataReference)
                 .WithAssemblyName("Dummy")
                 .WithOptions(_compilation.Options.WithMetadataImportOptions(importOptions));
 
-            return references.Select(reference =>
+            var symbol = dummy.GetAssemblyOrModuleSymbol(metadataReference);
+
+            if (metadataReference.Properties.Kind == MetadataImageKind.Assembly)
             {
-                if (reference.Properties.Kind == MetadataImageKind.Assembly)
-                {
-                    return ((IAssemblySymbol)dummy.GetAssemblyOrModuleSymbol(reference))?.Modules.First();
-                }
-                else
-                {
-                    return (IModuleSymbol)dummy.GetAssemblyOrModuleSymbol(reference);
-                }
-            });
+                return ((IAssemblySymbol)symbol).Modules.First();
+            }
+            else
+            {
+                return (IModuleSymbol)symbol;
+            }
         }
 
         internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
@@ -291,14 +421,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public void VerifySynthesizedFields(string containingTypeName, params string[] expectedFields)
         {
-            var types = TestData.Module.GetSynthesizedMembers();
+            var types = TestData.Module.GetAllSynthesizedMembers();
             Assert.Contains(types.Keys, t => containingTypeName == t.ToString());
-            var members = TestData.Module.GetSynthesizedMembers()
+            var members = TestData.Module.GetAllSynthesizedMembers()
                 .Where(e => e.Key.ToString() == containingTypeName)
                 .Single()
                 .Value
-                .OfType<IFieldSymbol>()
-                .Select(f => $"{f.Type.ToString()} {f.Name}")
+                .Where(s => s.Kind == SymbolKind.Field)
+                .Select(f => $"{((IFieldSymbol)f.GetISymbol()).Type.ToString()} {f.Name}")
                 .ToList();
             AssertEx.SetEqual(expectedFields, members);
         }

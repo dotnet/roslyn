@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
             RQMember containingMember,
             int parameterIndex)
         {
-            this.ContainingMember = containingMember;
-            this.ParameterIndex = parameterIndex;
+            ContainingMember = containingMember;
+            ParameterIndex = parameterIndex;
         }
 
         protected override string RQKeyword

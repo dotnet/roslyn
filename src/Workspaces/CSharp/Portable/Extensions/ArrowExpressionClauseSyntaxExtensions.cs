@@ -14,55 +14,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool createReturnStatementForExpression,
             out BlockSyntax block)
         {
-            // It's tricky to convert an arrow expression with directives over to a block.
-            // We'd need to find and remove the directives *after* the arrow expression and
-            // move them accordingly.  So, for now, we just disallow this.
-            if (arrowExpression.Expression.GetLeadingTrivia().Any(t => t.IsDirective))
+            if (!arrowExpression.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out var statement))
             {
                 block = null;
                 return false;
-            }
-
-            var statement = ConvertToStatement(arrowExpression.Expression, semicolonToken, createReturnStatementForExpression);
-            if (arrowExpression.ArrowToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
-            {
-                statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
             }
 
             block = SyntaxFactory.Block(statement);
             return true;
         }
 
-        private static StatementSyntax ConvertToStatement(
-            ExpressionSyntax expression, 
-            SyntaxToken semicolonToken, 
-            bool createReturnStatementForExpression)
+        public static bool TryConvertToStatement(
+            this ArrowExpressionClauseSyntax arrowExpression,
+            SyntaxToken semicolonToken,
+            bool createReturnStatementForExpression,
+            out StatementSyntax statement)
         {
-            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            if (!arrowExpression.Expression.TryConvertToStatement(
+                    semicolonToken, createReturnStatementForExpression, out statement))
             {
-                var throwExpression = (ThrowExpressionSyntax)expression;
-                return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
+                return false;
             }
-            else if (createReturnStatementForExpression)
+
+            if (arrowExpression.ArrowToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
             {
-                if (expression.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
-                {
-                    return SyntaxFactory.ReturnStatement(expression.WithLeadingTrivia(SyntaxFactory.ElasticSpace))
-                                        .WithSemicolonToken(semicolonToken)
-                                        .WithLeadingTrivia(expression.GetLeadingTrivia())
-                                        .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker);
-                }
-                else
-                {
-                    return SyntaxFactory.ReturnStatement(expression)
-                                        .WithSemicolonToken(semicolonToken);
-                }
+                statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
             }
-            else
-            {
-                return SyntaxFactory.ExpressionStatement(expression)
-                                    .WithSemicolonToken(semicolonToken);
-            }
+
+            return true;
         }
     }
 }

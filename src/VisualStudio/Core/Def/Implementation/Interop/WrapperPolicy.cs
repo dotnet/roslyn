@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             {
                 // This asks the CLR to return the RCW corresponding to the
                 // aggregator object.
-                object wrapper = Marshal.GetObjectForIUnknown(ptr);
+                var wrapper = Marshal.GetObjectForIUnknown(ptr);
 
                 // The aggregator (if there is one) implement IComWrapper!
                 return wrapper as IComWrapper;

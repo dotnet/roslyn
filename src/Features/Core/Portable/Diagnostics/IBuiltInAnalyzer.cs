@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Options;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
@@ -21,10 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
         /// <summary>
-        /// This indicates whether this builtin analyzer will only run on opened files.
-        /// 
-        /// all analyzers that want to run on closed files must be able to run in remote host.
+        /// This indicates whether this built-in analyzer will only run on opened files.
         /// </summary>
-        bool OpenFileOnly(Workspace workspace);
+        bool OpenFileOnly(OptionSet options);
     }
 }

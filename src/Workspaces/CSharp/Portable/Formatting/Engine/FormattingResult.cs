@@ -3,14 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -19,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     /// </summary>
     internal class FormattingResult : AbstractFormattingResult
     {
-        internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat, TaskExecutor taskExecutor) :
-            base(treeInfo, tokenStream, spanToFormat, taskExecutor)
+        internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat)
+            : base(treeInfo, tokenStream, spanToFormat)
         {
         }
 

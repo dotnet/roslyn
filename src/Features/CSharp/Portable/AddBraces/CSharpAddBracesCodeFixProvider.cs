@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -17,10 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddBraces), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
-    internal class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal sealed class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds 
+        [ImportingConstructor]
+        public CSharpAddBracesCodeFixProvider()
+        {
+        }
+
+        public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
+
+        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -28,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
         protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
@@ -44,60 +51,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 // of other replace calls.  i.e. we may have statements nested in statements,
                 // we need to make sure that any inner edits are seen when we make the outer
                 // replacement.
-                editor.ReplaceNode(statement, (s, g) => GetReplacementNode(s));
+                editor.ReplaceNode(statement, (currentStatement, g) =>
+                {
+                    var embeddedStatement = currentStatement.GetEmbeddedStatement();
+                    return currentStatement.ReplaceNode(embeddedStatement, SyntaxFactory.Block(embeddedStatement));
+                });
             }
 
-            return SpecializedTasks.EmptyTask;
+            return Task.CompletedTask;
         }
 
-        private SyntaxNode GetReplacementNode(SyntaxNode statement)
+        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            switch (statement.Kind())
-            {
-                case SyntaxKind.IfStatement:
-                    var ifSyntax = (IfStatementSyntax)statement;
-                    return GetNewBlock(statement, ifSyntax.Statement);
-
-                case SyntaxKind.ElseClause:
-                    var elseClause = (ElseClauseSyntax)statement;
-                    return GetNewBlock(statement, elseClause.Statement);
-
-                case SyntaxKind.ForStatement:
-                    var forSyntax = (ForStatementSyntax)statement;
-                    return GetNewBlock(statement, forSyntax.Statement);
-
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
-                    var forEachSyntax = (CommonForEachStatementSyntax)statement;
-                    return GetNewBlock(statement, forEachSyntax.Statement);
-
-                case SyntaxKind.WhileStatement:
-                    var whileSyntax = (WhileStatementSyntax)statement;
-                    return GetNewBlock(statement, whileSyntax.Statement);
-
-                case SyntaxKind.DoStatement:
-                    var doSyntax = (DoStatementSyntax)statement;
-                    return GetNewBlock(statement, doSyntax.Statement);
-
-                case SyntaxKind.UsingStatement:
-                    var usingSyntax = (UsingStatementSyntax)statement;
-                    return GetNewBlock(statement, usingSyntax.Statement);
-
-                case SyntaxKind.LockStatement:
-                    var lockSyntax = (LockStatementSyntax)statement;
-                    return GetNewBlock(statement, lockSyntax.Statement);
-            }
-
-            return default;
-        }
-
-        private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody) 
-            => statement.ReplaceNode(statementBody, SyntaxFactory.Block(statementBody));
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Add_braces, createChangedDocument, FeaturesResources.Add_braces)
             {
             }
         }

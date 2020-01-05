@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             private T3 ScheduleTask<T1, T2, T3>(Func<T1, T2, T3> taskScheduler, string taskName, T1 arg1, T2 arg2) where T3 : Task
             {
-                taskName = taskName ?? GetType().Name + ".Task";
+                taskName ??= GetType().Name + ".Task";
                 var asyncToken = _factory.BeginAsyncOperation(taskName);
 
                 var task = taskScheduler(arg1, arg2);

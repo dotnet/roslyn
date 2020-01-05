@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var endPos = trivia.FullSpan.End;
             var text = syntaxTree.GetText(cancellationToken);
             return endPos >= 2 && text[endPos - 1] == '\n' && text[endPos - 2] == '\r' ? endPos - 2 :
-                   endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1])              ? endPos - 1 : endPos;
+                   endPos >= 1 && SyntaxFacts.IsNewLine(text[endPos - 1]) ? endPos - 1 : endPos;
         }
 
         private SyntaxTrivia GetCorrespondingEndTrivia(

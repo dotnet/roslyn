@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../ScriptingResources.resx">
+    <body>
+      <trans-unit id="CannotSetLanguageSpecificOption">
+        <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>
+        <target state="translated">Pro {0} nelze nastavit specifickou možnost {1}, protože možnosti už byly nakonfigurovány pro jiný jazyk.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StackOverflowWhileEvaluating">
+        <source>!&lt;Stack overflow while evaluating object&gt;</source>
+        <target state="translated">!&lt;Přetečení zásobníku během vyhodnocování objektu&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CantAssignTo">
+        <source>Can't assign '{0}' to '{1}'.</source>
+        <target state="translated">{0} se nedá přiřadit {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExpectedAnAssemblyReference">
+        <source>Expected an assembly reference.</source>
+        <target state="translated">Očekával se odkaz na sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DisplayNameOrPathCannotBe">
+        <source>Display name or path cannot be empty.</source>
+        <target state="translated">Zobrazovaný název ani cesta nemůžou být prázdné.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="translated">Očekávala se absolutní cesta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalsNotAssignable">
+        <source>The globals of type '{0}' is not assignable to '{1}'</source>
+        <target state="translated">Globální proměnné typu {0} se nedají přiřadit {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StartingStateIncompatible">
+        <source>Starting state was incompatible with script.</source>
+        <target state="translated">Počáteční stav nebyl kompatibilní se skriptem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidAssemblyName">
+        <source>Invalid assembly name</source>
+        <target state="translated">Neplatný název sestavení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InvalidCharactersInAssemblyName">
+        <source>Invalid characters in assemblyName</source>
+        <target state="translated">Neplatné znaky v assemblyName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ScriptRequiresGlobalVariables">
+        <source>The script requires access to global variables but none were given</source>
+        <target state="translated">Skript vyžaduje přístup ke globálním proměnným, žádná ale není zadaná.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GlobalVariablesWithoutGlobalType">
+        <source>Global variables passed to a script without a global type</source>
+        <target state="translated">Globální proměnné se předaly skriptu bez globálního typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalError">
+        <source>+ additional {0} error</source>
+        <target state="translated">+ další {0} chyba</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PlusAdditionalErrors">
+        <source>+ additional {0} errors</source>
+        <target state="translated">+ počet dalších chyb: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AtFileLine">
+        <source> at {0} : {1}</source>
+        <target state="translated"> na {0} : {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetReadOnlyVariable">
+        <source>Cannot set a read-only variable</source>
+        <target state="translated">Nejde nastavit proměnnou jen pro čtení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CannotSetConstantVariable">
+        <source>Cannot set a constant variable</source>
+        <target state="translated">Nejde nastavit konstantní proměnnou.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpPrompt">
+        <source>Type "#help" for more information.</source>
+        <target state="translated">Zadáním #help si zobrazíte víc informací.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HelpText">
+        <source>Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+  Ctrl-C        Exit the REPL.
+REPL commands:
+  #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".
+  #load         Load specified script file and execute it, e.g. #load "myScript.csx".</source>
+        <target state="translated">Klávesové zkratky:
+  Enter         Pokud se aktuální odeslání jeví jako kompletní, vyhodnotí ho. Jinak vloží nový řádek.
+  Escape        Vymaže aktuální odeslání.
+ Šipka nahoru       Nahradí aktuální odeslání předchozím odesláním.
+ Šipka dolů       Nahradí aktuální odeslání následujícím odesláním (po předchozí navigaci směrem zpět).
+  Ctrl+C        Ukončí REPL.
+Příkazy REPL:
+  #help         Zobrazí nápovědu k dostupným příkazům a vazbám kláves.
+Direktivy skriptu:
+  #r            Přidá odkazy metadat k určenému sestavení a všem jeho závislostem, třeba #r "myLib.dll".
+  #load         Načte zadaný soubor skriptu a spustí ho, třeba #load "myScript.csx".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoaded">
+        <source>Assembly '{0}, Version={1}' has already been loaded from '{2}'. A different assembly with the same name and version can't be loaded: '{3}'.</source>
+        <target state="translated">Sestavení {0} verze {1} už bylo z {2} načteno. Odlišné sestavení se stejným názvem a verzí nelze načíst: {3}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AssemblyAlreadyLoadedNotSigned">
+        <source>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</source>
+        <target state="translated">Sestavení {0} už bylo z {1} načteno. Odlišné sestavení se stejným názvem nelze načíst, pokud není podepsané: {2}.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

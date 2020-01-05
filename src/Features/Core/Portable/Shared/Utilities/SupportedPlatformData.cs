@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var builder = new List<SymbolDisplayPart>();
             builder.AddLineBreak();
 
-            var projects = this.CandidateProjects.Select(p => this.Workspace.CurrentSolution.GetProject(p)).OrderBy(p => p.Name);
+            var projects = CandidateProjects.Select(p => Workspace.CurrentSolution.GetProject(p)).OrderBy(p => p.Name);
             foreach (var project in projects)
             {
-                var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!this.InvalidProjects.Contains(project.Id)));
+                var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));
                 builder.AddText(text);
                 builder.AddLineBreak();
             }

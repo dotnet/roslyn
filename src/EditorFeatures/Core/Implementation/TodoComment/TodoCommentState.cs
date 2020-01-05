@@ -35,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                             var textVersion = VersionStamp.ReadFrom(reader);
                             var dataVersion = VersionStamp.ReadFrom(reader);
 
-                            var list = ArrayBuilder<TodoItem>.GetInstance();
+                            using var listDisposer = ArrayBuilder<TodoItem>.GetInstance(out var list);
                             AppendItems(reader, value, list, cancellationToken);
 
-                            return new Data(textVersion, dataVersion, list.ToImmutableAndFree());
+                            return new Data(textVersion, dataVersion, list.ToImmutable());
                         }
                     }
                 }
@@ -48,29 +48,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
+
+                writer.WriteString(FormatVersion);
+                data.TextVersion.WriteTo(writer);
+                data.SyntaxVersion.WriteTo(writer);
+
+                writer.WriteInt32(data.Items.Length);
+
+                foreach (var item in data.Items.OfType<TodoItem>())
                 {
-                    writer.WriteString(FormatVersion);
-                    data.TextVersion.WriteTo(writer);
-                    data.SyntaxVersion.WriteTo(writer);
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                    writer.WriteInt32(data.Items.Length);
+                    writer.WriteInt32(item.Priority);
+                    writer.WriteString(item.Message);
 
-                    foreach (var item in data.Items.OfType<TodoItem>())
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                    writer.WriteString(item.OriginalFilePath);
+                    writer.WriteInt32(item.OriginalLine);
+                    writer.WriteInt32(item.OriginalColumn);
 
-                        writer.WriteInt32(item.Priority);
-                        writer.WriteString(item.Message);
-
-                        writer.WriteString(item.OriginalFilePath);
-                        writer.WriteInt32(item.OriginalLine);
-                        writer.WriteInt32(item.OriginalColumn);
-
-                        writer.WriteString(item.MappedFilePath);
-                        writer.WriteInt32(item.MappedLine);
-                        writer.WriteInt32(item.MappedColumn);
-                    }
+                    writer.WriteString(item.MappedFilePath);
+                    writer.WriteInt32(item.MappedLine);
+                    writer.WriteInt32(item.MappedColumn);
                 }
             }
 
@@ -109,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
                     list.Add(new TodoItem(
                         priority, message,
-                        document.Project.Solution.Workspace, document.Id,
+                        document.Id,
                         mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile));
                 }
             }

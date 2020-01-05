@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(" ", trResult.ToString());
 
             var foundDocComment = result.Parent.Parent.Parent.Parent;
-            Assert.Equal(null, foundDocComment.Parent);
+            Assert.Null(foundDocComment.Parent);
 
             var identTrivia = identExpr.GetLeadingTrivia()[0];
             var foundTrivia = ((DocumentationCommentTriviaSyntax)foundDocComment).ParentTrivia;

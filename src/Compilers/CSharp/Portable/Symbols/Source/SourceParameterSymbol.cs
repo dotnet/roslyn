@@ -3,10 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -14,13 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Base class for parameters can be referred to from source code.
     /// </summary>
     /// <remarks>
-    /// These parameters can potentially be targetted by an attribute specified in source code. 
+    /// These parameters can potentially be targeted by an attribute specified in source code. 
     /// As an optimization we distinguish simple parameters (no attributes, no modifiers, etc.) and complex parameters.
     /// </remarks>
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
         protected SymbolCompletionState state;
-        protected readonly TypeSymbol parameterType;
+        protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
@@ -28,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceParameterSymbol Create(
             Binder context,
             Symbol owner,
-            TypeSymbol parameterType,
+            TypeWithAnnotations parameterType,
             ParameterSyntax syntax,
             RefKind refKind,
             SyntaxToken identifier,
@@ -38,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
+            Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
+
             var name = identifier.ValueText;
             var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
 
@@ -54,12 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
 
-                return new SourceComplexParameterSymbolWithCustomModifiers(
+                return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                     owner,
                     ordinal,
                     parameterType,
                     refKind,
-                    ImmutableArray<CustomModifier>.Empty,
                     ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
                     name,
                     locations,
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMethod())
             {
-                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
+                return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, isDiscard: false, locations);
             }
 
             return new SourceComplexParameterSymbol(
@@ -93,13 +91,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SourceParameterSymbol(
             Symbol owner,
-            TypeSymbol parameterType,
+            TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             string name,
             ImmutableArray<Location> locations)
             : base(owner, ordinal)
         {
+#if DEBUG
+            foreach (var location in locations)
+            {
+                Debug.Assert(location != null);
+            }
+#endif
             Debug.Assert((owner.Kind == SymbolKind.Method) || (owner.Kind == SymbolKind.Property));
             this.parameterType = parameterType;
             _refKind = refKind;
@@ -116,12 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, this.ContainingAssembly);
 
-            if (newCustomModifiers.IsEmpty && newRefCustomModifiers.IsEmpty)
+            TypeWithAnnotations newTypeWithModifiers = this.TypeWithAnnotations.WithTypeAndModifiers(newType, newCustomModifiers);
+
+            if (newRefCustomModifiers.IsEmpty)
             {
                 return new SourceComplexParameterSymbol(
                     this.ContainingSymbol,
                     this.Ordinal,
-                    newType,
+                    newTypeWithModifiers,
                     _refKind,
                     _name,
                     _locations,
@@ -134,12 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Local functions should never have custom modifiers
             Debug.Assert(!(ContainingSymbol is LocalFunctionSymbol));
 
-            return new SourceComplexParameterSymbolWithCustomModifiers(
+            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                 this.ContainingSymbol,
                 this.Ordinal,
-                newType,
+                newTypeWithModifiers,
                 _refKind,
-                newCustomModifiers,
                 newRefCustomModifiers,
                 _name,
                 _locations,
@@ -161,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            state.DefaultForceComplete(this);
+            state.DefaultForceComplete(this, cancellationToken);
         }
 
         /// <summary>
@@ -234,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbol Type
+        public sealed override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
@@ -253,14 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        internal override bool IsMetadataIn => RefKind == RefKind.In;
 
-            if (this.RefKind == RefKind.In)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
-            }
-        }
+        internal override bool IsMetadataOut => RefKind == RefKind.Out;
     }
 }

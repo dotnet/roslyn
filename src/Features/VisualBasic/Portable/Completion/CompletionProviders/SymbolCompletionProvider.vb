@@ -60,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
+            Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)

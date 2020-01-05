@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Differencing
 
             do
             {
-                IEnumerable<TNode> children = queue.Dequeue();
-                foreach (TNode child in children)
+                var children = queue.Dequeue();
+                foreach (var child in children)
                 {
                     ProcessNode(edits, child);
 
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             //
             // NOTE:
             // If we needed z then we would need to be updating M' as we encounter insertions.
-            bool hasPartner = _match.TryGetPartnerInTree1(x, out var w);
-            bool hasParent = Comparer.TryGetParent(x, out var y);
+            var hasPartner = _match.TryGetPartnerInTree1(x, out var w);
+            var hasParent = Comparer.TryGetParent(x, out var y);
 
             if (!hasPartner)
             {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 // c) else if x is not a root
                 // i. Let w be the partner of x in M', and let v = parent(w) in T1.
-                TNode v = Comparer.GetParent(w);
+                var v = Comparer.GetParent(w);
 
                 // ii. if value(w) != value(x)
                 // A. Append UPD(w, value(x)) to E

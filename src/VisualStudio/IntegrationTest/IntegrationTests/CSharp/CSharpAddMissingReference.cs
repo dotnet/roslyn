@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Other
@@ -100,9 +103,14 @@ class Program
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
                 "<Solution>" +
                $"   <Project ProjectName=\"{ClassLibrary1Name}\" ProjectTemplate=\"{WellKnownProjectTemplates.WinFormsApplication}\" Language=\"{LanguageNames.VisualBasic}\">" +
@@ -132,11 +140,11 @@ class Program
                 "</Solution>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void VerifyAvailableCodeActions()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            VisualStudio.SolutionExplorer.OpenFile( consoleProject, "Program.cs");
+            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
             VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
@@ -148,7 +156,7 @@ class Program
             VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
         public void InvokeSomeFixesInCSharpThenVerifyReferences()
         {
             var consoleProject = new ProjectUtils.Project(ConsoleProjectName);

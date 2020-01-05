@@ -90,14 +90,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Public Overrides Sub Format(context As FormattingContext,
                                         formattingRules As ChainedFormattingRules,
-                                        formattingResultApplier As Action(Of Integer, TriviaData),
+                                        formattingResultApplier As Action(Of Integer, TokenStream, TriviaData),
                                         cancellationToken As CancellationToken,
                                         Optional tokenPairIndex As Integer = TokenPairIndexNotNeeded)
                 If Not ShouldFormat(context) Then
                     Return
                 End If
 
-                formattingResultApplier(tokenPairIndex, Format(context, formattingRules, Me.LineBreaks, Me.Spaces, cancellationToken))
+                formattingResultApplier(tokenPairIndex, context.TokenStream, Format(context, formattingRules, Me.LineBreaks, Me.Spaces, cancellationToken))
             End Sub
 
             Public Overrides Function GetTextChanges(span As TextSpan) As IEnumerable(Of TextChange)

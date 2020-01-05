@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                return ContainingType.AreLocalsZeroed;
+            }
+        }
+
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
             Debug.Assert(!IsStatic);
@@ -56,5 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsDeclaredReadOnly => false;
+
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
     }
 }

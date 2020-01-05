@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // Type parameters are only found in documents that have both their name, and the
@@ -30,12 +31,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name, symbol.ContainingType.Name);
         }
 
-        protected override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
+        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
             Document document,
+            SemanticModel semanticModel,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
         }
     }
 }

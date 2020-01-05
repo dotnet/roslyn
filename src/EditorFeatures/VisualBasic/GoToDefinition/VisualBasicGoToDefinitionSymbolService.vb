@@ -11,6 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     Friend Class VisualBasicGoToDefinitionSymbolService
         Inherits AbstractGoToDefinitionSymbolService
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function FindRelatedExplicitlyDeclaredSymbol(symbol As ISymbol, compilation As Compilation) As ISymbol
             Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
         End Function

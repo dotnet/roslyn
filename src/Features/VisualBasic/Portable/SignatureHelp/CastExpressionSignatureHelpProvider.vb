@@ -11,17 +11,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Partial Friend Class CastExpressionSignatureHelpProvider
         Inherits AbstractIntrinsicOperatorSignatureHelpProvider(Of CastExpressionSyntax)
 
-        Protected Overrides Function GetIntrinsicOperatorDocumentation(node As CastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides Function GetIntrinsicOperatorDocumentationAsync(node As CastExpressionSyntax, document As Document, cancellationToken As CancellationToken) As ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))
             Select Case node.Kind
                 Case SyntaxKind.CTypeExpression
-                    Return {New CTypeCastExpressionDocumentation()}
+                    Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New CTypeCastExpressionDocumentation()})
                 Case SyntaxKind.DirectCastExpression
-                    Return {New DirectCastExpressionDocumentation()}
+                    Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New DirectCastExpressionDocumentation()})
                 Case SyntaxKind.TryCastExpression
-                    Return {New TryCastExpressionDocumentation()}
+                    Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))({New TryCastExpressionDocumentation()})
             End Select
 
-            Return SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)()
+            Return New ValueTask(Of IEnumerable(Of AbstractIntrinsicOperatorDocumentation))(SpecializedCollections.EmptyEnumerable(Of AbstractIntrinsicOperatorDocumentation)())
         End Function
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean

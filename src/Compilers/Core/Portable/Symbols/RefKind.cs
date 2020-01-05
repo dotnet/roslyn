@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -76,9 +78,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // used internally to track `In` arguments that were specified with `In` modifier
-        // as opposed to those that were specified with no modifiers and matched `In` parameter
-        // There is at least one kind of anlysis that cares about this distinction - async stack spilling
+        // Used internally to track `In` arguments that were specified with `In` modifier
+        // as opposed to those that were specified with no modifiers and matched `In` parameter.
+        // There is at least one kind of analysis that cares about this distinction - hoisting
+        // of variables to the frame for async rewriting: a variable that was passed without the
+        // `In` modifier may be correctly captured by value or by reference.
         internal const RefKind StrictIn = RefKind.In + 1;
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public RQArrayType(int rank, RQType elementType)
             : base(elementType)
         {
-            this.Rank = rank;
+            Rank = rank;
         }
 
         public override SimpleTreeNode ToSimpleTree()

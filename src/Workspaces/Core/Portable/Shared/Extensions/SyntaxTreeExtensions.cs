@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -10,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SyntaxTreeExtensions
+    internal static partial class SyntaxTreeExtensions
     {
         public static bool IsScript(this SyntaxTree syntaxTree)
         {
@@ -71,24 +70,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // SyntaxKind = None
             return default;
-        }
-
-        public static bool OverlapsHiddenPosition(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)
-        {
-            if (tree == null)
-            {
-                return false;
-            }
-
-            var text = tree.GetText(cancellationToken);
-
-            return text.OverlapsHiddenPosition(span, (position, cancellationToken2) =>
-                {
-                    // implements the ASP.Net IsHidden rule
-                    var lineVisibility = tree.GetLineVisibility(position, cancellationToken2);
-                    return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
-                },
-                cancellationToken);
         }
 
         public static bool IsEntirelyHidden(this SyntaxTree tree, TextSpan span, CancellationToken cancellationToken)

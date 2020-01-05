@@ -2,16 +2,17 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities.RemoteHost
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
+    <[UseExportProvider]>
     Public Class TodoCommentTests
         <Fact>
         Public Async Function TestSingleLineTodoComment_Colon() As Task
@@ -183,10 +184,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
                 workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)
 
                 Dim commentTokens = New TodoCommentTokens()
-                Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens)
+                Dim provider = New TodoCommentIncrementalAnalyzerProvider(commentTokens, Array.Empty(Of Lazy(Of IEventListener, EventListenerMetadata))())
                 Dim worker = DirectCast(provider.CreateIncrementalAnalyzer(workspace), TodoCommentIncrementalAnalyzer)
 
                 Dim document = workspace.Documents.First()
+                Dim initialTextSnapshot = document.GetTextBuffer().CurrentSnapshot
                 Dim documentId = document.Id
                 Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None)
 
@@ -198,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
                     Dim todo = todoLists(i)
                     Dim span = list(i)
 
-                    Dim line = document.InitialTextSnapshot.GetLineFromPosition(span.Start)
+                    Dim line = initialTextSnapshot.GetLineFromPosition(span.Start)
 
                     Assert.Equal(todo.MappedLine, line.LineNumber)
                     Assert.Equal(todo.MappedColumn, span.Start - line.Start.Position)

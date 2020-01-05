@@ -1,5 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.Text
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -113,10 +115,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentNullException(NameOf(changes))
             End If
 
-            Dim scanner As scanner
+            Dim scanner As Scanner
             If changes.Length = 1 AndAlso changes(0).Span = New TextSpan(0, Me.Length) AndAlso changes(0).NewLength = newText.Length Then
                 ' if entire text is replaced then do a full reparse
-                scanner = New scanner(newText, Options)
+                scanner = New Scanner(newText, Options)
             Else
                 scanner = New Blender(newText, changes, Me, Me.Options)
             End If
@@ -127,7 +129,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-            Dim tree = New ParsedSyntaxTree(newText, newText.Encoding, newText.ChecksumAlgorithm, Me.FilePath, Options, root, isMyTemplate:=False)
+            Dim tree = New ParsedSyntaxTree(
+                newText,
+                newText.Encoding,
+                newText.ChecksumAlgorithm,
+                FilePath,
+                Options,
+                root,
+                isMyTemplate:=False,
+                DiagnosticOptions)
 
             tree.VerifySource(changes)
             Return tree
@@ -145,7 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function Create(root As VisualBasicSyntaxNode,
                                       Optional options As VisualBasicParseOptions = Nothing,
                                       Optional path As String = "",
-                                      Optional encoding As Encoding = Nothing) As SyntaxTree
+                                      Optional encoding As Encoding = Nothing,
+                                      Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing) As SyntaxTree
             If root Is Nothing Then
                 Throw New ArgumentNullException(NameOf(root))
             End If
@@ -157,7 +168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 path:=path,
                 options:=If(options, VisualBasicParseOptions.Default),
                 syntaxRoot:=root,
-                isMyTemplate:=False)
+                isMyTemplate:=False,
+                diagnosticOptions)
         End Function
 
         ''' <summary>
@@ -179,6 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 options:=VisualBasicParseOptions.Default,
                 syntaxRoot:=root,
                 isMyTemplate:=False,
+                diagnosticOptions:=Nothing,
                 cloneRoot:=False)
         End Function
 
@@ -186,8 +199,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional options As VisualBasicParseOptions = Nothing,
                                          Optional path As String = "",
                                          Optional encoding As Encoding = Nothing,
+                                         Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(text, False, options, path, encoding, cancellationToken)
+            Return ParseText(text, isMyTemplate:=False, options, path, encoding, diagnosticOptions, cancellationToken)
         End Function
 
         Friend Shared Function ParseText(text As String,
@@ -195,8 +209,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional options As VisualBasicParseOptions = Nothing,
                                          Optional path As String = "",
                                          Optional encoding As Encoding = Nothing,
+                                         Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(SourceText.From(text, encoding), isMyTemplate, options, path, cancellationToken)
+            Return ParseText(
+                SourceText.From(text, encoding),
+                isMyTemplate,
+                options,
+                path,
+                diagnosticOptions,
+                cancellationToken)
         End Function
 
         ''' <summary>
@@ -205,29 +226,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ParseText(text As SourceText,
                                          Optional options As VisualBasicParseOptions = Nothing,
                                          Optional path As String = "",
+                                         Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
                                          Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
-            Return ParseText(text, False, options, path, cancellationToken)
+            Return ParseText(
+                text,
+                isMyTemplate:=False,
+                options,
+                path,
+                diagnosticOptions:=diagnosticOptions,
+                cancellationToken)
         End Function
 
-        Friend Shared Function ParseText(text As SourceText,
-                                         isMyTemplate As Boolean,
-                                         Optional options As VisualBasicParseOptions = Nothing,
-                                         Optional path As String = "",
-                                         Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
+        Friend Shared Function ParseText(
+            text As SourceText,
+            isMyTemplate As Boolean,
+            Optional parseOptions As VisualBasicParseOptions = Nothing,
+            Optional path As String = "",
+            Optional diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic) = Nothing,
+            Optional cancellationToken As CancellationToken = Nothing) As SyntaxTree
 
             If text Is Nothing Then
                 Throw New ArgumentNullException(NameOf(text))
             End If
 
-            options = If(options, VisualBasicParseOptions.Default)
+            parseOptions = If(parseOptions, VisualBasicParseOptions.Default)
 
             Dim node As InternalSyntax.CompilationUnitSyntax
-            Using parser As New parser(text, options, cancellationToken)
+            Using parser As New Parser(text, parseOptions, cancellationToken)
                 node = parser.ParseCompilationUnit()
             End Using
 
             Dim root = DirectCast(node.CreateRed(Nothing, 0), CompilationUnitSyntax)
-            Dim tree = New ParsedSyntaxTree(text, text.Encoding, text.ChecksumAlgorithm, path, options, root, isMyTemplate)
+            Dim tree = New ParsedSyntaxTree(
+                text,
+                text.Encoding,
+                text.ChecksumAlgorithm,
+                path,
+                parseOptions,
+                root,
+                isMyTemplate,
+                diagnosticOptions:=diagnosticOptions)
 
             tree.VerifySource()
             Return tree
@@ -511,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function IsAnyPreprocessorSymbolDefined(conditionalSymbolNames As IEnumerable(Of String), atNode As SyntaxNodeOrToken) As Boolean
             Debug.Assert(conditionalSymbolNames IsNot Nothing)
 
-            Dim conditionalSymbolsMap As conditionalSymbolsMap = Me.ConditionalSymbols
+            Dim conditionalSymbolsMap As ConditionalSymbolsMap = Me.ConditionalSymbols
             If conditionalSymbolsMap Is Nothing Then
                 Return False
             End If
@@ -534,5 +572,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
+        ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Shared Function ParseText(text As String,
+                                         options As VisualBasicParseOptions,
+                                         path As String,
+                                         encoding As Encoding,
+                                         cancellationToken As CancellationToken) As SyntaxTree
+            Return ParseText(text, options, path, encoding, diagnosticOptions:=Nothing, cancellationToken)
+        End Function
+
+        ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Shared Function ParseText(text As SourceText,
+                                         options As VisualBasicParseOptions,
+                                         path As String,
+                                         cancellationToken As CancellationToken) As SyntaxTree
+            Return ParseText(text, options, path, diagnosticOptions:=Nothing, cancellationToken)
+        End Function
+
+        ' 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Shared Function Create(root As VisualBasicSyntaxNode,
+                                      options As VisualBasicParseOptions,
+                                      path As String,
+                                      encoding As Encoding) As SyntaxTree
+            Return Create(root, options, path, encoding, diagnosticOptions:=Nothing)
+        End Function
     End Class
 End Namespace

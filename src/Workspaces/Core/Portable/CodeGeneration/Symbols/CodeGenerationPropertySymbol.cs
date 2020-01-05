@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     {
         private RefKind _refKind;
         public ITypeSymbol Type { get; }
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
         public bool IsIndexer { get; }
 
         public ImmutableArray<IParameterSymbol> Parameters { get; }

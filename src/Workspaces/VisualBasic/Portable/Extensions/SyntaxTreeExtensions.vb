@@ -1,25 +1,15 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Friend Module SyntaxTreeExtensions
+    Partial Friend Module SyntaxTreeExtensions
         ''' <summary>
         ''' Finds the token being touched by this position. Unlike the normal FindTrivia helper, this helper will prefer
         ''' trivia to the left rather than the right if the position is on the border.
@@ -116,7 +106,7 @@ recurse:
                 Return True
             End If
 
-            ' If it is a numeric literal, all checks are done and we're okay. 
+            ' If it is a numeric literal, all checks are done and we're okay.
             If token.IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.DecimalLiteralToken,
                             SyntaxKind.DateLiteralToken, SyntaxKind.FloatingLiteralToken) Then
                 Return False
@@ -253,10 +243,10 @@ recurse:
         End Function
 
         <Extension()>
-        Public Function GetMembersInSpan(root As SyntaxNode,
-                                         textSpan As TextSpan) As ImmutableArray(Of StatementSyntax)
+        Public Function GetSelectedFieldsAndPropertiesInSpan(root As SyntaxNode,
+                                         textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
 
-            Dim token = root.FindToken(textSpan.Start)
+            Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
             Dim firstMember = token.GetAncestors(Of StatementSyntax).
                                     Where(Function(s) TypeOf s.Parent Is TypeBlockSyntax).
                                     FirstOrDefault()
@@ -265,17 +255,18 @@ recurse:
                 If containingType IsNot Nothing AndAlso
                    firstMember IsNot containingType.BlockStatement AndAlso
                    firstMember IsNot containingType.EndBlockStatement Then
-                    Return GetMembersInSpan(textSpan, containingType, firstMember)
+                    Return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection)
                 End If
             End If
 
             Return ImmutableArray(Of StatementSyntax).Empty
         End Function
 
-        Private Function GetMembersInSpan(
+        Private Function GetFieldsAndPropertiesInSpan(
             textSpan As TextSpan,
             containingType As TypeBlockSyntax,
-            firstMember As StatementSyntax) As ImmutableArray(Of StatementSyntax)
+            firstMember As StatementSyntax,
+            allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
             Dim selectedMembers = ArrayBuilder(Of StatementSyntax).GetInstance()
 
             Try
@@ -287,12 +278,8 @@ recurse:
 
                 For i = fieldIndex To members.Count - 1
                     Dim member = members(i)
-                    If textSpan.Contains(member.Span) Then
+                    If IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection) Then
                         selectedMembers.Add(member)
-                    ElseIf (textSpan.OverlapsWith(member.Span)) Then
-                        Return ImmutableArray(Of StatementSyntax).Empty
-                    Else
-                        Exit For
                     End If
                 Next
 
@@ -300,6 +287,35 @@ recurse:
             Finally
                 selectedMembers.Free()
             End Try
+        End Function
+
+        Private Function IsSelectedFieldOrProperty(textSpan As TextSpan, member As StatementSyntax, allowPartialSelection As Boolean) As Boolean
+            If Not member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyStatement) Then
+                Return False
+            End If
+
+            ' first, check if entire member is selected
+            If textSpan.Contains(member.Span) Then
+                Return True
+            End If
+
+            If Not allowPartialSelection Then
+                Return False
+            End If
+
+            ' next, check if identifier is at lease partially selected
+            If member.IsKind(SyntaxKind.FieldDeclaration) Then
+                Dim fieldDeclaration = DirectCast(member, FieldDeclarationSyntax)
+                For Each declarator In fieldDeclaration.Declarators
+                    If textSpan.Contains(member.Span) Or (allowPartialSelection And textSpan.OverlapsWith(declarator.Names.Span)) Then
+                        Return True
+                    End If
+                Next
+            ElseIf member.IsKind(SyntaxKind.PropertyStatement) Then
+                Return textSpan.OverlapsWith((DirectCast(member, PropertyStatementSyntax)).Identifier.Span)
+            End If
+
+            Return False
         End Function
 
         <Extension()>
@@ -315,93 +331,6 @@ recurse:
             End If
 
             Return Nothing
-        End Function
-
-        ''' <summary>
-        ''' check whether given token is the last token of a statement that ends with end of line trivia or an elastic trivia
-        ''' </summary>
-        <Extension()>
-        Public Function IsLastTokenOfStatementWithEndOfLine(token As SyntaxToken) As Boolean
-            If Not token.HasTrailingTrivia Then
-                Return False
-            End If
-
-            ' easy case
-            Dim trailing = token.TrailingTrivia
-            If trailing.Count = 1 Then
-                Dim trivia = trailing.First()
-
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
-                    Return token.IsLastTokenOfStatement()
-                End If
-
-                Return False
-            End If
-
-            ' little bit more expansive case
-            For Each trivia In trailing
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
-                    Return token.IsLastTokenOfStatement()
-                End If
-            Next
-
-            Return False
-        End Function
-
-        ''' <summary>
-        ''' check whether given token is the last token of a statement by walking up the spine
-        ''' </summary>
-        <Extension()>
-        Public Function IsLastTokenOfStatement(token As SyntaxToken, Optional checkColonTrivia As Boolean = False) As Boolean
-            Dim current = token.Parent
-            While current IsNot Nothing
-                If current.FullSpan.End <> token.FullSpan.End Then
-                    Return False
-                End If
-
-                If TypeOf current Is StatementSyntax Then
-                    Dim colonTrivia = GetTrailingColonTrivia(DirectCast(current, StatementSyntax))
-                    If Not PartOfSingleLineLambda(current) AndAlso Not PartOfMultilineLambdaFooter(current) Then
-                        If checkColonTrivia Then
-                            If colonTrivia Is Nothing Then
-                                Return current.GetLastToken(includeZeroWidth:=True) = token
-                            End If
-                        Else
-                            Return current.GetLastToken(includeZeroWidth:=True) = token
-                        End If
-                    End If
-                End If
-
-                current = current.Parent
-            End While
-
-            Return False
-        End Function
-
-        Private Function GetTrailingColonTrivia(statement As StatementSyntax) As SyntaxTrivia?
-            If Not statement.HasTrailingTrivia Then
-                Return Nothing
-            End If
-
-            Return statement _
-                    .GetTrailingTrivia() _
-                    .FirstOrNullable(Function(t) t.Kind = SyntaxKind.ColonTrivia)
-        End Function
-
-        Private Function PartOfSingleLineLambda(node As SyntaxNode) As Boolean
-            While node IsNot Nothing
-                If TypeOf node Is MultiLineLambdaExpressionSyntax Then Return False
-                If TypeOf node Is SingleLineLambdaExpressionSyntax Then Return True
-                node = node.Parent
-            End While
-            Return False
-        End Function
-
-        Private Function PartOfMultilineLambdaFooter(node As SyntaxNode) As Boolean
-            Return node.AncestorsAndSelf.
-                Where(Function(n) TypeOf n Is MultiLineLambdaExpressionSyntax).
-                OfType(Of MultiLineLambdaExpressionSyntax).
-                Any(Function(n) n.EndSubOrFunctionStatement Is node)
         End Function
 
         <Extension()>

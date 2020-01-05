@@ -2,7 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests
     {
+        [UseExportProvider]
         public class VisualBasic
         {
             [Fact, WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -41,6 +42,7 @@ End Module");
 ' mscorlib.v4_6_1038_0.dll
 #End Region
 
+Imports System
 Imports System.Runtime.InteropServices
 
 Namespace System
@@ -62,10 +64,8 @@ Namespace System
     End Class
 End Namespace";
 
-                using (var context = TestContext.Create(LanguageNames.VisualBasic))
-                {
-                    await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
-                }
+                using var context = TestContext.Create(LanguageNames.VisualBasic);
+                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]

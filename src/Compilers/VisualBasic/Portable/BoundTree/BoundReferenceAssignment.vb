@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class BoundReferenceAssignment
 #If DEBUG Then
         Private Sub Validate()
-            Debug.Assert(ByRefLocal.LocalSymbol.IsByRef AndAlso LValue.IsLValue AndAlso Type = LValue.Type)
+            Debug.Assert(ByRefLocal.LocalSymbol.IsByRef AndAlso LValue.IsLValue AndAlso TypeSymbol.Equals(Type, LValue.Type, TypeCompareKind.ConsiderEverything))
         End Sub
 #End If
 

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Text
@@ -10,15 +11,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class PropertyDeclarationHighlighter
         Inherits AbstractKeywordHighlighter(Of PropertyStatementSyntax)
 
-        Protected Overrides Function GetHighlights(propertyDeclaration As PropertyStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides Sub AddHighlights(propertyDeclaration As PropertyStatementSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             ' If the ancestor is not a property block, treat this as an auto-property.
             ' Otherwise, let the PropertyBlockHighlighter take over.
             Dim propertyBlock = propertyDeclaration.GetAncestor(Of PropertyBlockSyntax)()
             If propertyBlock IsNot Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)()
 
             With propertyDeclaration
                 Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
@@ -28,8 +31,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
                 End If
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

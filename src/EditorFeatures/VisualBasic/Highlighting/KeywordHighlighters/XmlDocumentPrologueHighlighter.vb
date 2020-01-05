@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Text
@@ -10,9 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class XmlProcessingInstructionHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlProcessingInstructionSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(xmlProcessingInstruction As XmlProcessingInstructionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
+        Protected Overloads Overrides Sub addHighlights(xmlProcessingInstruction As XmlProcessingInstructionSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             With xmlProcessingInstruction
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
@@ -20,8 +23,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     highlights.Add(.QuestionGreaterThanToken.Span)
                 End If
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

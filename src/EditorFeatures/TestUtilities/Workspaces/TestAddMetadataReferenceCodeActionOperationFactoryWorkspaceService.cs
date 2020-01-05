@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [ExportWorkspaceService(typeof(IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService), WorkspaceKind.Test), Shared]
     public class TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
+        [ImportingConstructor]
+        public TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
+        {
+        }
+
         public CodeActionOperation CreateAddMetadataReferenceOperation(ProjectId projectId, AssemblyIdentity assemblyIdentity)
         {
             return new Operation(projectId, assemblyIdentity);

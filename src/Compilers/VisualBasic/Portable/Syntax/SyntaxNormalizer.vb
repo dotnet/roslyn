@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
         End Sub
 
-        Private Function GetIdentation(count As Integer) As SyntaxTrivia
+        Private Function GetIndentation(count As Integer) As SyntaxTrivia
             Dim capacity = count + 1
             If _indentations Is Nothing Then
                 _indentations = ArrayBuilder(Of SyntaxTrivia).GetInstance(capacity)
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
                     If _afterLineBreak And Not isTrailing Then
                         If Not _afterIndentation AndAlso Me.NeedsIndentAfterLineBreak(trivia) Then
-                            currentTriviaList.Add(Me.GetIdentation(GetIndentationDepth(trivia)))
+                            currentTriviaList.Add(Me.GetIndentation(GetIndentationDepth(trivia)))
                             _afterIndentation = True
                         End If
 
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         Dim structuredTrivia As SyntaxTrivia = Me.VisitStructuredTrivia(trivia)
                         currentTriviaList.Add(structuredTrivia)
                     Else
-                        ' in structured trivia, the xml doc ''' token contains leading whitespace as text (*yiiks*)
+                        ' in structured trivia, the xml doc ''' token contains leading whitespace as text
                         If trivia.Kind = SyntaxKind.DocumentationCommentExteriorTrivia Then
                             trivia = SyntaxFactory.DocumentationCommentExteriorTrivia(SyntaxFacts.GetText(SyntaxKind.DocumentationCommentExteriorTrivia))
                         End If
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
 
                 If mustBeIndented Then
-                    currentTriviaList.Add(Me.GetIdentation(depth))
+                    currentTriviaList.Add(Me.GetIndentation(depth))
                     _afterIndentation = True
                     _afterLineBreak = False
                 End If

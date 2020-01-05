@@ -30,14 +30,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }");
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal("o, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
         [Fact]
@@ -55,13 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("args, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
         [Fact]
@@ -76,16 +80,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         if (o is int i && /*<bind>*/i > 10/*</bind>*/) {}
     }
 }");
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o, i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
         [Fact]
@@ -108,8 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("args, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Equal("args, o", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
         }
 
     }

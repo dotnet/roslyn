@@ -2,9 +2,7 @@
 
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         [Fact]
         public void SimpleIterator1()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> Goo()
@@ -28,12 +26,12 @@ class Program
         yield break;
     }
 }
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Program"" name=""Goo"">
@@ -64,7 +62,7 @@ class Program
         [Fact]
         public void SimpleIterator2()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> Goo()
@@ -72,13 +70,13 @@ class Program
         yield break;
     }
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Program"" name=""Goo"">
@@ -109,7 +107,7 @@ class Program
         [Fact]
         public void SimpleIterator3()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> Goo()
@@ -117,13 +115,13 @@ class Program
         yield return 1; //hidden sequence point after this.
     }
 }
-";
+");
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Program"" name=""Goo"">
@@ -172,11 +170,19 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseDll);
+            var c = CompileAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>3__i0",
+                    "<>3__i1"
+                }, module.GetFieldNames("Program.<IEI>d__0"));
+            });
+
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Program"" name=""IEI"" parameterNames=""i0, i1"">
@@ -190,6 +196,7 @@ class Program
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes>
+          <slot />
           <slot startOffset=""0x2a"" endOffset=""0xb4"" />
           <slot startOffset=""0x6e"" endOffset=""0xb2"" />
         </hoistedLocalScopes>
@@ -216,7 +223,7 @@ class Program
         [Fact]
         public void IteratorWithLocals_DebugPdb()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class Program
 {
     System.Collections.Generic.IEnumerable<int> IEI<T>(int i0, int i1)
@@ -232,12 +239,21 @@ class Program
         yield break;
     }
 }
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+");
+
+            var c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
+            {
+                Assert.Equal(new[]
+                {
+                    "<>3__i0",
+                    "<>3__i1",
+                    "<>4__this",
+                }, module.GetFieldNames("Program.<IEI>d__0"));
+            });
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Program"" name=""IEI"" parameterNames=""i0, i1"">
@@ -288,7 +304,8 @@ class Program
         public void IteratorWithCapturedSyntheticVariables()
         {
             // this iterator captures the synthetic variable generated from the expansion of the foreach loop
-            var text = @"// Based on LegacyTest csharp\Source\Conformance\iterators\blocks\using001.cs
+            var text = WithWindowsLineBreaks(
+@"// Based on LegacyTest csharp\Source\Conformance\iterators\blocks\using001.cs
 using System;
 using System.Collections.Generic;
 
@@ -305,12 +322,12 @@ class Test<T>
         }
         yield return val;
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""Test`1"" name=""M"" parameterNames=""items"">
@@ -367,7 +384,7 @@ class Test<T>
         }
 
         [WorkItem(542705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542705"), WorkItem(528790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528790"), WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [Fact()]
+        [Fact]
         public void IteratorBackToNextStatementAfterYieldReturn()
         {
             var text = @"
@@ -399,11 +416,11 @@ class C
 ";
             using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe);
+                var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
                 c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
@@ -462,10 +479,10 @@ class C
         }
 
         [WorkItem(543490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543490")]
-        [Fact()]
+        [Fact]
         public void IteratorMultipleEnumerables()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -513,12 +530,12 @@ public class Test
         foreach (var v in new Test<string>()) { } 
     }
 }
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugExe);
+");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
@@ -670,7 +687,7 @@ public class Test
         [Fact]
         public void VariablesWithSubstitutedType1()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 class C
 {
@@ -682,7 +699,7 @@ class C
         yield return o[i];
     }
 }
-";
+");
 
             var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
@@ -700,7 +717,7 @@ class C
             v.VerifyPdb("C+<F>d__0`1.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__0`1"" name=""MoveNext"">
@@ -738,7 +755,7 @@ class C
         [Fact]
         public void IteratorWithConditionalBranchDiscriminator1()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 class C
 {
@@ -752,7 +769,7 @@ class C
         }
     }
 }
-";
+");
             // Note that conditional branch discriminator is not hoisted.
 
             var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -808,13 +825,12 @@ class C
   IL_0041:  nop
   IL_0042:  ldc.i4.0
   IL_0043:  ret
-}
-");
+}");
 
             v.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
@@ -844,7 +860,7 @@ class C
         [Fact]
         public void SynthesizedVariables1()
         {
-            var source =
+            var source = WithWindowsLineBreaks(
 @"
 using System;
 using System.Collections.Generic;
@@ -861,7 +877,7 @@ class C
         if (disposable != null) { using (disposable) { } }
         lock (this) { }
     }
-}";
+}");
             CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
@@ -912,7 +928,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""disposable"">
@@ -947,7 +963,7 @@ class C
         [Fact]
         public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -965,7 +981,7 @@ class C
         yield return x1 + x2 + x3;
     }
 }
-";
+");
             var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
@@ -981,7 +997,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1100,7 +1116,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1125,7 +1141,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1140,7 +1156,7 @@ class C
         [Fact]
         public void DisplayClass_InBetweenSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -1160,7 +1176,7 @@ class C
         // () => { x1 }
     }
 }
-";
+");
             // We need to hoist display class variable to allow adding a new lambda after yield return 
             // that shares closure with the existing lambda.
 
@@ -1232,13 +1248,12 @@ class C
   IL_0078:  stfld      ""int C.<M>d__0.<>1__state""
   IL_007d:  ldc.i4.0
   IL_007e:  ret
-}
-");
+}");
 
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1270,7 +1285,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1295,7 +1310,7 @@ class C
         [Fact]
         public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -1307,8 +1322,8 @@ class C
         d.ToString();
     }
 }
-";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+");
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1324,7 +1339,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1354,11 +1369,10 @@ class C
     </method>
   </methods>
 </symbols>");
-
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1392,7 +1406,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1405,7 +1419,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1439,7 +1453,7 @@ class C
         [Fact]
         public void DynamicLocal_InBetweenSuspensionPoints_Debug()
         {
-            string source = @"
+            string source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -1453,8 +1467,8 @@ class C
         // System.Console.WriteLine(d);
     }
 }
-";
-            var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+");
+            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1468,7 +1482,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1499,10 +1513,11 @@ class C
 </symbols>");
         }
 
-        [Fact, WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")]
+        [WorkItem(667579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667579")]
+        [Fact]
         public void DebuggerHiddenIterator()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1520,12 +1535,12 @@ class C
         throw new Exception();
         yield break;
     }
-}";
-            var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
+}");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
@@ -1554,7 +1569,7 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateStandardCompilation(src, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();
@@ -1595,7 +1610,8 @@ MethodDebugInformation (index: 0x31, size: 40):
 7: nil
 8: nil
 9: nil
-a: nil",
+a: nil
+",
                     writer.ToString());
             }
         }

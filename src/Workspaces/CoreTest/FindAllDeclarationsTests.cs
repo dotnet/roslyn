@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class FindAllDeclarationsTests : TestBase
     {
         #region FindDeclarationsAsync
@@ -533,6 +534,140 @@ Inner i;
             });
         }
 
+        #endregion
+
+        #region FindSourceDeclarationsWithPatternAsync_Project
+
+        [Theory,
+        InlineData(WorkspaceKind.SingleClass, new[] { "TestCases", "TestCases.TestCase" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleMethod, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.Test(string[])" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleProperty, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField" }),
+        InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.Test(string[])" }),
+        InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty" }),
+        InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField" }),
+        InlineData(WorkspaceKind.NestedClass, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.InnerTestCase" }),
+        InlineData(WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1", "TestCase1.TestCase", "TestCase2.TestCase", "TestCase2" }),]
+
+        public async Task FindSourceDeclarationsWithPatternAsync_Project_Test(WorkspaceKind workspaceKind, string[] expectedResults)
+        {
+            var project = GetProject(workspaceKind);
+            var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test").ConfigureAwait(false);
+            Verify(workspaceKind, declarations, expectedResults);
+        }
+
+        [Theory,
+        InlineData(WorkspaceKind.SingleClass, "tc", new[] { "TestCases", "TestCases.TestCase" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleMethod, "tc", new[] { "TestCases", "TestCases.TestCase" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleProperty, "tp", new[] { "TestCases.TestCase.TestProperty" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleField, "tf", new[] { "TestCases.TestCase.TestField" }),]
+
+        public async Task FindSourceDeclarationsWithPatternAsync_CamelCase_Project_Test(WorkspaceKind workspaceKind, string pattern, string[] expectedResults)
+        {
+            var project = GetProject(workspaceKind);
+            var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, pattern).ConfigureAwait(false);
+            Verify(workspaceKind, declarations, expectedResults);
+        }
+
+        [Fact]
+        public async Task FindSourceDeclarationsWithPatternAsync_Project_Test_NullProject()
+        {
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+            {
+                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync((Project)null, "test");
+            });
+        }
+
+        [Fact]
+        public async Task FindSourceDeclarationsWithPatternAsync_Project_Test_NullPattern()
+        {
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+            {
+                var project = GetProject(WorkspaceKind.SingleClass);
+                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, null);
+            });
+        }
+
+        [Fact]
+        public async Task FindSourceDeclarationsWithPatternAsync_Project_Test_Cancellation()
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                var cts = new CancellationTokenSource();
+                var project = GetProject(WorkspaceKind.SingleClass);
+                cts.Cancel();
+                var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(project, "test", SymbolFilter.All, cts.Token);
+            });
+        }
+
+        #endregion
+
+        #region FindSourceDeclarationsWithPatternAsync_Solution
+
+        [Theory,
+        InlineData(WorkspaceKind.SingleClass, new[] { "TestCases", "TestCases.TestCase" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleMethod, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.Test(string[])" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleProperty, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleField, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField" }),
+        InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleMethod, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.Test(string[])", "TestCases", "TestCases.TestCase", "TestCases.TestCase.Test(string[])" }),
+        InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleProperty, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty", "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestProperty" }),
+        InlineData(WorkspaceKind.TwoProjectsEachWithASingleClassWithSingleField, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField", "TestCases", "TestCases.TestCase", "TestCases.TestCase.TestField" }),
+        InlineData(WorkspaceKind.NestedClass, new[] { "TestCases", "TestCases.TestCase", "TestCases.TestCase.InnerTestCase" }),
+        InlineData(WorkspaceKind.TwoNamespacesWithIdenticalClasses, new[] { "TestCase1", "TestCase1.TestCase", "TestCase2.TestCase", "TestCase2" }),]
+
+        public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test(WorkspaceKind workspaceKind, string[] expectedResult)
+        {
+            var solution = GetSolution(workspaceKind);
+            var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test").ConfigureAwait(false);
+            Verify(workspaceKind, declarations, expectedResult);
+        }
+
+        [Theory,
+        InlineData(WorkspaceKind.SingleClass, "tc", new[] { "TestCases", "TestCases.TestCase" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleMethod, "tc", new[] { "TestCases", "TestCases.TestCase" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleProperty, "tp", new[] { "TestCases.TestCase.TestProperty" }),
+        InlineData(WorkspaceKind.SingleClassWithSingleField, "tf", new[] { "TestCases.TestCase.TestField" }),]
+
+        public async Task FindSourceDeclarationsWithPatternAsync_CamelCase_Solution_Test(WorkspaceKind workspaceKind, string pattern, string[] expectedResults)
+        {
+            var solution = GetSolution(workspaceKind);
+            var declarations = await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, pattern).ConfigureAwait(false);
+            Verify(workspaceKind, declarations, expectedResults);
+        }
+
+        [Fact]
+        public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test_NullSolution()
+        {
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+            {
+                await SymbolFinder.FindSourceDeclarationsWithPatternAsync((Solution)null, "test");
+            });
+        }
+
+        [Fact]
+        public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test_NullPattern()
+        {
+            await Assert.ThrowsAnyAsync<ArgumentNullException>(async () =>
+            {
+                var solution = GetSolution(WorkspaceKind.SingleClass);
+                await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, null);
+            });
+        }
+
+        [Fact]
+        public async Task FindSourceDeclarationsWithPatternAsync_Solution_Test_Cancellation()
+        {
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                var cts = new CancellationTokenSource();
+                var solution = GetSolution(WorkspaceKind.SingleClass);
+                cts.Cancel();
+                await SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, "test", SymbolFilter.All, cts.Token);
+            });
+        }
+
+        #endregion
+
         [Fact]
         public async Task TestSymbolTreeInfoSerialization()
         {
@@ -543,25 +678,19 @@ Inner i;
             var info = await SymbolTreeInfo.CreateSourceSymbolTreeInfoAsync(
                 project, Checksum.Null, cancellationToken: CancellationToken.None);
 
-            using (var writerStream = new MemoryStream())
+            using var writerStream = new MemoryStream();
+            using (var writer = new ObjectWriter(writerStream))
             {
-                using (var writer = new ObjectWriter(writerStream))
-                {
-                    info.WriteTo(writer);
-                }
-
-                using (var readerStream = new MemoryStream(writerStream.ToArray()))
-                using (var reader = ObjectReader.TryGetReader(readerStream))
-                {
-                    var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(
-                        reader, Checksum.Null);
-
-                    info.AssertEquivalentTo(readInfo);
-                }
+                info.WriteTo(writer);
             }
-        }
 
-        #endregion
+            using var readerStream = new MemoryStream(writerStream.ToArray());
+            using var reader = ObjectReader.TryGetReader(readerStream);
+            var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(
+reader, Checksum.Null);
+
+            info.AssertEquivalentTo(readInfo);
+        }
 
         [Fact, WorkItem(7941, "https://github.com/dotnet/roslyn/pull/7941")]
         public async Task FindDeclarationsInErrorSymbolsDoesntCrash()

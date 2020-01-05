@@ -1,7 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.ObjectModel
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.Internal.VisualStudio.PlatformUI
+Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
@@ -9,6 +11,7 @@ Imports Microsoft.VisualStudio.Shell
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
+    <[UseExportProvider]>
     Public Class AnalyzersFolderProviderTests
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
@@ -31,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim hierarchyItem = New MockHierarchyItem With {.HierarchyIdentity = Nothing}
 
-                Dim collectionSource = provider.CreateCollectionSource(Nothing, KnownRelationships.Contains)
+                Dim collectionSource = provider.CreateCollectionSource(hierarchyItem, KnownRelationships.Contains)
 
                 Assert.Null(collectionSource)
             End Using
@@ -58,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     }
                 }
 
-                Dim mapper = New HierarchyItemMapper(environment.ProjectTracker)
+                Dim mapper = New HierarchyItemToProjectIdMap(environment.Workspace)
 
                 Dim provider As IAttachedCollectionSourceProvider = New AnalyzersFolderItemProvider(mapper, environment.Workspace, New FakeAnalyzersCommandHandler)
 

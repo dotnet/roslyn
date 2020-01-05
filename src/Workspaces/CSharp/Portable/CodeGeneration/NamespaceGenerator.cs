@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            options = options ?? CodeGenerationOptions.Default;
+            options ??= CodeGenerationOptions.Default;
             GetNameAndInnermostNamespace(@namespace, options, out var name, out var innermostNamespace);
 
             var declaration = GetDeclarationSyntaxWithoutMembers(@namespace, innermostNamespace, name, options);
@@ -112,19 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static SyntaxNode RemoveAllMembers(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
+            => declaration.Kind() switch
             {
-                case SyntaxKind.CompilationUnit:
-                    return ((CompilationUnitSyntax)declaration).WithMembers(default);
-
-                case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)declaration).WithMembers(default);
-
-                default:
-                    return declaration;
-            }
-        }
+                SyntaxKind.CompilationUnit => ((CompilationUnitSyntax)declaration).WithMembers(default),
+                SyntaxKind.NamespaceDeclaration => ((NamespaceDeclarationSyntax)declaration).WithMembers(default),
+                _ => declaration,
+            };
 
         private static SyntaxList<UsingDirectiveSyntax> GenerateUsingDirectives(INamespaceSymbol innermostNamespace)
         {

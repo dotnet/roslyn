@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         // null object
         protected class NullSelectionResult : SelectionResult
         {
-            public NullSelectionResult() :
-                this(OperationStatus.FailedWithUnknownReason)
+            public NullSelectionResult()
+                : this(OperationStatus.FailedWithUnknownReason)
             {
             }
 
-            protected NullSelectionResult(OperationStatus status) :
-                base(status)
+            protected NullSelectionResult(OperationStatus status)
+                : base(status)
             {
             }
 
-            protected override bool UnderAsyncAnonymousMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
+            protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
             {
                 throw new InvalidOperationException();
             }
@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         protected class ErrorSelectionResult : NullSelectionResult
         {
-            public ErrorSelectionResult(OperationStatus status) :
-                base(status.MakeFail())
+            public ErrorSelectionResult(OperationStatus status)
+                : base(status.MakeFail())
             {
             }
         }

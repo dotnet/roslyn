@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Composition;
-using System.Globalization;
-using System.Text;
+﻿using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     [ExportWorkspaceServiceFactory(typeof(ICompletionHelperService)), Shared]
     internal class CompletionHelperServiceFactory : IWorkspaceServiceFactory
     {
+        [ImportingConstructor]
+        public CompletionHelperServiceFactory()
+        {
+        }
+
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(workspaceServices.Workspace);
@@ -46,15 +45,15 @@ namespace Microsoft.CodeAnalysis.Completion
                     var caseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
 
                     return caseSensitive
-                        ? this._caseSensitiveInstance
-                        : this._caseInsensitiveInstance;
+                        ? _caseSensitiveInstance
+                        : _caseInsensitiveInstance;
                 }
             }
 
             private void CreateInstances()
             {
-                this._caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-                this._caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+                _caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+                _caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)

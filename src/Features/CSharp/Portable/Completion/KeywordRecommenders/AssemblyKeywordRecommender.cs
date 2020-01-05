@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -17,12 +15,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsTypeAttributeContext(cancellationToken))
-            {
-                var token = context.LeftToken;
-                var type = token.GetAncestor<MemberDeclarationSyntax>();
+            var token = context.TargetToken;
 
-                return type == null || type.IsParentKind(SyntaxKind.CompilationUnit);
+            if (token.Kind() == SyntaxKind.OpenBracketToken &&
+                token.Parent.Kind() == SyntaxKind.AttributeList)
+            {
+                var attributeList = token.Parent;
+                var parentSyntax = attributeList.Parent;
+                switch (parentSyntax)
+                {
+                    case CompilationUnitSyntax _:
+                    case NamespaceDeclarationSyntax _:
+                    // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
+                    // [$$
+                    // class Goo {
+                    // for these cases is necessary check if they Parent is CompilationUnitSyntax
+                    case BaseTypeDeclarationSyntax baseType when baseType.Parent is CompilationUnitSyntax:
+                    // The case where the parent of attributeList is IncompleteMemberSyntax(See test: ), like:
+                    // [$$
+                    // for that case is necessary check if they Parent is CompilationUnitSyntax
+                    case IncompleteMemberSyntax incompleteMember when incompleteMember.Parent is CompilationUnitSyntax:
+                        return true;
+                }
             }
 
             return false;

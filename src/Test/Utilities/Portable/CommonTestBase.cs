@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
@@ -22,6 +23,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
+    public enum Verification
+    {
+        Passes = 0,
+        Fails,
+        Skipped
+    }
+
     /// <summary>
     /// Base class for all language specific tests.
     /// </summary>
@@ -29,82 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         #region Emit
 
-        protected abstract Compilation GetCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options,
-            ParseOptions parseOptions);
-
-        protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
-
-        internal CompilationVerifier CompileAndVerify(
-            string source,
-            IEnumerable<MetadataReference> additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<IModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<IModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
-            EmitOptions emitOptions = null,
-            bool verify = true)
-        {
-            return CompileAndVerify(
-                sources: new string[] { source },
-                additionalRefs: additionalRefs,
-                dependencies: dependencies,
-                sourceSymbolValidator: sourceSymbolValidator,
-                assemblyValidator: assemblyValidator,
-                symbolValidator: symbolValidator,
-                expectedSignatures: expectedSignatures,
-                expectedOutput: expectedOutput,
-                options: options,
-                parseOptions: parseOptions,
-                emitOptions: emitOptions,
-                verify: verify);
-        }
-
-        internal CompilationVerifier CompileAndVerify(
-            IEnumerable<string> sources,
-            IEnumerable<MetadataReference> additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<IModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<IModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            int? expectedReturnCode = null,
-            string[] args = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
-            EmitOptions emitOptions = null,
-            bool verify = true)
-        {
-            if (options == null)
-            {
-                options = CompilationOptionsReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
-
-            return this.CompileAndVerify(
-                compilation,
-                null,
-                dependencies,
-                sourceSymbolValidator,
-                assemblyValidator,
-                symbolValidator,
-                expectedSignatures,
-                expectedOutput,
-                expectedReturnCode,
-                args,
-                emitOptions,
-                verify);
-        }
-
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -116,20 +49,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
-            bool verify = true)
+            Verification verify = Verification.Passes)
         {
             Assert.NotNull(compilation);
 
             Assert.True(expectedOutput == null ||
                 (compilation.Options.OutputKind == OutputKind.ConsoleApplication || compilation.Options.OutputKind == OutputKind.WindowsApplication),
                 "Compilation must be executable if output is expected.");
-
-            if (verify)
-            {
-                // Unsafe code might not verify, so don't try.
-                var csharpOptions = compilation.Options as CSharp.CSharpCompilationOptions;
-                verify = (csharpOptions == null || !csharpOptions.AllowUnsafe);
-            }
 
             if (sourceSymbolValidator != null)
             {
@@ -168,10 +94,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return result;
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
+        internal CompilationVerifier CompileAndVerifyFieldMarshalCommon(Compilation compilation, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
         {
-            return CompileAndVerifyFieldMarshal(
-                source,
+            return CompileAndVerifyFieldMarshalCommon(
+                compilation,
                 (s, _omitted1) =>
                 {
                     Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
@@ -180,26 +106,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 isField);
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
+        internal CompilationVerifier CompileAndVerifyFieldMarshalCommon(Compilation compilation, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
+            return CompileAndVerifyCommon(compilation, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
+            Assert.True(assemblyValidator != null || symbolValidator != null);
+
+            var emittedMetadata = verifier.GetMetadata();
+
             if (assemblyValidator != null)
             {
-                using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
-                {
-                    assemblyValidator(emittedMetadata.GetAssembly());
-                }
+                Assert.Equal(MetadataImageKind.Assembly, emittedMetadata.Kind);
+
+                var assembly = ((AssemblyMetadata)emittedMetadata).GetAssembly();
+                assemblyValidator(assembly);
             }
 
             if (symbolValidator != null)
             {
-                var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
-                Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol);
+                var reference = emittedMetadata.Kind == MetadataImageKind.Assembly
+                    ? ((AssemblyMetadata)emittedMetadata).GetReference()
+                    : ((ModuleMetadata)emittedMetadata).GetReference();
+
+                var moduleSymbol = verifier.GetSymbolFromMetadata(reference, verifier.Compilation.Options.MetadataImportOptions);
+                symbolValidator(moduleSymbol);
             }
         }
 
@@ -214,15 +147,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
             EmitOptions emitOptions,
-            bool verify)
+            Verification verify)
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
             verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
-            // We're dual-purposing emitters here.  In this context, it
-            // tells the validator the version of Emit that is calling it. 
-            RunValidators(verifier, assemblyValidator, symbolValidator);
+            if (assemblyValidator != null || symbolValidator != null)
+            {
+                // We're dual-purposing emitters here.  In this context, it
+                // tells the validator the version of Emit that is calling it. 
+                RunValidators(verifier, assemblyValidator, symbolValidator);
+            }
 
             return verifier;
         }
@@ -362,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                parseOptions = CSharp.CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
+                parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default).WithDocumentationMode(DocumentationMode.None);
             }
 
             if (compilationOptions == null)
@@ -458,11 +394,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static string WithWindowsLineBreaks(string source)
+            => source.Replace(Environment.NewLine, "\r\n");
+
         #endregion
 
         #region IL Verification
 
-        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers);
+        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed);
 
         #endregion
 
@@ -489,6 +428,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 minorSubsystemVersion: 0,
                 linkerMajorVersion: 0,
                 linkerMinorVersion: 0);
+        }
+
+        internal void AssertDeclaresType(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
+        {
+            var name = MetadataTypeName.FromFullName(type.GetMetadataName());
+            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
         }
 
         #endregion
@@ -583,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var child in node.ChildNodes())
             {
-                var operation = model.GetOperationInternal(child);
+                var operation = model.GetOperation(child);
                 if (operation != null)
                 {
                     // found top operation
@@ -602,13 +547,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var node in model.SyntaxTree.GetRoot().DescendantNodes())
             {
-                var operation = model.GetOperationInternal(node);
+                var operation = model.GetOperation(node);
                 if (operation == null)
                 {
                     continue;
                 }
 
-                var clonedOperation = model.CloneOperation(operation);
+                var clonedOperation = OperationCloner.CloneOperation(operation);
+
+                Assert.Same(model, operation.SemanticModel);
+                Assert.Same(model, clonedOperation.SemanticModel);
+                Assert.NotSame(model, ((Operation)operation).OwningSemanticModel);
+                Assert.Same(((Operation)operation).OwningSemanticModel, ((Operation)clonedOperation).OwningSemanticModel);
 
                 // check whether cloned IOperation is same as original one
                 var original = OperationTreeVerifier.GetOperationTree(model.Compilation, operation);
@@ -627,7 +577,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static void VerifyOperationTreeContracts(IOperation root)
         {
-            var semanticModel = ((Operation)root).SemanticModel;
+            var semanticModel = ((Operation)root).OwningSemanticModel;
             var set = new HashSet<IOperation>(root.DescendantsAndSelf());
 
             foreach (var child in root.DescendantsAndSelf())
@@ -646,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             while (node != semanticModel.Root)
             {
-                var operation = semanticModel.GetOperationInternal(node);
+                var operation = semanticModel.GetOperation(node);
                 if (operation != null)
                 {
                     Assert.True(set.Contains(operation));
@@ -655,6 +605,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 node = node.Parent;
             }
         }
+
+        #endregion
+
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> ExternalPdbFormats
+        {
+            get
+            {
+                if (ExecutionConditionUtil.IsWindows)
+                {
+                    return new List<object[]>()
+                    {
+                        new object[] { DebugInformationFormat.Pdb },
+                        new object[] { DebugInformationFormat.PortablePdb }
+                    };
+                }
+                else
+                {
+                    return new List<object[]>()
+                    {
+                        new object[] { DebugInformationFormat.PortablePdb }
+                    };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> PdbFormats =>
+            new List<object[]>(ExternalPdbFormats)
+            {
+                new object[] { DebugInformationFormat.Embedded }
+            };
 
         #endregion
     }

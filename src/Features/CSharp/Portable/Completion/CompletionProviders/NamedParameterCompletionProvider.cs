@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -35,75 +37,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
+
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+                {
+                    return;
+                }
+
+                var token = syntaxTree
+                    .FindTokenOnLeftOfPosition(position, cancellationToken)
+                    .GetPreviousTokenIfTouchingWord(position);
+
+                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+                {
+                    return;
+                }
+
+                if (!(token.Parent is BaseArgumentListSyntax argumentList))
+                {
+                    return;
+                }
+
+                var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
+                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
+                if (parameterLists == null)
+                {
+                    return;
+                }
+
+                var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
+                parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
+
+                var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
+                                                          .Where(p => !existingNamedParameters.Contains(p.Name))
+                                                          .Distinct(this);
+
+                if (!unspecifiedParameters.Any())
+                {
+                    return;
+                }
+
+                // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
+                // See https://github.com/dotnet/roslyn/issues/20657
+                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+                if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
+                {
+                    context.IsExclusive = true;
+                }
+
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var workspace = document.Project.Solution.Workspace;
+
+                foreach (var parameter in unspecifiedParameters)
+                {
+                    // Note: the filter text does not include the ':'.  We want to ensure that if 
+                    // the user types the name exactly (up to the colon) that it is selected as an
+                    // exact match.
+                    var escapedName = parameter.Name.ToIdentifierToken().ToString();
+
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: escapedName,
+                        displayTextSuffix: ColonString,
+                        symbols: ImmutableArray.Create(parameter),
+                        rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
+                        contextPosition: token.SpanStart,
+                        filterText: escapedName));
+                }
             }
-
-            var token = syntaxTree
-                .FindTokenOnLeftOfPosition(position, cancellationToken)
-                .GetPreviousTokenIfTouchingWord(position);
-
-            if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.OpenBracketToken, SyntaxKind.CommaToken))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                return;
-            }
-
-            var argumentList = token.Parent as BaseArgumentListSyntax;
-            if (argumentList == null)
-            {
-                return;
-            }
-
-            var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
-            var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
-            if (parameterLists == null)
-            {
-                return;
-            }
-
-            var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
-            parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
-
-            var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
-                                                      .Where(p => !existingNamedParameters.Contains(p.Name))
-                                                      .Distinct(this);
-
-            if (!unspecifiedParameters.Any())
-            {
-                return;
-            }
-
-            // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
-            // See https://github.com/dotnet/roslyn/issues/20657
-            var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
-            if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
-            {
-                context.IsExclusive = true;
-            }
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            var workspace = document.Project.Solution.Workspace;
-
-            foreach (var parameter in unspecifiedParameters)
-            {
-                // Note: the filter text does not include the ':'.  We want to ensure that if 
-                // the user types the name exactly (up to the colon) that it is selected as an
-                // exact match.
-                var escapedName = parameter.Name.ToIdentifierToken().ToString();
-
-                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: escapedName + ColonString,
-                    symbols: ImmutableArray.Create(parameter),
-                    rules: s_rules.WithMatchPriority(SymbolMatchPriority.PreferNamedArgument),
-                    contextPosition: token.SpanStart,
-                    filterText: escapedName));
+                // nop
             }
         }
 
@@ -147,9 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             ObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
-            var type = semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type as INamedTypeSymbol;
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-            if (type != null && within != null && type.TypeKind != TypeKind.Delegate)
+            if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type && within != null && type.TypeKind != TypeKind.Delegate)
             {
                 return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
                                                 .Select(c => c.Parameters);
@@ -173,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
                 if (within != null)
                 {
-                    return indexers.Where(i => i.IsAccessibleWithin(within, throughTypeOpt: expressionType))
+                    return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
                                    .Select(i => i.Parameters);
                 }
             }
@@ -246,7 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return Task.FromResult<TextChange?>(new TextChange(
                 selectedItem.Span,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
+                // Insert extra colon if committing with '(' only: "method(parameter:(" is preferred to "method(parameter(".
+                // In all other cases, do not add extra colon. Note that colon is already added if committing with ':'.
+                ch == '(' ? selectedItem.GetEntireDisplayText() : selectedItem.DisplayText));
         }
     }
 }

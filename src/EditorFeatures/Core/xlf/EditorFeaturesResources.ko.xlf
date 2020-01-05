@@ -1,0 +1,1359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../EditorFeaturesResources.resx">
+    <body>
+      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="translated">식별자 '{0}'의 인라인 이름 바꾸기 세션이 활성 상태입니다. 추가 옵션에 액세스하려면 인라인 이름 바꾸기를 다시 호출하세요. 언제든지 이름을 바꾸려는 식별자를 계속 편집할 수 있습니다.</target>
+        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      </trans-unit>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="translated">변경 내용 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="translated">구성 변경</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="translated">코드 정리가 구성되지 않았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="translated">지금 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="translated">이 메시지를 다시 표시하지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">가져오지 않은 네임스페이스의 항목</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">확장기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">메서드 추출에서 다음 문제가 발생했습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">필터</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="translated">추가 정리를 수행 하는 문서</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="translated">기본으로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">잘못된 어셈블리 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">어셈블리 이름에 잘못된 문자가 있음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">키워드 - 제어</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="translated">베이스를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">연산자 - 오버로드됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">붙여넣기 추적</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preprocessor_Text">
+        <source>Preprocessor Text</source>
+        <target state="translated">전처리기 텍스트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Punctuation">
+        <source>Punctuation</source>
+        <target state="translated">문장 부호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file">
+        <source>Rename _file</source>
+        <target state="translated">파일 이름 바꾸기(_F)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="translated">파일 이름 바꾸기(형식이 파일 이름과 일치하지 않음)(_F)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="translated">파일 이름 바꾸기(부분 형식에서 허용되지 않음)(_F)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="translated">문자열 - 이스케이프 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">기호 - 정적</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="translated">기호에 베이스가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">블록 주석 토글</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">줄 주석 토글</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">블록 주석을 토글하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">줄 주석을 토글하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">사용자 멤버 - 상수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">사용자 멤버 - 열거형 멤버</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">사용자 멤버 - 이벤트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">사용자 멤버 - 확장 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">사용자 멤버 - 필드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">사용자 멤버 - 레이블</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">사용자 멤버 - 로컬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">사용자 멤버 - 메서드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">사용자 멤버 - 네임스페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">사용자 멤버 - 매개 변수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">사용자 멤버 - 속성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Classes">
+        <source>User Types - Classes</source>
+        <target state="translated">사용자 형식 - 클래스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Delegates">
+        <source>User Types - Delegates</source>
+        <target state="translated">사용자 형식 - 대리자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Enums">
+        <source>User Types - Enums</source>
+        <target state="translated">사용자 형식 - 열거형</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Interfaces">
+        <source>User Types - Interfaces</source>
+        <target state="translated">사용자 형식 - 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Structures">
+        <source>User Types - Structures</source>
+        <target state="translated">사용자 형식 - 구조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Type_Parameters">
+        <source>User Types - Type Parameters</source>
+        <target state="translated">사용자 형식 - 형식 매개 변수</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Verbatim">
+        <source>String - Verbatim</source>
+        <target state="translated">문자열 - 축자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">백그라운드 작업이 완료될 때까지 대기 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">경고</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Name">
+        <source>XML Doc Comments - Attribute Name</source>
+        <target state="translated">XML 문서 주석 - 특성 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_CData_Section">
+        <source>XML Doc Comments - CData Section</source>
+        <target state="translated">XML 문서 주석 - CData 섹션</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Text">
+        <source>XML Doc Comments - Text</source>
+        <target state="translated">XML 문서 주석 - 텍스트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Delimiter">
+        <source>XML Doc Comments - Delimiter</source>
+        <target state="translated">XML 문서 주석 - 구분 기호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Comment">
+        <source>XML Doc Comments - Comment</source>
+        <target state="translated">XML 문서 주석 - 주석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Modules">
+        <source>User Types - Modules</source>
+        <target state="translated">사용자 형식 - 모듈</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Name">
+        <source>VB XML Literals - Attribute Name</source>
+        <target state="translated">VB XML 리터럴 - 특성 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Quotes">
+        <source>VB XML Literals - Attribute Quotes</source>
+        <target state="translated">VB XML 리터럴 - 특성 인용 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Value">
+        <source>VB XML Literals - Attribute Value</source>
+        <target state="translated">VB XML 리터럴 - 특성 값</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_CData_Section">
+        <source>VB XML Literals - CData Section</source>
+        <target state="translated">VB XML 리터럴 - CData 섹션</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Comment">
+        <source>VB XML Literals - Comment</source>
+        <target state="translated">VB XML 리터럴 - 주석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Delimiter">
+        <source>VB XML Literals - Delimiter</source>
+        <target state="translated">VB XML 리터럴 - 구분 기호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Embedded_Expression">
+        <source>VB XML Literals - Embedded Expression</source>
+        <target state="translated">VB XML 리터럴 - 포함 식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Entity_Reference">
+        <source>VB XML Literals - Entity Reference</source>
+        <target state="translated">VB XML 리터럴 - 엔터티 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Name">
+        <source>VB XML Literals - Name</source>
+        <target state="translated">VB XML 리터럴 - 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Processing_Instruction">
+        <source>VB XML Literals - Processing Instruction</source>
+        <target state="translated">VB XML 리터럴 - 처리 명령</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Text">
+        <source>VB XML Literals - Text</source>
+        <target state="translated">VB XML 리터럴 - 텍스트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Quotes">
+        <source>XML Doc Comments - Attribute Quotes</source>
+        <target state="translated">XML 문서 주석 - 특성 인용 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Value">
+        <source>XML Doc Comments - Attribute Value</source>
+        <target state="translated">XML 문서 주석 - 특성 값</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_Code">
+        <source>Unnecessary Code</source>
+        <target state="translated">불필요한 코드</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rude_Edit">
+        <source>Rude Edit</source>
+        <target state="translated">편집 다시 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_1_reference_in_1_file">
+        <source>Rename will update 1 reference in 1 file.</source>
+        <target state="translated">이름 바꾸기로 1개의 파일에서 1개의 참조가 업데이트됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_0_references_in_1_file">
+        <source>Rename will update {0} references in 1 file.</source>
+        <target state="translated">이름 바꾸기로 1개의 파일에서 {0}개의 참조가 업데이트됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_0_references_in_1_files">
+        <source>Rename will update {0} references in {1} files.</source>
+        <target state="translated">이름 바꾸기로 {1}개의 파일에서 {0}개의 참조가 업데이트됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="translated">'{0}' 기본</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_conflict_s_will_be_resolved">
+        <source>{0} conflict(s) will be resolved</source>
+        <target state="translated">충돌 {0}개가 해결됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_unresolvable_conflict_s">
+        <source>{0} unresolvable conflict(s)</source>
+        <target state="translated">해결할 수 없는 충돌 {0}개</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_0">
+        <source>Applying "{0}"...</source>
+        <target state="translated">"{0}" 적용 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_to_1_with_content_colon">
+        <source>Adding '{0}' to '{1}' with content:</source>
+        <target state="translated">다음 콘텐츠가 있는 '{1}'에 대한 '{0}' 추가 중:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_project_0">
+        <source>Adding project '{0}'</source>
+        <target state="translated">{0}' 프로젝트 추가 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_project_0">
+        <source>Removing project '{0}'</source>
+        <target state="translated">{0}' 프로젝트를 제거하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_references_for_0">
+        <source>Changing project references for '{0}'</source>
+        <target state="translated">{0}'에 대한 프로젝트 참조 변경 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_reference_0_to_1">
+        <source>Adding reference '{0}' to '{1}'</source>
+        <target state="translated">{1}'에 대한 '{0}' 참조 추가 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_reference_0_from_1">
+        <source>Removing reference '{0}' from '{1}'</source>
+        <target state="translated">{1}'에서 '{0}' 참조를 제거하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_analyzer_reference_0_to_1">
+        <source>Adding analyzer reference '{0}' to '{1}'</source>
+        <target state="translated">{1}'에 대한 '{0}' 분석기 참조 추가 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_reference_0_from_1">
+        <source>Removing analyzer reference '{0}' from '{1}'</source>
+        <target state="translated">{1}'에서 '{0}' 분석기 참조를 제거하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_End_Tag_Completion">
+        <source>XML End Tag Completion</source>
+        <target state="translated">XML 끝 태그 완료</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completing_Tag">
+        <source>Completing Tag</source>
+        <target state="translated">태그 완료 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_Field">
+        <source>Encapsulate Field</source>
+        <target state="translated">필드 캡슐화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_Encapsulate_Field_refactoring">
+        <source>Applying "Encapsulate Field" refactoring...</source>
+        <target state="translated">"필드 캡슐화" 리팩토링 적용 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
+        <source>Please select the definition of the field to encapsulate.</source>
+        <target state="translated">캡슐화할 필드의 정의를 선택하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Given_Workspace_doesn_t_support_Undo">
+        <source>Given Workspace doesn't support Undo</source>
+        <target state="translated">지정한 작업 영역에서 실행을 취소할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
+        <source>Document must be contained in the workspace that created this service</source>
+        <target state="translated">문서가 이 서비스를 만든 작업 영역에 포함되어 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searching">
+        <source>Searching...</source>
+        <target state="translated">검색 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Canceled">
+        <source>Canceled.</source>
+        <target state="translated">취소되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_information_found">
+        <source>No information found.</source>
+        <target state="translated">정보를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_usages_found">
+        <source>No usages found.</source>
+        <target state="translated">사용법을 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_">
+        <source>Implements</source>
+        <target state="translated">구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_By">
+        <source>Implemented By</source>
+        <target state="translated">구현자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overrides_">
+        <source>Overrides</source>
+        <target state="translated">재정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_By">
+        <source>Overridden By</source>
+        <target state="translated">재정의 수행자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directly_Called_In">
+        <source>Directly Called In</source>
+        <target state="translated">직접 호출됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indirectly_Called_In">
+        <source>Indirectly Called In</source>
+        <target state="translated">간접적으로 호출됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Called_In">
+        <source>Called In</source>
+        <target state="translated">호출됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Referenced_In">
+        <source>Referenced In</source>
+        <target state="translated">참조됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_references_found">
+        <source>No references found.</source>
+        <target state="translated">참조를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_derived_types_found">
+        <source>No derived types found.</source>
+        <target state="translated">파생 형식을 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_implementations_found">
+        <source>No implementations found.</source>
+        <target state="translated">구현을 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Line_1">
+        <source>{0} - (Line {1})</source>
+        <target state="translated">{0} - (줄 {1})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class_Parts">
+        <source>Class Parts</source>
+        <target state="translated">클래스 파트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_Parts">
+        <source>Struct Parts</source>
+        <target state="translated">구조체 파트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_Parts">
+        <source>Interface Parts</source>
+        <target state="translated">인터페이스 파트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Parts">
+        <source>Type Parts</source>
+        <target state="translated">형식 파트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherits_">
+        <source>Inherits</source>
+        <target state="translated">상속</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_By">
+        <source>Inherited By</source>
+        <target state="translated">상속 대상</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Already_tracking_document_with_identical_key">
+        <source>Already tracking document with identical key</source>
+        <target state="translated">동일한 키로 이미 문서를 추적하는 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="document_is_not_currently_being_tracked">
+        <source>document is not currently being tracked</source>
+        <target state="translated">문서를 현재 추적하고 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_Rename_information">
+        <source>Computing Rename information...</source>
+        <target state="translated">이름 바꾸기 정보 계산 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_files">
+        <source>Updating files...</source>
+        <target state="translated">파일 업데이트 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
+        <source>Rename operation was cancelled or is not valid</source>
+        <target state="translated">이름 바꾸기 작업이 취소되었거나 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Symbol">
+        <source>Rename Symbol</source>
+        <target state="translated">기호 이름 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_Buffer_Change">
+        <source>Text Buffer Change</source>
+        <target state="translated">텍스트 버퍼 변경</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
+        <source>Rename operation was not properly completed. Some file might not have been updated.</source>
+        <target state="translated">이름 바꾸기 작업이 제대로 완료되지 않았습니다. 일부 파일이 업데이트되지 않았을 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">{1}'(으)로 '{0}' 이름 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Warning">
+        <source>Preview Warning</source>
+        <target state="translated">경고 미리 보기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_metadata">
+        <source>from metadata</source>
+        <target state="translated">메타데이터에서</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Line_Ender">
+        <source>Automatic Line Ender</source>
+        <target state="translated">자동 줄 끝내기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_completing">
+        <source>Automatically completing...</source>
+        <target state="translated">자동 완성 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Pair_Completion">
+        <source>Automatic Pair Completion</source>
+        <target state="translated">자동 쌍 완성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
+        <source>An active inline rename session is still active. Complete it before starting a new one.</source>
+        <target state="translated">활성 인라인 이름 바꾸기 세션이 여전히 활성화되어 있습니다. 새 세션을 시작하기 전에 완료하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
+        <source>The buffer is not part of a workspace.</source>
+        <target state="translated">버퍼는 작업 영역의 일부가 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_token_is_not_contained_in_the_workspace">
+        <source>The token is not contained in the workspace.</source>
+        <target state="translated">토큰이 작업 영역에 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="translated">식별자의 이름을 바꿔야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="translated">이 요소의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="translated">이 요소의 이름을 바꾸기 전에 코드 오류를 해결하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="translated">연산자의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="translated">메타데이터에서 정의된 요소의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="translated">이전 전송 요소의 이름을 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigation_Bars">
+        <source>Navigation Bars</source>
+        <target state="translated">탐색 모음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refreshing_navigation_bars">
+        <source>Refreshing navigation bars...</source>
+        <target state="translated">탐색 모음을 새로 고치는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Token">
+        <source>Format Token</source>
+        <target state="translated">형식 토큰</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Indenting">
+        <source>Smart Indenting</source>
+        <target state="translated">스마트 들여쓰기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_References">
+        <source>Find References</source>
+        <target state="translated">참조 찾기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_references">
+        <source>Finding references...</source>
+        <target state="translated">참조를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_references_of_0">
+        <source>Finding references of "{0}"...</source>
+        <target state="translated">"{0}"의 참조를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Selection">
+        <source>Comment Selection</source>
+        <target state="translated">선택 영역을 주석으로 처리</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uncomment_Selection">
+        <source>Uncomment Selection</source>
+        <target state="translated">선택 영역의 주석 처리 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Commenting_currently_selected_text">
+        <source>Commenting currently selected text...</source>
+        <target state="translated">현재 선택한 텍스트를 주석으로 처리하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uncommenting_currently_selected_text">
+        <source>Uncommenting currently selected text...</source>
+        <target state="translated">현재 선택한 텍스트의 주석 처리를 제거하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_new_line">
+        <source>Insert new line</source>
+        <target state="translated">새 줄 삽입</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Documentation_Comment">
+        <source>Documentation Comment</source>
+        <target state="translated">문서 주석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_documentation_comment">
+        <source>Inserting documentation comment...</source>
+        <target state="translated">문서 주석 삽입 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">메서드 추출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_Extract_Method_refactoring">
+        <source>Applying "Extract Method" refactoring...</source>
+        <target state="translated">"메서드 추출" 리팩토링 적용 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Document">
+        <source>Format Document</source>
+        <target state="translated">문서 서식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document...</source>
+        <target state="translated">문서 서식을 지정하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="translated">서식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Selection">
+        <source>Format Selection</source>
+        <target state="translated">선택 영역 서식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_currently_selected_text">
+        <source>Formatting currently selected text...</source>
+        <target state="translated">현재 선택한 텍스트의 서식을 지정하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="translated">캐럿에서 기호를 탐색할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_to_Definition">
+        <source>Go to Definition</source>
+        <target state="translated">정의로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_definition">
+        <source>Navigating to definition...</source>
+        <target state="translated">정의를 탐색하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_Document">
+        <source>Organize Document</source>
+        <target state="translated">문서 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organizing_document">
+        <source>Organizing document...</source>
+        <target state="translated">문서 구성 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighted_Definition">
+        <source>Highlighted Definition</source>
+        <target state="translated">강조 표시된 정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_new_name_is_not_a_valid_identifier">
+        <source>The new name is not a valid identifier.</source>
+        <target state="translated">새 이름이 유효한 식별자가 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Fixup">
+        <source>Inline Rename Fixup</source>
+        <target state="translated">인라인 이름 바꾸기 픽스업</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Resolved_Conflict">
+        <source>Inline Rename Resolved Conflict</source>
+        <target state="translated">인라인 이름 바꾸기의 충돌이 해결됨</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename">
+        <source>Inline Rename</source>
+        <target state="translated">인라인 이름 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="translated">이름 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Start_Rename">
+        <source>Start Rename</source>
+        <target state="translated">이름 바꾸기 시작</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_conflict_resolutions">
+        <source>Display conflict resolutions</source>
+        <target state="translated">충돌 해결 표시</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_token_to_rename">
+        <source>Finding token to rename...</source>
+        <target state="translated">이름을 바꿀 토큰을 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict">
+        <source>Conflict</source>
+        <target state="translated">충돌</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_Navigation">
+        <source>Text Navigation</source>
+        <target state="translated">텍스트 탐색</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_word_extent">
+        <source>Finding word extent...</source>
+        <target state="translated">단어 범위를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_enclosing_span">
+        <source>Finding enclosing span...</source>
+        <target state="translated">바깥쪽 범위를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_span_of_next_sibling">
+        <source>Finding span of next sibling...</source>
+        <target state="translated">다음 형제의 범위를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_span_of_previous_sibling">
+        <source>Finding span of previous sibling...</source>
+        <target state="translated">이전 형제의 범위를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_colon_0">
+        <source>Rename: {0}</source>
+        <target state="translated">이름 바꾸기: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Light_bulb_session_is_already_dismissed">
+        <source>Light bulb session is already dismissed.</source>
+        <target state="translated">전구 세션이 이미 해제되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
+        <source>Automatic Pair Completion End Point Marker Color</source>
+        <target state="translated">자동 쌍 완성 끝점 표식 색</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="translated">익명 형식의 멤버 이름은 아직 바꿀 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
+        <source>Engine must be attached to an Interactive Window.</source>
+        <target state="translated">엔진은 대화형 창에 연결되어 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes_the_current_prompt_settings">
+        <source>Changes the current prompt settings.</source>
+        <target state="translated">현재 프롬프트 설정을 변경합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_text_colon_0">
+        <source>Unexpected text: '{0}'</source>
+        <target state="translated">예기치 않은 텍스트: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
+        <source>The triggerSpan is not included in the given workspace.</source>
+        <target state="translated">triggerSpan이 지정한 작업 영역에 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_session_has_already_been_dismissed">
+        <source>This session has already been dismissed.</source>
+        <target state="translated">이 세션은 이미 해제되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_transaction_is_already_complete">
+        <source>The transaction is already complete.</source>
+        <target state="translated">트랜잭션이 이미 완료되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_a_source_error_line_column_unavailable">
+        <source>Not a source error, line/column unavailable</source>
+        <target state="translated">원본 오류가 아닙니다. 줄/열을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
+        <source>Can't compare positions from different text snapshots</source>
+        <target state="translated">다른 텍스트 스냅샷에서 위치를 비교할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Entity_Reference">
+        <source>XML Doc Comments - Entity Reference</source>
+        <target state="translated">XML 문서 주석 - 엔터티 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Name">
+        <source>XML Doc Comments - Name</source>
+        <target state="translated">XML 문서 주석 - 이름</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Processing_Instruction">
+        <source>XML Doc Comments - Processing Instruction</source>
+        <target state="translated">XML 문서 주석 - 처리 명령</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Active_Statement">
+        <source>Active Statement</source>
+        <target state="translated">활성 문</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_Peek_information">
+        <source>Loading Peek information...</source>
+        <target state="translated">정보 피킹을 로드하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Peek">
+        <source>Peek</source>
+        <target state="translated">피킹</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="symbol_cannot_be_a_namespace">
+        <source>'symbol' cannot be a namespace.</source>
+        <target state="translated">'기호'는 네임스페이스일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply1">
+        <source>_Apply</source>
+        <target state="translated">적용(_A)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_overload_s">
+        <source>Include _overload(s)</source>
+        <target state="translated">오버로드 포함(_O)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_comments">
+        <source>Include _comments</source>
+        <target state="translated">주석 포함(_C)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_strings">
+        <source>Include _strings</source>
+        <target state="translated">문자열 포함(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply2">
+        <source>Apply</source>
+        <target state="translated">적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature">
+        <source>Change Signature</source>
+        <target state="translated">시그니처 변경</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Changes_0">
+        <source>Preview Changes - {0}</source>
+        <target state="translated">변경 내용 미리 보기 - {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Code_Changes_colon">
+        <source>Preview Code Changes:</source>
+        <target state="translated">코드 변경 내용 미리 보기:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Changes">
+        <source>Preview Changes</source>
+        <target state="translated">변경 내용 미리 보기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Paste">
+        <source>Format Paste</source>
+        <target state="translated">서식 붙여넣기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_pasted_text">
+        <source>Formatting pasted text...</source>
+        <target state="translated">붙여넣은 텍스트의 서식을 지정하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_definition_of_the_object_is_hidden">
+        <source>The definition of the object is hidden.</source>
+        <target state="translated">개체의 정의가 숨겨집니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Formatting">
+        <source>Automatic Formatting</source>
+        <target state="translated">자동 서식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
+Do you want to proceed?</source>
+        <target state="translated">구조체 "out/ref" 매개 변수를 만들지 않는 방법으로 오류를 수정할 수 있습니다. 
+계속하시겠습니까?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature_colon">
+        <source>Change Signature:</source>
+        <target state="translated">시그니처 변경:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1_colon">
+        <source>Rename '{0}' to '{1}':</source>
+        <target state="translated">'{0}'에서 '{1}'(으)로 이름 바꾸기:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_Field_colon">
+        <source>Encapsulate Field:</source>
+        <target state="translated">필드 캡슐화:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="translated">호출 계층 구조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_0">
+        <source>Calls To '{0}'</source>
+        <target state="translated">{0}'에 대한 호출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Base_Member_0">
+        <source>Calls To Base Member '{0}'</source>
+        <target state="translated">{0}' 기본 멤버에 대한 호출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Interface_Implementation_0">
+        <source>Calls To Interface Implementation '{0}'</source>
+        <target state="translated">{0}' 인터페이스 구현에 대한 호출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_Call_Hierarchy_Information">
+        <source>Computing Call Hierarchy Information</source>
+        <target state="translated">호출 계층 구조 정보 계산 중</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_0">
+        <source>Implements '{0}'</source>
+        <target state="translated">{0}' 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initializers">
+        <source>Initializers</source>
+        <target state="translated">이니셜라이저</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="References_To_Field_0">
+        <source>References To Field '{0}'</source>
+        <target state="translated">{0}' 필드에 대한 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Overrides">
+        <source>Calls To Overrides</source>
+        <target state="translated">재정의에 대한 호출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_changes1">
+        <source>_Preview changes</source>
+        <target state="translated">변경 사항 미리 보기(_P)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply3">
+        <source>Apply</source>
+        <target state="translated">적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cancel">
+        <source>Cancel</source>
+        <target state="translated">취소</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes">
+        <source>Changes</source>
+        <target state="translated">변경 내용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_changes2">
+        <source>Preview changes</source>
+        <target state="translated">변경 내용 미리 보기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense_Commit_Formatting">
+        <source>IntelliSense Commit Formatting</source>
+        <target state="translated">IntelliSense 커밋 서식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking">
+        <source>Rename Tracking</source>
+        <target state="translated">추적 이름 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_from_1_with_content_colon">
+        <source>Removing '{0}' from '{1}' with content:</source>
+        <target state="translated">다음 내용과 함께 '{1}'에서 '{0}'을(를) 제거 중:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
+        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
+        <target state="translated">'{0}'은(는) '{1}' 작업을 지원하지 않습니다. 하지만 이 작업을 지원하는 중첩 '{2}'을(를) 포함할 수 있습니다('{2}.{3}' 참조).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Brace_Completion">
+        <source>Brace Completion</source>
+        <target state="translated">중괄호 완성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">다음 위치에서 모든 발생 수정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
+        <source>Cannot apply operation while a rename session is active.</source>
+        <target state="translated">이름 바꾸기 세션이 활성인 동안에는 작업을 적용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rename_tracking_session_was_cancelled_and_is_no_longer_available">
+        <source>The rename tracking session was cancelled and is no longer available.</source>
+        <target state="translated">이름 바꾸기 추적 세션이 취소되었고 더 이상 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighted_Written_Reference">
+        <source>Highlighted Written Reference</source>
+        <target state="translated">강조 표시되어 작성된 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cursor_must_be_on_a_member_name">
+        <source>Cursor must be on a member name.</source>
+        <target state="translated">커서는 멤버 이름에 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Brace_Matching">
+        <source>Brace Matching</source>
+        <target state="translated">중괄호 일치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_implementations">
+        <source>Locating implementations...</source>
+        <target state="translated">구현을 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Implementation">
+        <source>Go To Implementation</source>
+        <target state="translated">구현으로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="translated">기호에 구현이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_name_colon_0">
+        <source>New name: {0}</source>
+        <target state="translated">새 이름: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
+        <source>Modify any highlighted location to begin renaming.</source>
+        <target state="translated">이름 변경을 시작할 강조 표시된 위치를 수정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">붙여넣기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating...</source>
+        <target state="translated">탐색하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion_ellipses">
+        <source>Suggestion ellipses (…)</source>
+        <target state="translated">제안 줄임표(…)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="translated">'{0}' 참조</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="translated">'{0}' 구현</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_declarations">
+        <source>'{0}' declarations</source>
+        <target state="translated">'{0}' 선언</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Conflict">
+        <source>Inline Rename Conflict</source>
+        <target state="translated">인라인 이름 바꾸기 충돌</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Field_Background_and_Border">
+        <source>Inline Rename Field Background and Border</source>
+        <target state="translated">인라인 이름 바꾸기 필드 배경 및 테두리</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Field_Text">
+        <source>Inline Rename Field Text</source>
+        <target state="translated">인라인 이름 바꾸기 필드 텍스트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">주석 편집 차단</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">선택 영역 주석 처리/주석 처리 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">코드 완성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">대화형으로 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">인터페이스 추출</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">인접 멤버로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">대화형</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">대화형으로 붙여넣기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">강조 표시 참조로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">개요</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">추적 이름 바꾸기 취소</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">시그니처 도움말</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">스마트 토큰 포맷터</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

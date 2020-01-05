@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType;
+using Microsoft.CodeAnalysis.PreferFrameworkType;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
 {
@@ -12,18 +12,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
     internal class CSharpPreferFrameworkTypeDiagnosticAnalyzer :
         PreferFrameworkTypeDiagnosticAnalyzerBase<SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax>
     {
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest =>
+        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
             ImmutableArray.Create(SyntaxKind.PredefinedType);
 
         ///<remarks>
-        /// every predefined type keyword except `void` can be replaced by its framework type in code.
+        /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.
         ///</remarks>
-        protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node) =>
-            node.Keyword.Kind() != SyntaxKind.VoidKeyword;
+        protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node)
+            => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
 
-        protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node) =>
-            node.IsInMemberAccessContext() || node.InsideCrefReference();
+        protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
+            => node.IsInMemberAccessContext() || node.InsideCrefReference();
 
-        protected override string GetLanguageName() => LanguageNames.CSharp;
+        protected override string GetLanguageName()
+            => LanguageNames.CSharp;
     }
 }

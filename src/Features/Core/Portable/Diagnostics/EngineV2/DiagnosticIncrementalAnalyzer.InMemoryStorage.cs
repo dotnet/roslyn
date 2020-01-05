@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+#nullable enable
+
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -47,18 +48,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                analyzerMap.TryRemove(key, out var entry);
+                analyzerMap.TryRemove(key, out _);
 
                 if (analyzerMap.IsEmpty)
                 {
-                    s_map.TryRemove(analyzer, out analyzerMap);
+                    s_map.TryRemove(analyzer, out _);
                 }
             }
 
             public static void DropCache(DiagnosticAnalyzer analyzer)
             {
                 // drop any cache related to given analyzer
-                s_map.TryRemove(analyzer, out var analyzerMap);
+                s_map.TryRemove(analyzer, out _);
             }
 
             // make sure key is either documentId or projectId
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         // in memory cache entry
-        private struct CacheEntry
+        private readonly struct CacheEntry
         {
             public readonly VersionStamp Version;
             public readonly ImmutableArray<DiagnosticData> Diagnostics;

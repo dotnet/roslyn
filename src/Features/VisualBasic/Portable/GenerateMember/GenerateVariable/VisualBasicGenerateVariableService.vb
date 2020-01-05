@@ -14,6 +14,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
     Partial Friend Class VisualBasicGenerateVariableService
         Inherits AbstractGenerateVariableService(Of VisualBasicGenerateVariableService, SimpleNameSyntax, ExpressionSyntax)
 
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
+
         Protected Overrides Function IsExplicitInterfaceGeneration(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean
             Return TypeOf node Is QualifiedNameSyntax
         End Function

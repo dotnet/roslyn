@@ -10,6 +10,8 @@ using System.Runtime.Versioning;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.CodeAnalysis.Editor;
+using System.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 {
@@ -24,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly IComponentModel _componentModel;
         private readonly string _contentType;
 
-        private Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
+        private readonly Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
 
         private Lazy<IResetInteractiveCommand> ResetInteractiveCommand => _resetInteractiveCommand;
 
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 .SingleOrDefault();
         }
 
-        internal void InitializeResetInteractiveFromProjectCommand()
+        internal async Task InitializeResetInteractiveFromProjectCommandAsync()
         {
             var resetInteractiveFromProjectCommand = new OleMenuCommand(
                 (sender, args) =>
@@ -67,16 +69,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 resetInteractiveFromProjectCommand.Visible = available;
             };
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _menuCommandService.AddCommand(resetInteractiveFromProjectCommand);
         }
 
         private bool GetActiveProject(out EnvDTE.Project project, out FrameworkName frameworkName)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             project = null;
             frameworkName = null;
 
-            IntPtr hierarchyPointer = IntPtr.Zero;
-            IntPtr selectionContainerPointer = IntPtr.Zero;
+            var hierarchyPointer = IntPtr.Zero;
+            var selectionContainerPointer = IntPtr.Zero;
 
             try
             {
@@ -92,8 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                     return false;
                 }
 
-                var hierarchy = Marshal.GetObjectForIUnknown(hierarchyPointer) as IVsHierarchy;
-                if (hierarchy == null)
+                if (!(Marshal.GetObjectForIUnknown(hierarchyPointer) is IVsHierarchy hierarchy))
                 {
                     return false;
                 }
@@ -105,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 Marshal.ThrowExceptionForHR(
                     hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out var targetFrameworkMonikerObject));
 
-                string targetFrameworkMoniker = targetFrameworkMonikerObject as string;
+                var targetFrameworkMoniker = targetFrameworkMonikerObject as string;
                 frameworkName = new System.Runtime.Versioning.FrameworkName(targetFrameworkMoniker);
 
                 project = extensibilityObject as EnvDTE.Project;

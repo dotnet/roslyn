@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ValidateFormatString
             => SyntaxKind.InvocationExpression;
 
         protected override SyntaxNode TryGetMatchingNamedArgument(
-            SeparatedSyntaxList<SyntaxNode> arguments, 
+            SeparatedSyntaxList<SyntaxNode> arguments,
             string searchArgumentName)
         {
             foreach (var argument in arguments.Cast<ArgumentSyntax>())

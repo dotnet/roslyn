@@ -4,46 +4,24 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.UseInferredMemberName
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
     ''' <summary>
-    ''' Offers to simplify tuple expressions and anonymous types with redundant names, such as `(a:=a, b:=b)` or `New With {.a = a, .b = b}`
+    ''' Offers to simplify tuple expressions and anonymous types with redundant names, such as <c>(a:=a, b:=b)</c> or <c>New With {.a = a, .b = b}</c>
     ''' </summary>
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseInferredMemberNameDiagnosticAnalyzer
-        Inherits AbstractCodeStyleDiagnosticAnalyzer
-
-        Public Sub New()
-            MyBase.New(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
-                  New LocalizableResourceString(NameOf(FeaturesResources.Use_inferred_member_name), FeaturesResources.ResourceManager, GetType(FeaturesResources)),
-                  New LocalizableResourceString(NameOf(FeaturesResources.Member_name_can_be_simplified), FeaturesResources.ResourceManager, GetType(FeaturesResources)))
-        End Sub
-
-        Public Overrides Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory
-            Return DiagnosticAnalyzerCategory.SemanticSpanAnalysis
-        End Function
-
-        Public Overrides Function OpenFileOnly(workspace As Workspace) As Boolean
-            Return False
-        End Function
+        Inherits AbstractUseInferredMemberNameDiagnosticAnalyzer
 
         Protected Overrides Sub InitializeWorker(context As AnalysisContext)
             context.RegisterSyntaxNodeAction(Sub(c As SyntaxNodeAnalysisContext) AnalyzeSyntax(c),
                 SyntaxKind.NameColonEquals, SyntaxKind.NamedFieldInitializer)
         End Sub
 
-        Private Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
-            Dim cancellationToken = context.CancellationToken
-
-            Dim syntaxTree = context.Node.SyntaxTree
-            Dim optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
-            If optionSet Is Nothing Then
-                Return
-            End If
-
+        Protected Overrides Sub LanguageSpecificAnalyzeSyntax(context As SyntaxNodeAnalysisContext, syntaxTree As SyntaxTree, optionSet As OptionSet)
             Dim parseOptions = DirectCast(syntaxTree.Options, VisualBasicParseOptions)
             Select Case context.Node.Kind()
                 Case SyntaxKind.NameColonEquals
@@ -63,16 +41,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
             End If
 
             Dim argument = DirectCast(nameColonEquals.Parent, SimpleArgumentSyntax)
-            If Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredTupleNames).Value OrElse
+            If Not optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Value OrElse
                 Not VisualBasicInferredMemberNameReducer.CanSimplifyTupleName(argument, parseOptions) Then
                 Return
             End If
 
             ' Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredTupleNames).Notification.Value),
-                    nameColonEquals.GetLocation()))
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    nameColonEquals.GetLocation(),
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
+                    additionalLocations:=Nothing,
+                    properties:=Nothing))
 
             ' Also fade out the part of the name-colon-equals syntax
             Dim fadeSpan = TextSpan.FromBounds(nameColonEquals.Name.SpanStart, nameColonEquals.ColonEqualsToken.Span.End)
@@ -84,8 +65,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
         Private Sub ReportDiagnosticsIfNeeded(fieldInitializer As NamedFieldInitializerSyntax, context As SyntaxNodeAnalysisContext,
                                               optionSet As OptionSet, syntaxTree As SyntaxTree)
+            If Not fieldInitializer.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
+                Return
+            End If
 
-            If Not optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Value OrElse
+            If Not optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Value OrElse
                 Not VisualBasicInferredMemberNameReducer.CanSimplifyNamedFieldInitializer(fieldInitializer) Then
 
                 Return
@@ -95,9 +79,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
 
             ' Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames).Notification.Value),
-                    syntaxTree.GetLocation(fadeSpan)))
+                DiagnosticHelper.Create(
+                    Descriptor,
+                    syntaxTree.GetLocation(fadeSpan),
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
+                    additionalLocations:=Nothing,
+                    properties:=Nothing))
 
             ' Also fade out the part of the name-equals syntax
             context.ReportDiagnostic(

@@ -2,25 +2,27 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicSquigglesDesktop : BasicSquigglesCommon
     {
-        public BasicSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
-            :base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+        public BasicSquigglesDesktop(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySyntaxErrorSquiggles()
         {
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySemanticErrorSquiggles()
         {
             base.VerifySemanticErrorSquiggles();

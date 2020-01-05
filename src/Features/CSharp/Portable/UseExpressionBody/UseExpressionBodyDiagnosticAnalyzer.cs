@@ -1,37 +1,44 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class UseExpressionBodyDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class UseExpressionBodyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string FixesError = nameof(FixesError);
 
         private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         public UseExpressionBodyDiagnosticAnalyzer()
-            : base(_helpers[0].DiagnosticId, _helpers[0].UseExpressionBodyTitle)
+            : base(GetSupportedDescriptorsWithOptions(), LanguageNames.CSharp)
         {
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
-            SupportedDiagnostics = _helpers.SelectAsArray(
-                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle, DiagnosticSeverity.Hidden));
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        private static ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption> GetSupportedDescriptorsWithOptions()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticDescriptor, ILanguageSpecificOption>();
+            foreach (var helper in _helpers)
+            {
+                var descriptor = CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle);
+                builder.Add(descriptor, helper.Option);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, _syntaxKinds);
@@ -85,19 +92,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             OptionSet optionSet, SyntaxNode declaration, UseExpressionBodyHelper helper)
         {
             var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);
-            var severity = preferExpressionBodiedOption.Notification.Value;
+            var severity = preferExpressionBodiedOption.Notification.Severity;
 
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
             {
-                var location = severity == DiagnosticSeverity.Hidden
+                var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
                     : helper.GetDiagnosticLocation(declaration);
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
-                return Diagnostic.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations, properties: properties);
+                return DiagnosticHelper.Create(
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
+                    location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
             var (canOffer, fixesError) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true);
@@ -105,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
-                var location = severity == DiagnosticSeverity.Hidden
+                var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
                     : helper.GetExpressionBody(declaration).GetLocation();
 
@@ -116,17 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 }
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
-                return Diagnostic.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations, properties: properties);
+                return DiagnosticHelper.Create(
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
+                    location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
             return null;
         }
-
-        private static string[] GetCustomTags(DiagnosticSeverity severity)
-            => severity == DiagnosticSeverity.Hidden
-                ? new[] { WellKnownDiagnosticTags.NotConfigurable }
-                : Array.Empty<string>();
     }
 }

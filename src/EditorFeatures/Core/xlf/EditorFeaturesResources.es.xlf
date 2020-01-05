@@ -1,0 +1,1359 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="es" original="../EditorFeaturesResources.resx">
+    <body>
+      <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
+        <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
+        <target state="translated">Hay una sesión de cambio de nombre insertado que está activa para el identificador "{0}". Vuelva a invocar el cambio de nombre insertado para acceder a más opciones. Puede continuar editando el identificador cuyo nombre se va a cambiar en cualquier momento.</target>
+        <note>For screenreaders. {0} is the identifier being renamed.</note>
+      </trans-unit>
+      <trans-unit id="Applying_changes">
+        <source>Applying changes</source>
+        <target state="translated">Aplicando cambios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_configuration">
+        <source>Change configuration</source>
+        <target state="translated">Configuración de cambio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup_is_not_configured">
+        <source>Code cleanup is not configured</source>
+        <target state="translated">La limpieza de código no está configurada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="translated">Configúrela ahora</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_not_show_this_message_again">
+        <source>Do not show this message again</source>
+        <target state="translated">No volver a mostrar este mensaje</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
+        <source>Do you still want to proceed? This may produce broken code.</source>
+        <target state="translated">¿Desea continuar? Esto puede producir código roto.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_display_text">
+        <source>items from unimported namespaces</source>
+        <target state="translated">elementos de espacios de nombres no importados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expander_image_element">
+        <source>Expander</source>
+        <target state="translated">Expansor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_encountered_the_following_issues">
+        <source>Extract method encountered the following issues:</source>
+        <target state="translated">El método de extracción detectó los siguientes problemas:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Filter_image_element">
+        <source>Filter</source>
+        <target state="translated">Filtrar</target>
+        <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Format_document_performed_additional_cleanup">
+        <source>Format Document performed additional cleanup</source>
+        <target state="translated">El formateo del documento realizó una limpieza adicional</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Base">
+        <source>Go To Base</source>
+        <target state="translated">Ir a base</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_assembly_name">
+        <source>Invalid assembly name</source>
+        <target state="translated">Nombre de ensamblado no válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_characters_in_assembly_name">
+        <source>Invalid characters in assembly name</source>
+        <target state="translated">Caracteres no válidos en el nombre de ensamblado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keyword_Control">
+        <source>Keyword - Control</source>
+        <target state="translated">Palabras clave: control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_bases">
+        <source>Locating bases...</source>
+        <target state="translated">Buscando las bases...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_Overloaded">
+        <source>Operator - Overloaded</source>
+        <target state="translated">Operador: sobrecargado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_Tracking">
+        <source>Paste Tracking</source>
+        <target state="translated">Seguimiento de pegado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preprocessor_Text">
+        <source>Preprocessor Text</source>
+        <target state="translated">Texto del preprocesador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Punctuation">
+        <source>Punctuation</source>
+        <target state="translated">Puntuación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="new">Removal of document not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file">
+        <source>Rename _file</source>
+        <target state="translated">Ca_mbiar nombre de archivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_name_doesnt_match">
+        <source>Rename _file (type does not match file name)</source>
+        <target state="translated">Ca_mbiar nombre de archivo (el tipo no coincide con el nombre de archivo)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_file_partial_type">
+        <source>Rename _file (not allowed on partial types)</source>
+        <target state="translated">Ca_mbiar nombre de archivo (no se permite en tipos parciales)</target>
+        <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="String_Escape_Character">
+        <source>String - Escape Character</source>
+        <target state="translated">String - carácter de Escape</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_Static">
+        <source>Symbol - Static</source>
+        <target state="translated">Símbolo: estático</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="translated">El símbolo no tiene base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Block_Comment">
+        <source>Toggle Block Comment</source>
+        <target state="translated">Alternar comentario de bloque</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggle_Line_Comment">
+        <source>Toggle Line Comment</source>
+        <target state="translated">Alternar comentario de línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="translated">Alternando comentario de bloque...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Toggling_line_comment">
+        <source>Toggling line comment...</source>
+        <target state="translated">Alternando comentario de línea...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Constants">
+        <source>User Members - Constants</source>
+        <target state="translated">Usuarios miembros: constantes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Enum_Members">
+        <source>User Members - Enum Members</source>
+        <target state="translated">Usuarios miembros: miembros de enumeración</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Events">
+        <source>User Members - Events</source>
+        <target state="translated">Usuarios miembros: eventos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Extension_Methods">
+        <source>User Members - Extension Methods</source>
+        <target state="translated">Usuarios miembros: métodos de extensión</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Fields">
+        <source>User Members - Fields</source>
+        <target state="translated">Usuarios miembros: campos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Labels">
+        <source>User Members - Labels</source>
+        <target state="translated">Usuarios miembros: etiquetas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Locals">
+        <source>User Members - Locals</source>
+        <target state="translated">Usuarios miembros: locales</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Methods">
+        <source>User Members - Methods</source>
+        <target state="translated">Usuarios miembros: métodos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Namespaces">
+        <source>User Members - Namespaces</source>
+        <target state="translated">Usuarios miembros: espacios de nombres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Parameters">
+        <source>User Members - Parameters</source>
+        <target state="translated">Usuarios miembros: parámetros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Members_Properties">
+        <source>User Members - Properties</source>
+        <target state="translated">Usuarios miembros: propiedades</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Classes">
+        <source>User Types - Classes</source>
+        <target state="translated">Tipos de usuario: clases</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Delegates">
+        <source>User Types - Delegates</source>
+        <target state="translated">Tipos de usuario: delegados</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Enums">
+        <source>User Types - Enums</source>
+        <target state="translated">Tipos de usuario: enumeraciones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Interfaces">
+        <source>User Types - Interfaces</source>
+        <target state="translated">Tipos de usuario: interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Structures">
+        <source>User Types - Structures</source>
+        <target state="translated">Tipos de usuario: estructuras</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Type_Parameters">
+        <source>User Types - Type Parameters</source>
+        <target state="translated">Tipos de usuario: parámetros de tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="String_Verbatim">
+        <source>String - Verbatim</source>
+        <target state="translated">Cadena: textual</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Waiting_for_background_work_to_finish">
+        <source>Waiting for background work to finish...</source>
+        <target state="translated">Esperando a que finalice el trabajo en segundo plano...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_image_element">
+        <source>Warning</source>
+        <target state="translated">Advertencia</target>
+        <note>Caption/tooltip for "Warning" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Name">
+        <source>XML Doc Comments - Attribute Name</source>
+        <target state="translated">Comentarios de documentación XML: nombre de atributo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_CData_Section">
+        <source>XML Doc Comments - CData Section</source>
+        <target state="translated">Comentarios de documentación XML: sección CData</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Text">
+        <source>XML Doc Comments - Text</source>
+        <target state="translated">Comentarios de documentación XML: texto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Delimiter">
+        <source>XML Doc Comments - Delimiter</source>
+        <target state="translated">Comentarios de documentación XML: delimitador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Comment">
+        <source>XML Doc Comments - Comment</source>
+        <target state="translated">Comentarios de documentación XML: comentario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Modules">
+        <source>User Types - Modules</source>
+        <target state="translated">Tipos de usuario: módulos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Name">
+        <source>VB XML Literals - Attribute Name</source>
+        <target state="translated">Literal VB XML: nombre de atributo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Quotes">
+        <source>VB XML Literals - Attribute Quotes</source>
+        <target state="translated">Literal VB XML: comillas de atributo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Attribute_Value">
+        <source>VB XML Literals - Attribute Value</source>
+        <target state="translated">Literal VB XML: valor de atributo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_CData_Section">
+        <source>VB XML Literals - CData Section</source>
+        <target state="translated">Literal VB XML: sección CData</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Comment">
+        <source>VB XML Literals - Comment</source>
+        <target state="translated">Literal VB XML: comentario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Delimiter">
+        <source>VB XML Literals - Delimiter</source>
+        <target state="translated">Literal VB XML: delimitador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Embedded_Expression">
+        <source>VB XML Literals - Embedded Expression</source>
+        <target state="translated">Literal VB XML: expresión insertada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Entity_Reference">
+        <source>VB XML Literals - Entity Reference</source>
+        <target state="translated">Literal VB XML: referencia de entidad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Name">
+        <source>VB XML Literals - Name</source>
+        <target state="translated">Literal VB XML: nombre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Processing_Instruction">
+        <source>VB XML Literals - Processing Instruction</source>
+        <target state="translated">Literal VB XML: instrucción de procesamiento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="VB_XML_Literals_Text">
+        <source>VB XML Literals - Text</source>
+        <target state="translated">Literal VB XML: texto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Quotes">
+        <source>XML Doc Comments - Attribute Quotes</source>
+        <target state="translated">Comentarios de documentación XML: comillas de atributo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Attribute_Value">
+        <source>XML Doc Comments - Attribute Value</source>
+        <target state="translated">Comentarios de documentación XML: valor de atributo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unnecessary_Code">
+        <source>Unnecessary Code</source>
+        <target state="translated">Código innecesario</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rude_Edit">
+        <source>Rude Edit</source>
+        <target state="translated">Edición superficial</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_1_reference_in_1_file">
+        <source>Rename will update 1 reference in 1 file.</source>
+        <target state="translated">Al cambiar el nombre se actualizará 1 referencia en 1 archivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_0_references_in_1_file">
+        <source>Rename will update {0} references in 1 file.</source>
+        <target state="translated">Al cambiar el nombre se actualizarán {0} referencias en 1 archivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_will_update_0_references_in_1_files">
+        <source>Rename will update {0} references in {1} files.</source>
+        <target state="translated">Al cambiar el nombre se actualizarán {0} referencias en {1} archivos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="translated">Bases de "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_conflict_s_will_be_resolved">
+        <source>{0} conflict(s) will be resolved</source>
+        <target state="translated">Se va(n) a resolver {0} conflicto(s)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_unresolvable_conflict_s">
+        <source>{0} unresolvable conflict(s)</source>
+        <target state="translated">{0} conflicto(s) sin solución</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_0">
+        <source>Applying "{0}"...</source>
+        <target state="translated">Aplicando "{0}"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_to_1_with_content_colon">
+        <source>Adding '{0}' to '{1}' with content:</source>
+        <target state="translated">Agregando '{0}' a '{1}' con contenido:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_project_0">
+        <source>Adding project '{0}'</source>
+        <target state="translated">Agregando proyecto '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_project_0">
+        <source>Removing project '{0}'</source>
+        <target state="translated">Quitando el proyecto '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_references_for_0">
+        <source>Changing project references for '{0}'</source>
+        <target state="translated">Cambiando referencias del proyecto a '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_reference_0_to_1">
+        <source>Adding reference '{0}' to '{1}'</source>
+        <target state="translated">Agregando referencia '{0}' a '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_reference_0_from_1">
+        <source>Removing reference '{0}' from '{1}'</source>
+        <target state="translated">Quitando la referencia '{0}' de '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_analyzer_reference_0_to_1">
+        <source>Adding analyzer reference '{0}' to '{1}'</source>
+        <target state="translated">Agregando referencia de analizador '{0}' a '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_analyzer_reference_0_from_1">
+        <source>Removing analyzer reference '{0}' from '{1}'</source>
+        <target state="translated">Quitando la referencia de analizador '{0}' de '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_End_Tag_Completion">
+        <source>XML End Tag Completion</source>
+        <target state="translated">Finalización de la etiqueta de fin XML</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completing_Tag">
+        <source>Completing Tag</source>
+        <target state="translated">Completando etiqueta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_Field">
+        <source>Encapsulate Field</source>
+        <target state="translated">Encapsular campo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_Encapsulate_Field_refactoring">
+        <source>Applying "Encapsulate Field" refactoring...</source>
+        <target state="translated">Aplicando la refactorización "Encapsular campo"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
+        <source>Please select the definition of the field to encapsulate.</source>
+        <target state="translated">Seleccione la definición del campo que quiere encapsular.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Given_Workspace_doesn_t_support_Undo">
+        <source>Given Workspace doesn't support Undo</source>
+        <target state="translated">El área de trabajo dada no permite deshacer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
+        <source>Document must be contained in the workspace that created this service</source>
+        <target state="translated">El documento debe estar contenido en el área de trabajo que creó este servicio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Searching">
+        <source>Searching...</source>
+        <target state="translated">Buscando...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Canceled">
+        <source>Canceled.</source>
+        <target state="translated">Cancelado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_information_found">
+        <source>No information found.</source>
+        <target state="translated">No se encontró información.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_usages_found">
+        <source>No usages found.</source>
+        <target state="translated">No se encontraron usos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_">
+        <source>Implements</source>
+        <target state="translated">Implementa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_By">
+        <source>Implemented By</source>
+        <target state="translated">Implementado por</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overrides_">
+        <source>Overrides</source>
+        <target state="translated">Invalidaciones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_By">
+        <source>Overridden By</source>
+        <target state="translated">Invalidado por</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directly_Called_In">
+        <source>Directly Called In</source>
+        <target state="translated">Llamado directamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indirectly_Called_In">
+        <source>Indirectly Called In</source>
+        <target state="translated">Llamado indirectamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Called_In">
+        <source>Called In</source>
+        <target state="translated">Llamado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Referenced_In">
+        <source>Referenced In</source>
+        <target state="translated">Con referencia en</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_references_found">
+        <source>No references found.</source>
+        <target state="translated">No se encontraron referencias.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_derived_types_found">
+        <source>No derived types found.</source>
+        <target state="translated">No se encontraron tipos derivados.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_implementations_found">
+        <source>No implementations found.</source>
+        <target state="translated">No se encontraron implementaciones.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Line_1">
+        <source>{0} - (Line {1})</source>
+        <target state="translated">{0} - (Línea {1})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Class_Parts">
+        <source>Class Parts</source>
+        <target state="translated">Elementos de clase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_Parts">
+        <source>Struct Parts</source>
+        <target state="translated">Elementos de estructura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interface_Parts">
+        <source>Interface Parts</source>
+        <target state="translated">Elementos de interfaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_Parts">
+        <source>Type Parts</source>
+        <target state="translated">Elementos de tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherits_">
+        <source>Inherits</source>
+        <target state="translated">Hereda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_By">
+        <source>Inherited By</source>
+        <target state="translated">Heredado por</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Already_tracking_document_with_identical_key">
+        <source>Already tracking document with identical key</source>
+        <target state="translated">Ya se está siguiendo un documento con una clave idéntica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="document_is_not_currently_being_tracked">
+        <source>document is not currently being tracked</source>
+        <target state="translated">el documento no es objeto de seguimiento actualmente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_Rename_information">
+        <source>Computing Rename information...</source>
+        <target state="translated">Calculando información de Cambiar nombre...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_files">
+        <source>Updating files...</source>
+        <target state="translated">Actualizando archivos...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_operation_was_cancelled_or_is_not_valid">
+        <source>Rename operation was cancelled or is not valid</source>
+        <target state="translated">La operación de cambio de nombre se canceló o no es válida</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Symbol">
+        <source>Rename Symbol</source>
+        <target state="translated">Cambiar el nombre del símbolo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_Buffer_Change">
+        <source>Text Buffer Change</source>
+        <target state="translated">Cambio de búfer de texto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated">
+        <source>Rename operation was not properly completed. Some file might not have been updated.</source>
+        <target state="translated">La operación de cambio de nombre no se completó correctamente. Puede que algún archivo no se haya actualizado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">Cambiar el nombre de '{0}' a '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Warning">
+        <source>Preview Warning</source>
+        <target state="translated">Vista previa de advertencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="from_metadata">
+        <source>from metadata</source>
+        <target state="translated">de metadatos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Line_Ender">
+        <source>Automatic Line Ender</source>
+        <target state="translated">Finalizador de líneas automático</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_completing">
+        <source>Automatically completing...</source>
+        <target state="translated">Completando automáticamente...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Pair_Completion">
+        <source>Automatic Pair Completion</source>
+        <target state="translated">Finalización automática del par</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
+        <source>An active inline rename session is still active. Complete it before starting a new one.</source>
+        <target state="translated">Una sesión de cambio de nombre en línea sigue activa. Complétela antes de iniciar otra.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
+        <source>The buffer is not part of a workspace.</source>
+        <target state="translated">El búfer no forma parte de un área de trabajo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_token_is_not_contained_in_the_workspace">
+        <source>The token is not contained in the workspace.</source>
+        <target state="translated">El token no está contenido en el área de trabajo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_must_rename_an_identifier">
+        <source>You must rename an identifier.</source>
+        <target state="translated">Debe cambiar el nombre de un identificador.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_this_element">
+        <source>You cannot rename this element.</source>
+        <target state="translated">No se puede cambiar el nombre a este elemento.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Please_resolve_errors_in_your_code_before_renaming_this_element">
+        <source>Please resolve errors in your code before renaming this element.</source>
+        <target state="translated">Resuelva los errores del código antes de cambiar el nombre de este elemento.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_operators">
+        <source>You cannot rename operators.</source>
+        <target state="translated">No se puede cambiar el nombre a los operadores.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_that_are_defined_in_metadata">
+        <source>You cannot rename elements that are defined in metadata.</source>
+        <target state="translated">No se puede cambiar el nombre a elementos que están definidos en metadatos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="You_cannot_rename_elements_from_previous_submissions">
+        <source>You cannot rename elements from previous submissions.</source>
+        <target state="translated">No se puede cambiar el nombre a elementos de envíos anteriores.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigation_Bars">
+        <source>Navigation Bars</source>
+        <target state="translated">Barras de navegación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refreshing_navigation_bars">
+        <source>Refreshing navigation bars...</source>
+        <target state="translated">Actualizando barras de navegación...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Token">
+        <source>Format Token</source>
+        <target state="translated">Dar formato al token</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Indenting">
+        <source>Smart Indenting</source>
+        <target state="translated">Sangría inteligente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Find_References">
+        <source>Find References</source>
+        <target state="translated">Buscar referencias</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_references">
+        <source>Finding references...</source>
+        <target state="translated">Buscando referencias...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_references_of_0">
+        <source>Finding references of "{0}"...</source>
+        <target state="translated">Buscando referencias de "{0}"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Selection">
+        <source>Comment Selection</source>
+        <target state="translated">Selección con comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uncomment_Selection">
+        <source>Uncomment Selection</source>
+        <target state="translated">Selección sin comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Commenting_currently_selected_text">
+        <source>Commenting currently selected text...</source>
+        <target state="translated">Comentando el texto seleccionado actualmente...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Uncommenting_currently_selected_text">
+        <source>Uncommenting currently selected text...</source>
+        <target state="translated">Quitando los comentarios del texto seleccionado actualmente...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_new_line">
+        <source>Insert new line</source>
+        <target state="translated">Insertar nueva línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Documentation_Comment">
+        <source>Documentation Comment</source>
+        <target state="translated">Comentario de documentación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_documentation_comment">
+        <source>Inserting documentation comment...</source>
+        <target state="translated">Insertando comentario de documentación...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Method">
+        <source>Extract Method</source>
+        <target state="translated">Extraer método</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_Extract_Method_refactoring">
+        <source>Applying "Extract Method" refactoring...</source>
+        <target state="translated">Aplicando la refactorización "Extraer método"...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Document">
+        <source>Format Document</source>
+        <target state="translated">Dar formato al documento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_document">
+        <source>Formatting document...</source>
+        <target state="translated">Dando formato al documento...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="translated">Formato</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Selection">
+        <source>Format Selection</source>
+        <target state="translated">Dar formato a la selección</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_currently_selected_text">
+        <source>Formatting currently selected text...</source>
+        <target state="translated">Dando formato al texto seleccionado actualmente...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="translated">No se puede navegar al símbolo que hay debajo del símbolo de intercalación.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_to_Definition">
+        <source>Go to Definition</source>
+        <target state="translated">Ir a definición</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_definition">
+        <source>Navigating to definition...</source>
+        <target state="translated">Navegando a la definición...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organize_Document">
+        <source>Organize Document</source>
+        <target state="translated">Organizar documento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Organizing_document">
+        <source>Organizing document...</source>
+        <target state="translated">Organizando documento...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighted_Definition">
+        <source>Highlighted Definition</source>
+        <target state="translated">Definición resaltada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_new_name_is_not_a_valid_identifier">
+        <source>The new name is not a valid identifier.</source>
+        <target state="translated">El nuevo nombre no es un identificador válido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Fixup">
+        <source>Inline Rename Fixup</source>
+        <target state="translated">Corrección de cambio de nombre en línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Resolved_Conflict">
+        <source>Inline Rename Resolved Conflict</source>
+        <target state="translated">Conflicto de cambio de nombre en línea resuelto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename">
+        <source>Inline Rename</source>
+        <target state="translated">Cambio de nombre en línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="translated">Cambiar nombre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Start_Rename">
+        <source>Start Rename</source>
+        <target state="translated">Iniciar el cambio de nombre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_conflict_resolutions">
+        <source>Display conflict resolutions</source>
+        <target state="translated">Mostrar resoluciones de conflictos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_token_to_rename">
+        <source>Finding token to rename...</source>
+        <target state="translated">Buscando token al que cambiar el nombre...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Conflict">
+        <source>Conflict</source>
+        <target state="translated">Conflicto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_Navigation">
+        <source>Text Navigation</source>
+        <target state="translated">Navegación de texto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_word_extent">
+        <source>Finding word extent...</source>
+        <target state="translated">Buscando extensión de la palabra...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_enclosing_span">
+        <source>Finding enclosing span...</source>
+        <target state="translated">Buscando intervalo envolvente...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_span_of_next_sibling">
+        <source>Finding span of next sibling...</source>
+        <target state="translated">Buscando intervalo del siguiente elemento del mismo nivel...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Finding_span_of_previous_sibling">
+        <source>Finding span of previous sibling...</source>
+        <target state="translated">Buscando intervalo del anterior elemento del mismo nivel...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_colon_0">
+        <source>Rename: {0}</source>
+        <target state="translated">Cambiar nombre: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Light_bulb_session_is_already_dismissed">
+        <source>Light bulb session is already dismissed.</source>
+        <target state="translated">La sesión de bombilla ya está descartada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
+        <source>Automatic Pair Completion End Point Marker Color</source>
+        <target state="translated">Finalización automática del par, color del marcador del extremo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_anonymous_type_members_is_not_yet_supported">
+        <source>Renaming anonymous type members is not yet supported.</source>
+        <target state="translated">Todavía no se puede cambiar el nombre de miembros de tipo anónimo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
+        <source>Engine must be attached to an Interactive Window.</source>
+        <target state="translated">El motor debe estar asociado a una ventana interactiva.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes_the_current_prompt_settings">
+        <source>Changes the current prompt settings.</source>
+        <target state="translated">Cambia la configuración actual del aviso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unexpected_text_colon_0">
+        <source>Unexpected text: '{0}'</source>
+        <target state="translated">Texto inesperado: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
+        <source>The triggerSpan is not included in the given workspace.</source>
+        <target state="translated">El triggerSpan no está incluido en el área de trabajo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_session_has_already_been_dismissed">
+        <source>This session has already been dismissed.</source>
+        <target state="translated">Esta sesión ya se ha descartado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_transaction_is_already_complete">
+        <source>The transaction is already complete.</source>
+        <target state="translated">La transacción ya está completa.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Not_a_source_error_line_column_unavailable">
+        <source>Not a source error, line/column unavailable</source>
+        <target state="translated">No hay error de código fuente, línea/columna no disponible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
+        <source>Can't compare positions from different text snapshots</source>
+        <target state="translated">No se puede comparar posiciones desde distintas instantáneas de texto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Entity_Reference">
+        <source>XML Doc Comments - Entity Reference</source>
+        <target state="translated">Comentarios de documentación XML: referencia de entidad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Name">
+        <source>XML Doc Comments - Name</source>
+        <target state="translated">Comentarios de documentación XML: nombre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="XML_Doc_Comments_Processing_Instruction">
+        <source>XML Doc Comments - Processing Instruction</source>
+        <target state="translated">Comentarios de documentación XML: instrucción de procesamiento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Active_Statement">
+        <source>Active Statement</source>
+        <target state="translated">Instrucción de acción</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loading_Peek_information">
+        <source>Loading Peek information...</source>
+        <target state="translated">Cargando Ver información...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Peek">
+        <source>Peek</source>
+        <target state="translated">Ver</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="symbol_cannot_be_a_namespace">
+        <source>'symbol' cannot be a namespace.</source>
+        <target state="translated">'símbolo' no puede ser un espacio de nombres.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply1">
+        <source>_Apply</source>
+        <target state="translated">_Aplicar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_overload_s">
+        <source>Include _overload(s)</source>
+        <target state="translated">Incluir _sobrecarga(s)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_comments">
+        <source>Include _comments</source>
+        <target state="translated">Incluir _comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_strings">
+        <source>Include _strings</source>
+        <target state="translated">Incluir _cadenas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply2">
+        <source>Apply</source>
+        <target state="translated">Aplicar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature">
+        <source>Change Signature</source>
+        <target state="translated">Cambiar firma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Changes_0">
+        <source>Preview Changes - {0}</source>
+        <target state="translated">Vista previa de los cambios: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Code_Changes_colon">
+        <source>Preview Code Changes:</source>
+        <target state="translated">Vista previa de cambios de código:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_Changes">
+        <source>Preview Changes</source>
+        <target state="translated">Vista previa de los cambios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_Paste">
+        <source>Format Paste</source>
+        <target state="translated">Pegado de formato</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_pasted_text">
+        <source>Formatting pasted text...</source>
+        <target state="translated">Dando formato al texto pegado...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_definition_of_the_object_is_hidden">
+        <source>The definition of the object is hidden.</source>
+        <target state="translated">La definición del objeto está oculta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatic_Formatting">
+        <source>Automatic Formatting</source>
+        <target state="translated">Formato automático</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
+Do you want to proceed?</source>
+        <target state="translated">Podemos arreglar el error si no hacemos parámetro(s) de estructura "out/ref". 
+¿Quiere continuar?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_Signature_colon">
+        <source>Change Signature:</source>
+        <target state="translated">Cambiar firma:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_0_to_1_colon">
+        <source>Rename '{0}' to '{1}':</source>
+        <target state="translated">Cambiar el nombre de '{0}' a '{1}':</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Encapsulate_Field_colon">
+        <source>Encapsulate Field:</source>
+        <target state="translated">Encapsular campo:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="translated">Jerarquía de llamadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_0">
+        <source>Calls To '{0}'</source>
+        <target state="translated">Llamadas a '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Base_Member_0">
+        <source>Calls To Base Member '{0}'</source>
+        <target state="translated">Llamadas al miembro base '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Interface_Implementation_0">
+        <source>Calls To Interface Implementation '{0}'</source>
+        <target state="translated">Llamadas a la implementación de interfaz '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Computing_Call_Hierarchy_Information">
+        <source>Computing Call Hierarchy Information</source>
+        <target state="translated">Computando información de jerarquía de llamadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implements_0">
+        <source>Implements '{0}'</source>
+        <target state="translated">Implementa '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Initializers">
+        <source>Initializers</source>
+        <target state="translated">Inicializadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="References_To_Field_0">
+        <source>References To Field '{0}'</source>
+        <target state="translated">Referencias al campo '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Calls_To_Overrides">
+        <source>Calls To Overrides</source>
+        <target state="translated">Llamadas a invalidaciones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_changes1">
+        <source>_Preview changes</source>
+        <target state="translated">_Vista previa de cambios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply3">
+        <source>Apply</source>
+        <target state="translated">Aplicar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cancel">
+        <source>Cancel</source>
+        <target state="translated">Cancelar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changes">
+        <source>Changes</source>
+        <target state="translated">Cambios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Preview_changes2">
+        <source>Preview changes</source>
+        <target state="translated">Vista previa de cambios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IntelliSense_Commit_Formatting">
+        <source>IntelliSense Commit Formatting</source>
+        <target state="translated">Formato de confirmación de IntelliSense</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking">
+        <source>Rename Tracking</source>
+        <target state="translated">Cambiar el nombre del seguimiento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_from_1_with_content_colon">
+        <source>Removing '{0}' from '{1}' with content:</source>
+        <target state="translated">Quitando "{0}" de "{1}" con contenido:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
+        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
+        <target state="translated">'{0}' no admite la operación '{1}'. Sin embargo, puede contener '{2}' anidados (véase '{2}.{3}') que admitan esta operación.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Brace_Completion">
+        <source>Brace Completion</source>
+        <target state="translated">Finalización de llave</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Corregir todas las repeticiones de</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
+        <source>Cannot apply operation while a rename session is active.</source>
+        <target state="translated">No se puede aplicar la operación mientras la sesión de cambio de nombre está activa.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_rename_tracking_session_was_cancelled_and_is_no_longer_available">
+        <source>The rename tracking session was cancelled and is no longer available.</source>
+        <target state="translated">Se canceló la sesión de seguimiento de cambio de nombre y ya no está disponible.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlighted_Written_Reference">
+        <source>Highlighted Written Reference</source>
+        <target state="translated">Referencia por escrito resaltada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cursor_must_be_on_a_member_name">
+        <source>Cursor must be on a member name.</source>
+        <target state="translated">El cursor debe estar sobre un nombre de miembro.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Brace_Matching">
+        <source>Brace Matching</source>
+        <target state="translated">Coincidencia de llaves</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Locating_implementations">
+        <source>Locating implementations...</source>
+        <target state="translated">Buscando implementaciones...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Implementation">
+        <source>Go To Implementation</source>
+        <target state="translated">Ir a implementación</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="translated">El símbolo no tiene implementaciones.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_name_colon_0">
+        <source>New name: {0}</source>
+        <target state="translated">Nuevo nombre: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modify_any_highlighted_location_to_begin_renaming">
+        <source>Modify any highlighted location to begin renaming.</source>
+        <target state="translated">Modificar cualquier ubicación resaltada para empezar a cambiar el nombre.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">Pegar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating...</source>
+        <target state="translated">Navegando...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggestion_ellipses">
+        <source>Suggestion ellipses (…)</source>
+        <target state="translated">Puntos suspensivos de sugerencia (…)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="translated">'Referencias de "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="translated">'Implementaciones de "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_declarations">
+        <source>'{0}' declarations</source>
+        <target state="translated">'Declaraciones de "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Conflict">
+        <source>Inline Rename Conflict</source>
+        <target state="translated">Conflicto de cambio de nombre en línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Field_Background_and_Border">
+        <source>Inline Rename Field Background and Border</source>
+        <target state="translated">Borde y fondo del campo de cambio de nombre en línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Rename_Field_Text">
+        <source>Inline Rename Field Text</source>
+        <target state="translated">Texto del campo de cambio de nombre en línea</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="translated">Bloquear la edición de comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="translated">Poner/Quitar marca de comentario a la selección</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="translated">Finalización de código</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="translated">Ejecutar en modo interactivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="translated">Extraer interfaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="translated">Ir a miembro adyacente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="translated">Interactivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Pegar en interactivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="translated">Navegar a referencia resaltada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="translated">Esquematización</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">Cancelación de seguimiento de cambio de nombre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="translated">Ayuda de signatura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="translated">Formateador de token inteligente</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

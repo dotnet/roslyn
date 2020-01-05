@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         public int Item(object index, out EnvDTE.CodeElement element)
         {
-            int elementIndex = -1;
+            var elementIndex = -1;
 
             if (index is string elementName)
             {

@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -11,28 +12,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     {
         internal static IList<Lazy<TExtension, TMetadata>> Order<TExtension, TMetadata>(
             IEnumerable<Lazy<TExtension, TMetadata>> extensions)
-            where TMetadata : IOrderableMetadata
+            where TMetadata : OrderableMetadata
         {
             var graph = GetGraph(extensions);
             return graph.TopologicalSort();
         }
 
-        /// <summary>
-        /// Internal test helper for checking whether cycles exist in the extension ordering.
-        /// Throws <see cref="ArgumentException"/> if a cycle is detected.
-        /// </summary>
-        /// <exception cref="ArgumentException">A cycle was detected in the extension ordering.</exception>
-        internal static void CheckForCycles<TExtension, TMetadata>(
-            IEnumerable<Lazy<TExtension, TMetadata>> extensions)
-            where TMetadata : IOrderableMetadata
-        {
-            var graph = GetGraph(extensions);
-            graph.CheckForCycles();
-        }
-
         private static Graph<TExtension, TMetadata> GetGraph<TExtension, TMetadata>(
             IEnumerable<Lazy<TExtension, TMetadata>> extensions)
-            where TMetadata : IOrderableMetadata
+            where TMetadata : OrderableMetadata
         {
             var list = extensions.ToList();
             var graph = new Graph<TExtension, TMetadata>();
@@ -45,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             foreach (var extension in list)
             {
                 var extensionNode = graph.Nodes[extension];
-                foreach (var before in Before(extension))
+                foreach (var before in extension.Metadata.BeforeTyped)
                 {
                     foreach (var beforeExtension in graph.FindExtensions(before))
                     {
@@ -54,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     }
                 }
 
-                foreach (var after in After(extension))
+                foreach (var after in extension.Metadata.AfterTyped)
                 {
                     foreach (var afterExtension in graph.FindExtensions(after))
                     {
@@ -67,16 +55,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return graph;
         }
 
-        private static IEnumerable<string> Before<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
-            where TMetadata : IOrderableMetadata
+        internal static class TestAccessor
         {
-            return extension.Metadata.Before ?? SpecializedCollections.EmptyEnumerable<string>();
-        }
-
-        private static IEnumerable<string> After<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
-            where TMetadata : IOrderableMetadata
-        {
-            return extension.Metadata.After ?? SpecializedCollections.EmptyEnumerable<string>();
+            /// <summary>
+            /// Helper for checking whether cycles exist in the extension ordering.
+            /// Throws <see cref="ArgumentException"/> if a cycle is detected.
+            /// </summary>
+            /// <exception cref="ArgumentException">A cycle was detected in the extension ordering.</exception>
+            internal static void CheckForCycles<TExtension, TMetadata>(
+                IEnumerable<Lazy<TExtension, TMetadata>> extensions)
+                where TMetadata : OrderableMetadata
+            {
+                var graph = GetGraph(extensions);
+                graph.CheckForCycles();
+            }
         }
     }
 }

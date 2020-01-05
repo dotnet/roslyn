@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     edits: edits,
                     isAddedSymbol: isAddedSymbol);
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException e)
             {
-                // TODO: better error code (https://github.com/dotnet/roslyn/issues/8910)
-                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName);
+                // TODO: https://github.com/dotnet/roslyn/issues/9004
+                diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message);
                 return new EmitDifferenceResult(success: false, diagnostics: diagnostics.ToReadOnlyAndFree(), baseline: null);
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 moduleBeingBuilt,
                 emittingPdb: true,
                 diagnostics: diagnostics,
-                filterOpt: changes.RequiresCompilation,
+                filterOpt: s => changes.RequiresCompilation(s.GetISymbol()),
                 cancellationToken: cancellationToken))
             {
                 // Map the definitions from the previous compilation to the current compilation.
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return previousGeneration;
             }
 
-            var currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
+            var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();

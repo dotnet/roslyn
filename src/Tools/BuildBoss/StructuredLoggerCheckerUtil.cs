@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
 
@@ -21,25 +22,33 @@ namespace BuildBoss
 
         public bool Check(TextWriter textWriter)
         {
-            var build = Serialization.Read(_logFilePath);
-            var doubleWrites = DoubleWritesAnalyzer.GetDoubleWrites(build).ToArray();
-            if (doubleWrites.Any())
+            try
             {
-                foreach (var doubleWrite in doubleWrites)
+                var build = Serialization.Read(_logFilePath);
+                var doubleWrites = DoubleWritesAnalyzer.GetDoubleWrites(build).ToArray();
+                if (doubleWrites.Any())
                 {
-                    textWriter.WriteLine($"Multiple writes to {doubleWrite.Key}");
-                    foreach (var source in doubleWrite.Value)
+                    foreach (var doubleWrite in doubleWrites)
                     {
-                        textWriter.WriteLine($"\t{source}");
+                        textWriter.WriteLine($"Multiple writes to {doubleWrite.Key}");
+                        foreach (var source in doubleWrite.Value)
+                        {
+                            textWriter.WriteLine($"\t{source}");
+                        }
+
+                        textWriter.WriteLine();
                     }
 
-                    textWriter.WriteLine();
+                    return false;
                 }
 
+                return true;
+            }
+            catch (Exception ex)
+            {
+                textWriter.WriteLine($"Error processing binary log file: {ex.Message}");
                 return false;
             }
-
-            return true;
         }
     }
 }

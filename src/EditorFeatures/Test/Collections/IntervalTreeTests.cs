@@ -331,9 +331,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             foreach (var tree in CreateTrees(spans))
             {
                 var max = spans.Max(t => t.Item1 + t.Item2);
-                for (int start = 0; start <= max; start++)
+                for (var start = 0; start <= max; start++)
                 {
-                    for (int length = 1; length <= max; length++)
+                    for (var length = 1; length <= max; length++)
                     {
                         var span = new Span(start, length);
 

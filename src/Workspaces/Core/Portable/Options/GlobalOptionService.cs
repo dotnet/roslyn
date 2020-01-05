@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Options
                 foreach (var optionKey in workspaceOptionSet.GetAccessedOptions())
                 {
                     var setValue = optionSet.GetOption(optionKey);
-                    object currentValue = this.GetOption(optionKey);
+                    var currentValue = this.GetOption(optionKey);
 
                     if (object.Equals(currentValue, setValue))
                     {

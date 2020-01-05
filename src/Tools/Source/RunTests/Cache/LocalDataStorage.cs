@@ -50,7 +50,7 @@ namespace RunTests.Cache
         }
 
         public bool TryGetCachedTestResult(string checksum, out CachedTestResult testResult)
-        { 
+        {
             testResult = default(CachedTestResult);
 
             var storageFolder = GetStorageFolder(checksum);

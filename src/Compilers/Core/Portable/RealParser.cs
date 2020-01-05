@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// A set of utilities for converting from a decimal floating-point literal string to its IEEE float
-    /// or double representation, which coniders all digits signficant and correctly rounds according to
+    /// or double representation, which considers all digits significant and correctly rounds according to
     /// the IEEE round-to-nearest-ties-to-even mode. This code does not support a leading sign character,
     /// as that is not part of the C# or VB floating-point literal lexical syntax.
     /// 
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis
                         if (mantissa == 0)
                         {
                             result = this.Zero;
-                            return Status.Undeflow;
+                            return Status.Underflow;
                         }
 
                         // When we round the mantissa, the result may be so large that the  
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis
         {
             OK,
             NoDigits,
-            Undeflow,
+            Underflow,
             Overflow
         }
 
@@ -442,7 +444,7 @@ namespace Microsoft.CodeAnalysis
 
             // Otherwise, we did not get enough bits of precision from the integer part,  
             // and the mantissa has a fractional part.  We parse the fractional part of  
-            // the mantsisa to obtain more bits of precision.  To do this, we convert  
+            // the mantissa to obtain more bits of precision.  To do this, we convert  
             // the fractional part into an actual fraction N/M, where the numerator N is  
             // computed from the digits of the fractional part, and the denominator M is   
             // computed as the power of 10 such that N/M is equal to the value of the  
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis
                 // underflow (because the exponent cannot possibly be small enough),  
                 // so if we underflow here it is a true underflow and we return zero.  
                 result = type.Zero;
-                return Status.Undeflow;
+                return Status.Underflow;
             }
 
             BigInteger fractionalNumerator = AccumulateDecimalDigitsIntoBigInteger(data, fractionalFirstIndex, fractionalLastIndex);

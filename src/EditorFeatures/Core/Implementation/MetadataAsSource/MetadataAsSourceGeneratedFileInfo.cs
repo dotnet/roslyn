@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
@@ -19,18 +22,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         public readonly string TemporaryFilePath;
 
-        private readonly ParseOptions _parseOptions;
+        private readonly ParseOptions? _parseOptions;
 
-        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType)
+        public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool allowDecompilation)
         {
             this.SourceProjectId = sourceProject.Id;
-            _parseOptions = sourceProject.ParseOptions;
             this.Workspace = sourceProject.Solution.Workspace;
-            this.LanguageName = sourceProject.Language;
+            this.LanguageName = allowDecompilation ? LanguageNames.CSharp : sourceProject.Language;
+            if (sourceProject.Language == LanguageName)
+            {
+                _parseOptions = sourceProject.ParseOptions;
+            }
+            else
+            {
+                _parseOptions = Workspace.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
+            }
+
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
             this.AssemblyIdentity = topLevelNamedType.ContainingAssembly.Identity;
 
-            var extension = sourceProject.Language == LanguageNames.CSharp ? ".cs" : ".vb";
+            var extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 
             var directoryName = Guid.NewGuid().ToString("N");
             this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + extension);
@@ -50,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var projectId = ProjectId.CreateNewId();
 
             // Just say it's always a DLL since we probably won't have a Main method
-            var compilationOptions = workspace.Services.GetLanguageServices(LanguageName).CompilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+            var compilationOptions = workspace.Services.GetLanguageServices(LanguageName).CompilationFactory!.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
             var extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 

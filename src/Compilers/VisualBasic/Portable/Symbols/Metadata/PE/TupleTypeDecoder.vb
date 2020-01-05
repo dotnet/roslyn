@@ -110,6 +110,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' the type. Bad metadata.
             End Try
 
+            If metadataType.GetUseSiteErrorInfo() IsNot Nothing Then
+                Return metadataType
+            End If
+
             ' Bad metadata
             Return New UnsupportedMetadataTypeSymbol()
         End Function

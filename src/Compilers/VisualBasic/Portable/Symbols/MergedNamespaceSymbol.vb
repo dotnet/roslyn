@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Constructor. Use static Create method to create instances.
         Private Sub New(containingNamespace As MergedNamespaceSymbol, namespacesToMerge As ImmutableArray(Of NamespaceSymbol))
-            Debug.Assert(namespacesToMerge.Distinct().Count() = namespacesToMerge.Length)
+            Debug.Assert(namespacesToMerge.Distinct().Length = namespacesToMerge.Length)
             Me._namespacesToMerge = namespacesToMerge
             Me._containingNamespace = containingNamespace
 

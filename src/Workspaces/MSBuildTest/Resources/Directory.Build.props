@@ -1,0 +1,16 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>  
+    <!-- Attempt to make our test more deterministic by disabling any overrides that could be 
+         accidentally installed on the developers machine
+    -->
+    <ImportUserLocationsByWildcardBeforeMicrosoftCommonProps>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonProps>
+    <ImportUserLocationsByWildcardAfterMicrosoftCommonProps>false</ImportUserLocationsByWildcardAfterMicrosoftCommonProps> 
+    <ImportUserLocationsByWildcardBeforeMicrosoftCSharpTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCSharpTargets>
+    <ImportUserLocationsByWildcardAfterMicrosoftCSharpTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCSharpTargets>
+    <ImportUserLocationsByWildcardBeforeMicrosoftNetFrameworkProps>false</ImportUserLocationsByWildcardBeforeMicrosoftNetFrameworkProps>
+    <ImportUserLocationsByWildcardAfterMicrosoftNetFrameworkProps>false</ImportUserLocationsByWildcardAfterMicrosoftNetFrameworkProps>
+  </PropertyGroup>
+</Project>
+

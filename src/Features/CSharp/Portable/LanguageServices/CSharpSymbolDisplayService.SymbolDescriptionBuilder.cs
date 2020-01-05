@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -26,6 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 .AddLocalOptions(SymbolDisplayLocalOptions.IncludeConstantValue)
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeConstantValue)
                 .AddParameterOptions(SymbolDisplayParameterOptions.IncludeDefaultValue);
+
+            private static readonly SymbolDisplayFormat s_minimallyQualifiedFormatWithConstantsAndModifiers = s_minimallyQualifiedFormatWithConstants
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers);
 
             public SymbolDescriptionBuilder(
                 ISymbolDisplayService displayService,
@@ -177,15 +181,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return ImmutableArray<SymbolDisplayPart>.Empty;
             }
 
-            protected override void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position)
+            protected override void AddCaptures(ISymbol symbol)
             {
-                AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
-                    method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "x", semanticModel, position));
+                if (symbol is IMethodSymbol method && method.ContainingSymbol.IsKind(SymbolKind.Method))
+                {
+                    var syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                    if (syntax.IsKind(SyntaxKind.LocalFunctionStatement) || syntax is AnonymousFunctionExpressionSyntax)
+                    {
+                        AddCaptures(syntax);
+                    }
+                }
             }
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormat => s_minimallyQualifiedFormat;
 
             protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstants => s_minimallyQualifiedFormatWithConstants;
+
+            protected override SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers => s_minimallyQualifiedFormatWithConstantsAndModifiers;
         }
     }
 }

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     [ExportLanguageServiceFactory(typeof(ISemanticFactsService), LanguageNames.CSharp), Shared]
     internal class CSharpSemanticFactsServiceFactory : ILanguageServiceFactory
     {
+        [ImportingConstructor]
+        public CSharpSemanticFactsServiceFactory()
+        {
+        }
+
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => CSharpSemanticFactsService.Instance;
     }

@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -128,7 +129,7 @@ class B
         private void IndexedPropertiesBindingChecks(string source, MetadataReference reference, SymbolKind symbolKind, string name)
         {
             var tree = Parse(source);
-            var comp = CreateStandardCompilation(tree, new[] { reference });
+            var comp = CreateCompilation(tree, new[] { reference });
 
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -139,13 +140,14 @@ class B
             Assert.Equal(name, sym.Symbol.Name);
 
             var typeInfo = model.GetTypeInfo(expr);
-            Assert.NotNull(typeInfo);
+            // https://github.com/dotnet/roslyn/issues/38509
+            // Assert.NotEqual(default, typeInfo);
 
             var methodGroup = model.GetMemberGroup(expr);
-            Assert.NotNull(methodGroup);
+            Assert.NotEqual(default, methodGroup);
 
             var indexerGroup = model.GetIndexerGroup(expr);
-            Assert.NotNull(indexerGroup);
+            Assert.NotEqual(default, indexerGroup);
 
             var position = GetPositionForBinding(tree);
 
@@ -196,7 +198,7 @@ Public Class A
 End Class
 ";
 
-            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: true);
+            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: Verification.Passes);
             return reference;
         }
     }

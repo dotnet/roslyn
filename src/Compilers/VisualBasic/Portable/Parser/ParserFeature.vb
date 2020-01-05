@@ -32,20 +32,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         DigitSeparators
         BinaryLiterals
         Tuples
-        IOperation
         InferredTupleNames
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
+        UnconstrainedTypeParameterInConditional
+        CommentsAfterLineContinuation
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case Feature.IOperation
-                    Return "IOperation"
-
                 Case Else
                     Return Nothing
             End Select
@@ -97,6 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.NonTrailingNamedArguments,
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
+
+                Case Feature.UnconstrainedTypeParameterInConditional,
+                    Feature.CommentsAfterLineContinuation
+                    Return LanguageVersion.VisualBasic16
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -159,12 +161,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_BinaryLiterals
                 Case Feature.Tuples
                     Return ERRID.FEATURE_Tuples
-                Case Feature.IOperation
-                    Return ERRID.FEATURE_IOperation
                 Case Feature.LeadingDigitSeparator
                     Return ERRID.FEATURE_LeadingDigitSeparator
                 Case Feature.PrivateProtected
                     Return ERRID.FEATURE_PrivateProtected
+                Case Feature.InterpolatedStrings
+                    Return ERRID.FEATURE_InterpolatedStrings
+                Case Feature.UnconstrainedTypeParameterInConditional
+                    Return ERRID.FEATURE_UnconstrainedTypeParameterInConditional
+                Case Feature.CommentsAfterLineContinuation
+                    Return ERRID.FEATURE_CommentsAfterLineContinuation
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

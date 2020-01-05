@@ -192,26 +192,58 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
         Public Async Function WithMustOverride() As Task
-            Await TestDiagnosticMissingAsync("
+            Await TestMissingAsync("
 Class C
     Public MustOverride Property Tes[||]t4 As String
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
-        Public Async Function CursorOnInitializer() As Task
-            Await TestDiagnosticMissingAsync("
+        Public Async Function CursorBeforeInitializer() As Task
+            Dim initial = "
 Class C
-    Public Property Test2 As Integer [||]= 4
+    Public Property Test1 As Integer [||]= 4
+End Class"
+            Dim expected = "
+Class C
+    Private _Test1 As Integer = 4
+
+    Public Property Test1 As Integer
+        Get
+            Return _Test1
+        End Get
+        Set
+            _Test1 = Value
+        End Set
+    End Property
+End Class"
+            Await TestInRegularAndScriptAsync(initial, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        Public Async Function CursorOnInitializer() As Task
+            Await TestMissingAsync("
+Class C
+    Public Property Test2 As Integer = [||]4
 End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
         Public Async Function InInterface() As Task
-            Await TestDiagnosticMissingAsync("
+            Await TestMissingAsync("
 Interface I
     Public Property Tes[||]t2 As Integer
 End Interface")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)>
+        Public Async Function InvalidLocation() As Task
+            Await TestMissingAsync("
+Namespace NS
+    Public Property Tes[||]t2 As Integer
+End Namespace")
+
+            Await TestMissingAsync("Public Property Tes[||]t2 As Integer")
         End Function
     End Class
 End Namespace

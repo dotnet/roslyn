@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -40,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
             VisualStudio14StructureTaggerProvider outliningTaggerProvider)
+            : base(outliningTaggerProvider.ThreadingContext)
         {
             _serviceProvider = serviceProvider;
             _outliningTaggerProvider = outliningTaggerProvider;
@@ -58,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            options = options ?? project.Solution.Workspace.Options;
+            options ??= project.Solution.Workspace.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -111,7 +114,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
+            var allowDecompilation = false;
+
+            // Check whether decompilation is supported for the project. We currently only support this for C# projects.
+            if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
+            {
+                allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
+                if (allowDecompilation && !project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer))
+                {
+                    var notificationService = project.Solution.Workspace.Services.GetService<INotificationService>();
+                    allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
+                    if (allowDecompilation)
+                    {
+                        project.Solution.Workspace.Options = project.Solution.Workspace.Options.WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true);
+                    }
+                }
+            }
+
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = _serviceProvider.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
@@ -121,7 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
-            var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
+            // which saves us JIT time in this method.
+            var vsTextBuffer = (IVsTextBuffer)(object)vsRunningDocumentTable4.GetDocumentData(documentCookie);
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
@@ -169,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            int returnCode = navigationNotify.OnBeforeNavigateToSymbol(
+            var returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqName,
@@ -221,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
-            int queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
+            var queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
                 itemID,
                 rqName,
@@ -293,13 +315,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             AssertIsForeground();
 
-            if (document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+            if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace)
             {
-                var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
-                hierarchy = hostProject.Hierarchy;
-                itemID = hostProject.GetDocumentOrAdditionalDocument(document.Id).GetItemId();
+                hierarchy = visualStudioWorkspace.GetHierarchy(document.Project.Id);
+                itemID = hierarchy.TryGetItemId(document.FilePath);
 
-                return true;
+                if (itemID != VSConstants.VSITEMID_NIL)
+                {
+                    return true;
+                }
             }
 
             hierarchy = null;

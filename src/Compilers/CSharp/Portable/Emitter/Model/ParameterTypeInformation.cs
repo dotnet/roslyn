@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return _underlyingParameter.CustomModifiers.As<Cci.ICustomModifier>();
+                return _underlyingParameter.TypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 

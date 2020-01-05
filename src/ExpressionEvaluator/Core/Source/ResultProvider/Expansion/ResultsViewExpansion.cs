@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags: ExpansionFlags.None,
                 predicate: TypeHelpers.IsPublic,
                 resultProvider: resultProvider,
-                isProxyType: false);
+                isProxyType: false,
+                supportsFavorites: false);
             return new ResultsViewExpansion(proxyValue, proxyMembers);
         }
 
@@ -208,6 +209,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
+            if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoSideEffects) == DkmEvaluationFlags.NoSideEffects)
+            {
+                return;
+            }
+
             if (InRange(startIndex, count, index))
             {
                 rows.Add(CreateResultsViewRow(inspectionContext, parent, resultProvider.FullNameProvider));

@@ -1,0 +1,50 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Roslyn.Test.Utilities
+{
+    // Based on CoreCLR's implementation of the TaskScheduler they return from TaskScheduler.FromCurrentSynchronizationContext
+    internal class SynchronizationContextTaskScheduler : TaskScheduler
+    {
+        private readonly SendOrPostCallback _postCallback;
+        private readonly SynchronizationContext _synchronizationContext;
+
+        internal SynchronizationContextTaskScheduler(SynchronizationContext synchronizationContext)
+        {
+            _postCallback = new SendOrPostCallback(PostCallback);
+            _synchronizationContext = synchronizationContext ?? throw new ArgumentNullException(nameof(synchronizationContext));
+        }
+
+        public override Int32 MaximumConcurrencyLevel => 1;
+
+        protected override void QueueTask(Task task)
+        {
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
+            _synchronizationContext.Post(_postCallback, task);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
+        }
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            if (SynchronizationContext.Current == _synchronizationContext)
+            {
+                return TryExecuteTask(task);
+            }
+
+            return false;
+        }
+
+        protected override IEnumerable<Task> GetScheduledTasks()
+        {
+            return null;
+        }
+
+        private void PostCallback(object obj)
+        {
+            TryExecuteTask((Task)obj);
+        }
+    }
+}

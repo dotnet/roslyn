@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     var textBuffer = text.Container.GetTextBuffer();
                     if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
-                        if (!stateMachine.CanInvokeRename(out var trackingSession, cancellationToken: cancellationToken))
+                        if (!stateMachine.CanInvokeRename(out _, cancellationToken: cancellationToken))
                         {
                             // The rename tracking could be dismissed while a codefix is still cached
                             // in the lightbulb. If this happens, do not perform the rename requested

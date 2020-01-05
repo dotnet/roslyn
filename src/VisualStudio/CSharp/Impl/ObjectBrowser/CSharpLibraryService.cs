@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
             parameterOptions: SymbolDisplayParameterOptions.IncludeType,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        [ImportingConstructor]
         public CSharpLibraryService()
             : base(Guids.CSharpLibraryId, __SymbolToolLanguage.SymbolToolLanguage_CSharp, s_typeDisplayFormat, s_memberDisplayFormat)
         {

@@ -10,9 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension()>
         Public Function IsNullableType(this As TypeSymbol) As Boolean
-            Dim original = TryCast(this.OriginalDefinition, TypeSymbol)
-
-            Return original IsNot Nothing AndAlso original.SpecialType = SpecialType.System_Nullable_T
+            Return this.OriginalDefinition.SpecialType = SpecialType.System_Nullable_T
         End Function
 
         <Extension()>
@@ -245,12 +243,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function IsSameType(t1 As TypeSymbol, t2 As TypeSymbol, compareKind As TypeCompareKind) As Boolean
             Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
-            If compareKind = TypeCompareKind.ConsiderEverything Then
-                Return t1.Equals(t2)
-            End If
-
             If t1 Is t2 Then
                 Return True
+            ElseIf t1 Is Nothing OrElse t2 Is Nothing Then
+                Return False
+            End If
+
+            If compareKind = TypeCompareKind.ConsiderEverything Then
+                Return t1.Equals(t2)
             End If
 
             Dim kind = t1.Kind
@@ -285,15 +285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim t1IsDefinition = t1.IsDefinition
                 Dim t2IsDefinition = t2.IsDefinition
 
-                If (t1IsDefinition <> t2IsDefinition) AndAlso
-                   Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
-                            (DirectCast(t1, NamedTypeSymbol).HasTypeArgumentsCustomModifiers OrElse DirectCast(t2, NamedTypeSymbol).HasTypeArgumentsCustomModifiers)) Then
-                    Return False
-                End If
-
                 If Not (t1IsDefinition AndAlso t2IsDefinition) Then ' This is a generic instantiation case
 
-                    If t1.OriginalDefinition <> t2.OriginalDefinition Then
+                    If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
                         Return False ' different definition
                     End If
 
@@ -303,20 +297,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Do
 
-                        If (compareKind And Global.Microsoft.CodeAnalysis.TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
-                           Not HasSameTypeArgumentCustomModifiers(container1, container2) Then
+                        If Not (container1 Is container1.ConstructedFrom AndAlso container2 Is container2.ConstructedFrom) Then
+                            ' No need to compare type arguments on those containers when they didn't add type arguments (that would cause cycles)
 
-                            Return False
-                        End If
+                            If (compareKind And Global.Microsoft.CodeAnalysis.TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+                                Not HasSameTypeArgumentCustomModifiers(container1, container2) Then
 
-                        Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
-                        Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
-
-                        For i As Integer = 0 To args1.Length - 1 Step 1
-                            If Not args1(i).IsSameType(args2(i), compareKind) Then
                                 Return False
                             End If
-                        Next
+
+                            Dim args1 As ImmutableArray(Of TypeSymbol) = container1.TypeArgumentsNoUseSiteDiagnostics
+                            Dim args2 As ImmutableArray(Of TypeSymbol) = container2.TypeArgumentsNoUseSiteDiagnostics
+
+                            For i As Integer = 0 To args1.Length - 1 Step 1
+                                If Not args1(i).IsSameType(args2(i), compareKind) Then
+                                    Return False
+                                End If
+                            Next
+                        End If
 
                         container1 = container1.ContainingType
                         container2 = container2.ContainingType
@@ -326,19 +324,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Exit Do
                         End If
 
-                        If (container1.IsDefinition <> container2.IsDefinition) AndAlso
-                            Not ((compareKind And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) <> 0 AndAlso
-                            (container1.HasTypeArgumentsCustomModifiers OrElse container2.HasTypeArgumentsCustomModifiers)) Then
-
-                            Return False
-                        End If
                     Loop
 
                     Return True
                 End If
+            ElseIf kind = SymbolKind.TypeParameter Then
+                If Not t1.OriginalDefinition.Equals(t2.OriginalDefinition) Then
+                    Return False ' different definition
+                End If
+
+                Return t1.ContainingType.IsSameType(t2.ContainingType, compareKind)
             End If
 
-            Return (t1 = t2)
+            Return t1.Equals(t2)
         End Function
 
         Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
@@ -646,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function IsSameOrNestedWithin(inner As NamedTypeSymbol, outer As NamedTypeSymbol) As Boolean
             Do
-                If inner = outer Then
+                If TypeSymbol.Equals(inner, outer, TypeCompareKind.ConsiderEverything) Then
                     Return True
                 End If
 
@@ -657,12 +655,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Public Function ImplementsInterface(subType As TypeSymbol, superInterface As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+        Public Function ImplementsInterface(subType As TypeSymbol, superInterface As TypeSymbol, comparer As EqualityComparer(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+            If comparer Is Nothing Then
+                comparer = EqualityComparer(Of TypeSymbol).Default
+            End If
 
             For Each [interface] In subType.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
 
                 If [interface].IsInterface AndAlso
-                   [interface] = superInterface Then
+                   comparer.Equals([interface], superInterface) Then
 
                     Return True
                 End If
@@ -837,7 +838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function IsBaseTypeOrInterfaceOf(superType As TypeSymbol, subType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             If superType.IsInterfaceType() Then
-                Return subType.ImplementsInterface(superType, useSiteDiagnostics)
+                Return subType.ImplementsInterface(superType, EqualsIgnoringComparer.InstanceCLRSignatureCompare, useSiteDiagnostics)
             Else
                 Return superType.IsBaseTypeOf(subType, useSiteDiagnostics)
             End If
@@ -1039,7 +1040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Return type.GetEnumUnderlyingTypeOrSelf.SpecialType.IsValidTypeForAttributeArgument() OrElse
-                type = compilation.GetWellKnownType(WellKnownType.System_Type) ' don't call the version with diagnostics
+                TypeSymbol.Equals(type, compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.ConsiderEverything) ' don't call the version with diagnostics
         End Function
 
         <Extension()>
@@ -1183,7 +1184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim namedType = DirectCast(type, NamedTypeSymbol)
 
                 ' Note that if the compilation doesn't have the Expression(Of T) well-known type, then the below test just fails correctly.
-                If namedType.Arity = 1 AndAlso namedType.OriginalDefinition = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T) Then
+                If namedType.Arity = 1 AndAlso TypeSymbol.Equals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T), TypeCompareKind.ConsiderEverything) Then
                     Dim typeArgument = namedType.TypeArgumentsNoUseSiteDiagnostics(0)
                     If typeArgument.TypeKind = TypeKind.Delegate Then
                         Return DirectCast(typeArgument, NamedTypeSymbol)

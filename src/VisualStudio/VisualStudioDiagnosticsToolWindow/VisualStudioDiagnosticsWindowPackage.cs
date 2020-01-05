@@ -4,15 +4,20 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
+using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
@@ -28,7 +33,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     /// </summary>
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
     // a package.
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", version: 1)]
     // These attributes specify the menu structure to be used in Tools | Options. These are not
@@ -39,14 +44,16 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     [ProvideOptionPage(typeof(PerformanceLoggersPage), @"Roslyn\Performance", @"Loggers", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideOptionPage(typeof(InternalDiagnosticsPage), @"Roslyn\Diagnostics", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     [ProvideOptionPage(typeof(InternalSolutionCrawlerPage), @"Roslyn\SolutionCrawler", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
+    [ProvideOptionPage(typeof(ExperimentationPage), @"Roslyn\Experimentation", @"Internal", categoryResourceID: 0, pageNameResourceID: 0, supportsAutomation: true, SupportsProfiles = false)]
     // This attribute registers a tool window exposed by this package.
     [ProvideToolWindow(typeof(DiagnosticsWindow))]
     [Guid(GuidList.guidVisualStudioDiagnosticsWindowPkgString)]
     [Description("Roslyn Diagnostics Window")]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-    public sealed class VisualStudioDiagnosticsWindowPackage : Package
+    public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
     {
         private ForceLowMemoryMode _forceLowMemoryMode;
+        private IThreadingContext _threadingContext;
 
         /// <summary>
         /// This function is called when the user clicks the menu item that shows the 
@@ -55,16 +62,12 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// </summary>
         private void ShowToolWindow(object sender, EventArgs e)
         {
-            // Get the instance number 0 of this tool window. This window is single instance so this instance
-            // is actually the only one.
-            // The last flag is set to true so that if the tool window does not exists it will be created.
-            ToolWindowPane window = this.FindToolWindow(typeof(DiagnosticsWindow), 0, true);
-            if ((null == window) || (null == window.Frame))
+            _threadingContext.ThrowIfNotOnUIThread();
+
+            JoinableTaskFactory.RunAsync(async () =>
             {
-                throw new NotSupportedException(Resources.CanNotCreateWindow);
-            }
-            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                await ShowToolWindowAsync(typeof(DiagnosticsWindow), id: 0, create: true, this.DisposalToken).ConfigureAwait(true);
+            });
         }
 
         /////////////////////////////////////////////////////////////////////////////
@@ -75,24 +78,61 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            var menuCommandService = (IMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Assumes.Present(componentModel);
+            Assumes.Present(menuCommandService);
+
+            _threadingContext = componentModel.GetService<IThreadingContext>();
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            if (GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
+            if (menuCommandService is OleMenuCommandService mcs)
             {
                 // Create the command for the tool window
                 CommandID toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);
                 MenuCommand menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
                 mcs.AddCommand(menuToolWin);
             }
+
+            // set logger at start up
+            var optionService = componentModel.GetService<IGlobalOptionService>();
+            var remoteService = workspace.Services.GetService<IRemoteHostClientService>();
+
+            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteService);
         }
         #endregion
+
+        public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+        {
+            // Return this for everything, as all our windows are now async
+            return this;
+        }
+
+        protected override string GetToolWindowTitle(Type toolWindowType, int id)
+        {
+            if (toolWindowType == typeof(DiagnosticsWindow))
+            {
+                return Resources.ToolWindowTitle;
+            }
+
+            return null;
+        }
+
+        protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new object());
+        }
     }
 }

@@ -359,7 +359,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         ' Let's use a trick. To make sure the kind is the same, make sure
                         ' base type is the same.
-                        If baseType IsNot candidate.BaseTypeNoUseSiteDiagnostics Then
+                        Dim baseSpecialType As SpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault()
+                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> (baseType?.SpecialType).GetValueOrDefault() Then
                             Continue For
                         End If
 
@@ -439,8 +440,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetSymbolForMemberRef(memberRef As MemberReferenceHandle, Optional scope As TypeSymbol = Nothing, Optional methodsOnly As Boolean = False) As Symbol
             Dim targetTypeSymbol As TypeSymbol = GetMemberRefTypeSymbol(memberRef)
 
-            If scope IsNot Nothing AndAlso targetTypeSymbol <> scope AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
+            If targetTypeSymbol Is Nothing Then
                 Return Nothing
+            End If
+
+            Debug.Assert(Not targetTypeSymbol.IsTupleType)
+
+            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
+                Return Nothing
+            End If
+
+            If Not targetTypeSymbol.IsTupleCompatible() Then
+                targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames:=Nothing)
             End If
 
             ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.

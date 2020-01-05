@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim receiver As BoundExpression = Nothing
                             If Not addHandlerMethod.IsShared Then
                                 Dim meParam = constructorMethod.MeParameter
-                                If addHandlerMethod.ContainingType = containingType Then
+                                If TypeSymbol.Equals(addHandlerMethod.ContainingType, containingType, TypeCompareKind.ConsiderEverything) Then
                                     receiver = New BoundMeReference(syntax, meParam.Type).MakeCompilerGenerated()
                                 Else
                                     'Dev10 always performs base call if event is in the base class. 
@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim methodSymbol = callExpression.Method
                             If methodSymbol.MethodKind = MethodKind.Constructor Then
                                 isMyBaseConstructorCall = receiver.IsMyBaseReference
-                                Return methodSymbol.ContainingType = container
+                                Return TypeSymbol.Equals(methodSymbol.ContainingType, container, TypeCompareKind.ConsiderEverything)
                             End If
                         End If
                     End If

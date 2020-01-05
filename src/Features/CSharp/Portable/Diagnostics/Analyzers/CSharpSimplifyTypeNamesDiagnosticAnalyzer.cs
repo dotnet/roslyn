@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,14 +7,14 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer 
+    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
@@ -51,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
             bool descendIntoChildren(SyntaxNode n)
             {
+                // Don't examine crefs here, we'll process it in the loop below that
+                // descends into trivia.
+                if (IsCrefCandidate(n))
+                    return true;
+
                 if (!IsRegularCandidate(n) ||
                     !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
                 {
@@ -80,10 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
         }
 
-        internal static bool IsCandidate(SyntaxNode node)
-        {
-            return IsRegularCandidate(node) || IsCrefCandidate(node);
-        }
+        internal override bool IsCandidate(SyntaxNode node)
+            => IsRegularCandidate(node) || IsCrefCandidate(node);
 
         private static bool IsRegularCandidate(SyntaxNode node)
         {
@@ -95,64 +96,75 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             return node is QualifiedCrefSyntax;
         }
 
-        protected sealed override bool CanSimplifyTypeNameExpressionCore(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        protected sealed override bool CanSimplifyTypeNameExpressionCore(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken)
         {
-            return CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
+            return CanSimplifyTypeNameExpression(
+                model, node, optionSet,
+                out issueSpan, out diagnosticId, out inDeclaration,
+                cancellationToken);
         }
 
-        internal static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
+        internal override bool CanSimplifyTypeNameExpression(
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
+            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+            CancellationToken cancellationToken)
         {
+            inDeclaration = false;
             issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
-            // For Crefs, currently only Qualified Crefs needs to be handled separately
-            if (node.Kind() == SyntaxKind.QualifiedCref)
+            if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
             {
-                if (node.ContainsDiagnostics)
-                {
-                    return false;
-                }
+                // don't bother analyzing "this.Goo" expressions.  They will be analyzed by
+                // the CSharpSimplifyThisOrMeDiagnosticAnalyzer.
+                return false;
+            }
 
-                var crefSyntax = (CrefSyntax)node;
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacementNode, out issueSpan, optionSet, cancellationToken))
-                {
+            if (node.ContainsDiagnostics)
+            {
+                return false;
+            }
+
+            SyntaxNode replacementSyntax;
+            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
+            {
+                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
                     return false;
-                }
+
+                replacementSyntax = replacement;
             }
             else
             {
                 var expression = (ExpressionSyntax)node;
-                if (expression.ContainsDiagnostics)
-                {
-                    return false;
-                }
 
                 // in case of an As or Is expression we need to handle the binary expression, because it might be 
                 // required to add parenthesis around the expression. Adding the parenthesis is done in the CSharpNameSimplifier.Rewriter
                 var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
                     ? ((BinaryExpressionSyntax)expression).Right
                     : expression;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacementSyntax, out issueSpan, optionSet, cancellationToken))
-                {
+                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
                     return false;
-                }
 
-                // set proper diagnostic ids.
-                if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
-                {
-                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
-                }
-                else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
-                {
-                    diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId;
-                }
-                else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-                {
-                    var memberAccess = (MemberAccessExpressionSyntax)expression;
-                    diagnosticId = memberAccess.Expression.Kind() == SyntaxKind.ThisExpression ?
-                        IDEDiagnosticIds.RemoveQualificationDiagnosticId :
-                        IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
-                }
+                replacementSyntax = replacement;
+            }
+
+            // set proper diagnostic ids.
+            if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
+            {
+                inDeclaration = true;
+                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
+            }
+            else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+            {
+                inDeclaration = false;
+                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
+            }
+            else if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            {
+                diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
             }
 
             return true;

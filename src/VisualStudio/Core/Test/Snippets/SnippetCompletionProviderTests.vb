@@ -1,15 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Snippets
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
+    <[UseExportProvider]>
     Public Class SnippetCompletionProviderTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetCompletion() As Task
@@ -20,12 +21,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Assert.Equal("a", testState.GetDocumentText())
 
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal("Shortcut", testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim selectedItem = testState.GetSelectedItem()
                 Dim service = CompletionService.GetService(document)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, testState.CurrentCompletionPresenterSession.SelectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem)
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
@@ -40,12 +41,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal("Shortcut", testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 testState.SendBackspace()
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal("Shortcut", testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 testState.SendTabToCompletion()
 
@@ -65,8 +64,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Null(testState.CurrentCompletionPresenterSession)
+                Await testState.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -83,8 +81,7 @@ End Class</File>.Value
                 testState.Workspace.Options = testState.Workspace.Options.WithChangedOption(
                     New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'T")
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Null(testState.CurrentCompletionPresenterSession)
+                Await testState.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -101,8 +98,7 @@ End Class</File>.Value
                 testState.Workspace.Options = testState.Workspace.Options.WithChangedOption(
                     New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'''T")
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Null(testState.CurrentCompletionPresenterSession)
+                Await testState.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -118,8 +114,7 @@ End Class</File>.Value
                 testState.Workspace.Options = testState.Workspace.Options.WithChangedOption(
                     New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("Shortcut")
-                Await testState.WaitForAsynchronousOperationsAsync()
-                Assert.Equal("Shortcut", testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
             End Using
         End Function
     End Class
@@ -127,6 +122,10 @@ End Class</File>.Value
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
+
+        <ImportingConstructor>
+        Public Sub New()
+        End Sub
 
         Public Function GetSnippetsAsync_NonBlocking() As IEnumerable(Of SnippetInfo) Implements ISnippetInfoService.GetSnippetsIfAvailable
             Return SpecializedCollections.SingletonEnumerable(New SnippetInfo("Shortcut", "Title", "Description", "Path"))

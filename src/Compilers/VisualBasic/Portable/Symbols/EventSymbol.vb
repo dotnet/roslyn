@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property RaiseMethod As MethodSymbol
 
         ''' <summary>
-        ''' True if the event itself Is excluded from code covarage instrumentation.
+        ''' True if the event itself Is excluded from code coverage instrumentation.
         ''' True for source events marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         ''' </summary>
         Friend Overridable ReadOnly Property IsDirectlyExcludedFromCodeCoverage As Boolean
@@ -276,6 +276,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IEventSymbol_NullableAnnotation As NullableAnnotation Implements IEventSymbol.NullableAnnotation
+            Get
+                Return NullableAnnotation.None
+            End Get
+        End Property
+
         Private ReadOnly Property IEventSymbol_AddMethod As IMethodSymbol Implements IEventSymbol.AddMethod
             Get
                 Return Me.AddMethod
@@ -338,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
-            Return Me.ContainingType = other.ContainingType AndAlso Me.OriginalDefinition Is other.OriginalDefinition
+            Return TypeSymbol.Equals(Me.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything) AndAlso Me.OriginalDefinition Is other.OriginalDefinition
         End Function
 
         Public Overrides Function GetHashCode() As Integer

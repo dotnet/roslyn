@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     {
         public readonly IList<string> ContainingNamespaceNames;
         public readonly string TypeName;
-        public readonly string Version;
+        public readonly string? Version;
 
         public PackageWithTypeResult(
             string packageName,
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
     internal class PackageWithAssemblyResult : PackageResult, IEquatable<PackageWithAssemblyResult>, IComparable<PackageWithAssemblyResult>
     {
-        public readonly string Version;
+        public readonly string? Version;
 
         public PackageWithAssemblyResult(
             string packageName,
@@ -105,15 +107,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             => PackageName.Equals(other.PackageName);
 
         public int CompareTo(PackageWithAssemblyResult other)
-        {
-            var diff = Rank - other.Rank;
-            if (diff != 0)
-            {
-                return -diff;
-            }
+         => ComparerWithState.CompareTo(this, other, s_comparers);
 
-            return PackageName.CompareTo(other.PackageName);
-        }
+        private readonly static ImmutableArray<Func<PackageWithAssemblyResult, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<PackageWithAssemblyResult, IComparable>>(p => p.Rank, p => p.PackageName);
     }
 
     internal class ReferenceAssemblyWithTypeResult
@@ -136,6 +133,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
     internal class DefaultSymbolSearchService : ISymbolSearchService
     {
+        [ImportingConstructor]
+        public DefaultSymbolSearchService()
+        {
+        }
+
         public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(
             string source, string name, int arity, CancellationToken cancellationToken)
         {

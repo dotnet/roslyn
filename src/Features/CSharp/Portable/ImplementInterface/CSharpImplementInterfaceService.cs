@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     [ExportLanguageService(typeof(IImplementInterfaceService), LanguageNames.CSharp), Shared]
     internal class CSharpImplementInterfaceService : AbstractImplementInterfaceService
     {
+        [ImportingConstructor]
+        public CSharpImplementInterfaceService()
+        {
+        }
+
         protected override bool TryInitializeState(
             Document document, SemanticModel model, SyntaxNode node, CancellationToken cancellationToken,
             out SyntaxNode classOrStructDecl, out INamedTypeSymbol classOrStructType, out IEnumerable<INamedTypeSymbol> interfaceTypes)
@@ -35,10 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                         var interfaceSymbolInfo = model.GetSymbolInfo(interfaceNode, cancellationToken);
                         if (interfaceSymbolInfo.CandidateReason != CandidateReason.WrongArity)
                         {
-                            var interfaceType = interfaceSymbolInfo.GetAnySymbol() as INamedTypeSymbol;
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            if (interfaceType != null && interfaceType.TypeKind == TypeKind.Interface)
+                            if (interfaceSymbolInfo.GetAnySymbol() is INamedTypeSymbol interfaceType && interfaceType.TypeKind == TypeKind.Interface)
                             {
                                 classOrStructDecl = interfaceNode.Parent.Parent.Parent as TypeDeclarationSyntax;
                                 classOrStructType = model.GetDeclaredSymbol(classOrStructDecl, cancellationToken) as INamedTypeSymbol;
@@ -108,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
     }}
 
     // {CSharpFeaturesResources.TODO_colon_override_a_finalizer_only_if_Dispose_bool_disposing_above_has_code_to_free_unmanaged_resources}
-    // ~{classDecl.Identifier.Value}() {{
+    // ~{classDecl.Identifier.Value}()
+    // {{
     //   // {CSharpFeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_Dispose_bool_disposing_above}
     //   Dispose(false);
     // }}
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             decls[decls.Length - 1] = decls[decls.Length - 1].WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
-                    SyntaxFactory.CarriageReturnLineFeed));
+                    SyntaxFactory.ElasticCarriageReturnLineFeed));
 
             // Ensure that open and close brace tokens are generated in case they are missing.
             var newNode = classDecl.EnsureOpenAndCloseBraceTokens().AddMembers(decls);
