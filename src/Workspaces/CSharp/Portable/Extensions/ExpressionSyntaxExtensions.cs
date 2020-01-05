@@ -904,15 +904,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 'this.Name' or 'base.Name', no additional check here is required.
             if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
             {
-                if (!TryGetReplacementCandidates(
-                        semanticModel,
-                        memberAccess,
-                        symbol,
-                        out var speculativeSymbols,
-                        out var speculativeNamespacesAndTypes))
-                {
-                    return false;
-                }
+                GetReplacementCandidates(
+                    semanticModel,
+                    memberAccess,
+                    symbol,
+                    out var speculativeSymbols,
+                    out var speculativeNamespacesAndTypes);
 
                 if (!IsReplacementCandidate(symbol, speculativeSymbols, speculativeNamespacesAndTypes))
                 {
@@ -932,26 +929,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
-        private static bool TryGetReplacementCandidates(
+        private static void GetReplacementCandidates(
             SemanticModel semanticModel,
             MemberAccessExpressionSyntax memberAccess,
             ISymbol actualSymbol,
             out ImmutableArray<ISymbol> speculativeSymbols,
             out ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
         {
-            bool containsNamespaceOrTypeSymbol;
-            bool containsOtherSymbol;
-            if (actualSymbol is object)
-            {
-                containsNamespaceOrTypeSymbol = actualSymbol is INamespaceOrTypeSymbol;
-                containsOtherSymbol = !containsNamespaceOrTypeSymbol;
-            }
-            else
-            {
-                speculativeSymbols = ImmutableArray<ISymbol>.Empty;
-                speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
-                return false;
-            }
+            var containsNamespaceOrTypeSymbol = actualSymbol is INamespaceOrTypeSymbol;
+            var containsOtherSymbol = !containsNamespaceOrTypeSymbol;
 
             speculativeSymbols = containsOtherSymbol
                 ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
@@ -959,7 +945,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
                 ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
                 : ImmutableArray<ISymbol>.Empty;
-            return true;
         }
 
         /// <summary>
