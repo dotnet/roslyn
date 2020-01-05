@@ -1,0 +1,51 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <EnableArcadeGeneratePkgDef>true</EnableArcadeGeneratePkgDef>
+  </PropertyGroup>
+
+  <Target Name="_PopulatePkgDefKeys_Roslyn" BeforeTargets="GeneratePkgDef">
+    <ItemGroup>
+      <PkgDefKey Include="@(ProvideRoslynVersionRegistration->'InstalledProducts\%(Identity)')">
+        <Values>
+          <Value Type="resource">%(ProvideRoslynVersionRegistration.ProductNameResourceId)</Value>
+          <Value Name="Package">%(ProvideRoslynVersionRegistration.PackageId)</Value>
+          <Value Name="PID">$(Version)</Value>
+          <Value Name="ProductDetails" Type="resource">%(ProvideRoslynVersionRegistration.DetailsResourceId)</Value>
+          <Value Name="UseInterface" Type="bool">false</Value>
+          <Value Name="UseVSProductID" Type="bool">false</Value>
+        </Values>
+      </PkgDefKey>
+
+      <PkgDefKey Include="@(ProvideAutomationProperties->'AutomationProperties\%(Category)\%(Page)')">
+        <Values>
+          <Value Type="resource">%(ProvideAutomationProperties.ProfileNodeLabelId)</Value>
+          <Value Name="Description" Type="resource">%(ProvideAutomationProperties.ProfileNodeDescriptionId)</Value>
+          <Value Name="Name">%(ProvideAutomationProperties.Page)</Value>
+          <Value Name="Package" Type="guid">%(ProvideAutomationProperties.Identity)</Value>
+          <Value Name="ResourcePackage" Type="guid">%(ProvideAutomationProperties.ResourcePackageGuid)</Value>
+          <Value Name="ProfileSave" Type="bool">true</Value>
+          <Value Name="VSSettingsMigration" Type="int">1</Value>
+        </Values>
+      </PkgDefKey>
+    </ItemGroup>
+  </Target>
+
+  <!-- TODO: Move to InteractiveWindow package -->
+  <Target Name="_PopulatePkgDefKeys_InteractiveWindow" BeforeTargets="GeneratePkgDef">
+    <ItemGroup>
+      <PkgDefKey Include="@(ProvideInteractiveWindow->'ToolWindows\%(Identity)')">
+        <Values>
+          <Value Type="guid">%(ProvideInteractiveWindow.PackageId)</Value>
+          <Value Name="Orientation">%(ProvideInteractiveWindow.Orientation)</Value>
+          <Value Name="Style">%(ProvideInteractiveWindow.Style)</Value>
+          <Value Name="Window">%(ProvideInteractiveWindow.Window)</Value>
+          <Value Name="Float">%(ProvideInteractiveWindow.FloatingPosition)</Value>
+          <Value Name="DockedWidth" type="int">%(ProvideInteractiveWindow.DockedWidth)</Value>
+          <Value Name="DockedHeight" type="int">%(ProvideInteractiveWindow.DockedHeight)</Value>
+          <Value Name="DocumentLikeTool" type="bool">%(ProvideInteractiveWindow.DocumentLikeTool)</Value>
+        </Values>
+      </PkgDefKey>
+    </ItemGroup>
+  </Target>
+</Project>
