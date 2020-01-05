@@ -281,9 +281,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 continue;
             }
 
-            return current.Kind() == SyntaxKind.AliasQualifiedName ||
-                   current.Kind() == SyntaxKind.IdentifierName ||
-                   current.Kind() == SyntaxKind.GenericName;
+            return current.IsKind(SyntaxKind.AliasQualifiedName,
+                                  SyntaxKind.IdentifierName,
+                                  SyntaxKind.GenericName);
         }
 
         private bool TryReplaceWithAlias(ExpressionSyntax node, string typeName)
