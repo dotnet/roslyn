@@ -54,20 +54,25 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 var ifStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan);
                 var throwStatementExpression = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
                 var assignmentValue = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan);
-                var trivia = new List<SyntaxTrivia>();
 
-                trivia.AddRange(assignmentValue.GetLeadingTrivia());
-                trivia.AddRange(throwStatementExpression.GetTrailingTrivia());
+                var text = document.GetTextSynchronously(cancellationToken);
+                var throwLine = text.Lines.GetLineFromPosition(diagnostic.AdditionalLocations[1].SourceSpan.Start);
+                var assignmentLine = text.Lines.GetLineFromPosition(diagnostic.AdditionalLocations[2].SourceSpan.Start);
+
+                var fullThrowStatement = root.FindNode(throwLine.SpanIncludingLineBreak, getInnermostNodeForTie: true);
+                var fullAssignmentStatement = root.FindNode(assignmentLine.SpanIncludingLineBreak, getInnermostNodeForTie: true);
 
                 // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
                 var newNode = generator.CoalesceExpression(assignmentValue,
-                    generator.ThrowExpression(throwStatementExpression));
+                    generator.ThrowExpression(throwStatementExpression))
+                    .WithLeadingTrivia(fullAssignmentStatement.GetLeadingTrivia())
+                    .WithTrailingTrivia(fullThrowStatement.GetTrailingTrivia()).NormalizeWhitespace();
 
                 // Now, update the assignment value to go from 'a' to 'a ?? throw ...'
-                // Copying all comment trivia from the old statements.
-                editor.ReplaceNode(assignmentValue, newNode.WithTrailingTrivia(trivia));
+                // Copying all non whitespace trivia from the old statements.
+                editor.ReplaceNode(assignmentValue, newNode);
             }
 
             return Task.CompletedTask;
