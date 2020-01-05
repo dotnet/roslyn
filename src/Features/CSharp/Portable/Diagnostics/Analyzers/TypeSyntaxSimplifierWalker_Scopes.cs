@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// a type and thus if we should try to simplify that to <c>X.Z</c> (if <c>X</c> is a base
         /// class of <c>Y</c>).
         /// </summary>
-        private HashSet<string> _compilationTypeNames;
+        private readonly HashSet<string> _compilationTypeNames;
 
         /// <summary>
         /// Set of type and namespace names that have an alias associated with them.  i.e. if the
