@@ -128,13 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private void AddNamesInScope(SyntaxList<UsingDirectiveSyntax> usings, int position, HashSet<string> savedAliasedSymbolNames)
         {
-            var declarationSymbols = _semanticModel.LookupNamespacesAndTypes(position);
-            foreach (var symbol in declarationSymbols)
-                _declarationNamesInScope.Add(symbol.Name);
-
             var staticSymbols = _semanticModel.LookupStaticMembers(position);
             foreach (var symbol in staticSymbols)
+            {
                 _staticNamesInScope.Add(symbol.Name);
+                if (symbol is INamespaceOrTypeSymbol)
+                    _declarationNamesInScope.Add(symbol.Name);
+            }
 
             // Now add information about the aliases in scope.
 
