@@ -184,7 +184,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     return;
             }
 
-            base.VisitMemberAccessExpression(node);
+            // Only need to visit the name if it is generic.
+            if (node.Name.IsKind(SyntaxKind.GenericName, out GenericNameSyntax genericName))
+                VisitGenericName(genericName);
+
+            Visit(node.Expression);
         }
 
         private bool TrySimplifyObjectAccessExpression(MemberAccessExpressionSyntax node, string memberName)
