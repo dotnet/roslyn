@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             // called "Pascal_Case_style" match up correctly with the key
             // "dotnet_naming_style.pascal_case_style.capitalization", we have to ignore casing for
             // lookups in this dictionary.
-            var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count, StringComparer.OrdinalIgnoreCase);
+            var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count, AnalyzerConfigOptions.KeyComparer);
             foreach (var item in allRawConventions)
             {
                 var key = item.Key.Trim();
