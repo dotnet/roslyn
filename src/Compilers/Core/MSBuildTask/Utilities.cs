@@ -152,18 +152,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static string TryGetAssemblyPath(Assembly assembly)
         {
-            if ((bool?)typeof(Assembly).GetTypeInfo()
-                .GetDeclaredProperty("GlobalAssemblyCache")
-                ?.GetMethod.Invoke(assembly, parameters: null) == true)
+            if (assembly.GlobalAssemblyCache)
             {
                 return null;
             }
 
-            var codebase = (string)typeof(Assembly)
-                .GetTypeInfo()
-                .GetDeclaredProperty("CodeBase")
-                ?.GetMethod.Invoke(assembly, parameters: null);
-
+            var codebase = assembly.CodeBase;
             if (codebase != null)
             {
                 var uri = new Uri(codebase);
@@ -173,15 +167,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 else
                 {
-                    var callingAssembly = (Assembly)typeof(Assembly)
-                        .GetTypeInfo()
-                        .GetDeclaredMethod("GetCallingAssembly")
-                        ?.Invoke(null, null);
-
-                    var location = (string)typeof(Assembly).GetTypeInfo()
-                        .GetDeclaredProperty("Location")
-                        ?.GetMethod.Invoke(assembly, parameters: null);
-
+                    var callingAssembly = Assembly.GetCallingAssembly();
+                    var location = assembly.Location;
                     if (location != null)
                     {
                         return location;
