@@ -2885,9 +2885,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
             var binder = binderFactory.GetBinder(paramList);
 
-            // PROTOTYPE: This adds members unconditionally, but instead we should check if
-            // the members are already written in user code
-            members.Add(new SynthesizedRecordConstructor(this, binder, paramList, diagnostics));
+            var memberSignatures = new HashSet<Symbol>(members, MemberSignatureComparer.DuplicateSourceComparer);
+
+            var ctor = new SynthesizedRecordConstructor(this, binder, paramList, diagnostics);
+            if (!memberSignatures.Contains(ctor))
+            {
+                members.Add(ctor);
+            }
         }
 
         private void AddSynthesizedConstructorsIfNecessary(ArrayBuilder<Symbol> members, ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers, DiagnosticBag diagnostics)
