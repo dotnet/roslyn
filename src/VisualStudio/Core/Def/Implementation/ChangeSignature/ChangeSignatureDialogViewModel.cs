@@ -594,7 +594,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             internal override Parameter CreateParameter()
                 => new AddedParameter(Type, Parameter, Callsite);
 
-            public override string InitialIndex => "NEW";
+            public override string InitialIndex => "+";
 
             // Newly added parameters cannot have modifiers yet
             public override string Modifier => string.Empty;
