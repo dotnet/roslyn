@@ -557,9 +557,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                     }
                     N(SyntaxKind.QuestionQuestionToken);
-                    N(SyntaxKind.IdentifierName);
+                    M(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.IdentifierToken);
                     }
                 }
                 N(SyntaxKind.QuestionToken);
@@ -567,10 +567,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierToken, "y");
                 }
-                N(SyntaxKind.ColonToken);
-                N(SyntaxKind.IdentifierName);
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken);
+                    M(SyntaxKind.IdentifierToken);
                 }
             }
             EOF();
@@ -695,12 +695,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.IdentifierToken, "t");
                             }
                             N(SyntaxKind.ColonToken);
-                            N(SyntaxKind.IdentifierName);
+                            M(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
-                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.ColonToken);
                     }
                     N(SyntaxKind.BreakStatement);
                     {

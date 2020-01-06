@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             if (!item.Properties.TryGetValue(DescriptionKey, out var description))
             {
-                return SpecializedTasks.Default<CompletionDescription>();
+                return SpecializedTasks.Null<CompletionDescription>();
             }
 
             return Task.FromResult(CompletionDescription.Create(

@@ -145,6 +145,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
         End Function
 
+        Friend Overrides Function InterpolationAlignmentClause(alignment As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.InterpolationAlignmentClause(
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                DirectCast(alignment, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function InterpolationFormatClause(format As String) As SyntaxNode
+            Return SyntaxFactory.InterpolationFormatClause(
+                SyntaxFactory.Token(SyntaxKind.ColonToken),
+                SyntaxFactory.InterpolatedStringTextToken(format, format))
+        End Function
+
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
             Return SyntaxFactory.Literal(text, value)
         End Function

@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     internal class Session<TController, TModel, TPresenterSession> : ForegroundThreadAffinitizedObject, ISession<TModel>
         where TPresenterSession : IIntelliSensePresenterSession
         where TController : IController<TModel>
+        where TModel : class
     {
         public TController Controller { get; }
         public ModelComputation<TModel> Computation { get; }

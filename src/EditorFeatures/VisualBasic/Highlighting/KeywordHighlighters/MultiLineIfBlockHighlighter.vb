@@ -15,9 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(ifBlock As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overloads Overrides Sub addHighlights(ifBlock As MultiLineIfBlockSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             With ifBlock.IfStatement
                 ' ElseIf case
                 highlights.Add(.IfKeyword.Span)
@@ -47,8 +45,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             End If
 
             highlights.Add(ifBlock.EndIfStatement.Span)
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace
