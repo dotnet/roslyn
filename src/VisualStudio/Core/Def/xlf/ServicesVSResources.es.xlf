@@ -637,6 +637,11 @@
         <target state="translated">Esta área de trabajo no admite la actualización de opciones de compilación de Visual Basic.</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_must_change_the_signature">
+        <source>You must change the signature</source>
+        <target state="new">You must change the signature</target>
+        <note>"signature" here means the definition of a method</note>
+      </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Debe seleccionar al menos un miembro.</target>
