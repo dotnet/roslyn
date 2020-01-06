@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _aliasName.ValueText;
+                return _aliasName.ValueText ?? string.Empty;
             }
         }
 

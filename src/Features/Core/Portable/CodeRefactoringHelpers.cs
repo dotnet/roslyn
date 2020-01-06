@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -81,6 +82,8 @@ namespace Microsoft.CodeAnalysis
 
             var beginningNode = node.FindToken(node.Span.Start).Parent;
             var endNode = node.FindToken(node.Span.End - 1).Parent;
+            RoslynDebug.Assert(beginningNode is object);
+            RoslynDebug.Assert(endNode is object);
 
             // Node is underselected if either the first (lowest) child doesn't contain start of selection
             // of the last child doesn't intersect with the end.

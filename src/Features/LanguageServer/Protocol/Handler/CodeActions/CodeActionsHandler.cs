@@ -26,13 +26,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<object[]> HandleRequestAsync(Solution solution, LSP.CodeActionParams request,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             var codeActions = await GetCodeActionsAsync(solution,
-                                                    request.TextDocument.Uri,
-                                                    request.Range,
-                                                    keepThreadContext,
-                                                    cancellationToken).ConfigureAwait(keepThreadContext);
+                request.TextDocument.Uri,
+                request.Range,
+                cancellationToken).ConfigureAwait(false);
 
             // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
             codeActions = codeActions.Where(c => !(c is CodeActionWithOptions));

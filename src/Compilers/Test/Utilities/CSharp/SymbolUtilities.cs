@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var format = SymbolDisplayFormat.TestFormat;
             if (includeNonNullable)
             {
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+                format = format.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)
+                    .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
             }
 
             return format;

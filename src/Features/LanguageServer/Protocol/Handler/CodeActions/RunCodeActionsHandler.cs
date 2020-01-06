@@ -24,20 +24,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public async Task<object> HandleRequestAsync(Solution solution, LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+            CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<RunCodeActionParams>();
             var codeActions = await GetCodeActionsAsync(solution,
-                                                        runRequest.CodeActionParams.TextDocument.Uri,
-                                                        runRequest.CodeActionParams.Range,
-                                                        keepThreadContext,
-                                                        cancellationToken).ConfigureAwait(keepThreadContext);
+                runRequest.CodeActionParams.TextDocument.Uri,
+                runRequest.CodeActionParams.Range,
+                cancellationToken).ConfigureAwait(false);
 
             var actionToRun = codeActions?.FirstOrDefault(a => a.Title == runRequest.Title);
 
             if (actionToRun != null)
             {
-                foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(keepThreadContext))
+                foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
                 {
                     operation.Apply(solution.Workspace, cancellationToken);
                 }

@@ -5799,6 +5799,65 @@ class C
             Assert.Contains(CodeAnalysisResources.TupleElementLocationCountMismatch, e.Message);
         }
 
+        [Fact, WorkItem(36676, "https://github.com/dotnet/roslyn/issues/36676")]
+        public void CreateTupleTypeSymbol_WithValueTuple_TupleZero()
+        {
+            var tupleComp = CreateCompilationWithMscorlib40(@"
+namespace System
+{
+    public struct ValueTuple
+    {
+    }
+}");
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            var vt0 = comp.GetWellKnownType(WellKnownType.System_ValueTuple);
+            var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt0, ImmutableArray<string>.Empty);
+            Assert.True(tupleWithoutNames.IsTupleType);
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.TupleUnderlyingType.Kind);
+            Assert.Equal("System.ValueTuple", tupleWithoutNames.ToTestDisplayString());
+            Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
+            Assert.Empty(ElementTypeNames(tupleWithoutNames));
+            Assert.Equal(SymbolKind.NamedType, tupleWithoutNames.Kind);
+
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            TypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            var vt8 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_TRest)
+                          .Construct(intType, stringType, intType, stringType, intType, stringType, intType, vt0);
+
+            Assert.False(vt8.IsTupleType);
+            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(vt8, default));
+        }
+
+        [Fact, WorkItem(36676, "https://github.com/dotnet/roslyn/issues/36676")]
+        public void CreateTupleTypeSymbol_WithValueTuple_TupleOne()
+        {
+            var tupleComp = CreateCompilationWithMscorlib40(@"
+namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1)
+        {
+            Item1 = item1;
+        }
+    }
+}");
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            TypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var vt1 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T1).Construct(intType);
+            var tupleWithoutNames = comp.CreateTupleTypeSymbol(vt1, ImmutableArray.Create(new[] { (string)null }));
+            Assert.Same(vt1, ((Symbols.PublicModel.NonErrorNamedTypeSymbol)tupleWithoutNames).UnderlyingNamedTypeSymbol);
+
+            Assert.True(tupleWithoutNames.IsTupleType);
+            Assert.Equal("System.ValueTuple<System.Int32>", tupleWithoutNames.ToTestDisplayString());
+            Assert.True(GetTupleElementNames(tupleWithoutNames).IsDefault);
+            Assert.Equal(new[] { "System.Int32" }, ElementTypeNames(tupleWithoutNames));
+        }
+
         [Fact]
         public void CreateTupleTypeSymbol_WithValueTuple()
         {
