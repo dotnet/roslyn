@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     {
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly INotificationService _notificationService;
         private readonly ParameterConfiguration _originalParameterConfiguration;
 
         private readonly ParameterViewModel _thisParameter;
@@ -47,6 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             InsertPosition = insertPosition;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
+
+            _notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
 
             var initialIndex = 1;
 
@@ -428,10 +432,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal bool TrySubmit()
         {
-            return AllParameters.Any(p => p.IsRemoved) ||
+            var canSubmit = AllParameters.Any(p => p.IsRemoved) ||
                 AllParameters.Any(p => p is AddedParameterViewModel) ||
             !_parametersWithoutDefaultValues.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues.Cast<ExistingParameter>().Select(p => p.Symbol)) ||
             !_parametersWithDefaultValues.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters.Cast<ExistingParameter>().Select(p => p.Symbol));
+
+            if (!canSubmit)
+            {
+                _notificationService.SendNotification("You must change the signature.", severity: NotificationSeverity.Information);
+                return false;
+            }
+
+            return true;
         }
 
         private bool IsDisabled(ParameterViewModel parameterViewModel)
