@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            if (ResponseFiles != null)
+            if (ScriptResponseFiles != null)
             {
                 foreach (var scriptResponse in ScriptResponseFiles)
                 {

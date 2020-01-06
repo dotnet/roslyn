@@ -1039,6 +1039,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private void NormalizePaths(ITaskItem[] taskItems)
         {
+            if (taskItems is null)
+                return;
+
             foreach (var item in taskItems)
             {
                 item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
