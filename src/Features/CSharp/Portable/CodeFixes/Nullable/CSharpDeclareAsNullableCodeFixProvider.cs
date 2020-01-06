@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         // warning CS8603: Possible null reference return.
         // warning CS8600: Converting null literal or possible null value to non-nullable type.
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600");
+        // warning CS8625: Cannot convert null literal to non-nullable reference type.
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS8603", "CS8600", "CS8625");
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
@@ -41,9 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         {
             var diagnostic = context.Diagnostics.First();
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
-            var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(node, model);
             if (declarationTypeToFix == null)
             {
                 return;
@@ -60,20 +62,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return node.IsKind(SyntaxKind.ConditionalAccessExpression) ? IsConditionalOperatorEquivalenceKey : IsOtherEquivalenceKey;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             // a method can have multiple `return null;` statements, but we should only fix its return type once
             using var _ = PooledHashSet<TypeSyntax>.GetInstance(out var alreadyHandled);
 
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-                MakeDeclarationNullable(editor, node, alreadyHandled);
+                MakeDeclarationNullable(editor, node, alreadyHandled, model);
             }
 
-            return Task.CompletedTask;
+            alreadyHandled.Free();
         }
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
@@ -82,9 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             return equivalenceKey == GetEquivalenceKey(node);
         }
 
-        private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled)
+        private static void MakeDeclarationNullable(SyntaxEditor editor, SyntaxNode node, HashSet<TypeSyntax> alreadyHandled, SemanticModel model)
         {
-            var declarationTypeToFix = TryGetDeclarationTypeToFix(node);
+            var declarationTypeToFix = TryGetDeclarationTypeToFix(node, model);
             if (declarationTypeToFix != null && alreadyHandled.Add(declarationTypeToFix))
             {
                 var fixedDeclaration = SyntaxFactory.NullableType(declarationTypeToFix.WithoutTrivia()).WithTriviaFrom(declarationTypeToFix);
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
         }
 
-        private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node)
+        private static TypeSyntax TryGetDeclarationTypeToFix(SyntaxNode node, SemanticModel model)
         {
             if (!IsExpressionSupported(node))
             {
@@ -147,6 +150,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 }
 
                 return variableDeclaration.Type;
+            }
+
+            // Method(null)
+            if (node.Parent is ArgumentSyntax argument && argument.Parent.Parent is InvocationExpressionSyntax invocation)
+            {
+                var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
+                if (!(symbol is IMethodSymbol method) || method.PartialImplementationPart is object)
+                {
+                    // We don't handle partial methods yet
+                    return null;
+                }
+
+                if (argument?.NameColon?.Name is IdentifierNameSyntax { Identifier: var identifier })
+                {
+                    var parameter = method.Parameters.Where(p => p.Name == identifier.Text).FirstOrDefault();
+                    if (parameter is object)
+                    {
+                        return parameter.DeclaringSyntaxReferences.Select(r => ((ParameterSyntax)r.GetSyntax()).Type).FirstOrDefault();
+                    }
+                    return null;
+                }
+
+                var index = invocation.ArgumentList.Arguments.IndexOf(argument);
+                if (index >= 0 && index < method.Parameters.Length)
+                {
+                    var parameter = method.Parameters[index];
+                    return parameter.DeclaringSyntaxReferences.Select(r => ((ParameterSyntax)r.GetSyntax()).Type).FirstOrDefault();
+                }
+
+                return null;
             }
 
             // string x { get; set; } = null;

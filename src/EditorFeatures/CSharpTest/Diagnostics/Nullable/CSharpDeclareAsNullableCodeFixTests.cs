@@ -233,11 +233,16 @@ class Program
         [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixField()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 NonNullTypes + @"
 class Program
 {
     string x = [|null|];
+}",
+NonNullTypes + @"
+class Program
+{
+    string? x = null;
 }", parameters: s_nullableFeature);
         }
 
@@ -295,11 +300,16 @@ class Program
         [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         public async Task FixPropertyDeclaration()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 NonNullTypes + @"
 class Program
 {
     string x { get; set; } = [|null|];
+}",
+NonNullTypes + @"
+class Program
+{
+    string? x { get; set; } = null;
 }", parameters: s_nullableFeature);
         }
 
@@ -335,7 +345,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30026: the warning is temporarily disabled in this scenario to avoid cycle")]
+        [Fact]
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [WorkItem(30026, "https://github.com/dotnet/roslyn/issues/30026")]
         public async Task FixOptionalParameter()
@@ -606,6 +616,149 @@ class Program
     {
         return default(string);
     }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_NamedArgument()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(x: [|null|]);
+    }
+    void M2(string x) { }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(x: null);
+    }
+    void M2(string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_NamedArgument_OutOfOrder()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(x: [|null|], i: 1);
+    }
+    void M2(int i, string x) { }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(x: null, i: 1);
+    }
+    void M2(int i, string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_NamedArgument_Partial()
+        {
+            await TestMissingInRegularAndScriptAsync(
+NonNullTypes + @"
+partial class Program
+{
+    void M()
+    {
+        M2(x: [|null|]);
+    }
+    partial void M2(string x);
+    partial void M2(string x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_PositionArgument()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2([|null|]);
+    }
+    void M2(string x) { }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(null);
+    }
+    void M2(string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_PositionArgument_SecondPosition()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(1, [|null|]);
+    }
+    void M2(int i, string x) { }
+}",
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2(1, null);
+    }
+    void M2(int i, string? x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_PositionArgument_Params()
+        {
+            await TestMissingInRegularAndScriptAsync(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        M2("""", [|null|]);
+    }
+    void M2(params string[] x) { }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixInvocation_Indexer()
+        {
+            // Not supported yet
+            await TestMissingInRegularAndScriptAsync(
+NonNullTypes + @"
+class Program
+{
+    void M()
+    {
+        this[[|null|]];
+    }
+    int this[string x] { get { throw null!; } set { throw null!; } }
 }", parameters: s_nullableFeature);
         }
     }
