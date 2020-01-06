@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +11,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
@@ -16,7 +19,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
     public class IntegrationTests : TestBase
     {
         private static readonly string s_msbuildDirectory;
-        private static readonly string s_msbuildExecutable;
+        private static readonly string? s_msbuildExecutable;
 
         static IntegrationTests()
         {
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
         }
 
-        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
+        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
         {
             vars = vars ?? new KeyValuePair<string, string>[] { };
             if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             string compilerPath,
             string arguments,
             string currentDirectory,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
             return ProcessUtilities.Run(
                 compilerPath,
@@ -75,7 +78,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             string arguments,
             TempDirectory currentDirectory,
             IEnumerable<KeyValuePair<string, string>> filesInDirectory,
-            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
         {
             foreach (var pair in filesInDirectory)
             {
@@ -406,6 +409,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
         public void SimpleMSBuild()
         {
+            RoslynDebug.Assert(s_msbuildExecutable is object);
+
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
@@ -605,6 +610,8 @@ End Class
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
         public void ReportAnalyzerMSBuild()
         {
+            RoslynDebug.Assert(s_msbuildExecutable is object);
+
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
             var result = RunCommandLineCompiler(s_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
@@ -617,6 +624,8 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
+            RoslynDebug.Assert(s_msbuildExecutable is object);
+
             var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
             var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
     @"
