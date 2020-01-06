@@ -54,15 +54,6 @@
       "vsBranch": "rel/d16.4",
       "vsMajorVersion": 16
     },
-    "release/dev16.5-preview1-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.5.*",
-      "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-      "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-      "channels": [ "dev16.5", "dev16.5p1" ],
-      "vsBranch": "rel/d16.5",
-      "vsMajorVersion": 16
-    },
     "release/dev16.5-preview2-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.5.*",
