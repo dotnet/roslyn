@@ -67,11 +67,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     s_descriptorSimplifyMemberAccess,
                     s_descriptorPreferBuiltinOrFrameworkType);
 
-        private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
-
-        protected SimplifyTypeNamesDiagnosticAnalyzerBase(ImmutableArray<TLanguageKindEnum> kindsOfInterest)
+        protected SimplifyTypeNamesDiagnosticAnalyzerBase()
         {
-            _kindsOfInterest = kindsOfInterest;
         }
 
         public bool OpenFileOnly(OptionSet options)
@@ -84,16 +81,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
-
-        public override void Initialize(AnalysisContext context)
-        {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-
-            context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
-        }
-
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,

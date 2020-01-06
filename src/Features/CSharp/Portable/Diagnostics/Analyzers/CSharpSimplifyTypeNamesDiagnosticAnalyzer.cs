@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.QualifiedCref);
 
-        public CSharpSimplifyTypeNamesDiagnosticAnalyzer()
-            : base(s_kindsOfInterest)
-        {
-        }
-
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -69,9 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
-            => throw ExceptionUtilities.Unreachable;
 
         internal override bool IsCandidate(SyntaxNode node)
             => IsRegularCandidate(node) || IsCrefCandidate(node);
