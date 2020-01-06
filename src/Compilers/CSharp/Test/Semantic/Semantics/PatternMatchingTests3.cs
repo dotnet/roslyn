@@ -1638,5 +1638,83 @@ class Source2
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(40533, "https://github.com/dotnet/roslyn/issues/40533")]
+        public void DisallowDesignatorsUnderNotAndOr()
+        {
+            var source = @"
+class C
+{
+    void Good(object o)
+    {
+        if (o is int and 1) { }
+        if (o is int x1 and 1) { }
+        if (o is int x2 and (1 or 2)) { }
+        if (o is 1 and int x3) { }
+        if (o is (1 or 2) and int x4) { }
+        if (o is not (1 or 2) and int x5) { }
+    }
+
+    void Bad(object o)
+    {
+        if (o is int y1 or 1) { }
+        if (o is int y2 or (1 or 2)) { }
+        if (o is 1 or int y3) { }
+        if (o is (1 or 2) or int y4) { }
+        if (o is not int y5) { }
+        if (o is not (1 and int y6)) { }
+        if (o is Point { X: var y7 } or Animal _) { }
+        if (o is Point(var y8, _) or Animal _) { }
+        if (o is object or (1 or var y9)) { }
+    }
+
+    void NotBad(object o)
+    {
+        if (o is int _ or 1) { }
+        if (o is int _ or (1 or 2)) { }
+        if (o is 1 or int _) { }
+        if (o is (1 or 2) or int _) { }
+        if (o is not int _) { }
+        if (o is not (1 and int _)) { }
+    }
+}
+class Point
+{
+    public int X => 3;
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (3, 4);
+}
+class Animal { }
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (16,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is int y1 or 1) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(16, 22),
+                // (17,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is int y2 or (1 or 2)) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(17, 22),
+                // (18,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is 1 or int y3) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(18, 27),
+                // (19,34): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is (1 or 2) or int y4) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y4").WithLocation(19, 34),
+                // (20,26): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is not int y5) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y5").WithLocation(20, 26),
+                // (21,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is not (1 and int y6)) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y6").WithLocation(21, 33),
+                // (22,33): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point { X: var y7 } or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(22, 33),
+                // (23,28): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is Point(var y8, _) or Animal _) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y8").WithLocation(23, 28),
+                // (24,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                //         if (o is object or (1 or var y9)) { }
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y9").WithLocation(24, 38)
+                );
+        }
     }
 }

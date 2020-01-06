@@ -122,6 +122,11 @@
         <target state="translated">Domyślny literał „default” nie jest prawidłowy jako wzorzec. Użyj innego odpowiedniego literału (np. „0” lub „null”). Aby dopasować wszystko, użyj wzorca odrzucania „_”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Wzorzec odrzucania nie jest dozwolony jako etykieta instrukcji case w instrukcji switch. Użyj instrukcji „case var _:” w przypadku wzorca odrzucania lub użyj instrukcji „case @_:” w przypadku stałej o nazwie „_”.</target>

@@ -3661,6 +3661,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A variable may not be declared within a &apos;not&apos; or &apos;or&apos; pattern..
+        /// </summary>
+        internal static string ERR_DesignatorBeneathPatternCombinator {
+            get {
+                return ResourceManager.GetString("ERR_DesignatorBeneathPatternCombinator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Static classes cannot contain destructors.
         /// </summary>
         internal static string ERR_DestructorInStaticClass {

@@ -122,6 +122,11 @@
         <target state="translated">Un literal predeterminado "default" no es válido como patrón. Use otro literal (por ejemplo, "0" o "null") según corresponda. Para hacer coincidir todo, use un patrón de descarte "_".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="new">A variable may not be declared within a 'not' or 'or' pattern.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">El patrón de descarte no se permite como etiqueta de caso en una instrucción switch. Use "case var _:" para un patrón de descarte o "case @_:" para una constante con el nombre '_'.</target>
