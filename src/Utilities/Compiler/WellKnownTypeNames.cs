@@ -459,5 +459,6 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpHeadAttribute = "Microsoft.AspNetCore.Mvc.HttpHeadAttribute";
         public const string MicrosoftAspNetCoreMvcHttpOptionsAttribute = "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute";
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
+        public const string SystemWebHttpApplication = "System.Web.HttpApplication";
     }
 }
