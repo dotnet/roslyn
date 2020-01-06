@@ -61,18 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public TypeSyntaxSimplifierWalker(
             CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            OptionSet optionSet, HashSet<string> compilationTypeNames, CancellationToken cancellationToken)
         {
             _analyzer = analyzer;
             _semanticModel = semanticModel;
             _optionSet = optionSet;
+            _compilationTypeNames = compilationTypeNames;
             _cancellationToken = cancellationToken;
 
             _preferPredefinedTypeInDecl = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, semanticModel.Language).Value;
             _preferPredefinedTypeInMemberAccess = optionSet.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, semanticModel.Language).Value;
-
-            _compilationTypeNames = SharedPools.StringHashSet.Allocate();
-            _compilationTypeNames.AddAll(semanticModel.Compilation.Assembly.TypeNames);
 
             _visitBaseCompilationUnit = n => base.VisitCompilationUnit(n);
             _visitBaseNamespaceDeclaration = n => base.VisitNamespaceDeclaration(n);

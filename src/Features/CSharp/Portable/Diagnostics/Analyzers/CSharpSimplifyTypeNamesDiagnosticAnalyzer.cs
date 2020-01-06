@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -37,10 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            context.RegisterCompilationStartAction(AnalyzeCompilation);
         }
 
-        private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+        private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+        {
+            var compilationTypeNames = new HashSet<string>();
+            compilationTypeNames.AddAll(context.Compilation.Assembly.TypeNames);
+
+            context.RegisterSemanticModelAction(c => AnalyzeSemanticModel(c, compilationTypeNames));
+        }
+
+        private void AnalyzeSemanticModel(
+            SemanticModelAnalysisContext context, HashSet<string> compilationTypeNames)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
@@ -50,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, compilationTypeNames, cancellationToken);
             simplifier.Visit(root);
 
             foreach (var diagnostic in simplifier.Diagnostics)
