@@ -209,11 +209,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
-            if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoSideEffects) == DkmEvaluationFlags.NoSideEffects)
-            {
-                return;
-            }
-
             if (InRange(startIndex, count, index))
             {
                 rows.Add(CreateResultsViewRow(inspectionContext, parent, resultProvider.FullNameProvider));
@@ -251,7 +246,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 childFullNamePrefixOpt: childFullNamePrefix,
                 formatSpecifiers: Formatter.AddFormatSpecifier(parent.FormatSpecifiers, ResultsFormatSpecifier),
                 category: DkmEvaluationResultCategory.Method,
-                flags: DkmEvaluationResultFlags.ReadOnly,
+                flags: DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                 editableValue: null,
                 inspectionContext: inspectionContext);
         }
