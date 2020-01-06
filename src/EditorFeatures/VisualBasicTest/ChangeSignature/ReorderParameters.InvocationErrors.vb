@@ -38,7 +38,7 @@ Class C
     End Operator
 End Class]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=True)
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
