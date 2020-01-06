@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 // #define LOG
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -89,7 +92,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected abstract string GetLanguageName();
 
-        protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
+        protected bool TrySimplifyTypeNameExpression(
+            SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions,
+            [NotNullWhen(true)] out Diagnostic? diagnostic, CancellationToken cancellationToken)
         {
             var syntaxTree = node.SyntaxTree;
             var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
@@ -104,7 +109,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public bool TrySimplify(
             SemanticModel model, SyntaxNode node,
-            out Diagnostic diagnostic, OptionSet optionSet,
+            [NotNullWhen(true)] out Diagnostic? diagnostic, OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             if (!CanSimplifyTypeNameExpressionCore(
