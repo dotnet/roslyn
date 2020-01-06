@@ -643,6 +643,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets node at given node index. 
         /// This WILL force node creation if node has not yet been created.
+        /// Can still return null for invalid slot numbers
         /// </summary>
         internal abstract SyntaxNode? GetNodeSlot(int slot);
 
@@ -1267,8 +1268,8 @@ recurse:
         }
 
         /// <summary>
-        /// Returns SyntaxTree that owns the node or null if node does not belong to a
-        /// SyntaxTree
+        /// Returns SyntaxTree that owns the node. If the node does not belong to a tree then
+        /// one will be generated.
         /// </summary>
         protected abstract SyntaxTree SyntaxTreeCore { get; }
 
