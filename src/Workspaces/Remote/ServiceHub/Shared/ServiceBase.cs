@@ -8,47 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Serialization;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [Obsolete("Only used by Razor", error: false)]
-    internal abstract class ServiceHubServiceBase : ServiceBase
-    {
-        private PinnedSolutionInfo? _solutionInfo;
-
-        // Used by Razor: https://github.com/aspnet/AspNetCore-Tooling/blob/master/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/RazorServiceBase.cs
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter>? jsonConverters = null)
-            : base(serviceProvider, stream, jsonConverters)
-        {
-        }
-
-        /// <summary>
-        /// Invoked remotely - <see cref="WellKnownServiceHubServices.ServiceHubServiceBase_Initialize"/>
-        /// </summary>
-        public virtual void Initialize(PinnedSolutionInfo info)
-        {
-            _solutionInfo = info;
-        }
-
-        // Used by Razor: https://github.com/aspnet/AspNetCore-Tooling/blob/master/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor/RazorLanguageService.cs#L24
-        protected Task<Solution> GetSolutionAsync(CancellationToken cancellationToken)
-        {
-            // must be initialized
-            Contract.ThrowIfNull(_solutionInfo);
-
-            return GetSolutionAsync(_solutionInfo, cancellationToken);
-        }
-    }
-
     /// <summary>
     /// Base type with servicehub helper methods. this is not tied to how Roslyn OOP works. 
     /// 
@@ -83,11 +50,9 @@ namespace Microsoft.CodeAnalysis.Remote
             EndPoint = new RemoteEndPoint(stream, Logger, incomingCallTarget: this, jsonConverters);
         }
 
-        protected bool IsDisposed => EndPoint.IsDisposed;
-
         public void Dispose()
         {
-            if (IsDisposed)
+            if (EndPoint.IsDisposed)
             {
                 // guard us from double disposing. this can happen in unit test
                 // due to how we create test mock service hub stream that tied to
