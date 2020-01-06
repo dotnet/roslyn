@@ -4250,6 +4250,53 @@ dotnet_naming_symbols.local_functions.required_modifiers = static
             await TestInRegularAndScriptAsync(input, expected, CodeActionIndex, options: Option(CSharpCodeStyleOptions.PreferStaticLocalFunction, CodeStyleOptions.FalseWithSilentEnforcement));
         }
 
+        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestOnInvalidUsingStatement_MultipleStatements()
+        {
+            var input = @"
+class C
+{
+    void M()
+    {
+        [|var v = 0;
+        using System;|]
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        {|Rename:NewMethod|}();
+
+        static void NewMethod()
+        {
+            var v = 0;
+            using System;
+        }
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+        }
+
+        [WorkItem(40654, "https://github.com/dotnet/roslyn/issues/40654")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
+        public async Task TestMissingOnUsingStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        void L()
+        {
+            [|using System;|]
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractLocalFunction)]
         public async Task TestMissingInLocalFunctionDeclaration_ExpressionBody()
         {

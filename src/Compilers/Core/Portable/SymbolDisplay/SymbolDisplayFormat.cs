@@ -201,7 +201,8 @@ namespace Microsoft.CodeAnalysis
         /// A verbose format for displaying symbols (useful for testing).
         /// </summary>
         internal static readonly SymbolDisplayFormat TestFormatWithConstraints = TestFormat.WithGenericsOptions(TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints).
-                                                                                            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+                                                                                            AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier).
+                                                                                            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         /// <summary>
         /// this.QualifiedNameOnly = containingSymbol.QualifiedNameOnly + "." + this.Name
@@ -403,10 +404,6 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
         {
-            // If we want to display `!`, then we surely also want to display `?`
-            Debug.Assert(miscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
-                || !compilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
-
             this.GlobalNamespaceStyle = globalNamespaceStyle;
             this.TypeQualificationStyle = typeQualificationStyle;
             this.GenericsOptions = genericsOptions;

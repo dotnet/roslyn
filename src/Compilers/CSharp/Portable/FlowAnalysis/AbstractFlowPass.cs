@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// May be a top-level member or a lambda or local function. It is used for
         /// references to method parameters. Thus, '_symbol' should not be used directly, but
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
-        /// instead.
+        /// instead. _symbol is null during speculative binding.
         /// </summary>
         protected readonly Symbol _symbol;
 
@@ -2769,7 +2769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        private BoundNode VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase node)
         {
             VisitRvalue(node.Count);
 
@@ -2784,10 +2784,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            return VisitStackAllocArrayCreationBase(node);
+        }
+
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
-            VisitStackAllocArrayCreation(node);
-            return null;
+            return VisitStackAllocArrayCreationBase(node);
         }
 
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)

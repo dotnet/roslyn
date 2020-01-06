@@ -594,24 +594,24 @@ class Test
 }";
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7_3)
                 .VerifyDiagnostics(
-                // (6,15): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (6,15): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         lock (stackalloc int[3] { 1, 2, 3 }) {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(6, 15),
-                // (6,15): error CS0185: 'stackalloc int[3]' is not a reference type as required by the lock statement
+                // (6,15): error CS0185: 'int*' is not a reference type as required by the lock statement
                 //         lock (stackalloc int[3] { 1, 2, 3 }) {}
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[3] { 1, 2, 3 }").WithArguments("stackalloc int[3]").WithLocation(6, 15),
-                // (7,15): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[3] { 1, 2, 3 }").WithArguments("int*").WithLocation(6, 15),
+                // (7,15): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(7, 15),
-                // (7,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                // (7,15): error CS0185: 'int*' is not a reference type as required by the lock statement
                 //         lock (stackalloc int[ ] { 1, 2, 3 }) {}
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(7, 15),
-                // (8,15): error CS8652: The feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("int*").WithLocation(7, 15),
+                // (8,15): error CS8370: Feature 'stackalloc in nested expressions' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(8, 15),
-                // (8,15): error CS0185: 'stackalloc int[]' is not a reference type as required by the lock statement
+                // (8,15): error CS0185: 'int*' is not a reference type as required by the lock statement
                 //         lock (stackalloc    [ ] { 1, 2, 3 }) {} 
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("stackalloc int[]").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("int*").WithLocation(8, 15)
                 );
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
@@ -1056,7 +1056,7 @@ unsafe class Test
                 Assert.Equal("obj5", obj5.Identifier.Text);
 
                 var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-                Assert.Null(obj5Value.Type);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
                 Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
             }
@@ -1159,7 +1159,7 @@ unsafe class Test
                 Assert.Equal("obj5", obj5.Identifier.Text);
 
                 var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-                Assert.Null(obj5Value.Type);
+                Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
                 Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
             }
@@ -2542,7 +2542,7 @@ unsafe class Test
             var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
 
             Assert.Null(stackallocInfo.Symbol);
-            Assert.Null(stackallocInfo.Type);
+            Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int16*", stackallocInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
 
@@ -2570,7 +2570,7 @@ unsafe class Test
             stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
 
             Assert.Null(stackallocInfo.Symbol);
-            Assert.Null(stackallocInfo.Type);
+            Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Span<System.Int16>", stackallocInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
 
