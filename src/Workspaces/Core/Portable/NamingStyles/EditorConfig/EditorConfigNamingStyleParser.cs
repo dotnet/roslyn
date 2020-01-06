@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static Dictionary<string, string> TrimDictionary(IReadOnlyDictionary<string, string> allRawConventions)
         {
-            // At this point, keys have been lowercased but values have not. So, for example, to
-            // make a naming style called "Pascal_Case_style" match up correctly with
+            // At this point, keys have been lowercased. So, for example, to make a naming style
+            // called "Pascal_Case_style" match up correctly with the key
             // "dotnet_naming_style.pascal_case_style.capitalization", we have to ignore casing for
             // lookups in this dictionary.
             var trimmedDictionary = new Dictionary<string, string>(allRawConventions.Count, StringComparer.OrdinalIgnoreCase);
