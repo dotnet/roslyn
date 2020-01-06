@@ -47,7 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool MethodEqualityChecks(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
             => RefKind == other.RefKind
-               && RefCustomModifiers.Equals(other.RefCustomModifiers)
+               && ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0
+                    ? RefCustomModifiers.Equals(other.RefCustomModifiers)
+                    : true)
                && TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind, isValueTypeOverride);
 
         public override int GetHashCode()
@@ -56,10 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal int MethodHashCode()
-            => Hash.Combine(TypeWithAnnotations.GetHashCode(),
-               Hash.Combine(RefKind.GetHashCode(),
-               Hash.Combine(Ordinal.GetHashCode(),
-               Hash.CombineValues(RefCustomModifiers))));
+            => Hash.Combine(TypeWithAnnotations.GetHashCode(), RefKind.GetHashCode());
 
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
