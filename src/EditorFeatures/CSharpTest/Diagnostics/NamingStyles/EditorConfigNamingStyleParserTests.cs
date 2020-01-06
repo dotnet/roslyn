@@ -93,12 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
             };
             var result = ParseDictionary(dictionary);
-            Assert.Single(result.NamingRules);
-            var namingRule = result.NamingRules.Single();
-            Assert.Single(result.NamingStyles);
-            var namingStyle = result.NamingStyles.Single();
-            Assert.Single(result.SymbolSpecifications);
-            var symbolSpec = result.SymbolSpecifications.Single();
+            var namingRule = Assert.Single(result.NamingRules);
+            var namingStyle = Assert.Single(result.NamingStyles);
+            var symbolSpec = Assert.Single(result.SymbolSpecifications);
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(ReportDiagnostic.Warn, namingRule.EnforcementLevel);
