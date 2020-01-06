@@ -1139,7 +1139,7 @@ class C
                 Diagnostic("CA9998_NullabilityPrinter", "o1 = o").WithArguments("o1", "Annotated").WithLocation(7, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(7, 18),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "MaybeNull", "Annotated", "MaybeNull").WithLocation(8, 13),
-                Diagnostic("CA9998_NullabilityPrinter", "o2 = o").WithArguments("o2", "NotAnnotated").WithLocation(9, 13),
+                Diagnostic("CA9998_NullabilityPrinter", "o2 = o").WithArguments("o2", "Annotated").WithLocation(9, 13),
                 Diagnostic("CA9999_NullabilityPrinter", "o").WithArguments("o", "NotNull", "NotAnnotated", "NotNull").WithLocation(9, 18));
         }
 
@@ -1671,8 +1671,8 @@ class C
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -1772,10 +1772,10 @@ class C
 
                 var declarations = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToList();
 
-                assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
-                assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
-                assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
-                assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+                assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
 
                 void assertAnnotation(AssignmentExpressionSyntax variable, PublicNullableAnnotation expectedAnnotation1, PublicNullableAnnotation expectedAnnotation2)
                 {
@@ -1815,10 +1815,10 @@ class C
 
             var declarations = root.DescendantNodes().OfType<AssignmentExpressionSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated, PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated, PublicNullableAnnotation.NotAnnotated);
 
             void assertAnnotation(AssignmentExpressionSyntax variable, PublicNullableAnnotation expectedAnnotation1, PublicNullableAnnotation expectedAnnotation2)
             {
@@ -1862,8 +1862,8 @@ class C
             var newDeclarator = newDeclaration.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
 
             Assert.True(model.TryGetSpeculativeSemanticModel(s2Assignment.SpanStart, newDeclaration, out var specModel));
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).Type.NullableAnnotation);
 
             Assert.True(model.TryGetSpeculativeSemanticModel(lastDeclaration.SpanStart, newDeclaration, out specModel));
             Assert.Equal(PublicNullableAnnotation.Annotated, ((ILocalSymbol)specModel.GetDeclaredSymbol(newDeclarator)).NullableAnnotation);
@@ -1902,11 +1902,11 @@ class C : IDisposable, IAsyncDisposable
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[5], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[5], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -1943,8 +1943,8 @@ class C
 
             var declaration = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declaration);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -1974,9 +1974,9 @@ class C
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -2008,7 +2008,7 @@ class C
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
 
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -2046,10 +2046,10 @@ class C
             var model = comp.GetSemanticModel(syntaxTree);
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -2089,9 +2089,9 @@ class C
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -2135,7 +2135,7 @@ class C
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -2174,10 +2174,10 @@ class C
 
             var declarations = root.DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(ForEachStatementSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
@@ -2260,13 +2260,13 @@ class C
 
             // Some annotations are incorrect because of https://github.com/dotnet/roslyn/issues/37491
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.NotAnnotated); // Should be Annotated
+            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[4], PublicNullableAnnotation.NotAnnotated); // Should be Annotated
+            assertAnnotation(declarations[4], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[5], PublicNullableAnnotation.NotAnnotated);
-            assertAnnotation(declarations[6], PublicNullableAnnotation.NotAnnotated);
+            assertAnnotation(declarations[6], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[7], PublicNullableAnnotation.Annotated);
 
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
@@ -3479,8 +3479,8 @@ class C
 
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o1Symbol.Type.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o2Symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o2Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o2Symbol.Type.NullableAnnotation);
             Assert.Equal(fieldLambdaSymbol, o1Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
             Assert.Equal(fieldLambdaSymbol, o2Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
 
@@ -3493,8 +3493,8 @@ class C
 
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.NullableAnnotation);
             Assert.Equal(PublicNullableAnnotation.NotAnnotated, o3Symbol.Type.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.NullableAnnotation);
-            Assert.Equal(PublicNullableAnnotation.NotAnnotated, o4Symbol.Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o4Symbol.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, o4Symbol.Type.NullableAnnotation);
             Assert.Equal(propertyLambdaSymbol, o3Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
             Assert.Equal(propertyLambdaSymbol, o4Symbol.ContainingSymbol, SymbolEqualityComparer.IncludeNullability);
         }

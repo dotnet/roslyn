@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             void HandleProjectsWithDisabledAnalysis()
             {
                 // First clear all special host diagostics for all involved projects.
-                var projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
+                IEnumerable<Project> projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
                 foreach (var project in projects)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);

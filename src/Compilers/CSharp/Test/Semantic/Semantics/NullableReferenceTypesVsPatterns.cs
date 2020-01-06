@@ -257,6 +257,7 @@ class C
         {
             x.ToString(); // warn 1
             c /*T:object?*/ .ToString(); // warn 2
+            c = null;
         }
         else
         {
@@ -326,6 +327,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public void ConditionalBranching_IsVarDeclarationPattern_AlreadyTestedAsNonNull()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -338,7 +340,7 @@ class C
             if (x is var c)
             {
                 c /*T:object!*/ .ToString();
-                c = null; // 1
+                c = null;
             }
         }
     }
@@ -349,20 +351,14 @@ class C
             if (x is var c)
             {
                 c /*T:object!*/ .ToString();
-                c = null; // 2
+                c = null;
             }
         }
     }
 }
 ");
             c.VerifyTypes();
-            c.VerifyDiagnostics(
-                // (11,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 c = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 21),
-                // (22,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //                 c = null; // 2
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(22, 21));
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1404,6 +1400,7 @@ public class C
         }
 
         [Fact, WorkItem(33499, "https://github.com/dotnet/roslyn/issues/33499")]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         public void PatternVariablesAreNotOblivious_33499()
         {
             var source = @"
@@ -1416,10 +1413,7 @@ class Test
     }
 }";
             var comp = CreateNullableCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         s = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

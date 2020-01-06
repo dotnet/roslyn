@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     valueType = type.ToTypeWithState();
                 }
 
-                type = valueType.ToTypeWithAnnotations();
+                type = valueType.ToAnnotatedTypeWithAnnotations();
                 _variableTypes[local] = type;
 
                 if (node.DeclaredTypeOpt != null)
@@ -4122,7 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lValueType = ApplyLValueAnnotations(declaredType, leftAnnotations);
                         if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            var varType = worstCaseParameterWithState.ToTypeWithAnnotations();
+                            var varType = worstCaseParameterWithState.ToAnnotatedTypeWithAnnotations();
                             _variableTypes[local.LocalSymbol] = varType;
                             lValueType = varType;
                         }
@@ -6440,7 +6440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // when the LHS is a var declaration, we can just visit the right part to infer the type
                             valueType = operandType = VisitRvalueWithState(rightPart);
-                            _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToTypeWithAnnotations();
+                            _variableTypes[variable.Expression.ExpressionSymbol] = operandType.ToAnnotatedTypeWithAnnotations();
                         }
                         else
                         {
@@ -7165,7 +7165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
                         {
                             // foreach (var variable in collection)
-                            _variableTypes[iterationVariable] = sourceState.ToTypeWithAnnotations();
+                            _variableTypes[iterationVariable] = sourceState.ToAnnotatedTypeWithAnnotations();
                         }
                         else
                         {

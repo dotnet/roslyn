@@ -404,15 +404,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var tempState = this.State[tempSlot];
                             if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
                             {
-                                var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
+                                var value = TypeWithState.Create(tempType, tempState);
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
+                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(value.ToTypeWithAnnotations().NullableAnnotation));
                                 }
                                 else
                                 {
-                                    _variableTypes[local] = inferredType;
+                                    _variableTypes[local] = value.ToAnnotatedTypeWithAnnotations();
                                 }
 
                                 int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);

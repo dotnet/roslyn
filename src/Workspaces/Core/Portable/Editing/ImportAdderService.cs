@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.Editing
             var addImportsService = document.Project.LanguageServices.GetRequiredService<IAddImportsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
 
-            // Create a simple interval tree for simplification spans.
-            var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
-
             var nodes = root.DescendantNodesAndSelf().Where(IsInSpan);
             var (importDirectivesToAdd, namespaceSymbols, context) = strategy switch
             {
@@ -92,8 +89,13 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return document.WithSyntaxRoot(root);
 
-            bool IsInSpan(SyntaxNode node) =>
-                spansTree.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length);
+            bool IsInSpan(SyntaxNode node)
+            {
+                // Create a simple interval tree for simplification spans.
+                var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
+
+                return spansTree.HasIntervalThatOverlapsWith(node.FullSpan.Start, node.FullSpan.Length);
+            }
         }
 
         protected abstract INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
