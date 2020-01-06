@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             {
                 // If we have an identifier, we would only ever replace it with an alias or a
                 // predefined-type name.
-                var typeName = node.Identifier.ValueText;
+                var typeName = node.Identifier.ValueText!;
                 if (TryReplaceWithPredefinedType(node, typeName))
                     return;
 
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (!node.IsRightSideOfDotOrColonColon())
             {
                 // A generic name is never a predefined type. So we don't need to check for that.
-                var identifier = node.Identifier.ValueText;
+                var identifier = node.Identifier.ValueText!;
                 if (TryReplaceWithAlias(node, identifier))
                     return;
 
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
         {
-            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Right.Identifier.ValueText))
+            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Right.Identifier.ValueText!))
                 return;
 
             // we could have something like `A.B.C<D.E>`.  We want to visit both A.B to see if that
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public override void VisitAliasQualifiedName(AliasQualifiedNameSyntax node)
         {
-            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name.Identifier.ValueText))
+            if (TrySimplifyQualifiedReferenceToNamespaceOrType(node, node.Name.Identifier.ValueText!))
                 return;
 
             // We still want to simplify the right side of this name.  We might have something
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             if (TrySimplifyBaseAccessExpression(node))
                 return;
 
-            var memberName = node.Name.Identifier.ValueText;
+            var memberName = node.Name.Identifier.ValueText!;
             if (TrySimplifyObjectAccessExpression(node, memberName))
                 return;
 
@@ -237,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // avoid costly binding in many cases.
 
             var exprName = node.Expression.GetRightmostName();
-            if (!_compilationTypeNames.Contains(exprName.Identifier.ValueText))
+            if (!_compilationTypeNames.Contains(exprName.Identifier.ValueText!))
                 return false;
 
             // Member on the right of the dot needs to be a static member or another named type.
@@ -279,10 +281,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // Check if we have an attribute like `[X.GooAttribute]`.  If so, try to simplify it to
             // just `[X.Goo]`
             var rightmostNameNode = node.Name.GetRightmostName();
-            var rightmostName = rightmostNameNode.Identifier.ValueText;
+            var rightmostName = rightmostNameNode.Identifier.ValueText!;
             if (rightmostName.HasAttributeSuffix(isCaseSensitive: true) &&
                 TrySimplify(rightmostNameNode))
             {
+                // Even if we simplify the name, we still want to descend into the arg-list for more
+                // stuff to simplify.
                 Visit(node.ArgumentList);
                 return;
             }
@@ -290,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             base.VisitAttribute(node);
         }
 
-        private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
+        private static bool IsNamedTypeOrStaticSymbol([NotNullWhen(true)] ISymbol? nameSymbol)
             => nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
 
         private bool IsDottedSimpleNameSequence(MemberAccessExpressionSyntax node)

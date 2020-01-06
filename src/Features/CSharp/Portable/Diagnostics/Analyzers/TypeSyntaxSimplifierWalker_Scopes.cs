@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// This is used so we can easily tell if we should try to simplify some identifier to an
         /// alias when we encounter it.
         /// </summary>
-        private HashSet<string> _aliasedSymbolNames;
+        private HashSet<string> _aliasedSymbolNames = null!;
 
         /// <summary>
         /// Set of types and namespace names currently in scope based on the usings/namespaces we're
@@ -41,14 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// context) to just<c>Y</c>.  If there is no declaration in scope called <c>Y</c> we don't
         /// have to bother checking.
         /// </summary>
-        private HashSet<string> _declarationNamesInScope;
+        private HashSet<string> _declarationNamesInScope = null!;
 
         /// <summary>
         /// Similar to <see cref="_declarationNamesInScope"/> except this also contains static
         /// members. Used in expression contexts to tell if <c>X.Y</c> can be simplified to just
         /// <c>Y</c>.
         /// </summary>
-        private HashSet<string> _staticNamesInScope;
+        private HashSet<string> _staticNamesInScope = null!;
 
         private readonly Action<CompilationUnitSyntax> _visitBaseCompilationUnit;
         private readonly Action<NamespaceDeclarationSyntax> _visitBaseNamespaceDeclaration;
