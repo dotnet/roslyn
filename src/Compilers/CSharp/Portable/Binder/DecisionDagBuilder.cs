@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MakeTestsAndBindings(input, iTuple, tests, bindings);
                     break;
                 case BoundTypePattern type:
-                    MakeTestsAndBindings(input, type, tests, bindings);
+                    MakeTestsAndBindings(input, type, tests);
                     break;
                 case BoundRelationalPattern rel:
                     // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
@@ -369,8 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void MakeTestsAndBindings(
             BoundDagTemp input,
             BoundTypePattern typePattern,
-            ArrayBuilder<BoundDagTest> tests,
-            ArrayBuilder<BoundPatternBinding> bindings)
+            ArrayBuilder<BoundDagTest> tests)
         {
             TypeSymbol type = typePattern.DeclaredType.Type;
             SyntaxNode syntax = typePattern.Syntax;

@@ -1663,6 +1663,15 @@ class C
             case G<B>[]: System.Console.WriteLine(""G<B>[]""); break;
             case N.G<B>[]: System.Console.WriteLine(""N.G<B>[]""); break;
         }
+        System.Console.WriteLine(o switch
+        {
+            int[] => ""int[]"",
+            System.Int64[] => ""long[]"",
+            A[] => ""A[]"",
+            G<B>[] => ""G<B>[]"",
+            N.G<B>[] => ""N.G<B>[]"",
+            _ => throw null,
+        });
         if (o is int[]) System.Console.WriteLine(""int[]"");
         if (o is System.Int32[]) System.Console.WriteLine(""long[]"");
         if (o is A[]) System.Console.WriteLine(""A[]"");
@@ -1682,15 +1691,21 @@ namespace N
             var expectedOutput =
 @"int[]
 int[]
+int[]
 long[]
 long[]
+long[]
+A[]
 A[]
 A[]
 Twice.
 G<B>[]
 G<B>[]
+G<B>[]
 N.G<B>[]
-N.G<B>[]";
+N.G<B>[]
+N.G<B>[]
+";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
@@ -1721,6 +1736,15 @@ class C
             case (G<B>[]): System.Console.WriteLine(""G<B>[]""); break;
             case (N.G<B>[]): System.Console.WriteLine(""N.G<B>[]""); break;
         }
+        System.Console.WriteLine(o switch
+        {
+            (int[]) => ""int[]"",
+            (System.Int64[]) => ""long[]"",
+            (A[]) => ""A[]"",
+            (G<B>[]) => ""G<B>[]"",
+            (N.G<B>[]) => ""N.G<B>[]"",
+            (_) => throw null,
+        });
         if (o is (int[])) System.Console.WriteLine(""int[]"");
         if (o is (System.Int32[])) System.Console.WriteLine(""long[]"");
         if (o is (A[])) System.Console.WriteLine(""A[]"");
@@ -1740,13 +1764,90 @@ namespace N
             var expectedOutput =
 @"int[]
 int[]
+int[]
 long[]
 long[]
+long[]
+A[]
 A[]
 A[]
 Twice.
 G<B>[]
 G<B>[]
+G<B>[]
+N.G<B>[]
+N.G<B>[]
+N.G<B>[]";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
+        public void ArrayTypePattern_03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        M1(new int[0]);
+        M1(new long[0]);
+        M1(new A[0]);
+        M1(new G<B>[0]);
+        M1(new N.G<B>[0]);
+    }
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case ((int[])): System.Console.WriteLine(""int[]""); break;
+            case ((System.Int64[])): System.Console.WriteLine(""long[]""); break;
+            case ((A[])): System.Console.WriteLine(""A[]""); break;
+            case ((G<B>[])): System.Console.WriteLine(""G<B>[]""); break;
+            case ((N.G<B>[])): System.Console.WriteLine(""N.G<B>[]""); break;
+        }
+        System.Console.WriteLine(o switch
+        {
+            ((int[])) => ""int[]"",
+            ((System.Int64[])) => ""long[]"",
+            ((A[])) => ""A[]"",
+            ((G<B>[])) => ""G<B>[]"",
+            ((N.G<B>[])) => ""N.G<B>[]"",
+            ((_)) => throw null,
+        });
+        if (o is ((int[]))) System.Console.WriteLine(""int[]"");
+        if (o is ((System.Int32[]))) System.Console.WriteLine(""long[]"");
+        if (o is ((A[]))) System.Console.WriteLine(""A[]"");
+        if (o is ((G<B>[]))) System.Console.WriteLine(""G<B>[]"");
+        if (o is ((N.G<B>[]))) System.Console.WriteLine(""N.G<B>[]"");
+        if ((o, o) is ((((A[])), ((A[]))))) System.Console.WriteLine(""Twice."");
+    }
+}
+class A { }
+class G<T> { }
+class B { }
+namespace N
+{
+    class G<T> { }
+}
+";
+            var expectedOutput =
+@"int[]
+int[]
+int[]
+long[]
+long[]
+long[]
+A[]
+A[]
+A[]
+Twice.
+G<B>[]
+G<B>[]
+G<B>[]
+N.G<B>[]
 N.G<B>[]
 N.G<B>[]";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview), options: TestOptions.DebugExe);

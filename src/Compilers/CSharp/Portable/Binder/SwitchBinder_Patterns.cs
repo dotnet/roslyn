@@ -239,9 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
                             caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
-                        pattern.WasCompilerGenerated = true;
-                        reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
+                        reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
 
                         return new BoundSwitchLabel(node, label, pattern, null, pattern.HasErrors);
                     }
