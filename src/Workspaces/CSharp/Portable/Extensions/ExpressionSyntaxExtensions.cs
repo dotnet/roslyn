@@ -834,9 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!memberAccess.IsRightSideOfDot())
             {
                 // Check if we need to replace this syntax with an alias identifier
-                if (memberAccess.TryReplaceWithAlias(
-                        semanticModel, symbol, cancellationToken,
-                        out var aliasReplacement))
+                if (TryReplaceExpressionWithAlias(
+                        memberAccess, semanticModel, symbol,
+                        cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
                     var text = aliasReplacement.Name;
@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
             => memberAccess.Name
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithLeadingTrivia(GetLeadingTriviaForSimplifiedMemberAccess(memberAccess))
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
         private static void GetReplacementCandidates(
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
+        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(MemberAccessExpressionSyntax memberAccess)
         {
             // We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
             // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
@@ -1071,8 +1071,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
-        private static bool TryReplaceWithAlias(
-            this ExpressionSyntax node, SemanticModel semanticModel, 
+        private static bool TryReplaceExpressionWithAlias(
+            ExpressionSyntax node, SemanticModel semanticModel, 
             ISymbol symbol, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (!name.IsRightSideOfDotOrColonColon())
                 {
-                    if (name.TryReplaceWithAlias(semanticModel, symbol, cancellationToken, out var aliasReplacement))
+                    if (TryReplaceExpressionWithAlias(name, semanticModel, symbol, cancellationToken, out var aliasReplacement))
                     {
                         // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
@@ -2093,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (memberAccess.AccessMethodWithDynamicArgumentInsideStructConstructor(semanticModel))
+            if (AccessMethodWithDynamicArgumentInsideStructConstructor(memberAccess, semanticModel))
             {
                 return false;
             }
@@ -2191,7 +2191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
          * since the check for initialization of all member variable is a lot of work for this simplification we don't simplify
          * even if all the member variables are initialized
          */
-        private static bool AccessMethodWithDynamicArgumentInsideStructConstructor(this MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private static bool AccessMethodWithDynamicArgumentInsideStructConstructor(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
@@ -2225,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 WillConflictWithExistingLocal(name, reducedName, semanticModel) ||
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(reducedName) ||
-                name.IsNotNullableReplaceable(reducedName) ||
+                IsNotNullableReplaceable(name, reducedName) ||
                 IsNonReducableQualifiedNameInUsingDirective(semanticModel, name, reducedName))
             {
                 return false;
@@ -2287,7 +2287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool IsNotNullableReplaceable(this NameSyntax name, TypeSyntax reducedName)
+        private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
         {
             var isNotNullableReplaceable = false;
             var isLeftSideOfDot = name.IsLeftSideOfDot();
