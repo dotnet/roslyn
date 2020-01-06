@@ -43,8 +43,8 @@ stages:
           displayName: Validate
           inputs:
             filePath: $(Build.SourcesDirectory)/eng/common/post-build/nuget-validation.ps1
-            arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/ 
-              -ToolDestinationPath $(Agent.BuildDirectory)/Extract/ 
+            arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/
+              -ToolDestinationPath $(Agent.BuildDirectory)/Extract/
 
   - ${{ if eq(parameters.enableSigningValidation, 'true') }}:
     - job:
@@ -104,9 +104,9 @@ stages:
           displayName: Validate
           inputs:
             filePath: $(Build.SourcesDirectory)/eng/common/post-build/sourcelink-validation.ps1
-            arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/ 
-              -ExtractPath $(Agent.BuildDirectory)/Extract/ 
-              -GHRepoName $(Build.Repository.Name) 
+            arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/
+              -ExtractPath $(Agent.BuildDirectory)/Extract/
+              -GHRepoName $(Build.Repository.Name)
               -GHCommit $(Build.SourceVersion)
               -SourcelinkCliVersion $(SourceLinkCLIVersion)
           continueOnError: true
