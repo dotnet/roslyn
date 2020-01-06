@@ -2005,6 +2005,100 @@ index: 1);
         [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationToNameInNestedScope()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N.Program.Goo.Bar|]();
+            {
+                int Goo;
+            }
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationToNameInNestedScope1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Linq;
+namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int[] args)
+        {
+            [|N.Program.Goo.Bar|]();
+            var q = from Goo in args select Goo;
+        }
+    }
+}",
+@"using System.Linq;
+namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int[] args)
+        {
+            Goo.Bar();
+            var q = from Goo in args select Goo;
+        }
+    }
+}");
+        }
+
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
         {
             await TestInRegularAndScriptAsync(
@@ -2160,98 +2254,6 @@ index: 1);
         {
             [|Program|].Goo.Bar();
             int Goo;
-        }
-    }
-}");
-        }
-
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestAllowSimplificationToNameInNestedScope()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-        static void Main()
-        {
-            [|N.Program.Goo.Bar|]();
-            {
-                int Goo;
-            }
-        }
-    }
-}",
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-        static void Main()
-        {
-            Goo.Bar();
-            {
-                int Goo;
-            }
-        }
-    }
-}");
-        }
-
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestAllowSimplificationToNameInNestedScope1()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System.Linq;
-namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main(int[] args)
-        {
-            [|N.Program.Goo.Bar|]();
-            var q = from Goo in args select Goo;
-        }
-    }
-}",
-@"using System.Linq;
-namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main(int[] args)
-        {
-            Goo.Bar();
-            var q = from Goo in args select Goo;
         }
     }
 }");
