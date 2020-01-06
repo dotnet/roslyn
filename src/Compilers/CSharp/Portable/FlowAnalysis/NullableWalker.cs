@@ -2151,15 +2151,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var argument = arguments[i];
                     var argumentType = argumentTypes[i];
                     var property = AnonymousTypeManager.GetAnonymousTypeProperty(anonymousType, i);
-                    var slot = GetOrCreateSlot(property, receiverSlot);
-                    ValidateLastSlot();
-                    TrackNullableStateForAssignment(argument, property.TypeWithAnnotations, slot, argumentType, MakeSlot(argument));
-
-                    var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
-                    if (currentDeclaration is object)
+                    if (property.Type.SpecialType != SpecialType.System_Void)
                     {
-                        TakeIncrementalSnapshot(currentDeclaration);
-                        SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
+                        // A void element results in an error type in the anonymous type but not in the property's container!
+                        // To avoid failing an assertion later, we skip them.
+                        var slot = GetOrCreateSlot(property, receiverSlot);
+                        ValidateLastSlot();
+                        TrackNullableStateForAssignment(argument, property.TypeWithAnnotations, slot, argumentType, MakeSlot(argument));
+
+                        var currentDeclaration = getDeclaration(node, property, ref currentDeclarationIndex);
+                        if (currentDeclaration is object)
+                        {
+                            TakeIncrementalSnapshot(currentDeclaration);
+                            SetAnalyzedNullability(currentDeclaration, new VisitResult(argumentType, property.TypeWithAnnotations));
+                        }
                     }
                 }
             }
