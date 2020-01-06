@@ -5933,7 +5933,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))</source>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
         <target state="needs-review-translation">Un campo readonly non può essere assegnato (tranne che in un costruttore o in un inizializzatore di variabile)</target>
         <note />
       </trans-unit>
