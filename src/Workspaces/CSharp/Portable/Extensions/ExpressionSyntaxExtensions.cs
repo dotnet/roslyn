@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
         private static bool TryReplaceExpressionWithAlias(
-            ExpressionSyntax node, SemanticModel semanticModel, 
+            ExpressionSyntax node, SemanticModel semanticModel,
             ISymbol symbol, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
