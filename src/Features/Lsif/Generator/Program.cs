@@ -19,18 +19,19 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
         {
             var generateCommand = new RootCommand("generates an LSIF file")
             {
-                new Option("--solution", "input solution file") { Argument = new Argument<FileInfo>().ExistingOnly(), Required = true },
+                new Option("--solution", "input solution file") { Argument = new Argument<FileInfo>().ExistingOnly() },
+                new Option("--compiler-invocation", "path to a .json file that contains the information for a csc/vbc invocation") { Argument = new Argument<FileInfo>().ExistingOnly() },
                 new Option("--output", "file to write the LSIF output to, instead of the console") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() },
                 new Option("--output-format", "format of LSIF output") { Argument = new Argument<LsifFormat>(defaultValue: () => LsifFormat.Line) },
                 new Option("--log", "file to write a log to") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() }
             };
 
-            generateCommand.Handler = CommandHandler.Create((Func<FileInfo, string?, LsifFormat, string?, Task>)GenerateAsync);
+            generateCommand.Handler = CommandHandler.Create((Func<FileInfo?, FileInfo?, string?, LsifFormat, string?, Task>)GenerateAsync);
 
             return generateCommand.InvokeAsync(args);
         }
 
-        private static async Task GenerateAsync(FileInfo solution, string? output, LsifFormat outputFormat, string? log)
+        private static async Task GenerateAsync(FileInfo? solution, FileInfo? compilerInvocation, string? output, LsifFormat outputFormat, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
             using StreamWriter? outputFile = output != null ? new StreamWriter(output) : null;
@@ -40,7 +41,19 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             try
             {
-                await GenerateAsync(solution, outputWriter, outputFormat, logFile);
+                // Exactly one of "solution" or "compilerInvocation" should be specified
+                if (solution != null && compilerInvocation == null)
+                {
+                    await GenerateFromSolutionAsync(solution, outputWriter, outputFormat, logFile);
+                }
+                else if (compilerInvocation != null && solution == null)
+                {
+                    await GenerateFromCompilerInvocationAsync(compilerInvocation, outputWriter, outputFormat, logFile);
+                }
+                else
+                {
+                    throw new Exception("Exactly one of either a solution path or a compiler invocation path should be supplied.");
+                }
             }
             catch (Exception e)
             {
@@ -54,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task GenerateAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
+        private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
         {
             await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
 
@@ -93,6 +106,22 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
             await logFile.WriteLineAsync($"Total time spent in the generation phase for all projects, excluding compilation fetch time: {totalTimeInGenerationPhase.ToDisplayString()}");
             await logFile.WriteLineAsync($"Total time spent in the generation phase for all projects, including compilation fetch time: {totalTimeInGenerationAndCompilationFetchStopwatch.Elapsed.ToDisplayString()}");
+        }
+
+        private static async Task GenerateFromCompilerInvocationAsync(FileInfo compilerInvocationFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
+        {
+            await logFile.WriteLineAsync($"Processing compiler invocation from {compilerInvocationFile.FullName}...");
+
+            var compilerInvocationLoadStopwatch = Stopwatch.StartNew();
+            var compilerInvocation = await CompilerInvocation.CreateFromJsonAsync(File.ReadAllText(compilerInvocationFile.FullName));
+            await logFile.WriteLineAsync($"Load of the project completed in {compilerInvocationLoadStopwatch.Elapsed.ToDisplayString()}.");
+
+            var generationStopwatch = Stopwatch.StartNew();
+            using var lsifWriter = new TextLsifJsonWriter(outputWriter, outputFormat);
+            var lsifGenerator = new Generator(lsifWriter);
+
+            await lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices);
+            await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
     }
 }
