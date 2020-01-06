@@ -954,7 +954,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         internal static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, TaskLoggingHelper log)
         {
-            return ListHasNoDuplicateItems(itemList, parameterName, null, log);
+            return ListHasNoDuplicateItems(itemList, parameterName, disambiguatingMetadataName: null, log);
         }
 
         /// <summary>

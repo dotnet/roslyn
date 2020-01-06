@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string[] attributes
         )
         {
-            AppendSwitchIfNotNull(switchName, parameters, attributes, null /* treatAsFlag */);
+            AppendSwitchIfNotNull(switchName, parameters, attributes, treatAsFlags: null);
         }
 
         /// <summary>
