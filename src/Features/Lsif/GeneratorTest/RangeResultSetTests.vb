@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.Lsif.Generator.UnitTests
         <InlineData("class C { [|string|] s; }", "mscorlib#T:System.String")>
         <InlineData("class C { void M() { [|M|](); }", TestProjectAssemblyName + "#M:C.M")>
         <InlineData("class C { void M(string s) { M([|s|]) }", TestProjectAssemblyName + "#M:C.M(System.String)#s")>
+        <InlineData("class C { void M(string s) { string local; M([|local|]) }", Nothing)>
         <InlineData("class C { void M(string s) { M(s [|+|] s) }", Nothing)>
         <InlineData("using [|S|] = System.String;", Nothing)>
         Public Async Sub ReferenceMonikerAsync(code As String, expectedMoniker As String)

@@ -59,15 +59,19 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
             // This uses the existing format that earlier prototypes of the Roslyn LSIF tool implemented; a different format may make more sense long term, but changing the
             // moniker makes it difficult for other systems that have older LSIF indexes to the connect the two indexes together.
 
-            // Skip built in-operators. We could pick some sort of moniker for these, but I doubt anybody really needs to search for all uses of
-            // + in the world's projects at once.
-            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
+            // Skip all local things that cannot escape outside of a single file: downstream consumers simply treat this as meaning a references/definition result
+            // doesn't need to be stitched together across files or multiple projects or repositories.
+            if (symbol.Kind == SymbolKind.Local ||
+                symbol.Kind == SymbolKind.RangeVariable ||
+                symbol.Kind == SymbolKind.Label ||
+                symbol.Kind == SymbolKind.Alias)
             {
                 return null;
             }
 
-            // We don't have a moniker format for aliases for now. They're local to a file so it's not clear if we really need one...?
-            if (symbol.Kind == SymbolKind.Alias)
+            // Skip built in-operators. We could pick some sort of moniker for these, but I doubt anybody really needs to search for all uses of
+            // + in the world's projects at once.
+            if (symbol is IMethodSymbol method && method.MethodKind == MethodKind.BuiltinOperator)
             {
                 return null;
             }
@@ -87,10 +91,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
 
             string symbolMoniker = symbol.ContainingAssembly.Name + "#";
 
-            if (symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Parameter ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Label)
+            if (symbol.Kind == SymbolKind.Parameter)
             {
                 symbolMoniker += GetRequiredDocumentationCommentId(symbol.ContainingSymbol) + "#" + symbol.Name;
             }
@@ -101,13 +102,7 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator.ResultSetTracking
 
             string kind;
 
-            if (symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.RangeVariable ||
-                symbol.Kind == SymbolKind.Label)
-            {
-                kind = "local";
-            }
-            else if (symbol.ContainingAssembly.Equals(_sourceCompilation.Assembly))
+            if (symbol.ContainingAssembly.Equals(_sourceCompilation.Assembly))
             {
                 kind = "export";
             }
