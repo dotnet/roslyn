@@ -27,6 +27,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private const string DiagnosticCategoryAndIdRangeFile = "DiagnosticCategoryAndIdRanges.txt";
         private static readonly (string? prefix, int start, int end) s_defaultAllowedIdsInfo = (null, -1, -1);
 
+        private static readonly ImmutableHashSet<string> CADiagnosticIdAllowedAssemblies = ImmutableHashSet.Create(
+            StringComparer.Ordinal,
+            "Microsoft.CodeQuality.Analyzers",
+            "Microsoft.CodeQuality.CSharp.Analyzers",
+            "Microsoft.CodeQuality.VisualBasic.Analyzers",
+            "Microsoft.NetCore.Analyzers",
+            "Microsoft.NetCore.CSharp.Analyzers",
+            "Microsoft.NetCore.VisualBasic.Analyzers",
+            "Microsoft.NetFramework.Analyzers",
+            "Microsoft.NetFramework.CSharp.Analyzers",
+            "Microsoft.NetFramework.VisualBasic.Analyzers");
+
         private static readonly LocalizableString s_localizableUseLocalizableStringsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableUseLocalizableStringsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableUseLocalizableStringsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -58,6 +70,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableProvideCustomTagsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableProvideCustomTagsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableProvideCustomTagsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+
+        private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
@@ -139,6 +155,16 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableProvideCustomTagsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new DiagnosticDescriptor(
+            DiagnosticIds.DoNotUseReservedDiagnosticIdRuleId,
+            s_localizableDoNotUseReservedDiagnosticIdTitle,
+            s_localizableDoNotUseReservedDiagnosticIdMessage,
+            DiagnosticCategory.MicrosoftCodeAnalysisDesign,
+            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            isEnabledByDefault: true,
+            description: s_localizableDoNotUseReservedDiagnosticIdDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,
             ProvideHelpUriInDescriptorRule,
@@ -147,7 +173,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             UseUniqueDiagnosticIdRule,
             UseCategoriesFromSpecifiedRangeRule,
             AnalyzerCategoryAndIdRangeFileInvalidRule,
-            ProvideCustomTagsInDescriptorRule);
+            ProvideCustomTagsInDescriptorRule,
+            DoNotUseReservedDiagnosticIdRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -397,6 +424,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                             key: ruleId,
                             addValueFactory: AddNamedTypeFactory,
                             updateValueFactory: UpdateNamedTypeFactory);
+
+                        if (IsReservedDiagnosticId(ruleId, operationAnalysisContext.Compilation.AssemblyName))
+                        {
+                            operationAnalysisContext.ReportDiagnostic(argument.Value.Syntax.CreateDiagnostic(DoNotUseReservedDiagnosticIdRule, ruleId));
+                        }
 
                         // If we have an additional file specifying required range and/or format for the ID, validate the ID.
                         if (!allowedIdsInfoListOpt.IsDefault)
@@ -657,6 +689,30 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             return prefix.Length > 0 && suffixStr.Length > 0 && int.TryParse(suffixStr, out suffix);
+        }
+
+        private static bool IsReservedDiagnosticId(string ruleId, string assemblyName)
+        {
+            if (ruleId.Length < 6)
+            {
+                return false;
+            }
+
+            var isCARule = ruleId.StartsWith("CA", StringComparison.Ordinal);
+
+            if (!isCARule &&
+                !ruleId.StartsWith("CS", StringComparison.Ordinal) &&
+                !ruleId.StartsWith("BC", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (!ruleId.Substring(2).All(c => char.IsDigit(c)))
+            {
+                return false;
+            }
+
+            return !isCARule || !CADiagnosticIdAllowedAssemblies.Contains(assemblyName);
         }
     }
 }

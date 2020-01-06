@@ -52,6 +52,21 @@
         <target state="translated">配置生成的代码分析</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>The DiagnosticId '{0}' is a reserved ID.</source>
+        <target state="new">The DiagnosticId '{0}' is a reserved ID.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>DiagnosticId is reserved.</source>
+        <target state="new">DiagnosticId is reserved.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
         <source>Enable concurrent execution</source>
         <target state="translated">启用并发执行</target>

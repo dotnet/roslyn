@@ -389,4 +389,13 @@
   <data name="ProvideCustomTagsInDescriptorTitle" xml:space="preserve">
     <value>Provide non-null 'customTags' value to diagnostic descriptor constructor.</value>
   </data>
+  <data name="DoNotUseReservedDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers should not use reserved IDs.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdMessage" xml:space="preserve">
+    <value>The DiagnosticId '{0}' is a reserved ID.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
+    <value>DiagnosticId is reserved.</value>
+  </data>
 </root>
