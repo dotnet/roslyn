@@ -655,9 +655,6 @@ Do you want to continue?</value>
   <data name="Remove_qualification" xml:space="preserve">
     <value>Remove qualification</value>
   </data>
-  <data name="This_signature_does_not_contain_parameters_that_can_be_changed" xml:space="preserve">
-    <value>This signature does not contain parameters that can be changed.</value>
-  </data>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
   </data>

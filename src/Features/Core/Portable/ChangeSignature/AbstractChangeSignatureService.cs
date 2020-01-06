@@ -77,9 +77,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     case CannotChangeSignatureReason.IncorrectKind:
                         errorHandler(FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate, NotificationSeverity.Error);
                         break;
-                    case CannotChangeSignatureReason.InsufficientParameters:
-                        errorHandler(FeaturesResources.This_signature_does_not_contain_parameters_that_can_be_changed, NotificationSeverity.Error);
-                        break;
                 }
 
                 return new ChangeSignatureResult(succeeded: false);

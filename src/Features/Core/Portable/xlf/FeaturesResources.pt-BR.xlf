@@ -1608,11 +1608,6 @@ Deseja continuar?</target>
         <target state="translated">Remover qualificação</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
-        <source>This signature does not contain parameters that can be changed.</source>
-        <target state="translated">Esta assinatura não contêm parâmetros que podem ser alterados.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_error_occurred">
         <source>Unknown error occurred</source>
         <target state="translated">Erro desconhecido</target>
