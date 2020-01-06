@@ -1389,4 +1389,8 @@ I agree to all of the foregoing:</value>
     <value>Live Share C#/Visual Basic Language Server Client</value>
     <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
+  <data name="You_must_change_the_signature" xml:space="preserve">
+    <value>You must change the signature</value>
+    <comment>"signature" here means the definition of a method</comment>
+  </data>
 </root>

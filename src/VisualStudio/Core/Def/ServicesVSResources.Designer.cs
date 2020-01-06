@@ -3714,6 +3714,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You must change the signature.
+        /// </summary>
+        internal static string You_must_change_the_signature {
+            get {
+                return ResourceManager.GetString("You_must_change_the_signature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must select at least one member..
         /// </summary>
         internal static string You_must_select_at_least_one_member {

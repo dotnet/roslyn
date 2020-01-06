@@ -439,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (!canSubmit)
             {
-                _notificationService.SendNotification("You must change the signature.", severity: NotificationSeverity.Information);
+                _notificationService.SendNotification(ServicesVSResources.You_must_change_the_signature, severity: NotificationSeverity.Information);
                 return false;
             }
 
