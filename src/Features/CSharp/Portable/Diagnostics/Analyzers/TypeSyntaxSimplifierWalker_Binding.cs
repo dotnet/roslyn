@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             //
             // To be able to simplify, we have to only contain other member-accesses or qualified
             // names.
-            if (IsSimplifiableMemberAccess(node))
+            if (IsDottedSimpleNameSequence(node))
             {
                 // The `A.B` part might be referring to type/namespace.  See if we can simplify
                 // that. portion.
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)
             => nameSymbol is INamedTypeSymbol || nameSymbol?.IsStatic == true;
 
-        private bool IsSimplifiableMemberAccess(MemberAccessExpressionSyntax node)
+        private bool IsDottedSimpleNameSequence(MemberAccessExpressionSyntax node)
         {
             var current = node.Expression;
             while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
