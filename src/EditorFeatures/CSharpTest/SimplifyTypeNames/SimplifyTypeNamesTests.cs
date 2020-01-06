@@ -2096,169 +2096,6 @@ namespace N
 }");
         }
 
-        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main()
-        {
-            [|N.Program|].Goo.Bar();
-            {
-                int Goo;
-            }
-        }
-    }
-}",
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main()
-        {
-            Goo.Bar();
-            {
-                int Goo;
-            }
-        }
-    }
-}");
-        }
-
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestAllowSimplificationThatWouldNotCauseConflict2()
-        {
-            await TestInRegularAndScriptAsync(
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main()
-        {
-            [|Program|].Goo.Bar();
-            {
-                int Goo;
-            }
-        }
-    }
-}",
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main()
-        {
-            Goo.Bar();
-            {
-                int Goo;
-            }
-        }
-    }
-}");
-        }
-
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestPreventSimplificationThatWouldCauseConflict1()
-        {
-            await TestInRegularAndScript1Async(
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main()
-        {
-            [|N|].Program.Goo.Bar();
-            int Goo;
-        }
-    }
-}",
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main()
-        {
-            Program.Goo.Bar();
-            int Goo;
-        }
-    }
-}");
-        }
-
-        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestPreventSimplificationThatWouldCauseConflict2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"namespace N
-{
-    class Program
-    {
-        class Goo
-        {
-            public static void Bar()
-            {
-            }
-        }
-
-        static void Main(int[] args)
-        {
-            [|Program|].Goo.Bar();
-            int Goo;
-        }
-    }
-}");
-        }
-
         [WorkItem(541929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541929")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestOnOpenType1()
@@ -5451,6 +5288,169 @@ class Bar
 {
 }
 ");
+        }
+
+        [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationThatWouldNotCauseConflict1()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N.Program|].Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationThatWouldNotCauseConflict2()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|Program|].Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Goo.Bar();
+            {
+                int Goo;
+            }
+        }
+    }
+}");
+        }
+
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestPreventSimplificationThatWouldCauseConflict1()
+        {
+            await TestInRegularAndScript1Async(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            [|N|].Program.Goo.Bar();
+            int Goo;
+        }
+    }
+}",
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main()
+        {
+            Program.Goo.Bar();
+            int Goo;
+        }
+    }
+}");
+        }
+
+        [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestPreventSimplificationThatWouldCauseConflict2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"namespace N
+{
+    class Program
+    {
+        class Goo
+        {
+            public static void Bar()
+            {
+            }
+        }
+
+        static void Main(int[] args)
+        {
+            [|Program|].Goo.Bar();
+            int Goo;
+        }
+    }
+}");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
