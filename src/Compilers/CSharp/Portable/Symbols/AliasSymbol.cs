@@ -75,12 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _binder = binder;
         }
 
-        internal AliasSymbol(Binder binder, UsingDirectiveSyntax syntax)
-#nullable disable // Can 'syntax.Alias' be null here? https://github.com/dotnet/roslyn/issues/39166
-            : this(binder, syntax.Alias.Name.Identifier)
-#nullable enable
+        internal AliasSymbol(Binder binder, NameSyntax name, NameEqualsSyntax alias)
+            : this(binder, alias.Name.Identifier)
         {
-            _aliasTargetName = syntax.Name;
+            Debug.Assert(name.Parent.IsKind(SyntaxKind.UsingDirective));
+            Debug.Assert(name.Parent == alias.Parent);
+
+            _aliasTargetName = name;
         }
 
         internal AliasSymbol(Binder binder, ExternAliasDirectiveSyntax syntax)
