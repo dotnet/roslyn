@@ -6,8 +6,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0" xmlns:changesignature="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature"
-    Height="325" Width="500"
-    MinHeight="325" MinWidth="500"
+    Height="275" Width="500"
+    MinHeight="275" MinWidth="500"
     Title="{Binding ElementName=dialog, Path=AddParameterDialogTitle}"
     HasHelpButton="False"
     ResizeMode="CanResizeWithGrip"
@@ -31,8 +31,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Type Name:" />
             <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="5,5,5,5">
@@ -42,10 +40,8 @@
             <Border Grid.Row="3" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="5,5,5,5">
                 <ContentControl x:Name="NameContentControl" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown"/>
             </Border>
-            <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="If this is an optional parameter, enter its default value:" />
-            <TextBox Grid.Row="5" Grid.Column="1" Margin="5,5,5,5" />
-            <Label Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Content="Value to insert at callsites (empty to omit if optional, introduce errors otherwise):" />
-            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding CallsiteValue, Mode=TwoWay}" Margin="5,5,5,5" />
+            <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Content="Value to insert at callsites (empty to introduce errors):" />
+            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CallsiteValue, Mode=TwoWay}" Margin="5,5,5,5" />
         </Grid>
         <StackPanel Grid.Row="1"
                     HorizontalAlignment="Right" 
