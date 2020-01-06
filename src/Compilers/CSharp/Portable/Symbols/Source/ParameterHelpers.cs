@@ -195,17 +195,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ImmutableArray<TParameterSymbol> parameters = builder.ToImmutableAndFree();
 
-            var methodOwner = owner as MethodSymbol;
-            var typeParameters = (object)methodOwner != null ?
-                methodOwner.TypeParameters :
-                default(ImmutableArray<TypeParameterSymbol>);
-
-            Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
-            bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
-                methodOwner?.MethodKind == MethodKind.LocalFunction;
-
             if (!parsingFunctionPointer)
             {
+                var methodOwner = owner as MethodSymbol;
+                var typeParameters = (object)methodOwner != null ?
+                    methodOwner.TypeParameters :
+                    default(ImmutableArray<TypeParameterSymbol>);
+
+                Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
+                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
+                    methodOwner?.MethodKind == MethodKind.LocalFunction;
+
                 binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
             }
 
