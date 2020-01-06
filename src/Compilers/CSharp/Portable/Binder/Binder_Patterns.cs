@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
                     hasErrors |= CheckValidPatternType(innerExpression, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
+                    hasErrors = hasErrors | boundType.Type.IsErrorType();
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
                     result = new BoundTypePattern(node, boundType, inputType, hasErrors);
                 }
