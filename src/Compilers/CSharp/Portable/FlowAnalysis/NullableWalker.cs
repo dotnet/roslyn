@@ -2705,17 +2705,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We should not blindly strip conversions here. Tracked by https://github.com/dotnet/roslyn/issues/36164
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
-            return LearnFromNullTest(slot, expressionWithoutConversion.Type, ref state);
+
+            // Since we know for sure the slot is null (we just tested it), we know that dependent slots are not
+            // reachable and therefore can be treated as not null.  However, we have not computed the proper
+            // (inferred) type for the expression, so we cannot compute the correct symbols for the member slots here
+            // (using the incorrect symbols would result in computing an incorrect default state for them).
+            // Therefore we do not mark dependent slots not null.  See https://github.com/dotnet/roslyn/issues/39624
+            return LearnFromNullTest(slot, expressionWithoutConversion.Type, ref state, markDependentSlotsNotNull: false);
         }
 
-        private int LearnFromNullTest(int slot, TypeSymbol expressionType, ref LocalState state)
+        private int LearnFromNullTest(int slot, TypeSymbol expressionType, ref LocalState state, bool markDependentSlotsNotNull)
         {
             if (slot > 0 && PossiblyNullableType(expressionType))
             {
                 state[slot] = NullableFlowState.MaybeNull;
+                if (markDependentSlotsNotNull)
+                {
+                    MarkDependentSlotsNotNull(slot, expressionType, ref state);
+                }
             }
 
             return slot;
+        }
+
+        // If we know for sure that a slot contains a null value, then we know for sure that dependent slots
+        // are "unreachable" so we might as well treat them as not null.  That way when this state is merged
+        // with another state, those dependent states won't pollute values from the other state.
+        private void MarkDependentSlotsNotNull(int slot, TypeSymbol expressionType, ref LocalState state, int depth = 2)
+        {
+            if (depth <= 0)
+                return;
+
+            foreach (var member in getMembers(expressionType))
+            {
+                HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
+                NamedTypeSymbol containingType = this._symbol?.ContainingType;
+                if ((member is PropertySymbol { IsIndexedProperty: false } || member.Kind == SymbolKind.Field) &&
+                    member.RequiresInstanceReceiver() &&
+                    (containingType is null || AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteDiagnostics)))
+                {
+                    int childSlot = GetOrCreateSlot(member, slot, true);
+                    if (childSlot > 0)
+                    {
+                        state[childSlot] = NullableFlowState.NotNull;
+                        MarkDependentSlotsNotNull(childSlot, member.GetTypeOrReturnType().Type, ref state, depth - 1);
+                    }
+                }
+            }
+
+            static IEnumerable<Symbol> getMembers(TypeSymbol type)
+            {
+                // First, return the direct members
+                foreach (var member in type.GetMembers())
+                    yield return member;
+
+                // All types inherit members from their effective bases
+                for (NamedTypeSymbol baseType = effectiveBase(type); !(baseType is null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
+                    foreach (var member in baseType.GetMembers())
+                        yield return member;
+
+                // Interfaces and type parameters inherit from their effective interfaces
+                foreach (NamedTypeSymbol interfaceType in inheritedInterfaces(type))
+                    foreach (var member in interfaceType.GetMembers())
+                        yield return member;
+
+                yield break;
+
+                static NamedTypeSymbol effectiveBase(TypeSymbol type) => type switch
+                {
+                    TypeParameterSymbol tp => tp.EffectiveBaseClassNoUseSiteDiagnostics,
+                    var t => t.BaseTypeNoUseSiteDiagnostics,
+                };
+
+                static ImmutableArray<NamedTypeSymbol> inheritedInterfaces(TypeSymbol type) => type switch
+                {
+                    TypeParameterSymbol tp => tp.AllEffectiveInterfacesNoUseSiteDiagnostics,
+                    { TypeKind: TypeKind.Interface } => type.AllInterfacesNoUseSiteDiagnostics,
+                    _ => ImmutableArray<NamedTypeSymbol>.Empty,
+                };
+            }
         }
 
         private static BoundExpression SkipReferenceConversions(BoundExpression possiblyConversion)
