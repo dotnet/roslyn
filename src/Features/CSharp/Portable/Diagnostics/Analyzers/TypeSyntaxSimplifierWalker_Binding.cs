@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -271,6 +272,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return;
 
             base.VisitQualifiedCref(node);
+        }
+
+        public override void VisitAttribute(AttributeSyntax node)
+        {
+            // Check if we have an attribute like `[X.GooAttribute]`.  If so, try to simplify it to
+            // just `[X.Goo]`
+            var rightmostNameNode = node.Name.GetRightmostName();
+            var rightmostName = rightmostNameNode.Identifier.ValueText;
+            if (rightmostName.HasAttributeSuffix(isCaseSensitive: true) &&
+                TrySimplify(rightmostNameNode))
+            {
+                Visit(node.ArgumentList);
+                return;
+            }
+
+            base.VisitAttribute(node);
         }
 
         private static bool IsNamedTypeOrStaticSymbol(ISymbol nameSymbol)

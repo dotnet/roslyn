@@ -5324,6 +5324,130 @@ class C
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo[|Attribute|]]
+class Bar
+{
+}
+",
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo[|Attribute|]()]
+class Bar
+{
+}
+",
+@"using System;
+
+class GooAttribute : Attribute
+{
+}
+
+[Goo()]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.Goo[|Attribute|]()]
+class Bar
+{
+}
+",
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.Goo()]
+class Bar
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAttributeReference4()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.GooAttribute([|typeof(System.Int32)|])]
+class Bar
+{
+}
+",
+@"using System;
+
+namespace N
+{
+    class GooAttribute : Attribute
+    {
+    }
+}
+
+[N.GooAttribute(typeof(int))]
+class Bar
+{
+}
+");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
