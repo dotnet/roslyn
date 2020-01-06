@@ -10253,25 +10253,46 @@ tryAgain:
                 return false;
             }
 
-            // If we have any of the following, we know it must be a cast:
-            // 1) (Goo*)bar;
-            // 2) (Goo?)bar;
-            // 3) "(int)bar" or "(int[])bar"
-            // 4) (G::Goo)bar
-            if (type == ScanTypeFlags.PointerOrMultiplication ||
-                type == ScanTypeFlags.NullableType ||
-                type == ScanTypeFlags.MustBeType ||
-                type == ScanTypeFlags.AliasQualifiedName)
-            {
-                return true;
-            }
-
             this.EatToken();
 
-            // check for ambiguous type or expression followed by disambiguating token.  i.e.
-            //
-            // "(A)b" is a cast.  But "(A)+b" is not a cast.  
-            return (type == ScanTypeFlags.GenericTypeOrMethod || type == ScanTypeFlags.GenericTypeOrExpression || type == ScanTypeFlags.NonGenericTypeOrExpression || type == ScanTypeFlags.TupleType) && CanFollowCast(this.CurrentToken.Kind);
+            switch (type)
+            {
+                // If we have any of the following, we know it must be a cast:
+                // 1) (Goo*)bar;
+                // 2) (Goo?)bar;
+                // 3) "(int)bar" or "(int[])bar"
+                // 4) (G::Goo)bar
+                case ScanTypeFlags.PointerOrMultiplication:
+                case ScanTypeFlags.NullableType:
+                case ScanTypeFlags.MustBeType:
+                case ScanTypeFlags.AliasQualifiedName:
+                    // The thing between parens is unambiguously a type.
+                    // In a pattern, we need more lookahead to confirm it is a cast and not
+                    // a parenthesized type pattern.  In this case the tokens that
+                    // have both unary and binary operator forms may appear in their unary form
+                    // following a cast.
+                    return !forPattern || this.CurrentToken.Kind switch
+                    {
+                        SyntaxKind.PlusToken => true,
+                        SyntaxKind.MinusToken => true,
+                        SyntaxKind.AmpersandToken => true,
+                        SyntaxKind.AsteriskToken => true,
+                        SyntaxKind.DotDotToken => true,
+                        _ => CanFollowCast(this.CurrentToken.Kind)
+                    };
+
+                case ScanTypeFlags.GenericTypeOrMethod:
+                case ScanTypeFlags.GenericTypeOrExpression:
+                case ScanTypeFlags.NonGenericTypeOrExpression:
+                case ScanTypeFlags.TupleType:
+                    // check for ambiguous type or expression followed by disambiguating token.  i.e.
+                    //
+                    // "(A)b" is a cast.  But "(A)+b" is not a cast.  
+                    return CanFollowCast(this.CurrentToken.Kind);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type);
+            }
         }
 
         private bool ScanAsyncLambda(Precedence precedence)

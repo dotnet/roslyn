@@ -235,6 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.IdentifierToken:
+                case SyntaxKind.CloseBraceToken:   // for efficiency, test some tokens that can follow a type pattern
+                case SyntaxKind.CloseBracketToken:
+                case SyntaxKind.CloseParenToken:
+                case SyntaxKind.CommaToken:
+                case SyntaxKind.SemicolonToken:
                     return true;
                 case SyntaxKind.DotToken:
                     // int.MaxValue is an expression, not a type.
@@ -435,6 +440,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             expr = null;
             switch (type)
             {
+                case GenericNameSyntax g:
+                    expr = g;
+                    return permitTypeArguments;
                 case SimpleNameSyntax s:
                     expr = s;
                     return true;

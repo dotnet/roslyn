@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MakeTestsAndBindings(input, iTuple, tests, bindings);
                     break;
                 case BoundTypePattern type:
-                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
+                    MakeTestsAndBindings(input, type, tests);
                     break;
                 case BoundRelationalPattern rel:
                     // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a null and type test if needed.
             if (!declaration.IsVar)
             {
-                input = MakeConvertToType(input, declaration.Syntax, type, tests);
+                input = MakeConvertToType(input, syntax, type, tests);
             }
 
             BoundExpression variableAccess = declaration.VariableAccess;
@@ -364,6 +364,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(declaration.Variable == null);
             }
+        }
+
+        private void MakeTestsAndBindings(
+            BoundDagTemp input,
+            BoundTypePattern typePattern,
+            ArrayBuilder<BoundDagTest> tests)
+        {
+            TypeSymbol type = typePattern.DeclaredType.Type;
+            SyntaxNode syntax = typePattern.Syntax;
+
+            // Add a null and type test
+            input = MakeConvertToType(input, syntax, type, tests);
         }
 
         private static void MakeCheckNotNull(

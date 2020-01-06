@@ -203,15 +203,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestForSwitchCase_SemanticCheck_NotAfterPredefinedType_BeforeWhen() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case int $$ when }"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ }"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeBreak() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ break; }"));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/40015"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestForSwitchCase_SemanticCheck_NotAfterGenericType_BeforeWhen() =>
             await VerifyAbsenceAsync(AddInsideMethod(@"switch (new object()) { case Dictionary<string, int> $$ when }"));
 

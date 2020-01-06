@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BinaryPatternSyntax p => BindBinaryPattern(p, inputType, inputValEscape, permitDesignations, hasErrors, diagnostics),
                 UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics),
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
-                TypePatternSyntax p => BindTypePatternWithFallbackToConstantPattern(p, inputType, hasErrors, diagnostics),
+                TypePatternSyntax p => BindTypePattern(p, inputType, hasErrors, diagnostics),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
         }
@@ -144,47 +144,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            var constantDiagnostics = DiagnosticBag.GetInstance();
-            BoundPattern result = BindConstantPattern(node, inputType, expression, hasErrors, constantDiagnostics, out bool wasExpression);
-
-            // fall back to a type pattern if it fails as a constant pattern.
-            if (!wasExpression && !IsUnderscore(innerExpression))
+            var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
+            if (wasExpression)
             {
-                if (TryBindAsType(innerExpression, out DiagnosticBag bindAsTypeDiagnostics, out BoundTypeExpression boundType))
-                {
-                    diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
-                    hasErrors |= CheckValidPatternType(innerExpression, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
-                    CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
-                    result = new BoundTypePattern(node, boundType, inputType, hasErrors);
-                }
-                else
-                {
-                    bindAsTypeDiagnostics.Free();
-                    diagnostics.AddRange(constantDiagnostics);
-                }
+                return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
             }
             else
             {
-                diagnostics.AddRange(constantDiagnostics);
+                CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
+                // We don't need to check feature availability for parenthesized pattern in case the
+                // expression was parenthsized, because the parenthesized pattern was introduced at
+                // the same time as the type pattern.
+                if (IsUnderscore(innerExpression))
+                {
+                    // PROTOTYPE(ngafter): should this be treated as a discard?
+                    diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, innerExpression.Location, convertedExpression.Type);
+                }
+
+                return new BoundTypePattern(node, (BoundTypeExpression)convertedExpression, inputType, hasErrors);
             }
-
-            constantDiagnostics.Free();
-            return result;
         }
 
-        internal BoundConstantPattern BindConstantPattern(
-            SyntaxNode node,
-            TypeSymbol inputType,
-            ExpressionSyntax patternExpression,
-            bool hasErrors,
-            DiagnosticBag diagnostics,
-            out bool wasExpression)
-        {
-            var convertedExpression = BindExpressionForPattern(node, inputType, patternExpression, hasErrors, diagnostics, out var constantValueOpt, out wasExpression);
-            return new BoundConstantPattern(node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);
-        }
-
-        private BoundExpression BindExpressionForPattern(SyntaxNode node,
+        /// <summary>
+        /// Binds the expression for a pattern.  Sets <paramref name="wasExpression"/> if it was a type rather than an expression,
+        /// and in that case it returns a <see cref="BoundTypeExpression"/>.
+        /// </summary>
+        private BoundExpression BindExpressionOrTypeForPattern(
             TypeSymbol inputType,
             ExpressionSyntax patternExpression,
             bool hasErrors,
@@ -192,11 +177,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ConstantValue constantValueOpt,
             out bool wasExpression)
         {
-            BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             constantValueOpt = null;
+            BoundExpression expression = BindTypeOrRValue(patternExpression, diagnostics);
+            wasExpression = expression.Kind != BoundKind.TypeExpression;
+            if (wasExpression)
+            {
+                return BindExpressionForPatternContinued(expression, inputType, patternExpression, hasErrors, diagnostics, out constantValueOpt);
+            }
+            else
+            {
+                Debug.Assert(expression.Kind == BoundKind.TypeExpression);
+                return expression;
+            }
+        }
+
+        /// <summary>
+        /// Binds the expression for an is-type right-hand-side, in case it does not bind as a type.
+        /// </summary>
+        private BoundExpression BindExpressionForPattern(
+            TypeSymbol inputType,
+            ExpressionSyntax patternExpression,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out ConstantValue constantValueOpt,
+            out bool wasExpression)
+        {
+            constantValueOpt = null;
+            var expression = BindExpression(patternExpression, diagnostics: diagnostics, invoked: false, indexed: false);
+            expression = CheckValue(expression, BindValueKind.RValue, diagnostics);
+            wasExpression = expression.Kind switch { BoundKind.BadExpression => false, BoundKind.TypeExpression => false, _ => true };
+            return wasExpression ? BindExpressionForPatternContinued(expression, inputType, patternExpression, hasErrors, diagnostics, out constantValueOpt) : expression;
+        }
+
+        private BoundExpression BindExpressionForPatternContinued(
+            BoundExpression expression,
+            TypeSymbol inputType,
+            ExpressionSyntax patternExpression,
+            bool hasErrors,
+            DiagnosticBag diagnostics,
+            out ConstantValue constantValueOpt)
+        {
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
-            wasExpression = expression.Type?.IsErrorType() != true;
+
             if (!convertedExpression.HasErrors && !hasErrors)
             {
                 if (constantValueOpt == null)
@@ -424,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = node.Type;
-            BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors);
+            BoundTypeExpression boundDeclType = BindTypeForPattern(typeSyntax, inputType, diagnostics, ref hasErrors);
             TypeSymbol declType = boundDeclType.Type;
             inputValEscape = GetValEscape(declType, inputValEscape);
             BindPatternDesignation(
@@ -433,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, hasErrors);
         }
 
-        private BoundTypeExpression BindPatternType(
+        private BoundTypeExpression BindTypeForPattern(
             TypeSyntax typeSyntax,
             TypeSymbol inputType,
             DiagnosticBag diagnostics,
@@ -532,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeSyntax != null)
             {
-                boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors);
+                boundDeclType = BindTypeForPattern(typeSyntax, inputType, diagnostics, ref hasErrors);
                 return boundDeclType.TypeWithAnnotations;
             }
             else
@@ -1146,39 +1169,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundMember.ExpressionSymbol;
         }
 
-        private BoundPattern BindTypePatternWithFallbackToConstantPattern(
+        private BoundPattern BindTypePattern(
             TypePatternSyntax node,
             TypeSymbol inputType,
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            var constantDiagnostics = DiagnosticBag.GetInstance();
-            if (!TryBindAsType(node.Type, out DiagnosticBag bindAsTypeDiagnostics, out BoundTypeExpression boundType) &&
-                BindConstantPattern(node, inputType, node.Type, hasErrors, constantDiagnostics, out bool wasExpression) is var constantPattern &&
-                wasExpression)
-            {
-                diagnostics.AddRangeAndFree(constantDiagnostics);
-                return constantPattern;
-            }
-            else
-            {
-                diagnostics.AddRangeAndFree(bindAsTypeDiagnostics);
-                constantDiagnostics.Free();
-                hasErrors |= CheckValidPatternType(node.Type, inputType, boundType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
-                return new BoundTypePattern(node, boundType, inputType, hasErrors);
-            }
-        }
-
-        private bool TryBindAsType(
-            ExpressionSyntax possibleType,
-            out DiagnosticBag bindAsTypeDiagnostics,
-            out BoundTypeExpression boundType)
-        {
-            bindAsTypeDiagnostics = DiagnosticBag.GetInstance();
-            TypeWithAnnotations targetTypeWithAnnotations = BindType(possibleType, bindAsTypeDiagnostics, out AliasSymbol alias);
-            TypeSymbol targetType = targetTypeWithAnnotations.Type;
-            boundType = new BoundTypeExpression(possibleType, alias, targetTypeWithAnnotations);
-            return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
+            var patternType = BindTypeForPattern(node.Type, inputType, diagnostics, ref hasErrors);
+            return new BoundTypePattern(node.Type, patternType, inputType, hasErrors);
         }
 
         private BoundPattern BindRelationalPattern(
@@ -1187,7 +1185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             DiagnosticBag diagnostics)
         {
-            BoundExpression value = BindExpressionForPattern(node, inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out _);
+            BoundExpression value = BindExpressionForPattern(inputType, node.Expression, hasErrors, diagnostics, out var constantValueOpt, out _);
+
             // PROTOTYPE(ngafter): TODO: check that the operator exists for that type (e.g. error for string < "")
             BinaryOperatorKind kind = TokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             return new BoundRelationalPattern(node, kind, value, constantValueOpt ?? ConstantValue.Bad, inputType, hasErrors);

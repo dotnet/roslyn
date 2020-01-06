@@ -238,9 +238,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SyntaxNode innerExpression = caseLabelSyntax.Value.SkipParens();
                         bool hasErrors = node.HasErrors;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            node, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
-                        reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
+                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
+                        reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
 
                         return new BoundSwitchLabel(node, label, pattern, null, pattern.HasErrors);
                     }

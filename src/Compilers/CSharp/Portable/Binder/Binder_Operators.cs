@@ -2758,12 +2758,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // try binding as a type, but back off to binding as an expression if that does not work.
             bool wasUnderscore = IsUnderscore(node.Right);
-            if (!TryBindAsType(node.Right, out DiagnosticBag isTypeDiagnostics, out BoundTypeExpression typeExpression) &&
+            if (!tryBindAsType(node.Right, out DiagnosticBag isTypeDiagnostics, out BoundTypeExpression typeExpression) &&
                 !wasUnderscore &&
                 ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
             {
                 // it did not bind as a type; try binding as a constant expression pattern
-                bool wasExpression;
                 var isPatternDiagnostics = DiagnosticBag.GetInstance();
                 if ((object)operand.Type == null)
                 {
@@ -2775,13 +2774,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand = ToBadExpression(operand);
                 }
 
-                var boundConstantPattern = BindConstantPattern(
-                    node.Right, operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out wasExpression);
-                boundConstantPattern.WasCompilerGenerated = true;
+                var convertedExpression = BindExpressionForPattern(operand.Type, node.Right, node.Right.HasErrors, isPatternDiagnostics, out var constantValueOpt, out var wasExpression);
                 if (wasExpression)
                 {
                     isTypeDiagnostics.Free();
                     diagnostics.AddRangeAndFree(isPatternDiagnostics);
+                    var boundConstantPattern = new BoundConstantPattern(node.Right, convertedExpression, constantValueOpt ?? ConstantValue.Bad, operand.Type, node.Right.HasErrors) { WasCompilerGenerated = true };
                     return MakeIsPatternExpression(node, operand, boundConstantPattern, resultType, operandHasErrors, diagnostics);
                 }
 
@@ -2861,6 +2859,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
+
+            bool tryBindAsType(
+                ExpressionSyntax possibleType,
+                out DiagnosticBag bindAsTypeDiagnostics,
+                out BoundTypeExpression boundType)
+            {
+                bindAsTypeDiagnostics = DiagnosticBag.GetInstance();
+                TypeWithAnnotations targetTypeWithAnnotations = BindType(possibleType, bindAsTypeDiagnostics, out AliasSymbol alias);
+                TypeSymbol targetType = targetTypeWithAnnotations.Type;
+                boundType = new BoundTypeExpression(possibleType, alias, targetTypeWithAnnotations);
+                return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
+            }
+
         }
 
         private static void ReportIsOperatorConstantWarnings(
