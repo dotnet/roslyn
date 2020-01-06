@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -48,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             /// </summary>
             /// <param name="underlyingContext">The fallback synchronization context to use for scheduling operations
             /// posted to this synchronization context.</param>
-            public DenyExecutionSynchronizationContext(SynchronizationContext underlyingContext)
+            public DenyExecutionSynchronizationContext(SynchronizationContext? underlyingContext)
                 : this(underlyingContext, mainThread: null, failedTransfer: null)
             {
             }
 
-            private DenyExecutionSynchronizationContext(SynchronizationContext underlyingContext, Thread mainThread, StrongBox<ExceptionDispatchInfo> failedTransfer)
+            private DenyExecutionSynchronizationContext(SynchronizationContext? underlyingContext, Thread? mainThread, StrongBox<ExceptionDispatchInfo>? failedTransfer)
             {
                 UnderlyingContext = underlyingContext ?? new SynchronizationContext();
                 MainThread = mainThread ?? new Thread(MainThreadStart);

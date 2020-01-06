@@ -1605,6 +1605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1739,6 +1741,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureIsUnimplemented = 8752, // PROTOTYPE(ngafter): temporary diagnostic until fully implemented
 
         ERR_ExternEventInitializer = 8760,
+
+        // available 8761-8779
+
+        #region diagnostics introduced for C# 9.0
+
+        ERR_DesignatorBeneathPatternCombinator = 8780,
+
+        #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

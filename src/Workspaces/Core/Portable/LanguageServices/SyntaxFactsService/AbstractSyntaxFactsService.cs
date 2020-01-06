@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -607,7 +608,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsReturnStatement(SyntaxNode node)
             => node?.RawKind == SyntaxKinds.ReturnStatement;
 
-        public bool IsExpressionStatement(SyntaxNode node)
+#nullable enable
+        public bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == SyntaxKinds.ExpressionStatement;
+#nullable restore
     }
 }
