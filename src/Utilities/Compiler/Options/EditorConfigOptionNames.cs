@@ -119,5 +119,17 @@ namespace Analyzer.Utilities
         ///   3. Default FxCop heuristic (75% of enum values)
         /// </summary>
         public const string EnumValuesPrefixTrigger = "enum_values_prefix_trigger";
+
+        /// <summary>
+        /// String option to configure names of types and their suffixes (separated by '|').
+        /// Entries should follow the FullyQualifiedNamedType:RequiredSuffix format.
+        /// Note that in case of a duplicated type name, only the first suffix is kept.
+        /// </summary>
+        public const string AdditionalRequiredSuffixes = "additional_required_suffixes";
+
+        /// <summary>
+        /// Boolean option to prevent analyzing indirect base types (walking more than one level up) when suggesting suffixes.
+        /// </summary>
+        public const string ExcludeIndirectBaseTypes = "exclude_indirect_base_types";
     }
 }

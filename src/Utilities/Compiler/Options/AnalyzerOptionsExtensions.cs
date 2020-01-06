@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -215,6 +216,43 @@ namespace Analyzer.Utilities
                 }
 
                 return CategorizedAnalyzerConfigOptions.Empty;
+            }
+        }
+
+        public static ImmutableArray<(INamedTypeSymbol type, string suffix)> GetAdditionalRequiredSuffixesOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(EditorConfigOptionNames.AdditionalRequiredSuffixes, rule, TryParse,
+                defaultValue: ImmutableArray.Create<(INamedTypeSymbol, string)>());
+
+            bool TryParse(string s, out ImmutableArray<(INamedTypeSymbol, string)> option)
+            {
+                if (string.IsNullOrEmpty(s))
+                {
+                    option = ImmutableArray.Create<(INamedTypeSymbol, string)>();
+                    return false;
+                }
+
+                var names = s.Split('|');
+                var builder = ImmutableArray.CreateBuilder<(INamedTypeSymbol, string)>(names.Length);
+
+                foreach (var item in names)
+                {
+                    var typeWithSuffix = item.Split(':');
+
+                    if (typeWithSuffix.Length == 2 &&
+                        compilation.TryGetOrCreateTypeByMetadataName(typeWithSuffix[0], out var type))
+                    {
+                        builder.Add((type, typeWithSuffix[1]));
+                    }
+                }
+
+                option = builder.ToImmutable();
+                return true;
             }
         }
     }
