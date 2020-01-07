@@ -509,7 +509,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new AssetStorage();
-            _ = new TestAssetSource(storage, map);
+            _ = new SimpleAssetSource(storage, map);
             var remoteWorkspace = new RemoteWorkspace();
             var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace.Services.GetService<ISerializerService>()));
 

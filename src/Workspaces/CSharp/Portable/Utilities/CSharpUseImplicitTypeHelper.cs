@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return default;
             }
 
-            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
-            {
-                return default;
-            }
-
             if (typeName.HasAnnotation(DoNotAllowVarAnnotation.Annotation))
             {
                 return default;
