@@ -642,6 +642,24 @@ class C
                 Equality.Equal, Equality.Equal, Equality.Equal, Equality.Equal);
         }
 
+        [Fact]
+        public void Equality_InParameter()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M(delegate*<in string, void> p1,
+           delegate*<in string, void> p2) {}
+}", parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics();
+            var c = comp.GetTypeByMetadataName("C");
+            var m = c.GetMethod("M");
+            AssertEqualityAndHashCode((FunctionPointerTypeSymbol)m.Parameters[0].Type, (FunctionPointerTypeSymbol)m.Parameters[1].Type,
+                returnEquality: Equality.Equal, callingConventionEquality: Equality.Equal,
+                Equality.Equal);
+        }
+
         enum Equality
         {
             Equal = 0,

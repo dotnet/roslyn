@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -47,8 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool MethodEqualityChecks(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
             => RefKind == other.RefKind
+               // PROTOTYPE(func-ptr): When we can read in arbitrary modifiers from metadata, test this flag
                && ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0
-                    ? RefCustomModifiers.Equals(other.RefCustomModifiers)
+                    ? RefCustomModifiers.SequenceEqual(other.RefCustomModifiers)
                     : true)
                && TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind, isValueTypeOverride);
 
