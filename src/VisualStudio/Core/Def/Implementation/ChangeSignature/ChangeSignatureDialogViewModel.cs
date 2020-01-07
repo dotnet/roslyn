@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -326,10 +327,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
                 if (parameter is AddedParameterViewModel addedParameterViewModel)
                 {
-                    // TODO there should be another formatting for VB
-                    displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type));
-                    displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
-                    displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.Parameter)); ;
+                    var languageService = Document.GetLanguageService<IChangeSignatureLanguageService>();
+                    languageService.GeneratePreviewGrammar(addedParameterViewModel, displayParts);
                 }
             }
 
