@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="newReference">The new reference.</param>
         /// <param name="oldReference">The old reference.</param>
         /// <returns>A new compilation.</returns>
-        public Compilation ReplaceReference(MetadataReference oldReference, MetadataReference newReference)
+        public Compilation ReplaceReference(MetadataReference oldReference, MetadataReference? newReference)
         {
             if (oldReference == null)
             {
@@ -1481,7 +1481,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a stream filled with default win32 resources.
         /// </summary>
-        public Stream CreateDefaultWin32Resources(bool versionResource, bool noManifest, Stream manifestContents, Stream iconInIcoFormat)
+        public Stream CreateDefaultWin32Resources(bool versionResource, bool noManifest, Stream? manifestContents, Stream? iconInIcoFormat)
         {
             //Win32 resource encodings use a lot of 16bit values. Do all of the math checked with the
             //expectation that integer types are well-chosen with size in mind.
@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void ReportManifestResourceDuplicates(
-            IEnumerable<ResourceDescription> manifestResources,
+            IEnumerable<ResourceDescription>? manifestResources,
             IEnumerable<string> addedModuleNames,
             IEnumerable<string> addedModuleResourceNames,
             DiagnosticBag diagnostics)
