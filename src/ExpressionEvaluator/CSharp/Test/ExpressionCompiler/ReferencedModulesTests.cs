@@ -159,7 +159,6 @@ IL_0005:  ret
                 // A1.M with all assemblies.
                 var allBlocks = ImmutableArray.Create(moduleMscorlib, moduleA1, moduleA2, moduleB1, moduleB2, moduleC).SelectAsArray(m => m.MetadataBlock);
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(),
                     allBlocks,
                     stateA1.SymReader,
                     stateA1.ModuleVersionId,
@@ -181,7 +180,6 @@ IL_0005:  ret
                 // Other EvaluationContext.CreateMethodContext overload.
                 // A1.M with all assemblies, offset outside of IL.
                 context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(),
                     allBlocks,
                     stateA1.SymReader,
                     stateA1.ModuleVersionId,
