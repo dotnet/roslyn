@@ -379,6 +379,11 @@ namespace AnalyzerRunner
 
         private static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
         {
+            if (dictionary.IsEmpty)
+            {
+                return;
+            }
+
             var telemetryInfoDictionary = new Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
             foreach (var analysisResult in dictionary.Values)
             {
