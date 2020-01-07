@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             return this.Info.GetMessage(formatProvider);
         }
 
-        internal override IReadOnlyList<object> Arguments
+        internal override IReadOnlyList<object?> Arguments
         {
             get { return this.Info.Arguments; }
         }

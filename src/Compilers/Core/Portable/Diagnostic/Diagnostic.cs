@@ -474,37 +474,41 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if the diagnostic location (or any additional location) is within the given tree and intersects with the filterSpanWithinTree, if non-null.
         /// </summary>
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            Constraint = "In most cases, AdditionalLocations is empty.",
+            AllowCaptures = false)]
         internal bool HasIntersectingLocation(SyntaxTree tree, TextSpan? filterSpanWithinTree = null)
         {
-            var locations = this.GetDiagnosticLocationsWithinTree(tree);
-
-            foreach (var location in locations)
+            if (isLocationWithinSpan(Location, tree, filterSpanWithinTree))
             {
-                if (!filterSpanWithinTree.HasValue || filterSpanWithinTree.Value.IntersectsWith(location.SourceSpan))
+                return true;
+            }
+
+            if (AdditionalLocations is null || AdditionalLocations.Count == 0)
+            {
+                // Avoid possible enumerator allocations if there are no additional locations.
+                return false;
+            }
+
+            foreach (var location in AdditionalLocations)
+            {
+                if (isLocationWithinSpan(location, tree, filterSpanWithinTree))
                 {
                     return true;
                 }
             }
 
             return false;
-        }
 
-        private IEnumerable<Location> GetDiagnosticLocationsWithinTree(SyntaxTree tree)
-        {
-            if (this.Location.SourceTree == tree)
+            static bool isLocationWithinSpan(Location location, SyntaxTree tree, TextSpan? filterSpan)
             {
-                yield return this.Location;
-            }
-
-            if (this.AdditionalLocations != null)
-            {
-                foreach (var additionalLocation in this.AdditionalLocations)
+                if (location.SourceTree != tree)
                 {
-                    if (additionalLocation.SourceTree == tree)
-                    {
-                        yield return additionalLocation;
-                    }
+                    return false;
                 }
+
+                return !filterSpan.HasValue || filterSpan.GetValueOrDefault().IntersectsWith(location.SourceSpan);
             }
         }
 

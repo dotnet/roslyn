@@ -471,7 +471,7 @@ class X
             string expectedOperationTree = @"
 IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case typeof(X):')
   Pattern: 
-    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case typeof(X):') (InputType: System.Type)
+    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'typeof(X)') (InputType: System.Type)
       Value: 
         ITypeOfOperation (OperationKind.TypeOf, Type: System.Type, IsInvalid) (Syntax: 'typeof(X)')
           TypeOperand: X
@@ -604,9 +604,10 @@ class X
 }
 ";
             string expectedOperationTree = @"
-    IPatternCaseClauseOperation (Label Id: 0) (CaseKind.Pattern) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case /*</bind>*/')
-      Pattern: 
-        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'case /*</bind>*/')
+    ISingleValueCaseClauseOperation (Label Id: 0) (CaseKind.SingleValue) (OperationKind.CaseClause, Type: null, IsInvalid) (Syntax: 'case /*</bind>*/')
+      Value: 
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+          Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term 'const'

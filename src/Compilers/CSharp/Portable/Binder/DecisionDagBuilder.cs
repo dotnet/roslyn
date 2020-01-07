@@ -158,9 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int i = 0;
             var builder = ArrayBuilder<StateForCase>.GetInstance(switchArms.Length);
             foreach (BoundSwitchExpressionArm arm in switchArms)
-            {
                 builder.Add(MakeTestsForPattern(++i, arm.Syntax, rootIdentifier, arm.Pattern, arm.WhenClause, arm.Label));
-            }
 
             return MakeDecisionDag(syntax, builder.ToImmutableAndFree());
         }
@@ -271,10 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundITuplePattern iTuple:
                     return MakeTestsAndBindingsForITuplePattern(input, iTuple, bindings);
                 case BoundTypePattern type:
-                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
                     return MakeTestsAndBindingsForTypePattern(input, type, bindings);
                 case BoundRelationalPattern rel:
-                    // PROTOTYPE(ngafter): need to build the decision dag for these pattern forms.
                     return MakeTestsAndBindingsForRelationalPattern(input, rel, bindings);
                 case BoundNegatedPattern neg:
                     return MakeTestsAndBindingsForNegatedPattern(input, neg, bindings);
@@ -331,9 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add a null and type test if needed.
             if (!declaration.IsVar)
-            {
                 input = MakeConvertToType(input, declaration.Syntax, type, tests);
-            }
 
             BoundExpression variableAccess = declaration.VariableAccess;
             if (variableAccess != null)
@@ -362,11 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             ArrayBuilder<Tests> tests)
         {
+            // Add a null test if needed
             if (input.Type.CanContainNull())
-            {
-                // Add a null test
                 tests.Add(new Tests.One(new BoundDagNonNullTest(syntax, input)));
-            }
         }
 
         /// <summary>
@@ -684,9 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     final = new BoundLeafDecisionDagNode(syntax, label);
                     if (!bindings.IsDefaultOrEmpty)
-                    {
                         final = new BoundWhenDecisionDagNode(syntax, bindings, null, final, null);
-                    }
 
                     finalStates.Add(label, final);
                 }
@@ -802,15 +792,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<StateForCase> RemoveEvaluation(ImmutableArray<StateForCase> cases, BoundDagEvaluation e)
         {
-            return cases.SelectAsArray((c, eval) => RemoveEvaluation(c, eval), e);
-        }
+            var builder = ArrayBuilder<StateForCase>.GetInstance(cases.Length);
+            foreach (var stateForCase in cases)
+            {
+                var remainingTests = stateForCase.RemainingTests.RemoveEvaluation(e);
+                if (remainingTests is Tests.False)
+                {
+                    // This can occur in error cases like `e is not int x` where there is a trailing evaluation
+                    // in a failure branch.
+                }
+                else
+                {
+                    builder.Add(new StateForCase(
+                        Index: stateForCase.Index, Syntax: stateForCase.Syntax,
+                        RemainingTests: remainingTests,
+                        Bindings: stateForCase.Bindings, WhenClause: stateForCase.WhenClause, CaseLabel: stateForCase.CaseLabel));
+                }
+            }
 
-        private static StateForCase RemoveEvaluation(StateForCase c, BoundDagEvaluation e)
-        {
-            return new StateForCase(
-                Index: c.Index, Syntax: c.Syntax,
-                RemainingTests: c.RemainingTests.RemoveEvaluation(e),
-                Bindings: c.Bindings, WhenClause: c.WhenClause, CaseLabel: c.CaseLabel);
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -841,9 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if the tests are for unrelated things, there is no implication from one to the other
             if (test.Input != other.Input)
-            {
                 return;
-            }
 
             // a test is consistent with itself
             if (test == other)
@@ -1462,6 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var builder = ArrayBuilder<Tests>.GetInstance(seq.Length);
                     foreach (var t in seq)
                         builder.Add(Not.Create(t));
+
                     return builder;
                 }
                 public override Tests RemoveEvaluation(BoundDagEvaluation e) => Create(Negated.RemoveEvaluation(e));
@@ -1498,6 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         trueBuilder.Add(oneTrue);
                         falseBuilder.Add(oneFalse);
                     }
+
                     whenTrue = Update(trueBuilder);
                     whenFalse = Update(falseBuilder);
                 }
@@ -1505,9 +1505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var builder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
                     foreach (var test in RemainingTests)
-                    {
                         builder.Add(test.RemoveEvaluation(e));
-                    }
 
                     return Update(builder);
                 }
@@ -1535,9 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int length = this.RemainingTests.Length;
                     int value = Hash.Combine(length, this.GetType().GetHashCode());
                     for (int i = 0; i < length; i++)
-                    {
                         value = Hash.Combine(this.RemainingTests[i].GetHashCode(), value);
-                    }
 
                     return value;
                 }

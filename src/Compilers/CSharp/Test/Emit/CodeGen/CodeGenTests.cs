@@ -10673,6 +10673,7 @@ public class MyClass {
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
         [Fact]
         public void DecimalLiteral_BreakingChange()
         {
@@ -14518,9 +14519,9 @@ class C
                 result.Diagnostics.Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (14,27): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //         switch (s) { case "A": break; case "B": break; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""A""").WithArguments("System.String", "op_Equality").WithLocation(14, 27)
                 );
             }
         }

@@ -212,6 +212,12 @@ namespace AnalyzerRunner
                 }
             }
 
+            if (options.RefactoringNodes.Any())
+            {
+                // AnalyzerRunner is running for CodeRefactoringProvider testing. DiagnosticAnalyzer testing is disabled.
+                yield break;
+            }
+
             var analyzerTypes = new HashSet<Type>();
 
             foreach (var analyzer in analyzers)

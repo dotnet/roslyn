@@ -234,6 +234,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindToNaturalType(BindValue(node, diagnostics, BindValueKind.RValue), diagnostics, reportDefaultMissingType);
         }
 
+        /// <summary>
+        /// When binding a switch case's expression, it is possible that it resolves to a type (technically, a type pattern).
+        /// This implementation permits either an rvalue or a BoundTypeExpression.
+        /// </summary>
+        internal BoundExpression BindTypeOrRValue(ExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var valueOrType = BindExpression(node, diagnostics: diagnostics, invoked: false, indexed: false);
+            if (valueOrType.Kind == BoundKind.TypeExpression)
+            {
+                // In the Color Color case (Kind == BoundKind.TypeOrValueExpression), we treat it as a value
+                // by not entering this if statement
+                return valueOrType;
+            }
+
+            return CheckValue(valueOrType, BindValueKind.RValue, diagnostics);
+        }
+
         internal BoundExpression BindToTypeForErrorRecovery(BoundExpression expression, TypeSymbol type = null)
         {
             if (expression is null)
@@ -299,6 +316,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CreateErrorType(),
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
+                    break;
+                case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
+                    // This is a context in which the stackalloc could be either a pointer
+                    // or a span.  For backward compatibility we treat it as a pointer.
+                    var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
+                    result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
                     break;
                 default:
                     result = expression;
@@ -3516,26 +3539,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
-            if (inLegalPosition && !node.IsLocalVariableDeclarationInitializationForPointerStackalloc())
+            if (inLegalPosition && !isStackallocTargetTyped(node))
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
-                if (!spanType.IsErrorType())
-                {
-                    return ConstructNamedType(
-                        type: spanType,
-                        typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
-                            ? ((StackAllocArrayCreationExpressionSyntax)node).Type
-                            : node,
-                        typeArgumentsSyntax: default,
-                        typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
-                        basesBeingResolved: null,
-                        diagnostics: diagnostics);
-                }
+                return ConstructNamedType(
+                    type: spanType,
+                    typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
+                        ? ((StackAllocArrayCreationExpressionSyntax)node).Type
+                        : node,
+                    typeArgumentsSyntax: default,
+                    typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
+                    basesBeingResolved: null,
+                    diagnostics: diagnostics);
             }
 
+            // We treat the stackalloc as target-typed, so we give it a null type for now.
             return null;
+
+            // Is this a context in which a stackalloc expression could be converted to the corresponding pointer
+            // type? The only context that permits it is the initialization of a local variable declaration (when
+            // the declaration appears as a statement or as the first part of a for loop).
+            static bool isStackallocTargetTyped(SyntaxNode node)
+            {
+                Debug.Assert(node != null);
+
+                SyntaxNode equalsValueClause = node.Parent;
+
+                if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+                if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclaration = variableDeclarator.Parent;
+                if (!variableDeclaration.IsKind(SyntaxKind.VariableDeclaration))
+                {
+                    return false;
+                }
+
+                return
+                    variableDeclaration.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                    variableDeclaration.Parent.IsKind(SyntaxKind.ForStatement);
+            }
         }
 
         private BoundExpression BindStackAllocWithInitializer(
@@ -3548,6 +3601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             ImmutableArray<BoundExpression> boundInitExprOpt = default)
         {
+            Debug.Assert(node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression) || node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
             if (boundInitExprOpt.IsDefault)
             {
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
@@ -7278,7 +7333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryBindIndexOrRangeIndexer(
                     node,
                     expr,
-                    analyzedArguments.Arguments,
+                    analyzedArguments,
                     diagnostics,
                     out var patternIndexerAccess))
                 {
@@ -7452,7 +7507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryBindIndexOrRangeIndexer(
                         syntax,
                         receiverOpt,
-                        analyzedArguments.Arguments,
+                        analyzedArguments,
                         diagnostics,
                         out var patternIndexerAccess))
                     {
@@ -7552,7 +7607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryBindIndexOrRangeIndexer(
             SyntaxNode syntax,
             BoundExpression receiverOpt,
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments arguments,
             DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
@@ -7562,12 +7617,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
-            if (arguments.Count != 1)
+            if (arguments.Arguments.Count != 1)
             {
                 return false;
             }
 
-            var argType = arguments[0].Type;
+            var argument = arguments.Arguments[0];
+
+            var argType = argument.Type;
             bool argIsIndex = TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything);
@@ -7638,7 +7695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 property,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 property.Type);
                             break;
                         }
@@ -7657,7 +7714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         lengthOrCountProperty,
                         substring,
-                        BindToNaturalType(arguments[0], diagnostics),
+                        BindToNaturalType(argument, diagnostics),
                         substring.ReturnType);
                     checkWellKnown(WellKnownMember.System_Range__get_Start);
                     checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7698,7 +7755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 method,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 method.ReturnType);
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7716,6 +7773,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
+            if (arguments.Names.Count > 0)
+            {
+                diagnostics.Add(
+                    argIsRange
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
+                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
+                    arguments.Names[0].GetLocation());
+            }
             return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

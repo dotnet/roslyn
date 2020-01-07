@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (hasErrors)
+                return true;
+
             // We only report exhaustive warnings when the default label is reachable through some series of
             // tests that do not include a test in which the value is known to be null.  Handling paths with
             // nulls is the job of the nullable walker.

@@ -102,7 +102,10 @@ ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: Syste
   Arms(1):
       ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '=> 5')
         Pattern: 
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+          IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '') (InputType: System.Int32?)
+            Value: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                Children(0)
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
@@ -1220,9 +1223,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(9,17): error CS0150: A constant value is expected
+                // file.cs(9,18): error CS0150: A constant value is expected
                 //                 (a ? input1 : input2) => true
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(a ? input1 : input2)").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "a ? input1 : input2").WithLocation(9, 18)
                 };
             string expectedFlowGraph = @"
 Block[B0] - Entry
