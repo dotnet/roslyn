@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     throw new InvalidOperationException("Stack too deep.");
                 }
 #endif
-                // This is a temporary workaround sufficient to get existing tests passing. This component should be 
-                // be modified to properly deal with differences caused by nullability.
+                // https://github.com/dotnet/roslyn/issues/39643 This is a temporary workaround sufficient to get existing tests passing.
+                // This component should be modified to properly deal with differences caused by nullability.
                 if (x is ITypeSymbol xType && y is ITypeSymbol yType && xType.IsDefinition != yType.IsDefinition)
                 {
                     if (x.IsDefinition)

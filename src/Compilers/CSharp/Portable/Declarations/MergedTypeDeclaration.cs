@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // An invariant of a merged type declaration is that all of its children are also merged
     // declarations.
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration
     {
         private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
@@ -223,6 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _lazyMemberNames;
             }
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return $"{nameof(MergedTypeDeclaration)} {Name}";
         }
     }
 }

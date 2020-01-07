@@ -10,8 +10,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
-    [Export(typeof(IWorkspaceDiagnosticAnalyzerProviderService))]
-    internal class TestOnly_CompilerDiagnosticAnalyzerProviderService : IWorkspaceDiagnosticAnalyzerProviderService
+    [Export(typeof(IHostDiagnosticAnalyzerPackageProvider))]
+    internal class TestOnly_CompilerDiagnosticAnalyzerProviderService : IHostDiagnosticAnalyzerPackageProvider
     {
         private readonly HostDiagnosticAnalyzerPackage _info;
 
@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             return FromFileLoader.Instance;
         }
 
-        public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
+        public ImmutableArray<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
         {
-            yield return _info;
+            return ImmutableArray.Create(_info);
         }
 
         public class FromFileLoader : IAnalyzerAssemblyLoader

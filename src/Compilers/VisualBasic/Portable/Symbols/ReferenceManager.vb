@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If map.TryGetValue(identity, symbol, Function(v1, v2, s) True) Then
                     ' TODO: https://github.com/dotnet/roslyn/issues/9004
-                    Throw New NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}")
+                    Throw New NotSupportedException(String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging, identity, symbol.Identity.Version))
                 End If
 
                 Return New MissingAssemblySymbol(identity)

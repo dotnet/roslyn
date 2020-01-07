@@ -505,16 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
                     return typeMap.SubstituteNamedType(otherDef);
                 }
-                else if (sourceType.IsTupleType)
-                {
-                    var otherDef = (NamedTypeSymbol)Visit(sourceType.TupleUnderlyingType);
-                    if (otherDef is null || !otherDef.IsTupleOrCompatibleWithTupleOfCardinality(sourceType.TupleElementTypesWithAnnotations.Length))
-                    {
-                        return null;
-                    }
-
-                    return otherDef;
-                }
 
                 Debug.Assert(sourceType.IsDefinition);
 
@@ -718,10 +708,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
                 Debug.Assert(other.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.All(t => t.CustomModifiers.IsEmpty));
 
-                // Tuple types should be unwrapped to their underlying type before getting here (see MatchSymbols.VisitNamedType)
-                Debug.Assert(!type.IsTupleType);
-                Debug.Assert(!other.IsTupleType);
-
                 return type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, AreTypesEqual);
             }
 
@@ -897,12 +883,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamedType(NamedTypeSymbol type)
             {
-                if (type.IsTupleType)
-                {
-                    type = type.TupleUnderlyingType;
-                    Debug.Assert(!type.IsTupleType);
-                }
-
                 var originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {

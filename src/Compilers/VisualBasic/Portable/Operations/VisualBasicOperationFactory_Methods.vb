@@ -488,7 +488,6 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function GetUsingStatementDeclaration(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), syntax As SyntaxNode) As IVariableDeclarationGroupOperation
             Return New VariableDeclarationGroupOperation(
                             GetVariableDeclarationStatementVariables(resourceList),
-                            VariableDeclarationKind.Default,
                             _semanticModel,
                             syntax,
                             type:=Nothing,

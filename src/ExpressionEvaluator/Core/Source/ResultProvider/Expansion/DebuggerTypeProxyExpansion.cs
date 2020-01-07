@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ExpansionFlags.IncludeBaseMembers,
                 TypeHelpers.IsPublic,
                 resultProvider,
-                isProxyType: true);
+                isProxyType: true,
+                supportsFavorites: false);
             if (proxyMembers != null)
             {
                 string proxyMemberFullNamePrefix = null;
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value)
         {
-            return resultProvider.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, ExpansionFlags.IncludeBaseMembers);
+            return resultProvider.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, ExpansionFlags.IncludeBaseMembers, supportsFavorites: false);
         }
     }
 }

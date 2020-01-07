@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, IList<string> newNames)
+        public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, ImmutableArray<string> newNames)
         {
             if (method.TypeParameters.Select(t => t.Name).SequenceEqual(newNames))
             {
@@ -89,8 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var updatedTypeParameters = RenameTypeParameters(
                 method.TypeParameters, newNames, typeGenerator);
 
-            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
             for (var i = 0; i < method.TypeParameters.Length; i++)
             {
                 mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
@@ -101,18 +101,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method.GetAttributes(),
                 method.DeclaredAccessibility,
                 method.GetSymbolModifiers(),
-                method.GetReturnTypeWithAnnotatedNullability().SubstituteTypes(mapping, typeGenerator),
+                method.ReturnType.SubstituteTypes(mapping, typeGenerator),
                 method.RefKind,
                 method.ExplicitInterfaceImplementations,
                 method.Name,
                 updatedTypeParameters,
                 method.Parameters.SelectAsArray(p =>
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability().SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type.SubstituteTypes(mapping, typeGenerator), p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)));
         }
 
         public static IMethodSymbol RenameParameters(
-            this IMethodSymbol method, IList<string> parameterNames)
+            this IMethodSymbol method, ImmutableArray<string> parameterNames)
         {
             var parameterList = method.Parameters;
             if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
@@ -137,15 +137,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static ImmutableArray<ITypeParameterSymbol> RenameTypeParameters(
             ImmutableArray<ITypeParameterSymbol> typeParameters,
-            IList<string> newNames,
+            ImmutableArray<string> newNames,
             ITypeGenerator typeGenerator)
         {
             // We generate the type parameter in two passes.  The first creates the new type
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
 
-            // The use of AllNullabilityIgnoringSymbolComparer is tracked by https://github.com/dotnet/roslyn/issues/36093
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(AllNullabilityIgnoringSymbolComparer.Instance);
+            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>(SymbolEqualityComparer.Default);
             for (var i = 0; i < typeParameters.Length; i++)
             {
                 var typeParameter = typeParameters[i];
@@ -155,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.GetAttributes(),
                     typeParameter.Variance,
                     newNames[i],
+                    typeParameter.NullableAnnotation,
                     typeParameter.ConstraintTypes,
                     typeParameter.HasConstructorConstraint,
                     typeParameter.HasReferenceTypeConstraint,
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // The method's type parameters may conflict with the type parameters in the type
             // we're generating into.  In that case, rename them.
             var parameterNames = NameGenerator.EnsureUniqueness(
-                method.Parameters.Select(p => p.Name).ToList(), isCaseSensitive: syntaxFacts.IsCaseSensitive);
+                method.Parameters.SelectAsArray(p => p.Name), isCaseSensitive: syntaxFacts.IsCaseSensitive);
 
             var outerTypeParameterNames =
                 containingType.GetAllTypeParameters()
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
             var newTypeParameterNames = NameGenerator.EnsureUniqueness(
-                method.TypeParameters.Select(tp => tp.Name).ToList(),
+                method.TypeParameters.SelectAsArray(tp => tp.Name),
                 n => !unusableNames.Contains(n));
 
             var updatedMethod = method.RenameTypeParameters(newTypeParameterNames);
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 parameters: method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
                         p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                        p.RefKind, p.IsParams, p.GetTypeWithAnnotatedNullability(), p.Name, p.IsOptional,
+                        p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
         }

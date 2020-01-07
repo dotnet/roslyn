@@ -231,5 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
             => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
+
+        public sealed override bool AreLocalsZeroed
+            => throw ExceptionUtilities.Unreachable;
     }
 }

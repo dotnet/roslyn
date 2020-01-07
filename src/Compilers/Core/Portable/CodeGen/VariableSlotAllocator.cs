@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         public abstract void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder);
 
-        public abstract LocalDefinition GetPreviousLocal(
+        public abstract LocalDefinition? GetPreviousLocal(
             Cci.ITypeReference type,
             ILocalSymbolInternal symbol,
-            string? nameOpt,
+            string? name,
             SynthesizedLocalKind kind,
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<bool> dynamicTransformFlags,
             ImmutableArray<string> tupleElementNames);
 
-        public abstract string PreviousStateMachineTypeName { get; }
+        public abstract string? PreviousStateMachineTypeName { get; }
 
         /// <summary>
         /// Returns an index of a slot that stores specified hoisted local variable in the previous generation.

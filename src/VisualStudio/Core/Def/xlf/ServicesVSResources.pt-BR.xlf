@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">Um novo arquivo .editorconfig foi detectado na raiz da sua solução. Deseja torná-lo um item de solução?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -62,9 +62,19 @@
         <target state="translated">Voltar</target>
         <note />
       </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="new">Background analysis scope:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Build + análise em tempo real (pacote NuGet)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
@@ -94,17 +104,27 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Contendo Membro</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Contendo Tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_Document">
+        <source>Current Document</source>
+        <target state="new">Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">O elemento é inválido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_Solution">
+        <source>Entire Solution</source>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -151,6 +171,11 @@
         <source>Kind</source>
         <target state="translated">Tipo</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -334,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Regras de nomenclatura</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -345,6 +370,11 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">Métodos não públicos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_Documents_and_Projects">
+        <source>Open Documents and Projects</source>
+        <target state="new">Open Documents and Projects</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -519,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Atualizando a severidade</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1181,7 +1211,7 @@ Use a lista suspensa para exibir e mudar entre outros projetos aos quais este ar
       </trans-unit>
       <trans-unit id="This_workspace_only_supports_opening_documents_on_the_UI_thread">
         <source>This workspace only supports opening documents on the UI thread.</source>
-        <target state="translated">Este workspace só dá suporte à abertura de documentos no thread da interface do usuário.</target>
+        <target state="translated">Este workspace só dá suporte à abertura de documentos no thread da IU.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_parse_options">
@@ -1685,7 +1715,7 @@ Informações adicionais: {1}</target>
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">
         <source>Prefer null propagation</source>
-        <target state="translated">Preferir propagação nula</target>
+        <target state="translated">Preferir tratamento simplificado de nulo</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicit_tuple_name">
@@ -1881,11 +1911,6 @@ Informações adicionais: {1}</target>
       <trans-unit id="Analysis">
         <source>Analysis</source>
         <target state="translated">Análise</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">Habilitar _análise de solução completa</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">

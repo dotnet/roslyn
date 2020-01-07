@@ -93,6 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private ImmutableHashSet<DocumentId> _documentsNotFromFiles = ImmutableHashSet<DocumentId>.Empty;
 
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker _projectTracker;
 
         private OpenFileTracker _openFileTrackerOpt;
@@ -1919,7 +1920,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         language,
                         l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
 
-                if (uiContext != null)
+                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+                if (uiContext != null && !uiContext.IsZombie)
                 {
                     uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
                 }

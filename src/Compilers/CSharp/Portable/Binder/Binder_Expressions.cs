@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             var discardedDiagnostics = DiagnosticBag.GetInstance();
             var result =
-                (!expression.NeedsToBeConverted() || expression.WasConverted) ? expression :
+                !expression.NeedsToBeConverted() ? expression :
                 type is null ? BindToNaturalType(expression, discardedDiagnostics, reportNoTargetType: false) :
                 GenerateConversionForAssignment(type, expression, discardedDiagnostics);
             discardedDiagnostics.Free();
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
-                        result = ConvertSwitchExpression(expr, commonType, targetTyped: false, diagnostics, hasErrors);
+                        result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
@@ -300,6 +300,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CreateErrorType(),
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
+                    break;
+                case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
+                    // This is a context in which the stackalloc could be either a pointer
+                    // or a span.  For backward compatibility we treat it as a pointer.
+                    var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
+                    result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
                     break;
                 case BoundUnconvertedObjectCreationExpression expr:
                     {
@@ -817,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // We will not check constraints at this point as this code path
                         // is failure-only and the caller is expected to produce a diagnostic.
-                        var tupleType = TupleTypeSymbol.Create(
+                        var tupleType = NamedTypeSymbol.CreateTuple(
                             locationOpt: null,
                             subExpressions.SelectAsArray(e => TypeWithAnnotations.Create(e.Type)),
                             elementLocations: default,
@@ -901,13 +907,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
 
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNames,
+                tupleTypeOpt = NamedTypeSymbol.CreateTuple(node.Location, elements, locations, elementNames,
                     this.Compilation, syntax: node, diagnostics: diagnostics, shouldCheckConstraints: true,
                     includeNullability: false, errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>));
             }
             else
             {
-                TupleTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
+                NamedTypeSymbol.VerifyTupleTypePresent(elements.Length, node, this.Compilation, diagnostics);
             }
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
@@ -1041,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name = syntax.TryGetInferredMemberName();
 
             // Reserved names are never candidates to be inferred names, at any position
-            if (name == null || TupleTypeSymbol.IsElementNameReserved(name) != -1)
+            if (name == null || NamedTypeSymbol.IsTupleElementNameReserved(name) != -1)
             {
                 return null;
             }
@@ -1437,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static bool FallBackOnDiscard(IdentifierNameSyntax node, DiagnosticBag diagnostics)
         {
-            if (node.Identifier.ContextualKind() != SyntaxKind.UnderscoreToken)
+            if (!node.Identifier.IsUnderscoreToken())
             {
                 return false;
             }
@@ -1454,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsOutVarDiscardIdentifier(SimpleNameSyntax node)
         {
-            Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
+            Debug.Assert(node.Identifier.IsUnderscoreToken());
 
             CSharpSyntaxNode parent = node.Parent;
             return (parent?.Kind() == SyntaxKind.Argument &&
@@ -2282,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If target is a tuple or compatible type with the same number of elements,
                         // report errors for tuple arguments that failed to convert, which would be more useful.
-                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleOrCompatible(out targetElementTypesWithAnnotations) &&
+                        if (targetType.TryGetElementTypesWithAnnotationsIfTupleType(out targetElementTypesWithAnnotations) &&
                             targetElementTypesWithAnnotations.Length == tuple.Arguments.Length)
                         {
                             GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, tuple.Arguments, targetElementTypesWithAnnotations);
@@ -3529,26 +3535,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
-            if (inLegalPosition && !node.IsLocalVariableDeclarationInitializationForPointerStackalloc())
+            if (inLegalPosition && !isStackallocTargetTyped(node))
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
-                if (!spanType.IsErrorType())
-                {
-                    return ConstructNamedType(
-                        type: spanType,
-                        typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
-                            ? ((StackAllocArrayCreationExpressionSyntax)node).Type
-                            : node,
-                        typeArgumentsSyntax: default,
-                        typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
-                        basesBeingResolved: null,
-                        diagnostics: diagnostics);
-                }
+                return ConstructNamedType(
+                    type: spanType,
+                    typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
+                        ? ((StackAllocArrayCreationExpressionSyntax)node).Type
+                        : node,
+                    typeArgumentsSyntax: default,
+                    typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
+                    basesBeingResolved: null,
+                    diagnostics: diagnostics);
             }
 
+            // We treat the stackalloc as target-typed, so we give it a null type for now.
             return null;
+
+            // Is this a context in which a stackalloc expression could be converted to the corresponding pointer
+            // type? The only context that permits it is the initialization of a local variable declaration (when
+            // the declaration appears as a statement or as the first part of a for loop).
+            static bool isStackallocTargetTyped(SyntaxNode node)
+            {
+                Debug.Assert(node != null);
+
+                SyntaxNode equalsValueClause = node.Parent;
+
+                if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+                if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclaration = variableDeclarator.Parent;
+                if (!variableDeclaration.IsKind(SyntaxKind.VariableDeclaration))
+                {
+                    return false;
+                }
+
+                return
+                    variableDeclaration.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                    variableDeclaration.Parent.IsKind(SyntaxKind.ForStatement);
+            }
         }
 
         private BoundExpression BindStackAllocWithInitializer(
@@ -3561,6 +3597,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             ImmutableArray<BoundExpression> boundInitExprOpt = default)
         {
+            Debug.Assert(node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression) || node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
             if (boundInitExprOpt.IsDefault)
             {
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
@@ -7311,7 +7349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryBindIndexOrRangeIndexer(
                     node,
                     expr,
-                    analyzedArguments.Arguments,
+                    analyzedArguments,
                     diagnostics,
                     out var patternIndexerAccess))
                 {
@@ -7485,7 +7523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryBindIndexOrRangeIndexer(
                         syntax,
                         receiverOpt,
-                        analyzedArguments.Arguments,
+                        analyzedArguments,
                         diagnostics,
                         out var patternIndexerAccess))
                     {
@@ -7585,7 +7623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryBindIndexOrRangeIndexer(
             SyntaxNode syntax,
             BoundExpression receiverOpt,
-            ArrayBuilder<BoundExpression> arguments,
+            AnalyzedArguments arguments,
             DiagnosticBag diagnostics,
             out BoundIndexOrRangePatternIndexerAccess patternIndexerAccess)
         {
@@ -7595,12 +7633,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to this indexer that has an Index or Range type and that there is
             // a real receiver with a known type
 
-            if (arguments.Count != 1)
+            if (arguments.Arguments.Count != 1)
             {
                 return false;
             }
 
-            var argType = arguments[0].Type;
+            var argument = arguments.Arguments[0];
+
+            var argType = argument.Type;
             bool argIsIndex = TypeSymbol.Equals(argType,
                 Compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything);
@@ -7671,7 +7711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 property,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 property.Type);
                             break;
                         }
@@ -7690,7 +7730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverOpt,
                         lengthOrCountProperty,
                         substring,
-                        BindToNaturalType(arguments[0], diagnostics),
+                        BindToNaturalType(argument, diagnostics),
                         substring.ReturnType);
                     checkWellKnown(WellKnownMember.System_Range__get_Start);
                     checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7731,7 +7771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 receiverOpt,
                                 lengthOrCountProperty,
                                 method,
-                                BindToNaturalType(arguments[0], diagnostics),
+                                BindToNaturalType(argument, diagnostics),
                                 method.ReturnType);
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
@@ -7749,6 +7789,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             checkWellKnown(WellKnownMember.System_Index__GetOffset);
+            if (arguments.Names.Count > 0)
+            {
+                diagnostics.Add(
+                    argIsRange
+                        ? ErrorCode.ERR_ImplicitRangeIndexerWithName
+                        : ErrorCode.ERR_ImplicitIndexIndexerWithName,
+                    arguments.Names[0].GetLocation());
+            }
             return true;
 
             static void cleanup(LookupResult lookupResult, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

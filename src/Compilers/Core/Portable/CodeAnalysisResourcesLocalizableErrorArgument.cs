@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 
         internal CodeAnalysisResourcesLocalizableErrorArgument(string targetResourceId)
         {
-            Debug.Assert(targetResourceId != null);
+            RoslynDebug.Assert(targetResourceId != null);
             _targetResourceId = targetResourceId;
         }
 
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis
             return ToString(null, null);
         }
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
         {
             if (_targetResourceId != null)
             {

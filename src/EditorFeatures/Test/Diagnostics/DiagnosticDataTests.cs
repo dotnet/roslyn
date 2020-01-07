@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await VerifyTextSpanAsync(code, 1, 30, 2, 40, new TextSpan(code.Length, 0));
         }
 
-        [Fact, Trait(Test.Utilities.Traits.Feature, Test.Utilities.Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public async Task DiagnosticData_GetText7()
         {
             var code = @"
@@ -119,7 +119,7 @@ namespace B
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
-            var actual = data.GetExistingOrCalculatedTextSpan(text);
+            var actual = DiagnosticData.GetExistingOrCalculatedTextSpan(data.DataLocation, text);
 
             Assert.Equal(span, actual);
         }

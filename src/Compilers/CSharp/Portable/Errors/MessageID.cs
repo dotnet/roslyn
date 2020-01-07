@@ -184,8 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNestedStackalloc = MessageBase + 12762,
         IDS_FeatureSwitchExpression = MessageBase + 12763,
         IDS_FeatureAsyncUsing = MessageBase + 12764,
-
-        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12765,
+        IDS_FeatureLambdaDiscardParameters = MessageBase + 12765,
+        IDS_FeatureTargetTypedObjectCreation = MessageBase + 12766,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -284,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new CSDiagnosticInfo(availableVersion.GetErrorCode(), feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
         }
 
-
         internal static LanguageVersion RequiredVersion(this MessageID feature)
         {
             Debug.Assert(RequiredFeature(feature) == null);
@@ -293,6 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // Preview features.
+                case MessageID.IDS_FeatureLambdaDiscardParameters: // semantic check
                 case MessageID.IDS_FeatureTargetTypedObjectCreation:
                     return LanguageVersion.Preview;
 

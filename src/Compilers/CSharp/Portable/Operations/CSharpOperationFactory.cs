@@ -1734,10 +1734,10 @@ namespace Microsoft.CodeAnalysis.Operations
             // In the case of a for loop, varStatement and varDeclaration will be the same syntax node.
             // We can only have one explicit operation, so make sure this node is implicit in that scenario.
             bool isImplicit = (varStatement == varDeclaration) || boundLocalDeclaration.WasCompilerGenerated;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), VariableDeclarationKind.Default, _semanticModel, varStatement, type, constantValue, isImplicit);
+            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, varStatement, type, constantValue, isImplicit);
         }
 
-        private IVariableDeclarationGroupOperation CreateBoundMultipleLocalDeclarationsBaseOperation(BoundMultipleLocalDeclarationsBase boundMultipleLocalDeclarations)
+        private IOperation CreateBoundMultipleLocalDeclarationsBaseOperation(BoundMultipleLocalDeclarationsBase boundMultipleLocalDeclarations)
         {
             // The syntax for the boundMultipleLocalDeclarations can either be a LocalDeclarationStatement or a VariableDeclaration, depending on the context
             // (using/fixed statements vs variable declaration)
@@ -1750,19 +1750,27 @@ namespace Microsoft.CodeAnalysis.Operations
             bool declarationIsImplicit = boundMultipleLocalDeclarations.WasCompilerGenerated;
             IVariableDeclarationOperation multiVariableDeclaration = new CSharpLazyVariableDeclarationOperation(this, boundMultipleLocalDeclarations, _semanticModel, declarationSyntax, null, default, declarationIsImplicit);
 
-            // If this is a using declaration, work out the declaration kind
-            VariableDeclarationKind declKind = boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl
-                                               ? usingDecl.AwaitOpt is object
-                                                    ? VariableDeclarationKind.AsynchronousUsing
-                                                    : VariableDeclarationKind.Using
-                                               : VariableDeclarationKind.Default;
-
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
-            // syntax itself is a VariableDeclaration
-            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
-            return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), declKind, _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
+            // syntax itself is a VariableDeclaration. We do this for using declarations as well, but since that doesn't have a separate parent bound
+            // node, we need to check the current node for that explicitly.
+            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated || boundMultipleLocalDeclarations is BoundUsingLocalDeclarations;
+            var variableDeclaration = new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
+
+            if (boundMultipleLocalDeclarations is BoundUsingLocalDeclarations usingDecl)
+            {
+                return new UsingDeclarationOperation(
+                    variableDeclaration,
+                    isAsynchronous: usingDecl.AwaitOpt is object,
+                    _semanticModel,
+                    declarationGroupSyntax,
+                    type: null,
+                    constantValue: default,
+                    isImplicit: boundMultipleLocalDeclarations.WasCompilerGenerated);
+            }
+
+            return variableDeclaration;
         }
 
         private ILabeledOperation CreateBoundLabelStatementOperation(BoundLabelStatement boundLabelStatement)
