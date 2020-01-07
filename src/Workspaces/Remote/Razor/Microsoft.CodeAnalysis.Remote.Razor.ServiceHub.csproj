@@ -38,7 +38,7 @@
       <Link>Shared\RoslynJsonConverter.SolutionIdConverters.cs</Link>
     </Compile>
     <Compile Include="..\ServiceHub\Shared\ServiceBase.cs">
-      <Link>Shared\ServiceHubServiceBase.cs</Link>
+      <Link>Shared\ServiceBase.cs</Link>
     </Compile>
     <Compile Include="..\ServiceHub\Shared\RemoteEndPoint.cs">
       <Link>Shared\RemoteEndPoint.cs</Link>
