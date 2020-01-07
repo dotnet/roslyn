@@ -2716,7 +2716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
             throw ExceptionUtilities.Unreachable;
         }

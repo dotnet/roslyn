@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
                     break;
-                case UnboundObjectCreationExpression expr:
+                case BoundUnconvertedObjectCreationExpression expr:
                     {
                         if (reportNoTargetType)
                         {
@@ -3918,7 +3918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var arguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
-            var result = new UnboundObjectCreationExpression(
+            var result = new BoundUnconvertedObjectCreationExpression(
                 node,
                 arguments.Arguments.ToImmutable(),
                 arguments.Names.ToImmutableOrNull(),
@@ -4178,7 +4178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal BoundExpression BindObjectCreationForErrorRecovery(UnboundObjectCreationExpression node, DiagnosticBag diagnostics)
+        internal BoundExpression BindObjectCreationForErrorRecovery(BoundUnconvertedObjectCreationExpression node, DiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
             var result = MakeBadExpressionForObjectCreation(node.Syntax, CreateErrorType(), arguments, node.InitializerOpt, typeSyntax: node.Syntax, diagnostics);

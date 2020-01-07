@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsObjectCreation)
             {
-                return ConvertObjectCreationExpression((UnboundObjectCreationExpression)source, isCast, destination, diagnostics);
+                return ConvertObjectCreationExpression((BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        private BoundExpression ConvertObjectCreationExpression(UnboundObjectCreationExpression node, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression ConvertObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
             BoundExpression expr = BindObjectCreationExpression(node, destination.StrippedType(), arguments, diagnostics);
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
-        private BoundExpression BindObjectCreationExpression(UnboundObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private BoundExpression BindObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, TypeSymbol type, AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
             var syntax = node.Syntax;
             switch (type.TypeKind)

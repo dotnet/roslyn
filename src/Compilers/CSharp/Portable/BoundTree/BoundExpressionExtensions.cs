@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsTypelessNew(this BoundExpression node)
         {
-            return node.Kind == BoundKind.UnboundObjectCreationExpression;
+            return node.Kind == BoundKind.UnconvertedObjectCreationExpression;
         }
 
         public static bool IsLiteralDefaultOrTypelessNew(this BoundExpression node)

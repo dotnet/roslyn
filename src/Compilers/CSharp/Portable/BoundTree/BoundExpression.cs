@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
-                case BoundKind.UnboundObjectCreationExpression:
+                case BoundKind.UnconvertedObjectCreationExpression:
                     return true;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:

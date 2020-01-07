@@ -1811,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
             var discardedDiagnostics = new DiagnosticBag();
             var expr = _binder.BindObjectCreationForErrorRecovery(node, discardedDiagnostics);
@@ -4288,7 +4288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
                     case BoundKind.UnboundLambda:
-                    case BoundKind.UnboundObjectCreationExpression:
+                    case BoundKind.UnconvertedObjectCreationExpression:
                         return NullableAnnotation.NotAnnotated;
                     default:
                         Debug.Assert(false); // unexpected value

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Call,
         EventAssignmentOperator,
         Attribute,
-        UnboundObjectCreationExpression,
+        UnconvertedObjectCreationExpression,
         ObjectCreationExpression,
         TupleLiteral,
         ConvertedTupleLiteral,
@@ -5478,10 +5478,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class UnboundObjectCreationExpression : BoundExpression
+    internal sealed partial class BoundUnconvertedObjectCreationExpression : BoundExpression
     {
-        public UnboundObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, bool hasErrors = false)
-            : base(BoundKind.UnboundObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
+        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, bool hasErrors = false)
+            : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5503,13 +5503,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public InitializerExpressionSyntax? InitializerOpt { get; }
         [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnboundObjectCreationExpression(this);
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedObjectCreationExpression(this);
 
-        public UnboundObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt)
+        public BoundUnconvertedObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<IdentifierNameSyntax> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt)
         {
             if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerOpt != this.InitializerOpt)
             {
-                var result = new UnboundObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, this.HasErrors);
+                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7710,8 +7710,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitEventAssignmentOperator((BoundEventAssignmentOperator)node, arg);
                 case BoundKind.Attribute: 
                     return VisitAttribute((BoundAttribute)node, arg);
-                case BoundKind.UnboundObjectCreationExpression: 
-                    return VisitUnboundObjectCreationExpression((UnboundObjectCreationExpression)node, arg);
+                case BoundKind.UnconvertedObjectCreationExpression: 
+                    return VisitUnconvertedObjectCreationExpression((BoundUnconvertedObjectCreationExpression)node, arg);
                 case BoundKind.ObjectCreationExpression: 
                     return VisitObjectCreationExpression((BoundObjectCreationExpression)node, arg);
                 case BoundKind.TupleLiteral: 
@@ -7956,7 +7956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitCall(BoundCall node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitEventAssignmentOperator(BoundEventAssignmentOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAttribute(BoundAttribute node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitObjectCreationExpression(BoundObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTupleLiteral(BoundTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
@@ -8148,7 +8148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitCall(BoundCall node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitEventAssignmentOperator(BoundEventAssignmentOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAttribute(BoundAttribute node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTupleLiteral(BoundTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node) => this.DefaultVisit(node);
@@ -8816,7 +8816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.NamedArguments);
             return null;
         }
-        public override BoundNode? VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
             this.VisitList(node.Arguments);
             return null;
@@ -9850,7 +9850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, type);
         }
-        public override BoundNode? VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
@@ -11637,10 +11637,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode? VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node)
+        public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            UnboundObjectCreationExpression updatedNode;
+            BoundUnconvertedObjectCreationExpression updatedNode;
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
             {
@@ -13648,7 +13648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitUnboundObjectCreationExpression(UnboundObjectCreationExpression node, object? arg) => new TreeDumperNode("unboundObjectCreationExpression", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node, object? arg) => new TreeDumperNode("unconvertedObjectCreationExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
