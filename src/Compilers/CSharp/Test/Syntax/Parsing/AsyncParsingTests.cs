@@ -649,9 +649,9 @@ class C
                             N(SyntaxKind.TypeArgumentList);
                             {
                                 N(SyntaxKind.LessThanToken);
-                                N(SyntaxKind.IdentifierName);
+                                M(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierToken);
+                                    M(SyntaxKind.IdentifierToken);
                                 }
                                 M(SyntaxKind.GreaterThanToken);
                             }
@@ -696,9 +696,9 @@ class C
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     M(SyntaxKind.GreaterThanToken);
                                 }
@@ -745,9 +745,9 @@ class C
                                 N(SyntaxKind.TypeArgumentList);
                                 {
                                     N(SyntaxKind.LessThanToken);
-                                    N(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierToken);
                                     }
                                     M(SyntaxKind.GreaterThanToken);
                                 }

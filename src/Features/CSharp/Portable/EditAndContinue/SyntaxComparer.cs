@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return ComputeValueDistance(oldNode, newNode);
         }
 
-        internal static double ComputeValueDistance(SyntaxNode oldNode, SyntaxNode newNode)
+        internal static double ComputeValueDistance(SyntaxNode? oldNode, SyntaxNode? newNode)
         {
             if (SyntaxFactory.AreEquivalent(oldNode, newNode))
             {

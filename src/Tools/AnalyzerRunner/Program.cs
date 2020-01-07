@@ -49,7 +49,8 @@ namespace AnalyzerRunner
 
             var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(options);
             var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(options);
-            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers)
+            var codeRefactoringRunner = new CodeRefactoringRunner(options);
+            if (!incrementalAnalyzerRunner.HasAnalyzers && !diagnosticAnalyzerRunner.HasAnalyzers && !codeRefactoringRunner.HasRefactorings)
             {
                 WriteLine("No analyzers found", ConsoleColor.Red);
                 PrintHelp();
@@ -107,6 +108,7 @@ namespace AnalyzerRunner
 
                 await incrementalAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
                 await diagnosticAnalyzerRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
+                await codeRefactoringRunner.RunAsync(workspace, cancellationToken).ConfigureAwait(false);
             }
         }
 

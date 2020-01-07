@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     // perf optimization. check whether analyzer is suppressed and avoid getting diagnostics if suppressed.
-                    // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                     if (AnalyzerService.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
                     {
                         return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);

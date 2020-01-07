@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location? locationOpt,
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations,
             ImmutableArray<Location> elementLocations,
-            ImmutableArray<string> elementNames,
+            ImmutableArray<string?> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
             bool includeNullability,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static NamedTypeSymbol CreateTuple(
             NamedTypeSymbol tupleCompatibleType,
-            ImmutableArray<string> elementNames = default,
+            ImmutableArray<string?> elementNames = default,
             ImmutableArray<bool> errorPositions = default,
             ImmutableArray<Location> elementLocations = default,
             ImmutableArray<Location> locations = default)
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Also applies new location of the whole tuple as well as each element.
         /// Drops the inferred positions.
         /// </summary>
-        internal NamedTypeSymbol WithElementNames(ImmutableArray<string> newElementNames,
+        internal NamedTypeSymbol WithElementNames(ImmutableArray<string?> newElementNames,
                                                   ImmutableArray<Location> newElementLocations,
                                                   ImmutableArray<bool> errorPositions,
                                                   ImmutableArray<Location> locations)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (sourceName != null && !wasInferred && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
-                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName, destination);
+                    diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent!.Location, sourceName, destination);
                 }
             }
         }
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<string> TupleElementNames
+        public sealed override ImmutableArray<string?> TupleElementNames
             => _lazyTupleData is null ? default : _lazyTupleData.ElementNames;
 
         private ImmutableArray<bool> TupleErrorPositions
@@ -858,9 +858,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeSymbol MergeTupleNames(NamedTypeSymbol other, NamedTypeSymbol mergedType)
         {
             // Merge tuple element names, if any
-            ImmutableArray<string> names1 = TupleElementNames;
-            ImmutableArray<string> names2 = other.TupleElementNames;
-            ImmutableArray<string> mergedNames;
+            ImmutableArray<string?> names1 = TupleElementNames;
+            ImmutableArray<string?> names2 = other.TupleElementNames;
+            ImmutableArray<string?> mergedNames;
             if (names1.IsDefault || names2.IsDefault)
             {
                 mergedNames = default;
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary>
             /// Element names, if provided.
             /// </summary>
-            internal ImmutableArray<string> ElementNames { get; }
+            internal ImmutableArray<string?> ElementNames { get; }
 
             /// <summary>
             /// Declaration locations for individual elements, if provided.
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Locations = ImmutableArray<Location>.Empty;
             }
 
-            internal TupleExtraData(NamedTypeSymbol underlyingType, ImmutableArray<string> elementNames,
+            internal TupleExtraData(NamedTypeSymbol underlyingType, ImmutableArray<string?> elementNames,
                 ImmutableArray<Location> elementLocations, ImmutableArray<bool> errorPositions, ImmutableArray<Location> locations)
                 : this(underlyingType)
             {
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     && areEqual(this.ElementLocations, other.ElementLocations)
                     && areEqual(this.ErrorPositions, other.ErrorPositions);
 
-                static bool areEqual<T>(ImmutableArray<T> one, ImmutableArray<T> other) where T : notnull
+                static bool areEqual<T>(ImmutableArray<T> one, ImmutableArray<T> other)
                 {
                     if (one.IsDefault && other.IsDefault)
                     {
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var underlyingEvent = (EventSymbol)member;
                             var underlyingAssociatedField = underlyingEvent.AssociatedField;
                             // The field is not part of the members list
-                            if ((object)underlyingAssociatedField != null)
+                            if (underlyingAssociatedField is object)
                             {
                                 Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == TupleUnderlyingType);
                                 Debug.Assert(TupleUnderlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
@@ -1117,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (TypeSymbol.Equals(underlyingMemberDefinition.ContainingType, TupleUnderlyingType.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                 {
-                    if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out Symbol result))
+                    if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out Symbol? result))
                     {
                         return (TMember)result;
                     }

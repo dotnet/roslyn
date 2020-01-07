@@ -17,12 +17,6 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SimplificationOptions.PreferAliasToQualification,
-                SimplificationOptions.PreferOmittingModuleNamesInQualification,
-                SimplificationOptions.PreferImplicitTypeInference,
-                SimplificationOptions.PreferImplicitTypeInLocalDeclaration,
-                SimplificationOptions.AllowSimplificationToGenericType,
-                SimplificationOptions.AllowSimplificationToBaseType,
                 SimplificationOptions.NamingPreferences);
     }
 }

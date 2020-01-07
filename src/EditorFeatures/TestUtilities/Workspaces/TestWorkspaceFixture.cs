@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (TryParseXElement(markup, out var workspaceElement) && workspaceElement.Name == "Workspace")
             {
+                CloseTextView();
+                _workspace?.Dispose();
+
                 _workspace = TestWorkspace.CreateWorkspace(workspaceElement, exportProvider: exportProvider, workspaceKind: workspaceKind);
                 _currentDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
                 Position = _currentDocument.CursorPosition.Value;

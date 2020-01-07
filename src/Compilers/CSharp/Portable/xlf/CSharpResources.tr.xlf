@@ -227,6 +227,16 @@
         <target state="translated">Gizleme işlecine bu bağlamda izin verilmez</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitIndexIndexerWithName">
+        <source>Invocation of implicit Index Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitRangeIndexerWithName">
+        <source>Invocation of implicit Range Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
@@ -5923,8 +5933,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">Salt okunur bir alana (oluşturucu veya değişken başlatıcı dışında) atama yapılamaz</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Salt okunur bir alana (oluşturucu veya değişken başlatıcı dışında) atama yapılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

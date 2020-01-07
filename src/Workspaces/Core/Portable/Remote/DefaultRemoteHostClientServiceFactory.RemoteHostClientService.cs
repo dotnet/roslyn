@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyInstance == null)
                 {
-                    return SpecializedTasks.Default<RemoteHostClient>();
+                    return SpecializedTasks.Null<RemoteHostClient>();
                 }
 
                 return _lazyInstance.GetValueAsync(cancellationToken);
@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _lazyInstance = CreateNewLazyRemoteHostClient();
 
-                // let people know this remote host client is being disconnected
-                instance.Shutdown();
+                instance.Dispose();
             }
 
             private AsyncLazy<RemoteHostClient> CreateNewLazyRemoteHostClient()

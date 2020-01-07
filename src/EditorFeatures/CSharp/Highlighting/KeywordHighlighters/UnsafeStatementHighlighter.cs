@@ -17,10 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            UnsafeStatementSyntax unsafeStatement, CancellationToken cancellationToken)
-        {
-            yield return unsafeStatement.UnsafeKeyword.Span;
-        }
+        protected override void AddHighlights(UnsafeStatementSyntax unsafeStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
+            => highlights.Add(unsafeStatement.UnsafeKeyword.Span);
     }
 }
