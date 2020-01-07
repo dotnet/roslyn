@@ -8793,6 +8793,7 @@ tryAgain:
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.ImplicitArrayCreationExpression:
                 case SyntaxKind.ImplicitStackAllocArrayCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
                 case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.NullLiteralExpression:
