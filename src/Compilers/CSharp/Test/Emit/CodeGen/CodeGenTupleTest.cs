@@ -25812,6 +25812,10 @@ public class ClassWithTwoTypeParameters<T1, T2>
 public class SelfReferencingClassWithTuple
     : ClassWithTwoTypeParameters<SelfReferencingClassWithTuple, (string A, int B)>
 {
+    public SelfReferencingClassWithTuple()
+    {
+        System.Console.Write(""ran"");
+    }
 }
 ";
             var lib = CreateCompilationWithMscorlib40(lib_cs, references: s_valueTupleRefs);
@@ -25821,7 +25825,7 @@ public class SelfReferencingClassWithTuple
             var source_cs = @"
 public class TriggerStackOverflowException
 {
-    void Method()
+    public static void M()
     {
         _ = new SelfReferencingClassWithTuple();
     }
@@ -25829,6 +25833,20 @@ public class TriggerStackOverflowException
 ";
             var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef });
             comp.VerifyEmitDiagnostics();
+
+            var executable_cs = @"
+public class C
+{
+    public static void Main()
+    {
+        TriggerStackOverflowException.M();
+    }
+}";
+
+            var executeComp = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
         }
 
         [Theory]
@@ -25850,25 +25868,50 @@ public class MissingContainer<T>
 public class C
     : MissingContainer<(string A, int B)>
 {
+    public C()
+    {
+        System.Console.Write(""ran"");
+    }
 }
 ";
             var lib = CreateCompilationWithMscorlib40(lib_cs, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, missingContainerRef });
             lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
 
             var source_cs = @"
 public class C2
 {
-    void Method()
+    public static void M()
     {
         _ = new C();
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { lib.EmitToImageReference() }); // missing System.ValueTuple and MissingContainer
+
+            var executable_cs = @"
+public class C3
+{
+    public static void Main()
+    {
+        C2.M();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef }); // missing System.ValueTuple and MissingContainer
             comp.VerifyEmitDiagnostics();
 
-            var comp2 = CreateCompilationWithMscorlib40(source_cs, references: new[] { lib.EmitToImageReference(), missingContainerRef }); // missing System.ValueTuple
+            var executeComp = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, missingContainerRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
+
+            var comp2 = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef, missingContainerRef }); // missing System.ValueTuple
             comp2.VerifyEmitDiagnostics();
+
+            var executeComp2 = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, missingContainerRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp2, expectedOutput: "ran");
         }
 
         [Theory]
@@ -25890,22 +25933,39 @@ public class ClassWithTwoTypeParameters<T1, T2>
 public class SelfReferencingClassWithMissing
     : ClassWithTwoTypeParameters<SelfReferencingClassWithMissing, Missing>
 {
+    public SelfReferencingClassWithMissing()
+    {
+        System.Console.Write(""ran"");
+    }
 }
 ";
             var lib = CreateCompilation(lib_cs, references: new[] { missingRef });
             lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
 
             var source_cs = @"
 public class C
 {
-    void Method()
+    public static void M()
     {
         _ = new SelfReferencingClassWithMissing();
     }
 }
 ";
-            var comp = CreateCompilation(source_cs, references: new[] { lib.EmitToImageReference() });
+            var comp = CreateCompilation(source_cs, references: new[] { libRef });
             comp.VerifyEmitDiagnostics();
+
+            var executable_cs = @"
+public class C2
+{
+    public static void Main()
+    {
+        C.M();
+    }
+}";
+
+            var executeComp = CreateCompilation(executable_cs, references: new[] { comp.EmitToImageReference(), libRef, missingRef }, options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
         }
 
         [Fact]
@@ -25937,16 +25997,16 @@ public class ClassB
 }";
             var comp = CreateEmptyCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference() }); // missing reference to vt
             comp.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(comp);
+            verifyTupleTypeWithErrorUnderlyingType(comp, decodingSuccessful: false);
 
             var compWithMetadataReference = CreateEmptyCompilation(client_cs, references: new[] { MscorlibRef, lib.ToMetadataReference() }); // missing reference to vt
             compWithMetadataReference.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference);
+            verifyTupleTypeWithErrorUnderlyingType(compWithMetadataReference, decodingSuccessful: true);
 
             var fakeVtLib = CreateEmptyCompilation("", references: new[] { MscorlibRef }, assemblyName: "vt");
             var compWithFakeVt = CreateEmptyCompilation(client_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
             compWithFakeVt.VerifyDiagnostics();
-            verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt);
+            verifyTupleTypeWithErrorUnderlyingType(compWithFakeVt, decodingSuccessful: false);
 
             var client2_cs = @"
 public class ClassB
@@ -25968,7 +26028,7 @@ public class ClassB
                 //         foreach (var i in collectionA)
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "collectionA").WithArguments("(, )", "vt, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 27)
                 );
-            verifyTupleTypeWithErrorUnderlyingType(comp2);
+            verifyTupleTypeWithErrorUnderlyingType(comp2, decodingSuccessful: false);
 
             var comp2WithFakeVt = CreateEmptyCompilation(client2_cs, references: new[] { MscorlibRef, lib.EmitToImageReference(), fakeVtLib.EmitToImageReference() }); // reference to fake vt
             comp2WithFakeVt.VerifyDiagnostics(
@@ -25979,18 +26039,34 @@ public class ClassB
                 //         foreach (var i in collectionA)
                 Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "collectionA").WithArguments("(, )", "vt").WithLocation(7, 27)
                 );
-            verifyTupleTypeWithErrorUnderlyingType(comp2WithFakeVt);
+            verifyTupleTypeWithErrorUnderlyingType(comp2WithFakeVt, decodingSuccessful: false);
 
-            static void verifyTupleTypeWithErrorUnderlyingType(CSharpCompilation compilation)
+            void verifyTupleTypeWithErrorUnderlyingType(CSharpCompilation compilation, bool decodingSuccessful)
             {
                 var classA = (NamedTypeSymbol)compilation.GetMember("ClassA");
                 var iEnumerable = (ConstructedNamedTypeSymbol)classA.Interfaces()[0];
-                Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 alice, System.Int32 bob)[missing]>", iEnumerable.ToTestDisplayString());
+                if (decodingSuccessful)
+                {
+                    Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 alice, System.Int32 bob)[missing]>", iEnumerable.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32, System.Int32)[missing]>", iEnumerable.ToTestDisplayString());
+                }
 
                 var tuple = iEnumerable.TypeArguments()[0];
-                Assert.Equal("(System.Int32 alice, System.Int32 bob)[missing]", tuple.ToTestDisplayString());
-                Assert.True(tuple.IsTupleType);
-                Assert.True(tuple.IsErrorType());
+                if (decodingSuccessful)
+                {
+                    Assert.Equal("(System.Int32 alice, System.Int32 bob)[missing]", tuple.ToTestDisplayString());
+                    Assert.True(tuple.IsTupleType);
+                    Assert.True(tuple.IsErrorType());
+                }
+                else
+                {
+                    Assert.Equal("(System.Int32, System.Int32)[missing]", tuple.ToTestDisplayString());
+                    Assert.True(tuple.IsTupleType);
+                    Assert.True(tuple.IsErrorType());
+                }
             }
         }
 
