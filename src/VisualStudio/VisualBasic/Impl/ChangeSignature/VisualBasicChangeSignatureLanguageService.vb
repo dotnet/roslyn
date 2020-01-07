@@ -23,8 +23,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
                                               cancellationToken As CancellationToken) As Task(Of IntellisenseTextBoxViewModel()) Implements IChangeSignatureLanguageService.CreateViewModelsAsync
             Dim rolesCollections = {rolesCollectionName, rolesCollectionType}
 
-            ' We insert '[]' so that we're always able to generate the type even if the name field is empty. We insert '~' to avoid Intellisense activation for the name field, since completion for
-            ' names does not apply to VB.
+            ' We insert '[]' so that we're always able to generate the type even if the name field is empty. 
+            ' We insert '~' to avoid Intellisense activation for the name field, since completion for names does not apply to VB.
+            Dim test = documentText.Insert(insertPosition, ", [~] As ")
             Return Await intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
                 document,
                 contentType,

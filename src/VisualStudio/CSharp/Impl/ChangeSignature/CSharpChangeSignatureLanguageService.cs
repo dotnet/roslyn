@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
@@ -38,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
                 // Adjust the context point to ensure that the right information is in scope.
                 // For example, we may need to move the point to the end of the last statement in a method body
                 // in order to be able to access all local variables.
-                // For C#, + 1 to support inserted comma
+                // + 1 to support inserted comma
                 return CreateTrackingSpansHelper(snapshot, contextPoint: insertPosition + 1, spaceBetweenTypeAndName: 1);
             }
         }

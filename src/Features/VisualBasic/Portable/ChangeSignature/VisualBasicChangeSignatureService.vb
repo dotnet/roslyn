@@ -604,8 +604,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim separators = New List(Of SyntaxToken)()
 
             For i = 0 To arguments.SeparatorCount - numSeparatorsToSkip - 1
-
-                ' TODO
                 If i >= arguments.SeparatorCount Then
                     separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken))
                 Else
