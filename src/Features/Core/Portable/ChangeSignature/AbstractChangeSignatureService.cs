@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SignatureChange signaturePermutation,
             CancellationToken cancellationToken);
 
-        protected abstract IUnifiedArgumentSyntax CreateRegularArgumentSyntax(string callsiteValue);
+        protected abstract IUnifiedArgumentSyntax CreateRegularArgumentSyntax<T>(string callsiteValue);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
@@ -387,8 +387,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return nodeToUpdate != null;
         }
 
-        protected List<IUnifiedArgumentSyntax> PermuteArguments(
-            Document document,
+        protected List<IUnifiedArgumentSyntax> PermuteArguments<T>(
             ISymbol declarationSymbol,
             List<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
@@ -469,13 +468,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
-            // 6. TODO MOVE AROUND. Add added arguments (only at end for the moment)
-
+            // 6. Add added arguments (only at end for the moment)
             var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().Where(p => p is AddedParameter).Cast<AddedParameter>();
 
             foreach (var brandNewParameter in brandNewParameters)
             {
-                newArguments.Add(CreateRegularArgumentSyntax(brandNewParameter.CallsiteValue));
+                newArguments.Add(CreateRegularArgumentSyntax<T>(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
             }
 
             return newArguments;

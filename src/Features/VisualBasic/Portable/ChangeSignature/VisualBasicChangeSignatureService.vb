@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
 
-            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(document, declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature, isReducedExtensionMethod)
+            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(Of ArgumentSyntax)(declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature, isReducedExtensionMethod)
 
             Dim numSeparatorsToSkip = arguments.Count - newArguments.Count
             Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
@@ -618,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return New AbstractFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
-        Protected Overrides Function CreateRegularArgumentSyntax(callsiteValue As String) As IUnifiedArgumentSyntax
+        Protected Overrides Function CreateRegularArgumentSyntax(Of T)(callsiteValue As String) As IUnifiedArgumentSyntax
             Return UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callsiteValue)))
         End Function
     End Class
