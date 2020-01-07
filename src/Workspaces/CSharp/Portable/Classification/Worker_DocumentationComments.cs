@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
@@ -173,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
+                RoslynDebug.Assert(token.Parent is object);
                 switch (token.Parent.Kind())
                 {
                     case SyntaxKind.XmlText:

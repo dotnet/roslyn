@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
             bool descendIntoChildren(SyntaxNode n)
             {
+                // Don't examine crefs here, we'll process it in the loop below that
+                // descends into trivia.
+                if (IsCrefCandidate(n))
+                    return true;
+
                 if (!IsRegularCandidate(n) ||
                     !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
                 {
@@ -118,53 +123,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return false;
             }
 
-            // For Crefs, currently only Qualified Crefs needs to be handled separately
-            if (node.Kind() == SyntaxKind.QualifiedCref)
+            if (node.ContainsDiagnostics)
             {
-                if (node.ContainsDiagnostics)
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                var crefSyntax = (CrefSyntax)node;
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacementNode, out issueSpan, optionSet, cancellationToken))
-                {
+            SyntaxNode replacementSyntax;
+            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
+            {
+                if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
                     return false;
-                }
+
+                replacementSyntax = replacement;
             }
             else
             {
                 var expression = (ExpressionSyntax)node;
-                if (expression.ContainsDiagnostics)
-                {
-                    return false;
-                }
 
                 // in case of an As or Is expression we need to handle the binary expression, because it might be 
                 // required to add parenthesis around the expression. Adding the parenthesis is done in the CSharpNameSimplifier.Rewriter
                 var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
                     ? ((BinaryExpressionSyntax)expression).Right
                     : expression;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacementSyntax, out issueSpan, optionSet, cancellationToken))
-                {
+                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
                     return false;
-                }
 
-                // set proper diagnostic ids.
-                if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
-                {
-                    inDeclaration = true;
-                    diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
-                }
-                else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
-                {
-                    inDeclaration = false;
-                    diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
-                }
-                else if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-                {
-                    diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
-                }
+                replacementSyntax = replacement;
+            }
+
+            // set proper diagnostic ids.
+            if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
+            {
+                inDeclaration = true;
+                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
+            }
+            else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+            {
+                inDeclaration = false;
+                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
+            }
+            else if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            {
+                diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
             }
 
             return true;

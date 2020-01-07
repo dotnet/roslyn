@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override Symbol ContainingSymbol => _containingSymbol;
 
-        public override string Name => Syntax.Identifier.ValueText;
+        public override string Name => Syntax.Identifier.ValueText ?? "";
 
         public SyntaxToken NameToken => Syntax.Identifier;
 
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var identifier = parameter.Identifier;
                 var location = identifier.GetLocation();
-                var name = identifier.ValueText;
+                var name = identifier.ValueText ?? "";
 
                 foreach (var @param in result)
                 {

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <param name="cancellationToken">A cancellation token.</param>
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
-            return semanticModel.GetSymbolInfo(token.Parent, cancellationToken);
+            return semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
         }
 
         public static TSymbol? GetEnclosingSymbol<TSymbol>(this SemanticModel semanticModel, int position, CancellationToken cancellationToken)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                aliasSymbol = semanticModel.GetAliasInfo(token.Parent, cancellationToken);
+                aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
                 var bindableParent = syntaxFacts.GetBindableParent(token);
                 var typeInfo = semanticModel.GetTypeInfo(bindableParent, cancellationToken);
                 type = typeInfo.Type;

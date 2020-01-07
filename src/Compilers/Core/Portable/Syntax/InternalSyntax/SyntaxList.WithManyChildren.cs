@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 Array.Copy(this.children, 0, array, offset, this.children.Length);
             }
 
-            internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+            internal override SyntaxNode CreateRed(SyntaxNode? parent, int position)
             {
                 var separated = this.SlotCount > 1 && HasNodeTokenPattern();
                 if (parent != null && parent.ShouldCreateWeakList())

@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
         /// </summary>
-        public static SyntaxKind Kind(this SyntaxNode node)
+        public static SyntaxKind Kind([NotNull] this SyntaxNode node)
         {
             var rawKind = node.RawKind;
             return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static Syntax.InternalSyntax.DirectiveStack ApplyDirectives(this SyntaxToken token, Syntax.InternalSyntax.DirectiveStack stack)
         {
-            return ((Syntax.InternalSyntax.CSharpSyntaxNode)token.Node).ApplyDirectives(stack);
+            return ((Syntax.InternalSyntax.CSharpSyntaxNode)token.Node!).ApplyDirectives(stack);
         }
 
         internal static Syntax.InternalSyntax.DirectiveStack ApplyDirectives(this SyntaxNodeOrToken nodeOrToken, Syntax.InternalSyntax.DirectiveStack stack)
