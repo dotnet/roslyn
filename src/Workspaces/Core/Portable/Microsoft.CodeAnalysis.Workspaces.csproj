@@ -108,9 +108,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Index.cs">
-      <Link>InternalUtilities\Index.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ISetExtensions.cs">
       <Link>InternalUtilities\ISetExtensions.cs</Link>
     </Compile>
@@ -143,9 +140,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs">
       <Link>InternalUtilities\PlatformInformation.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Range.cs">
-      <Link>InternalUtilities\Range.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs">
       <Link>InternalUtilities\ReaderWriterLockSlimExtensions.cs</Link>

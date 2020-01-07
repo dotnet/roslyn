@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxToken GetForEachStatementIdentifier(ForEachStatementSyntax node)
             => node.Identifier;
 
+        protected override LocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(VariableDeclaratorSyntax declarator)
+            => declarator.Parent?.Parent as LocalDeclarationStatementSyntax;
+
         protected override SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName)
         {
             switch (node.Kind())

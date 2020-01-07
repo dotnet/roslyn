@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// back to VS, which will then bounce back out to OOP to perform the Nuget/ReferenceAssembly
         /// portion of the search.  Ideally we could keep this all OOP.
         /// </summary>
-        private class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
+        private sealed class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
         {
             private readonly ISymbolSearchService _symbolSearchService;
 
