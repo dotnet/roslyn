@@ -393,9 +393,9 @@
     <value>DiagnosticId for analyzers should not use reserved IDs.</value>
   </data>
   <data name="DoNotUseReservedDiagnosticIdMessage" xml:space="preserve">
-    <value>The DiagnosticId '{0}' is a reserved ID.</value>
+    <value>'{0}' is a reserved diagnostic ID.</value>
   </data>
   <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
-    <value>DiagnosticId is reserved.</value>
+    <value>Do not use reserved diagnostic IDs.</value>
   </data>
 </root>

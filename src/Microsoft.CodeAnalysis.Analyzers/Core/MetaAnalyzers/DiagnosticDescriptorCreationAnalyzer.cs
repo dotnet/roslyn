@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static readonly ImmutableHashSet<string> CADiagnosticIdAllowedAssemblies = ImmutableHashSet.Create(
             StringComparer.Ordinal,
+            "Microsoft.CodeAnalysis.VersionCheckAnalyzer",
             "Microsoft.CodeQuality.Analyzers",
             "Microsoft.CodeQuality.CSharp.Analyzers",
             "Microsoft.CodeQuality.VisualBasic.Analyzers",
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableDoNotUseReservedDiagnosticIdTitle,
             s_localizableDoNotUseReservedDiagnosticIdMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true,
             description: s_localizableDoNotUseReservedDiagnosticIdDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -693,7 +694,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private static bool IsReservedDiagnosticId(string ruleId, string assemblyName)
         {
-            if (ruleId.Length < 6)
+            if (ruleId.Length < 3)
             {
                 return false;
             }

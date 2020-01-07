@@ -943,13 +943,13 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static LocalizableResourceString dummyLocalizableTitle = null;
 
     private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""CA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+        new DiagnosticDescriptor(""CA0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
     private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""CS0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+        new DiagnosticDescriptor(""CS0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
     private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""BC0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+        new DiagnosticDescriptor(""BC0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
     private static readonly DiagnosticDescriptor descriptor4 =
         new DiagnosticDescriptor(""CA00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
@@ -972,9 +972,9 @@ class MyAnalyzer : DiagnosticAnalyzer
     {
     }
 }",
-                GetCSharpRS1029ResultAt(13, 34, "CA0000"),
-                GetCSharpRS1029ResultAt(16, 34, "CS0000"),
-                GetCSharpRS1029ResultAt(19, 34, "BC0000"),
+                GetCSharpRS1029ResultAt(13, 34, "CA0"),
+                GetCSharpRS1029ResultAt(16, 34, "CS0"),
+                GetCSharpRS1029ResultAt(19, 34, "BC0"),
                 GetCSharpRS1029ResultAt(22, 34, "CA00000000000000000000"),
                 GetCSharpRS1029ResultAt(25, 34, "CS00000000000000000000"),
                 GetCSharpRS1029ResultAt(28, 34, "BC00000000000000000000"));
@@ -990,9 +990,9 @@ Class MyAnalyzer
     Inherits DiagnosticAnalyzer
 
     Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
     Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
     Private Shared ReadOnly descriptor5 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
     Private Shared ReadOnly descriptor6 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
@@ -1006,9 +1006,9 @@ Class MyAnalyzer
     Public Overrides Sub Initialize(ByVal context As AnalysisContext)
     End Sub
 End Class",
-                GetBasicRS1029ResultAt(12, 92, "CA0000"),
-                GetBasicRS1029ResultAt(13, 92, "CS0000"),
-                GetBasicRS1029ResultAt(14, 92, "BC0000"),
+                GetBasicRS1029ResultAt(12, 92, "CA0"),
+                GetBasicRS1029ResultAt(13, 92, "CS0"),
+                GetBasicRS1029ResultAt(14, 92, "BC0"),
                 GetBasicRS1029ResultAt(15, 92, "CA00000000000000000000"),
                 GetBasicRS1029ResultAt(16, 92, "CS00000000000000000000"),
                 GetBasicRS1029ResultAt(17, 92, "BC00000000000000000000"));
@@ -1103,13 +1103,13 @@ class MyAnalyzer : DiagnosticAnalyzer
     private static LocalizableResourceString dummyLocalizableTitle = null;
 
     private static readonly DiagnosticDescriptor descriptor1 =
-        new DiagnosticDescriptor(""CA000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+        new DiagnosticDescriptor(""CA"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
     private static readonly DiagnosticDescriptor descriptor2 =
-        new DiagnosticDescriptor(""CS000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+        new DiagnosticDescriptor(""CS"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
     private static readonly DiagnosticDescriptor descriptor3 =
-        new DiagnosticDescriptor(""BC000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+        new DiagnosticDescriptor(""BC"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -1135,9 +1135,9 @@ Class MyAnalyzer
     Inherits DiagnosticAnalyzer
 
     Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
-    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -1151,6 +1151,7 @@ End Class");
         }
 
         [Theory, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
+        [InlineData("Microsoft.CodeAnalysis.VersionCheckAnalyzer")]
         [InlineData("Microsoft.CodeQuality.Analyzers")]
         [InlineData("Microsoft.CodeQuality.CSharp.Analyzers")]
         [InlineData("Microsoft.CodeQuality.VisualBasic.Analyzers")]
