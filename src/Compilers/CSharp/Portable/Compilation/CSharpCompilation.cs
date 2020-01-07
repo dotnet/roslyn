@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new ArgumentNullException(nameof(referenceManager));
                 }
 
-                referenceManager!.AssertCanReuseForCompilation(this);
+                referenceManager.AssertCanReuseForCompilation(this);
                 _referenceManager = referenceManager;
             }
             else
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation with additional syntax trees.
         /// </summary>
-        public new CSharpCompilation AddSyntaxTrees(IEnumerable<SyntaxTree>? trees)
+        public new CSharpCompilation AddSyntaxTrees(IEnumerable<SyntaxTree> trees)
         {
             if (trees == null)
             {
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a new compilation without the specified syntax trees. Preserves metadata info for use with trees
         /// added later.
         /// </summary>
-        public new CSharpCompilation RemoveSyntaxTrees(IEnumerable<SyntaxTree>? trees)
+        public new CSharpCompilation RemoveSyntaxTrees(IEnumerable<SyntaxTree> trees)
         {
             if (trees == null)
             {
@@ -1149,7 +1149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 GetBoundReferenceManager();
-                return _lazyAssemblySymbol!;
+                RoslynDebug.Assert(_lazyAssemblySymbol is object);
+                return _lazyAssemblySymbol;
             }
         }
 
@@ -2182,7 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Span = span;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return (obj is ImportInfo) && Equals((ImportInfo)obj);
             }

@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(newSymbols.Count > 0);
 
                 var corLibrary = sourceAssembly.CorLibrary;
-                Debug.Assert((object)corLibrary != null);
+                RoslynDebug.Assert((object)corLibrary != null);
 
                 foreach (int i in newSymbols)
                 {
