@@ -87,6 +87,7 @@ data class C(int x, string y)
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctors = c.GetMembers(".ctor");
+            Assert.Equal(2, ctors.Length);
 
             foreach (MethodSymbol ctor in ctors)
             {
