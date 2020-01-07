@@ -5968,8 +5968,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">Do pole readonly nejde přiřazovat (kromě případu, kdy se nachází uvnitř konstruktoru nebo inicializátoru proměnné).</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Do pole readonly nejde přiřazovat (kromě případu, kdy se nachází uvnitř konstruktoru nebo inicializátoru proměnné).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

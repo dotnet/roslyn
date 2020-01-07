@@ -5968,8 +5968,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">Salt okunur bir alana (oluşturucu veya değişken başlatıcı dışında) atama yapılamaz</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Salt okunur bir alana (oluşturucu veya değişken başlatıcı dışında) atama yapılamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

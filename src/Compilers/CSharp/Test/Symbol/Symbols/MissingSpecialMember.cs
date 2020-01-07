@@ -612,6 +612,7 @@ namespace System
 
                 switch (wkt)
                 {
+                    case WellKnownType.System_ValueTuple:
                     case WellKnownType.System_ValueTuple_T1:
                     case WellKnownType.System_ValueTuple_T2:
                     case WellKnownType.System_ValueTuple_T3:
