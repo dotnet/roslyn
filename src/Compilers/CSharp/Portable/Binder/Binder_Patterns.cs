@@ -151,15 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
-                // We don't need to check feature availability for parenthesized pattern in case the
-                // expression was parenthsized, because the parenthesized pattern was introduced at
-                // the same time as the type pattern.
-                if (IsUnderscore(innerExpression))
-                {
-                    // PROTOTYPE(ngafter): should this be treated as a discard?
-                    diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, innerExpression.Location, convertedExpression.Type);
-                }
+                if (!hasErrors)
+                    CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
                 return new BoundTypePattern(node, (BoundTypeExpression)convertedExpression, inputType, hasErrors);
             }

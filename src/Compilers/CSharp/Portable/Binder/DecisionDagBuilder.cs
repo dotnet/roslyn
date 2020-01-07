@@ -613,7 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 StateForCase first = state.Cases[0];
 
-                // PROTOTYPE(ngafter): This should handle all elements of the Tests union.
                 if (first.RemainingTests is Tests.True)
                 {
                     // The first of the remaining cases has fully matched, as there are no more tests to do.
