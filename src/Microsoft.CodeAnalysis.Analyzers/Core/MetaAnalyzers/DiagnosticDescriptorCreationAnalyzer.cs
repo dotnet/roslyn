@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly ImmutableHashSet<string> CADiagnosticIdAllowedAssemblies = ImmutableHashSet.Create(
             StringComparer.Ordinal,
             "Microsoft.CodeAnalysis.VersionCheckAnalyzer",
+            "Microsoft.CodeAnalysis.NetAnalyzers",
+            "Microsoft.CodeAnalysis.CSharp.NetAnalyzers",
+            "Microsoft.CodeAnalysis.VisualBasic.NetAnalyzers",
             "Microsoft.CodeQuality.Analyzers",
             "Microsoft.CodeQuality.CSharp.Analyzers",
             "Microsoft.CodeQuality.VisualBasic.Analyzers",

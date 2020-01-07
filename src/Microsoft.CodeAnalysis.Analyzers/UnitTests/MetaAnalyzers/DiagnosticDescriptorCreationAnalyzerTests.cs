@@ -1152,6 +1152,9 @@ End Class");
 
         [Theory, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
         [InlineData("Microsoft.CodeAnalysis.VersionCheckAnalyzer")]
+        [InlineData("Microsoft.CodeAnalysis.NetAnalyzers")]
+        [InlineData("Microsoft.CodeAnalysis.CSharp.NetAnalyzers")]
+        [InlineData("Microsoft.CodeAnalysis.VisualBasic.NetAnalyzers")]
         [InlineData("Microsoft.CodeQuality.Analyzers")]
         [InlineData("Microsoft.CodeQuality.CSharp.Analyzers")]
         [InlineData("Microsoft.CodeQuality.VisualBasic.Analyzers")]
