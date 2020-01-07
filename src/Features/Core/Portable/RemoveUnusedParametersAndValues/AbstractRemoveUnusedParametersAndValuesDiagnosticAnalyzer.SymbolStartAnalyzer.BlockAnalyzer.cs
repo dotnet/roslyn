@@ -733,7 +733,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         if (!isUsed)
                         {
-                            _symbolStartAnalyzer._unusedParameters[parameter] = isSymbolRead;
+                            _symbolStartAnalyzer._unusedParameters[parameter] = isSymbolRead ||
+                                _referencedParameters.ContainsKey(parameter);
                         }
                     }
                 }
