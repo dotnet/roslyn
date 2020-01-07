@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GeneratedConstructor()
         {
-            var comp = CreateCompilation(@"class C(int x, string y);");
+            var comp = CreateCompilation(@"data class C(int x, string y);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             var ctor = c.GetMethod(".ctor");
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GeneratedConstructorDefaultValues()
         {
-            var comp = CreateCompilation(@"class C<T>(int x, T t = default);");
+            var comp = CreateCompilation(@"data class C<T>(int x, T t = default);");
             comp.VerifyDiagnostics();
             var c = comp.GlobalNamespace.GetTypeMember("C");
             Assert.Equal(1, c.Arity);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RecordExistingConstructor1()
         {
             var comp = CreateCompilation(@"
-class C(int x, string y)
+data class C(int x, string y)
 {
     public C(int a, string b)
     {
@@ -78,7 +78,7 @@ class C(int x, string y)
         public void RecordExistingConstructor01()
         {
             var comp = CreateCompilation(@"
-class C(int x, string y)
+data class C(int x, string y)
 {
     public C(int a, int b) // overload
     {

@@ -2879,7 +2879,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (paramList is null)
             {
+                if (_declModifiers.HasFlag(DeclarationModifiers.Data))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, declaration.NameLocations[0]);
+                }
                 return;
+            }
+
+            if (!_declModifiers.HasFlag(DeclarationModifiers.Data))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadRecordDeclaration, paramList.Location);
             }
 
             BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(paramList.SyntaxTree);
