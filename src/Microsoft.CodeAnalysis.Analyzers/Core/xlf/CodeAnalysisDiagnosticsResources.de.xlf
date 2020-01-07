@@ -52,6 +52,21 @@
         <target state="translated">Konfigurieren der Analyse von generiertem Code</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelDescription">
+        <source>This call leads the compiler to rebind the entire file, and doing it multiple times (say with SyntaxNode callbacks) can be a performance hog.</source>
+        <target state="new">This call leads the compiler to rebind the entire file, and doing it multiple times (say with SyntaxNode callbacks) can be a performance hog.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelMessage">
+        <source>This call can lead to performance hog and should be used carefully.</source>
+        <target state="new">This call can lead to performance hog and should be used carefully.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseCompilationGetSemanticModelTitle">
+        <source>Do not invoke Compilation.GetSemanticModel() method.</source>
+        <target state="new">Do not invoke Compilation.GetSemanticModel() method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
         <source>DiagnosticId for analyzers should not use reserved IDs.</source>
         <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>

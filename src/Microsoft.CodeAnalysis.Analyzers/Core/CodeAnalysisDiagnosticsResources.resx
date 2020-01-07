@@ -398,4 +398,13 @@
   <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
     <value>Do not use reserved diagnostic IDs.</value>
   </data>
+  <data name="DoNotUseCompilationGetSemanticModelDescription" xml:space="preserve">
+    <value>This call leads the compiler to rebind the entire file, and doing it multiple times (say with SyntaxNode callbacks) can be a performance hog.</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelMessage" xml:space="preserve">
+    <value>This call can lead to performance hog and should be used carefully.</value>
+  </data>
+  <data name="DoNotUseCompilationGetSemanticModelTitle" xml:space="preserve">
+    <value>Do not invoke Compilation.GetSemanticModel() method.</value>
+  </data>
 </root>
