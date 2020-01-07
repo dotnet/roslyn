@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return false;
         }
 
-        public GreenNode?[] ToArray()
+        public GreenNode[] ToArray()
         {
-            var array = new GreenNode?[this.Count];
+            var array = new GreenNode[this.Count];
             for (int i = 0; i < array.Length; i++)
             {
-                array[i] = _nodes[i];
+                array[i] = _nodes[i]!;
             }
 
             return array;

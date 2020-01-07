@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal partial struct Reversed
         {
-            private readonly GreenNode _node;
+            private readonly GreenNode? _node;
 
-            internal Reversed(GreenNode node)
+            internal Reversed(GreenNode? node)
             {
                 _node = node;
             }

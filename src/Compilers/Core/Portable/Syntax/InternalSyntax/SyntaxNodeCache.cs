@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private readonly struct Entry
         {
             public readonly int hash;
-            public readonly GreenNode node;
+            public readonly GreenNode? node;
 
             internal Entry(int hash, GreenNode node)
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             var cnt = node.SlotCount;
             for (int i = 0; i < cnt; i++)
             {
-                if (!ChildInCache((GreenNode?)node.GetSlot(i)))
+                if (!ChildInCache(node.GetSlot(i)))
                 {
                     return false;
                 }

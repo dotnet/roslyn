@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
     {
         internal struct Enumerator
         {
-            private readonly GreenNode _node;
+            private readonly GreenNode? _node;
             private int _childIndex;
             private GreenNode? _list;
             private int _listIndex;
             private GreenNode? _currentChild;
 
-            internal Enumerator(GreenNode node)
+            internal Enumerator(GreenNode? node)
             {
                 _node = node;
                 _childIndex = -1;

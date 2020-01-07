@@ -857,12 +857,12 @@ namespace Microsoft.CodeAnalysis
                 // child if necessary.
                 if (node1.IsList && node1.SlotCount == 1)
                 {
-                    node1 = node1.GetSlot(0)!;
+                    node1 = node1.GetRequiredSlot(0);
                 }
 
                 if (node2.IsList && node2.SlotCount == 1)
                 {
-                    node2 = node2.GetSlot(0)!;
+                    node2 = node2.GetRequiredSlot(0);
                 }
 
                 if (node1.RawKind != node2.RawKind)
