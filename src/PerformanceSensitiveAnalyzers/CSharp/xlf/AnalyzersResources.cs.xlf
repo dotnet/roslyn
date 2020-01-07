@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleMessage">
         <source>Struct instance method being used for delegate creation, this will result in a boxing instruction</source>
-        <target state="translated">Metoda instance struct, pomocí které se deleguje vytváření. Toto způsobí instrukci zabalení.</target>
+        <target state="translated">Instanční metoda struct, pomocí které se deleguje vytváření. Toto způsobí instrukci zabalení.</target>
         <note />
       </trans-unit>
       <trans-unit id="DelegateOnStructInstanceRuleTitle">

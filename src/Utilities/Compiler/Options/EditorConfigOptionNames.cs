@@ -109,5 +109,15 @@ namespace Analyzer.Utilities
         /// Boolean option to configure whether to exclude aspnet core mvc ControllerBase when considering CSRF.
         /// </summary>
         public const string ExcludeAspnetCoreMvcControllerBase = "exclude_aspnet_core_mvc_controllerbase";
+
+        /// <summary>
+        /// String option to configure how many enum values should be prefixed by the enum type name to trigger the rule.
+        /// Configurable rules: CA1712 (https://docs.microsoft.com/en-us/visualstudio/code-quality/ca1712)
+        /// Allowed method name formats:
+        ///   1. Any of the enum values starts with the enum type name
+        ///   2. All of the enum values starts with the enum type name
+        ///   3. Default FxCop heuristic (75% of enum values)
+        /// </summary>
+        public const string EnumValuesPrefixTrigger = "enum_values_prefix_trigger";
     }
 }

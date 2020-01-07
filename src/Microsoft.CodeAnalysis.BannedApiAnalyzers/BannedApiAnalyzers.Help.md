@@ -16,7 +16,7 @@ This can be done by:
   </ItemGroup>
   ```
 
-To add a symbol to banned list, just add an enrty in the format below to the BannedSymbols.txt (Description Text will be displayed as description in diagnostics, which is optional):
+To add a symbol to banned list, just add an entry in the format below to the BannedSymbols.txt (Description Text will be displayed as description in diagnostics, which is optional):
 
         {Documentation Comment ID string for the symbol}[;Description Text]
 

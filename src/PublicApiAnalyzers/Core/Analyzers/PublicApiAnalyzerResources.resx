@@ -180,4 +180,13 @@
   <data name="PublicApiFilesMissingMessage" xml:space="preserve">
     <value>The solution must contain two files with the type "AdditionalFiles": PublicAPI.Unshipped.txt and PublicAPI.Shipped.txt. At least one of these files is missing or has the wrong type.</value>
   </data>
+  <data name="AddAllItemsInDocumentToThePublicApiTitle" xml:space="preserve">
+    <value>Add all items in document '{0}' to the public API</value>
+  </data>
+  <data name="AddAllItemsInProjectToThePublicApiTitle" xml:space="preserve">
+    <value>Add all items in project '{0}' to the public API</value>
+  </data>
+  <data name="AddAllItemsInTheSolutionToThePublicApiTitle" xml:space="preserve">
+    <value>Add all items in the solution to the public API</value>
+  </data>
 </root>

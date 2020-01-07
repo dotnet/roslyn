@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,17 +19,17 @@ namespace Test.Utilities
     /// string with the "$" character in it.  This allows for easy creation of "FIT" tests where all
     /// that needs to be provided are strings that encode every bit of state necessary in the string
     /// itself.
-    /// 
-    /// The current set of encoded features we support are: 
-    /// 
+    ///
+    /// The current set of encoded features we support are:
+    ///
     /// $$ - The position in the file.  There can be at most one of these.
-    /// 
+    ///
     /// [| ... |] - A span of text in the file.  There can be many of these and they can be nested
     /// and/or overlap the $ position.
-    /// 
+    ///
     /// {|Name: ... |} A span of text in the file annotated with an identifier.  There can be many of
     /// these, including ones with the same name.
-    /// 
+    ///
     /// Additional encoded features can be added on a case by case basis.
     /// </summary>
     public static class MarkupTestFile
@@ -111,7 +112,7 @@ namespace Test.Utilities
                     case PositionString:
                         if (position.HasValue)
                         {
-                            throw new ArgumentException(string.Format("Saw multiple occurrences of {0}", PositionString));
+                            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Saw multiple occurrences of {0}", PositionString));
                         }
 
                         position = matchIndexInOutput;
@@ -124,12 +125,12 @@ namespace Test.Utilities
                     case SpanEndString:
                         if (spanStartStack.Count == 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanEndString, SpanStartString));
+                            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Saw {0} without matching {1}", SpanEndString, SpanStartString));
                         }
 
                         if (spanStartStack.Peek().value.Length > 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanStartString, NamedSpanEndString));
+                            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Saw {0} without matching {1}", NamedSpanStartString, NamedSpanEndString));
                         }
 
                         PopSpan(spanStartStack, spans, matchIndexInOutput);
@@ -143,12 +144,12 @@ namespace Test.Utilities
                     case NamedSpanEndString:
                         if (spanStartStack.Count == 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", NamedSpanEndString, NamedSpanStartString));
+                            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Saw {0} without matching {1}", NamedSpanEndString, NamedSpanStartString));
                         }
 
                         if (spanStartStack.Peek().value.Length == 0)
                         {
-                            throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
+                            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Saw {0} without matching {1}", SpanStartString, SpanEndString));
                         }
 
                         PopSpan(spanStartStack, spans, matchIndexInOutput);
@@ -161,7 +162,7 @@ namespace Test.Utilities
 
             if (spanStartStack.Count > 0)
             {
-                throw new ArgumentException(string.Format("Saw {0} without matching {1}", SpanStartString, SpanEndString));
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Saw {0} without matching {1}", SpanStartString, SpanEndString));
             }
 
             // Append the remainder of the string.

@@ -290,7 +290,7 @@
           "fullDescription": "Do not mix attributes from different versions of MEF",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": true,
             "typeName": "DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer",
             "languages": [
@@ -308,7 +308,7 @@
           "fullDescription": "Part exported with MEFv2 must be marked with the Shared attribute.",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": true,
             "typeName": "PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer",
             "languages": [
@@ -326,7 +326,7 @@
           "fullDescription": "Test exports should not be discoverable",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": false,
             "typeName": "TestExportsShouldNotBeDiscoverable",
             "languages": [
@@ -344,7 +344,7 @@
           "fullDescription": "Importing constructor should be [Obsolete]",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": true,
             "typeName": "ImportingConstructorShouldBeObsolete",
             "languages": [
@@ -362,7 +362,7 @@
           "fullDescription": "Exported parts should have [ImportingConstructor]",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": true,
             "typeName": "ExportedPartsShouldHaveImportingConstructor",
             "languages": [
@@ -389,7 +389,7 @@
           "fullDescription": "Use SpecializedCollections.EmptyEnumerable()",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": true,
             "typeName": "CSharpSpecializedEnumerableCreationAnalyzer",
             "languages": [
@@ -406,7 +406,7 @@
           "fullDescription": "Use SpecializedCollections.SingletonEnumerable()",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": true,
             "typeName": "CSharpSpecializedEnumerableCreationAnalyzer",
             "languages": [
@@ -423,7 +423,7 @@
           "fullDescription": "Do not use generic CodeAction.Create to create CodeAction",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": true,
             "typeName": "CSharpCodeActionCreateAnalyzer",
             "languages": [
@@ -440,7 +440,7 @@
           "fullDescription": "Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": false,
             "typeName": "CSharpDiagnosticDescriptorAccessAnalyzer",
             "languages": [
@@ -457,7 +457,7 @@
           "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
           "defaultLevel": "error",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": false,
             "typeName": "CSharpSymbolDeclaredEventAnalyzer",
             "languages": [
@@ -483,7 +483,7 @@
           "fullDescription": "Use SpecializedCollections.EmptyEnumerable()",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": true,
             "typeName": "BasicSpecializedEnumerableCreationAnalyzer",
             "languages": [
@@ -500,7 +500,7 @@
           "fullDescription": "Use SpecializedCollections.SingletonEnumerable()",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": true,
             "typeName": "BasicSpecializedEnumerableCreationAnalyzer",
             "languages": [
@@ -534,7 +534,7 @@
           "fullDescription": "Do not use generic CodeAction.Create to create CodeAction",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": true,
             "typeName": "BasicCodeActionCreateAnalyzer",
             "languages": [
@@ -551,7 +551,7 @@
           "fullDescription": "Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.",
           "defaultLevel": "warning",
           "properties": {
-            "category": "RoslyDiagnosticsPerformance",
+            "category": "RoslynDiagnosticsPerformance",
             "isEnabledByDefault": false,
             "typeName": "BasicDiagnosticDescriptorAccessAnalyzer",
             "languages": [
@@ -568,7 +568,7 @@
           "fullDescription": "Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.",
           "defaultLevel": "error",
           "properties": {
-            "category": "RoslyDiagnosticsReliability",
+            "category": "RoslynDiagnosticsReliability",
             "isEnabledByDefault": false,
             "typeName": "BasicSymbolDeclaredEventAnalyzer",
             "languages": [

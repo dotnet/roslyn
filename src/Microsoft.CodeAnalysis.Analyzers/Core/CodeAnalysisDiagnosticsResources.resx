@@ -374,4 +374,28 @@
   <data name="EnableConcurrentExecutionFix" xml:space="preserve">
     <value>Enable concurrent execution</value>
   </data>
+  <data name="ClassIsNotDiagnosticAnalyzerMessage" xml:space="preserve">
+    <value>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</value>
+  </data>
+  <data name="ClassIsNotDiagnosticAnalyzerTitle" xml:space="preserve">
+    <value>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorDescription" xml:space="preserve">
+    <value>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</value>
+  </data>
+  <data name="ProvideCustomTagsInDescriptorTitle" xml:space="preserve">
+    <value>Provide non-null 'customTags' value to diagnostic descriptor constructor.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdDescription" xml:space="preserve">
+    <value>DiagnosticId for analyzers should not use reserved IDs.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdMessage" xml:space="preserve">
+    <value>'{0}' is a reserved diagnostic ID.</value>
+  </data>
+  <data name="DoNotUseReservedDiagnosticIdTitle" xml:space="preserve">
+    <value>Do not use reserved diagnostic IDs.</value>
+  </data>
 </root>

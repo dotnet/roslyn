@@ -12,7 +12,7 @@ namespace Test.Utilities
     {
         public static ReferenceAssemblies Default { get; } = ReferenceAssemblies.Default
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
-            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "2.10.0")));
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0")));
 
         public static ReferenceAssemblies DefaultWithSystemWeb { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
@@ -40,6 +40,7 @@ namespace Test.Utilities
         internal static MetadataReference SystemDirectoryServices { get; } = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
         internal static MetadataReference SystemXaml { get; } = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
         internal static MetadataReference PresentationFramework { get; } = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
+        public static MetadataReference SystemWeb { get; } = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
         internal static MetadataReference SystemWebExtensions { get; } = MetadataReference.CreateFromFile(typeof(System.Web.Script.Serialization.JavaScriptSerializer).Assembly.Location);
     }
 }

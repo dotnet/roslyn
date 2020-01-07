@@ -12,17 +12,6 @@ namespace Analyzer.Utilities.Extensions
 {
     internal static class DiagnosticExtensions
     {
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxNode> nodes,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxNode node in nodes)
-            {
-                yield return node.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this SyntaxNode node,
             DiagnosticDescriptor rule,
@@ -51,53 +40,12 @@ namespace Analyzer.Utilities.Extensions
             return operation.Syntax.CreateDiagnostic(rule, args);
         }
 
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxToken> tokens,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxToken token in tokens)
-            {
-                yield return token.CreateDiagnostic(rule, args);
-            }
-        }
-
         public static Diagnostic CreateDiagnostic(
             this SyntaxToken token,
             DiagnosticDescriptor rule,
             params object[] args)
         {
             return token.GetLocation().CreateDiagnostic(rule, args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<SyntaxNodeOrToken> nodesOrTokens,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (SyntaxNodeOrToken nodeOrToken in nodesOrTokens)
-            {
-                yield return nodeOrToken.CreateDiagnostic(rule, args);
-            }
-        }
-
-        public static Diagnostic CreateDiagnostic(
-            this SyntaxNodeOrToken nodeOrToken,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            return nodeOrToken.GetLocation().CreateDiagnostic(rule, args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<ISymbol> symbols,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (ISymbol symbol in symbols)
-            {
-                yield return symbol.CreateDiagnostic(rule, args);
-            }
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -134,17 +82,6 @@ namespace Analyzer.Utilities.Extensions
                 location: location,
                 properties: properties,
                 messageArgs: args);
-        }
-
-        public static IEnumerable<Diagnostic> CreateDiagnostics(
-            this IEnumerable<IEnumerable<Location>> setOfLocations,
-            DiagnosticDescriptor rule,
-            params object[] args)
-        {
-            foreach (IEnumerable<Location> locations in setOfLocations)
-            {
-                yield return locations.CreateDiagnostic(rule, args);
-            }
         }
 
         public static Diagnostic CreateDiagnostic(
@@ -185,13 +122,6 @@ namespace Analyzer.Utilities.Extensions
             DiagnosticDescriptor rule,
             params object[] args)
             => context.Compilation.ReportNoLocationDiagnostic(rule, context.ReportDiagnostic, properties: null, args);
-
-        public static void ReportNoLocationDiagnostic(
-            this Compilation compilation,
-            DiagnosticDescriptor rule,
-            Action<Diagnostic> addDiagnostic,
-            params object[] args)
-            => compilation.ReportNoLocationDiagnostic(rule, addDiagnostic, properties: null, args);
 
         public static void ReportNoLocationDiagnostic(
             this Compilation compilation,
