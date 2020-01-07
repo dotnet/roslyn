@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// </summary>
     internal class RunCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
     {
-        private IThreadingContext _threadingContext;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         public RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)
@@ -55,11 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 
                 if (actionToRun != null)
                 {
-                    // TODO - This UI thread dependency must be removed.
-                    // https://github.com/dotnet/roslyn/projects/45#card-20619668
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     foreach (var operation in await actionToRun.GetOperationsAsync(cancellationToken).ConfigureAwait(false))
                     {
+                        // TODO - This UI thread dependency should be removed.
+                        // https://github.com/dotnet/roslyn/projects/45#card-20619668
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         operation.Apply(requestContext.Context.Workspace, cancellationToken);
                     }
                 }
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 Logger.Log(FunctionId.Liveshare_UnknownCodeAction, KeyValueLogMessage.Create(m => m["command"] = request.Command));
 
                 // Return true even in the case that we didn't run the command. Returning false would prompt the guest to tell the host to
-                // enable command executuion, which wouldn't solve their problem.
+                // enable command execution, which wouldn't solve their problem.
                 return true;
             }
         }
