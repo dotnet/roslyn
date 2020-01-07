@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 SignatureChange signaturePermutationWithoutAddedParameters = signaturePermutation.WithoutAddedParameters();
 
-                var newArguments = PermuteArgumentList(document, declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, isReducedExtensionMethod);
+                var newArguments = PermuteArgumentList(declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, isReducedExtensionMethod);
                 newArguments = AddNewArgumentsToList(newArguments, signaturePermutation, isReducedExtensionMethod);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.ObjectCreationExpression))
             {
                 var objCreation = (ObjectCreationExpressionSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(document, declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -409,21 +409,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.BaseConstructorInitializer))
             {
                 var objCreation = (ConstructorInitializerSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(document, declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, objCreation.ArgumentList.Arguments, signaturePermutation);
                 return objCreation.WithArgumentList(objCreation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ElementAccessExpression))
             {
                 var elementAccess = (ElementAccessExpressionSyntax)updatedNode;
-                var newArguments = PermuteArgumentList(document, declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteArgumentList(declarationSymbol, elementAccess.ArgumentList.Arguments, signaturePermutation);
                 return elementAccess.WithArgumentList(elementAccess.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.Attribute))
             {
                 var attribute = (AttributeSyntax)updatedNode;
-                var newArguments = PermuteAttributeArgumentList(document, declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
+                var newArguments = PermuteAttributeArgumentList(declarationSymbol, attribute.ArgumentList.Arguments, signaturePermutation);
                 return attribute.WithArgumentList(attribute.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         private SeparatedSyntaxList<T> PermuteDeclaration<T>(
-            SeparatedSyntaxList<T> list, 
+            SeparatedSyntaxList<T> list,
             SignatureChange updatedSignature) where T : SyntaxNode
         {
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
@@ -603,12 +603,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         private SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
-            Document document,
             ISymbol declarationSymbol,
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
             SignatureChange updatedSignature)
         {
-            var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature);
+            var newArguments = PermuteArguments<AttributeArgumentSyntax>(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature);
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
 
             // copy whitespace trivia from original position
@@ -619,13 +618,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         private SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
-            Document document,
             ISymbol declarationSymbol,
             SeparatedSyntaxList<ArgumentSyntax> arguments,
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
-            var newArguments = PermuteArguments(document, declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature, isReducedExtensionMethod);
+            var newArguments = PermuteArguments<ArgumentSyntax>(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature, isReducedExtensionMethod);
 
             // copy whitespace trivia from original position
             var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
@@ -643,7 +641,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var index = 0;
             foreach (var newArgument in newArguments)
             {
-                result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
+                if (index < oldArguments.Count)
+                {
+                    result.Add(TransferLeadingWhitespaceTrivia(newArgument, oldArguments[index]));
+                }
+                else
+                {
+                    result.Add(newArgument);
+                }
+
                 index++;
             }
 
@@ -786,6 +792,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedLeadingTrivia.Add(newTrivia);
             }
 
+            var extraNodeList = new List<XmlNodeSyntax>();
+            while (index < permutedParamNodes.Count)
+            {
+                extraNodeList.Add(permutedParamNodes[index]);//.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia()));
+                index++;
+            }
+
+            if (extraNodeList.Any())
+            {
+                var extraDocComments = SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.MultiLineDocumentationCommentTrivia, SyntaxFactory.List(extraNodeList.AsEnumerable()));
+                extraDocComments = extraDocComments.WithEndOfComment(SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
+                extraDocComments = extraDocComments.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+                var newTrivia = SyntaxFactory.Trivia(extraDocComments);
+
+                updatedLeadingTrivia.Add(newTrivia);
+            }
+
             return updatedLeadingTrivia;
         }
 
@@ -852,9 +875,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return SpecializedCollections.SingletonEnumerable(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        protected override IUnifiedArgumentSyntax CreateRegularArgumentSyntax(string callsiteValue)
+        protected override IUnifiedArgumentSyntax CreateRegularArgumentSyntax<T>(string callsiteValue)
         {
-            return UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callsiteValue)));
+            var type = typeof(T);
+            if (type == typeof(ArgumentSyntax))
+            {
+                return UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callsiteValue)));
+            }
+
+            if (type == typeof(AttributeArgumentSyntax))
+            {
+                return UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callsiteValue)));
+            }
+
+            return default;
         }
     }
 }

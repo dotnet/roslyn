@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task AddParameters1()
+        public async Task AddParameters()
         {
             var markup = @"
 static class Ext
@@ -105,6 +105,1018 @@ static class Ext
 }";
 
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderLocalFunctionParametersAndArguments_OnDeclaration()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(1, 2);
+        void $$Goo(int x, string y)
+        {
+        }
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(2, 34, 1);
+        void Goo(string y, byte b, int x)
+        {
+        }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderLocalFunctionParametersAndArguments_OnInvocation()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        $$Goo(1, null);
+        void Goo(int x, string y)
+        {
+        }
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void M()
+    {
+        Goo(null, 34, 1);
+        void Goo(string y, byte b, int x)
+        {
+        }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderMethodParameters()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void $$Goo(int x, string y)
+    {
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void Goo(string y, byte b, int x)
+    {
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderMethodParametersAndArguments()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void $$Goo(int x, string y)
+    {
+        Goo(3, ""hello"");
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void Goo(string y, byte b, int x)
+    {
+        Goo(""hello"", 34, 3);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderMethodParametersAndArgumentsOfNestedCalls()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public int $$Goo(int x, string y)
+    {
+        return Goo(Goo(4, ""inner""), ""outer"");
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public int Goo(string y, byte b, int x)
+    {
+        return Goo(""outer"", 34, Goo(""inner"", 34, 4));
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderConstructorParametersAndArguments()
+        {
+            var markup = @"
+using System;
+
+class MyClass2 : MyClass
+{
+    public MyClass2() : base(5, ""test2"")
+    {
+    }
+}
+
+class MyClass
+{
+    public MyClass() : this(2, ""test"")
+    {
+    }
+
+    public $$MyClass(int x, string y)
+    {
+        var t = new MyClass(x, y);
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+using System;
+
+class MyClass2 : MyClass
+{
+    public MyClass2() : base(""test2"", x: 5, b: 34)
+    {
+    }
+}
+
+class MyClass
+{
+    public MyClass() : this(""test"", x: 2, b: 34)
+    {
+    }
+
+    public MyClass(string y, byte b, int x)
+    {
+        var t = new MyClass(y, x: x, b: 34);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderAttributeConstructorParametersAndArguments()
+        {
+            var markup = @"
+[My(""test"", 8)]
+class MyClass
+{
+}
+
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string x, int y)$$
+    {
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+[My(8, x: ""test"", b: 34)]
+class MyClass
+{
+}
+
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(int y, byte b, string x)
+    {
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderExtensionMethodParametersAndArguments_StaticCall()
+        {
+            var markup = @"
+public class C
+{
+    static void Main(string[] args)
+    {
+        CExt.M(new C(), 1, 2, ""three"", ""four"", ""five"");
+    }
+}
+
+public static class CExt
+{
+    public static void M(this $$C goo, int x, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"")
+    { }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(5),
+                new AddedParameterOrExistingIndex(4),
+                new AddedParameterOrExistingIndex(3)};
+
+            var updatedCode = @"
+public class C
+{
+    static void Main(string[] args)
+    {
+        CExt.M(new C(), 2, 1, 34, ""five"", ""four"", ""three"");
+    }
+}
+
+public static class CExt
+{
+    public static void M(this C goo, int y, int x, byte b, string c = ""test_c"", string b = ""test_b"", string a = ""test_a"")
+    { }
+}";
+
+            // Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
+            // and select parameter `y` instead because the `this` parameter cannot be moved or removed.
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderExtensionMethodParametersAndArguments_ExtensionCall()
+        {
+            var markup = @"
+public class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(1, 2, ""three"", ""four"", ""five"");
+    }
+}
+
+public static class CExt
+{
+    public static void M(this C goo, int x$$, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"")
+    { }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(5),
+                new AddedParameterOrExistingIndex(4),
+                new AddedParameterOrExistingIndex(3)};
+            var updatedCode = @"
+public class C
+{
+    static void Main(string[] args)
+    {
+        new C().M(2, 1, 34, ""five"", ""four"", ""three"");
+    }
+}
+
+public static class CExt
+{
+    public static void M(this C goo, int y, int x, byte b, string c = ""test_c"", string b = ""test_b"", string a = ""test_a"")
+    { }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 1);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamsMethodParametersAndArguments_ParamsAsArray()
+        {
+            var markup = @"
+public class C
+{
+    void $$M(int x, int y, params int[] p)
+    {
+        M(x, y, new[] { 1, 2, 3 });
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(2)};
+            var updatedCode = @"
+public class C
+{
+    void M(int y, int x, byte b, params int[] p)
+    {
+        M(y, x, 34, new[] { 1, 2, 3 });
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamsMethodParametersAndArguments_ParamsExpanded()
+        {
+            var markup = @"
+public class C
+{
+    void $$M(int x, int y, params int[] p)
+    {
+        M(x, y, 1, 2, 3);
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(2)};
+
+            var updatedCode = @"
+public class C
+{
+    void M(int y, int x, byte b, params int[] p)
+    {
+        M(y, x, 34, 1, 2, 3);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderExtensionAndParamsMethodParametersAndArguments_VariedCallsites()
+        {
+            var markup = @"
+public class C
+{
+    static void Main(string[] args)
+    {
+        CExt.M(new C(), 1, 2, ""three"", ""four"", ""five"", new[] { 6, 7, 8 });
+        CExt.M(new C(), 1, 2, ""three"", ""four"", ""five"", 6, 7, 8);
+        new C().M(1, 2, ""three"", ""four"", ""five"", new[] { 6, 7, 8 });
+        new C().M(1, 2, ""three"", ""four"", ""five"", 6, 7, 8);
+    }
+}
+
+public static class CExt
+{
+    public static void $$M(this C goo, int x, int y, string a = ""test_a"", string b = ""test_b"", string c = ""test_c"", params int[] p)
+    { }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(5),
+                new AddedParameterOrExistingIndex(4),
+                new AddedParameterOrExistingIndex(3),
+                new AddedParameterOrExistingIndex(6)};
+            var updatedCode = @"
+public class C
+{
+    static void Main(string[] args)
+    {
+        CExt.M(new C(), 2, 1, 34, ""five"", ""four"", ""three"", new[] { 6, 7, 8 });
+        CExt.M(new C(), 2, 1, 34, ""five"", ""four"", ""three"", 6, 7, 8);
+        new C().M(2, 1, 34, ""five"", ""four"", ""three"", new[] { 6, 7, 8 });
+        new C().M(2, 1, 34, ""five"", ""four"", ""three"", 6, 7, 8);
+    }
+}
+
+public static class CExt
+{
+    public static void M(this C goo, int y, int x, byte b, string c = ""test_c"", string b = ""test_b"", string a = ""test_a"", params int[] p)
+    { }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation,
+                expectedUpdatedInvocationDocumentCode: updatedCode, expectedSelectedIndex: 0);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderIndexerParametersAndArguments()
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        var x = new Program()[1, 2];
+        new Program()[1, 2] = x;
+    }
+
+    public int this[int x, int y]$$
+    {
+        get { return 5; }
+        set { }
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+class Program
+{
+    void M()
+    {
+        var x = new Program()[2, x: 1, b: 34];
+        new Program()[2, x: 1, b: 34] = x;
+    }
+
+    public int this[int y, byte b, int x]
+    {
+        get { return 5; }
+        set { }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    void $$Goo(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""c""></param>
+    /// <param name=""b""></param>
+    /// <param name=""bb""></param>
+    /// <param name=""a""></param>
+    void Goo(int c, int b, byte b, int a)
+    {
+
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_OnSameLine()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a"">a is fun</param><param name=""b"">b is fun</param><param name=""c"">c is fun</param>
+    void $$Goo(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""c"">c is fun</param><param name=""b"">b is fun</param><param name=""bb""></param>
+    /// </param><param name=""a"">a is fun</param>
+    void Goo(int c, int b, byte bb, int a)
+    {
+
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_MixedLineDistribution()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param><param name=""b""></param>
+    /// <param name=""c""></param>
+    /// <param name=""d""></param>
+    /// <param name=""e"">Comments spread
+    /// over several
+    /// lines</param><param name=""f""></param>
+    void $$Goo(int a, int b, int c, int d, int e, int f)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(5),
+                new AddedParameterOrExistingIndex(4),
+                new AddedParameterOrExistingIndex(3),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""f""></param><param name=""e"">Comments spread
+    /// over several
+    /// lines</param>
+    /// <param name=""d""></param>
+    /// <param name=""c""></param>
+    /// <param name=""bb""></param><param name=""b""></param>
+    /// <param name=""a""></param>
+    void Goo(int f, int e, int d, int c, byte bb, int b, int a)
+    {
+
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_MixedWithRegularComments()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param><param name=""b""></param>
+    // Why is there a regular comment here?
+    /// <param name=""c""></param><param name=""d""></param><param name=""e""></param>
+    void $$Goo(int a, int b, int c, int d, int e)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(4),
+                new AddedParameterOrExistingIndex(3),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""e""></param><param name=""d""></param>
+    // Why is there a regular comment here?
+    /// <param name=""c""></param><param name=""b""></param><param name=""b""></param><param name=""a""></param>
+    void Goo(int e, int d, int c, byte b, int b, int a)
+    {
+
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_MultiLineDocComments_OnSeparateLines1()
+        {
+            var markup = @"
+class Program
+{
+    /**
+     * <param name=""x"">x!</param>
+     * <param name=""y"">y!</param>
+     * <param name=""z"">z!</param>
+     */
+    static void $$M(int x, int y, int z)
+    {
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+class Program
+{
+    /**
+     * <param name=""z"">z!</param>
+     * <param name=""b""></param>
+     * <param name=""y"">y!</param>
+     * <param name=""x"">x!</param>
+     */
+    static void M(int z, int y, byte b, int x)
+    {
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_MultiLineDocComments_OnSingleLine()
+        {
+            var markup = @"
+class Program
+{
+    /** <param name=""x"">x!</param><param name=""y"">y!</param><param name=""z"">z!</param> */
+    static void $$M(int x, int y, int z)
+    {
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+class Program
+{
+    /** <param name=""z"">z!</param><param name=""b""></param><param name=""y"">y!</param> */
+    /** <param name=""x"">x!</param> */
+    static void M(int z, int y, byte b, int x)
+    {
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_IncorrectOrder_MaintainsOrder()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""c""></param>
+    /// <param name=""b""></param>
+    void $$Goo(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""c""></param>
+    /// <param name=""b""></param>
+    void Goo(int c, byte bb, int b, int a)
+    {
+
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_WrongNames_MaintainsOrder()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a2""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    void $$Goo(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""a2""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    void Goo(int c, byte b, int b, int a)
+    {
+
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_InsufficientTags_MaintainsOrder()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""c""></param>
+    void $$Goo(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""c""></param>
+    void Goo(int c, byte b, int b, int a)
+    {
+
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_ExcessiveTags_MaintainsOrder()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    /// <param name=""d""></param>
+    void $$Goo(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    /// <param name=""d""></param>
+    void Goo(int c, byte bb, int b, int a)
+    {
+
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_OnConstructors()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    public $$C(int a, int b, int c)
+    {
+
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""c""></param>
+    /// <param name=""bb""></param>
+    /// <param name=""b""></param>
+    /// <param name=""a""></param>
+    public C(int c, byte b, int b, int a)
+    {
+
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParamTagsInDocComments_OnIndexers()
+        {
+            var markup = @"
+public class C
+{
+    /// <param name=""a""></param>
+    /// <param name=""b""></param>
+    /// <param name=""c""></param>
+    public int $$this[int a, int b, int c]
+    {
+        get { return 5; }
+        set { }
+    }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "bb", "34")),
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+public class C
+{
+    /// <param name=""c""></param>
+    /// <param name=""bb""></param>
+    /// <param name=""b""></param>
+    /// <param name=""a""></param>
+    public int this[int c, byte bb, int b, int a]
+    {
+        get { return 5; }
+        set { }
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParametersInCrefs()
+        {
+            var markup = @"
+class C
+{
+    /// <summary>
+    /// See <see cref=""M(int, string)""/> and <see cref=""M""/>
+    /// </summary>
+    $$void M(int x, string y)
+    { }
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+class C
+{
+    /// <summary>
+    /// See <see cref=""M(string,byte, int)""/> and <see cref=""M""/>
+    /// </summary>
+    void M(string y, byte b, int x)
+    { }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType1()
+        {
+            var markup = @"
+interface I
+{
+    $$void M(int x, string y);
+}
+
+class C
+{
+    public void M(int x, string y)
+    {
+    }
+}
+
+class D : C, I
+{
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+interface I
+{
+    void M(string y, byte b, int x);
+}
+
+class C
+{
+    public void M(string y, byte b, int x)
+    {
+    }
+}
+
+class D : C, I
+{
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddAndReorderParametersInMethodThatImplementsInterfaceMethodOnlyThroughADerivedType2()
+        {
+            var markup = @"
+interface I
+{
+    void M(int x, string y);
+}
+
+class C
+{
+    $$public void M(int x, string y)
+    {
+    }
+}
+
+class D : C, I
+{
+}";
+            var permutation = new[] {
+                new AddedParameterOrExistingIndex(1),
+                new AddedParameterOrExistingIndex(new AddedParameter("byte", "b", "34")),
+                new AddedParameterOrExistingIndex(0)};
+            var updatedCode = @"
+interface I
+{
+    void M(string y, byte b, int x);
+}
+
+class C
+{
+    public void M(string y, byte b, int x)
+    {
+    }
+}
+
+class D : C, I
+{
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
     }
 }
