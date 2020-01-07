@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IntellisenseTextBoxViewModel nameIntellisenseTextBoxViewModel,
             INotificationService notificationService)
         {
-            // The current implementaiton support the Add only.
-            // The dialog should be initlialized other way if called for Edit.
+            // The current implementation supports Add only.
+            // The dialog should be initialized the other way if called for Edit.
             ViewModel = new AddParameterDialogViewModel(notificationService);
             _typeIntellisenseTextBoxView = typeIntellisenseTextBoxViewModel;
             _nameIntellisenseTextBoxView = nameIntellisenseTextBoxViewModel;

@@ -10,13 +10,11 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using ImportingConstructorAttribute = System.Composition.ImportingConstructorAttribute;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -78,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (result.HasValue && result.Value)
             {
-                AddParameterDialogViewModel viewModel = dialog.ViewModel;
+                var viewModel = dialog.ViewModel;
                 return new AddedParameterResult
                 {
                     IsCancelled = false,
@@ -106,67 +104,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var rolesCollectionName = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
 
-            var language = syntaxTree.Options.Language;
-            IntellisenseTextBoxViewModel[] viewModels = null;
-            if (language == LanguageNames.CSharp)
-            {
-                var rolesCollections = new[] { rolesCollectionType, rolesCollectionName };
-
-                var test = documentText.Insert(insertPosition, ", ");
-                viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
-                    document, _contentType, documentText.Insert(insertPosition, ", "),
-                    CreateTrackingSpansCSharp, rolesCollections, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                var rolesCollections = new[] { rolesCollectionName, rolesCollectionType };
-                var test = documentText.Insert(insertPosition, ", [] As ");
-                viewModels = await _intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
-                    // TODO for VB there should be something like ", AS " and corresponding mapping should be opposite.
-                    document, _contentType, documentText.Insert(insertPosition, ", [] As "),
-                    CreateTrackingSpansVB, rolesCollections, cancellationToken).ConfigureAwait(false);
-            }
+            var languageService = document.GetLanguageService<IChangeSignatureLanguageService>();
+            var viewModels = await languageService.CreateViewModelsAsync(
+                rolesCollectionType,
+                rolesCollectionName,
+                insertPosition,
+                document,
+                documentText,
+                _contentType,
+                _intellisenseTextBoxViewModelFactory,
+                cancellationToken).ConfigureAwait(false);
 
             return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>());
-
-            ITrackingSpan[] CreateTrackingSpansCSharp(IProjectionSnapshot snapshot)
-            {
-                // Adjust the context point to ensure that the right information is in scope.
-                // For example, we may need to move the point to the end of the last statement in a method body
-                // in order to be able to access all local variables.
-                // + 1 to support inserted comma
-                var contextPoint = insertPosition + 1;
-
-                // Get the previous span/text. We might have to insert another newline or something.
-                var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
-
-                // Get the appropriate ITrackingSpan for the window the user is typing in
-                var mappedSpanType = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
-                var spaceSpan = snapshot.CreateTrackingSpan(contextPoint, 1, SpanTrackingMode.EdgeExclusive);
-                var mappedSpanName = snapshot.CreateTrackingSpan(contextPoint + 1, 0, SpanTrackingMode.EdgeExclusive);
-
-                // Build the tracking span that includes the rest of the file
-                var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint + 1, SpanTrackingMode.EdgePositive);
-                return new ITrackingSpan[] { previousStatementSpan, mappedSpanType, spaceSpan, mappedSpanName, restOfFileSpan };
-            }
-
-            ITrackingSpan[] CreateTrackingSpansVB(IProjectionSnapshot snapshot)
-            {
-                // + 3 to support inserted ', ['
-                var contextPoint = insertPosition + 3;
-
-                // Get the previous span/text. We might have to insert another newline or something.
-                var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
-
-                // Get the appropriate ITrackingSpan for the window the user is typing in
-                var mappedSpanName = snapshot.CreateTrackingSpan(contextPoint, 0, SpanTrackingMode.EdgeExclusive);
-                var asSpan = snapshot.CreateTrackingSpan(contextPoint, 5, SpanTrackingMode.EdgeExclusive);
-                var mappedSpanType = snapshot.CreateTrackingSpan(contextPoint + 5, 0, SpanTrackingMode.EdgeExclusive);
-
-                // Build the tracking span that includes the rest of the file
-                var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint + 6, SpanTrackingMode.EdgePositive);
-                return new ITrackingSpan[] { previousStatementSpan, mappedSpanName, asSpan, mappedSpanType, restOfFileSpan };
-            }
         }
     }
 }
