@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -75,8 +77,8 @@ namespace Microsoft.CodeAnalysis
 
         private void DoDumpCompact(TreeDumperNode node, string indent)
         {
-            Debug.Assert(node != null);
-            Debug.Assert(indent != null);
+            RoslynDebug.Assert(node != null);
+            RoslynDebug.Assert(indent != null);
 
             // Precondition: indentation and prefix has already been output
             // Precondition: indent is correct for node's *children*
@@ -106,16 +108,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static string DumpXML(TreeDumperNode root, string indent = null)
+        public static string DumpXML(TreeDumperNode root, string? indent = null)
         {
             var dumper = new TreeDumper();
-            dumper.DoDumpXML(root, string.Empty, string.IsNullOrEmpty(indent) ? string.Empty : indent);
+            dumper.DoDumpXML(root, string.Empty, indent ?? string.Empty);
             return dumper._sb.ToString();
         }
 
         private void DoDumpXML(TreeDumperNode node, string indent, string relativeIndent)
         {
-            Debug.Assert(node != null);
+            RoslynDebug.Assert(node != null);
             if (node.Children.All(child => child == null))
             {
                 _sb.Append(indent);
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class TreeDumperNode
     {
-        public TreeDumperNode(string text, object value, IEnumerable<TreeDumperNode> children)
+        public TreeDumperNode(string text, object? value, IEnumerable<TreeDumperNode>? children)
         {
             this.Text = text;
             this.Value = value;
@@ -213,7 +215,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public TreeDumperNode(string text) : this(text, null, null) { }
-        public object Value { get; }
+        public object? Value { get; }
         public string Text { get; }
         public IEnumerable<TreeDumperNode> Children { get; }
         public TreeDumperNode this[string child]
@@ -225,10 +227,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         // enumerates all edges of the tree yielding (parent, node) pairs. The first yielded value is (null, this).
-        public IEnumerable<KeyValuePair<TreeDumperNode, TreeDumperNode>> PreorderTraversal()
+        public IEnumerable<KeyValuePair<TreeDumperNode?, TreeDumperNode>> PreorderTraversal()
         {
-            var stack = new Stack<KeyValuePair<TreeDumperNode, TreeDumperNode>>();
-            stack.Push(new KeyValuePair<TreeDumperNode, TreeDumperNode>(null, this));
+            var stack = new Stack<KeyValuePair<TreeDumperNode?, TreeDumperNode>>();
+            stack.Push(new KeyValuePair<TreeDumperNode?, TreeDumperNode>(null, this));
             while (stack.Count != 0)
             {
                 var currentEdge = stack.Pop();
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis
                 var currentNode = currentEdge.Value;
                 foreach (var child in currentNode.Children.Where(x => x != null).Reverse())
                 {
-                    stack.Push(new KeyValuePair<TreeDumperNode, TreeDumperNode>(currentNode, child));
+                    stack.Push(new KeyValuePair<TreeDumperNode?, TreeDumperNode>(currentNode, child));
                 }
             }
         }

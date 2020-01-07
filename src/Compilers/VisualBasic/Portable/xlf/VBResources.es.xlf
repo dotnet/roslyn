@@ -9139,6 +9139,16 @@
         <target state="translated">El nombre de archivo '{0}' está vacío, contiene caracteres no válidos, tiene una especificación de unidad sin ruta de acceso absoluta o es demasiado largo</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="new">'{0}' is not supported in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="new">Attribute is not supported in VB</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

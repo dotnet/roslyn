@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using Roslyn.Utilities;
 
@@ -18,31 +20,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         public bool Equals(MetadataContextId other)
-        {
-            return ModuleVersionId.Equals(other.ModuleVersionId);
-        }
+            => ModuleVersionId.Equals(other.ModuleVersionId);
 
         public override bool Equals(object obj)
-        {
-            return obj is MetadataContextId && this.Equals((MetadataContextId)obj);
-        }
+            => obj is MetadataContextId && Equals((MetadataContextId)obj);
 
         public override int GetHashCode()
-        {
-            return ModuleVersionId.GetHashCode();
-        }
+            => ModuleVersionId.GetHashCode();
 
         internal static MetadataContextId GetContextId(Guid moduleVersionId, MakeAssemblyReferencesKind kind)
         {
-            switch (kind)
+            return kind switch
             {
-                case MakeAssemblyReferencesKind.AllAssemblies:
-                    return default;
-                case MakeAssemblyReferencesKind.AllReferences:
-                    return new MetadataContextId(moduleVersionId);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+                MakeAssemblyReferencesKind.AllAssemblies => default,
+                MakeAssemblyReferencesKind.AllReferences => new MetadataContextId(moduleVersionId),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
         }
     }
 }

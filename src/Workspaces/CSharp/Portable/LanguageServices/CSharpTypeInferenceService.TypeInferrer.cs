@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
-                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.GetTypeWithFlowNullability());
+                        var typeInferenceInfo = new TypeInferenceInfo(typeInfo.Type);
 
                         // If it bound to a method, try to get the Action/Func form of that method.
                         if (typeInferenceInfo.InferredType == null)
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
                 var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
-                return CreateResult(typeInfo.GetTypeWithAnnotatedNullability());
+                return CreateResult(typeInfo.Type);
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInExpressionStatement(ExpressionStatementSyntax expressionStatement, SyntaxToken? previousToken = null)

@@ -1001,9 +1001,9 @@ class C
   .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  brtrue.s   IL_000a
-  IL_0003:  ldsflda    ""(int Alice, int Bob) C.val2""
+  IL_0003:  ldsflda    ""System.ValueTuple<int, int> C.val2""
   IL_0008:  br.s       IL_000f
-  IL_000a:  ldsflda    ""(int Alice, int) C.val1""
+  IL_000a:  ldsflda    ""System.ValueTuple<int, int> C.val1""
   IL_000f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0014:  call       ""void System.Console.Write(int)""
   IL_0019:  ret

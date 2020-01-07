@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -482,9 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                         if (aliasTarget is INamedTypeSymbol typeSymbol && typeSymbol.IsTupleType)
                         {
-                            // ValueTuple type is not allowed in using alias, so when expanding an alias
-                            // of ValueTuple types, always use its underlying type, i.e. `System.ValueTuple<>` instead of `(...)`
-                            aliasTarget = typeSymbol.TupleUnderlyingType;
+                            return rewrittenSimpleName;
                         }
 
                         // the expanded form replaces the current identifier name.
@@ -531,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 break;
 
                             default:
-                                throw new NotImplementedException();
+                                throw ExceptionUtilities.UnexpectedValue(replacement.Kind());
                         }
 
                         replacement = newNode.CopyAnnotationsTo(replacement);

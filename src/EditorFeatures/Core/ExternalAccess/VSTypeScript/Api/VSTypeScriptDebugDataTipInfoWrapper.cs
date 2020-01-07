@@ -2,7 +2,7 @@
 
 #nullable enable
 
-using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api

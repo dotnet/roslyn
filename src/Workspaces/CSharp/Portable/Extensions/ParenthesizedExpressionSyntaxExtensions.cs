@@ -244,6 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // Switch expression arm
+            // x => (y)
+            if (node.Parent is SwitchExpressionArmSyntax arm && arm.Expression == node)
+            {
+                return true;
+            }
+
             // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
             // make the ++/-- now associate with the previous part of the cast expression.
             if (parentExpression.IsKind(SyntaxKind.CastExpression))
@@ -269,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return parentExpression != null && !RemovalChangesAssociation(node, parentExpression, semanticModel);
         }
 
-        private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
+        private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = SharedPools.Default<Stack<SyntaxNode>>();
 
         private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
         {

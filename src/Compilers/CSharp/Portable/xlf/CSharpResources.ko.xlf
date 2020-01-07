@@ -177,6 +177,11 @@
         <target state="translated">식 트리에는 튜플 == 또는 != 연산자를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">'{0}' 기능은 현재 미리 보기로 제공되며 *지원되지 않습니다*. 미리 보기 기능을 사용하려면 '미리 보기' 언어 버전을 사용하세요.</target>
@@ -220,6 +225,16 @@
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">이 컨텍스트에서는 비표시 오류(Suppression) 연산자를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitIndexIndexerWithName">
+        <source>Invocation of implicit Index Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitRangeIndexerWithName">
+        <source>Invocation of implicit Range Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -298,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있거나 적합한 'Dispose' 메서드를 구현해야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있거나 적합한 'Dispose' 메서드를 구현해야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -5918,8 +5933,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">읽기 전용 필드에는 할당할 수 없습니다. 단 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">읽기 전용 필드에는 할당할 수 없습니다. 단 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6088,8 +6103,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있거나 적합한 'Dispose' 메서드를 구현해야 합니다.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있거나 적합한 'Dispose' 메서드를 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">

@@ -3559,6 +3559,22 @@ System.Console.WriteLine(true)";
                 // { label: public
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
                 );
+
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.LabeledStatement);
+                {
+                    N(SyntaxKind.IdentifierToken, "label");
+                    N(SyntaxKind.ColonToken);
+                    M(SyntaxKind.EmptyStatement);
+                    {
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
         }
 
         [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]

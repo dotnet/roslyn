@@ -40,19 +40,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _parseOptionsWithLatestLanguageVersion
             End Function
 
-            Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, treeDiagnosticReportingOptionsOpt As ImmutableDictionary(Of String, ReportDiagnostic), cancellationToken As CancellationToken) As SyntaxTree
+            Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, analyzerConfigOptionsResult As AnalyzerConfigOptionsResult?, cancellationToken As CancellationToken) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
 
-                Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, treeDiagnosticReportingOptionsOpt, cancellationToken)
+                ' NOTE: Unlike the C# SyntaxFactory.ParseSyntaxTree API, the VB version does not currently support the flag 'isGeneratedCode' from analyzer options.
+                Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, analyzerConfigOptionsResult?.TreeOptions, cancellationToken)
             End Function
 
-            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode, treeDiagnosticReportingOptionsOpt As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
+            Public Overrides Function CreateSyntaxTree(filePath As String, options As ParseOptions, encoding As Encoding, root As SyntaxNode, analyzerConfigOptionsResult As AnalyzerConfigOptionsResult) As SyntaxTree
                 If options Is Nothing Then
                     options = GetDefaultParseOptions()
                 End If
-                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, treeDiagnosticReportingOptionsOpt)
+
+                ' NOTE: Unlike the CSharpSyntaxTree.Create API, the VB version does not currently support the flag 'isGeneratedCode' from analyzer options.
+                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, analyzerConfigOptionsResult.TreeOptions)
             End Function
 
             Public Overrides Function CanCreateRecoverableTree(root As SyntaxNode) As Boolean

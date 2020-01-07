@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override Conversion GetStackAllocConversion(BoundStackAllocArrayCreation sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (sourceExpression.Syntax.IsLocalVariableDeclarationInitializationForPointerStackalloc())
+            if (sourceExpression.NeedsToBeConverted())
             {
                 Debug.Assert((object)sourceExpression.Type == null);
                 Debug.Assert((object)sourceExpression.ElementType != null);

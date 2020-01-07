@@ -9138,6 +9138,16 @@
         <target state="translated">檔案名稱 '{0}' 是空的、包含了無效字元、指定了磁碟機但不是絕對路徑，或太長了。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB">
+        <source>'{0}' is not supported in VB.</source>
+        <target state="new">'{0}' is not supported in VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AttributeNotSupportedInVB_Title">
+        <source>Attribute is not supported in VB</source>
+        <target state="new">Attribute is not supported in VB</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

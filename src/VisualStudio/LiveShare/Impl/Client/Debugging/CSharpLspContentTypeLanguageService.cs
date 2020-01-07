@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 {
-    [ExportContentTypeLanguageService(StringConstants.CSharpLspContentTypeName, StringConstants.CSharpLspLanguageName), Shared]
+    [ExportContentTypeLanguageService(ContentTypeNames.CSharpLspContentTypeName, StringConstants.CSharpLspLanguageName), Shared]
     internal class CSharpLspContentTypeLanguageService : IContentTypeLanguageService
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;

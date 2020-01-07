@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         Private Function GetNewRootAsync(root As SyntaxNode, oldNode As SyntaxNode, semanticModel As SemanticModel, diagnostic As Diagnostic, document As Document, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim expression = TryCast(oldNode, ExpressionSyntax)
             If expression Is Nothing Then
-                Return SpecializedTasks.Default(Of SyntaxNode)()
+                Return SpecializedTasks.Null(Of SyntaxNode)()
             End If
 
             Select Case diagnostic.Id
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
                 Case BC42358
                     Return Task.FromResult(root.ReplaceNode(oldNode, ConverToAwaitExpression(expression, semanticModel, cancellationToken)))
                 Case Else
-                    Return SpecializedTasks.Default(Of SyntaxNode)()
+                    Return SpecializedTasks.Null(Of SyntaxNode)()
             End Select
         End Function
 

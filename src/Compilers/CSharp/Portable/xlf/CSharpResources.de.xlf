@@ -177,6 +177,11 @@
         <target state="translated">Eine Ausdrucksbaumstruktur darf keinen ==- oder !=-Tupeloperator enthalten.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExternEventInitializer">
+        <source>'{0}': extern event cannot have initializer</source>
+        <target state="new">'{0}': extern event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
         <target state="translated">Das Feature "{0}" befindet sich zurzeit in der Vorschau und wird *nicht unterstützt*. Um Previewfunktionen zu nutzen, verwenden Sie die Sprachversion "Preview".</target>
@@ -220,6 +225,16 @@
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">Ein Unterdrückungsoperator ist in diesem Kontext unzulässig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitIndexIndexerWithName">
+        <source>Invocation of implicit Index Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitRangeIndexerWithName">
+        <source>Invocation of implicit Range Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -298,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren. Meinten Sie "await using" anstelle von "using"?</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren. Meinten Sie "await using" anstelle von "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
@@ -5918,8 +5933,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">Einem schreibgeschützten Feld kann nichts zugewiesen werden (außer in einem Konstruktor oder Variableninitialisierer).</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Einem schreibgeschützten Feld kann nichts zugewiesen werden (außer in einem Konstruktor oder Variableninitialisierer).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
@@ -6088,8 +6103,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren.</target>
+        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
+        <target state="needs-review-translation">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertiert werden können oder eine geeignete Dispose-Methode implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">

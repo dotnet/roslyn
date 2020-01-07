@@ -15,18 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, null, 0);
 
         public override bool Equals(object obj) => obj is BoundDagTemp other && this.Equals(other);
+
         public bool Equals(BoundDagTemp other)
         {
-            return other != (object)null && this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) && object.Equals(this.Source, other.Source) && this.Index == other.Index;
+            return other != (object)null &&
+                this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
+                object.Equals(this.Source, other.Source) && this.Index == other.Index;
         }
+
         public override int GetHashCode()
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
+
         public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
         {
             return left.Equals(right);
         }
+
         public static bool operator !=(BoundDagTemp left, BoundDagTemp right)
         {
             return !left.Equals(right);

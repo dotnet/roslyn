@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,14 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
-        private class QueryUnboundLambdaState : UnboundLambdaState
+        private sealed class QueryUnboundLambdaState : UnboundLambdaState
         {
             private readonly ImmutableArray<RangeVariableSymbol> _parameters;
             private readonly LambdaBodyFactory _bodyFactory;
             private readonly RangeVariableMap _rangeVariableMap;
 
-            public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory)
-                : base(binder, unboundLambdaOpt: null)
+            public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory, bool includeCache = true)
+                : base(binder, unboundLambdaOpt: null, includeCache)
             {
                 _parameters = parameters;
                 _rangeVariableMap = rangeVariableMap;
@@ -47,6 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
             {
                 return new WithQueryLambdaParametersBinder(lambdaSymbol, _rangeVariableMap, binder);
+            }
+
+            protected override UnboundLambdaState WithCachingCore(bool includeCache)
+            {
+                return new QueryUnboundLambdaState(Binder, _rangeVariableMap, _parameters, _bodyFactory, includeCache);
             }
 
             protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)

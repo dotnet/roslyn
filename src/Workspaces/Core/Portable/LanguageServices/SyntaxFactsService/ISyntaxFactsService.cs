@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -133,7 +134,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCastExpression(SyntaxNode node);
         void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
-        bool IsInvocationExpression(SyntaxNode node);
+#nullable enable
+        bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
+
         bool IsExpressionOfInvocationExpression(SyntaxNode node);
         void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
@@ -195,7 +199,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
-        bool IsNameOfMemberAccessExpression(SyntaxNode node);
+#nullable enable
+        bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
 
         SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
@@ -235,7 +241,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConditionalAccessExpression(SyntaxNode node);
         void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
 
-        bool IsMemberBindingExpression(SyntaxNode node);
+#nullable enable
+        bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
         bool IsPostfixUnaryExpression(SyntaxNode node);
 
         bool IsParenthesizedExpression(SyntaxNode node);
@@ -303,7 +311,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// functions.
         /// </summary>
         bool IsMethodBody(SyntaxNode node);
-        bool IsExpressionStatement(SyntaxNode node);
+
+#nullable enable
+        bool IsExpressionStatement([NotNullWhen(true)] SyntaxNode? node);
+#nullable restore
+
         bool IsReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfReturnStatement(SyntaxNode node);
 
@@ -446,9 +458,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // with a missing close brace.  If found, the close brace will be added and the
         // updates root will be returned.  The context node in that new tree will also
         // be returned.
-        void AddFirstMissingCloseBrace(
-            SyntaxNode root, SyntaxNode contextNode,
-            out SyntaxNode newRoot, out SyntaxNode newContextNode);
+        void AddFirstMissingCloseBrace<TContextNode>(
+            SyntaxNode root, TContextNode contextNode,
+            out SyntaxNode newRoot, out TContextNode newContextNode) where TContextNode : SyntaxNode;
 
         SyntaxNode GetNextExecutableStatement(SyntaxNode statement);
 

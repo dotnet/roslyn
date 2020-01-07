@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSerializable => false;
 
+        public sealed override bool AreLocalsZeroed => ContainingModule.AreLocalsZeroed;
+
         internal override TypeLayout Layout => default;
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
@@ -116,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _baseType;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData => null;
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable;
 
         public override ImmutableArray<Symbol> GetMembers() => Constructors.CastArray<Symbol>();
 

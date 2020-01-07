@@ -1499,6 +1499,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Live Share C#/Visual Basic Language Server Client.
+        /// </summary>
+        internal static string Live_Share_CSharp_Visual_Basic_Language_Server_Client {
+            get {
+                return ResourceManager.GetString("Live_Share_CSharp_Visual_Basic_Language_Server_Client", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location:.
         /// </summary>
         internal static string Location_colon {

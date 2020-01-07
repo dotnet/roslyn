@@ -276,10 +276,17 @@ class C
     }
 }
 ";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group"),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group"),
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group"));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,16): error CS0019: Operator '+' cannot be applied to operands of type 'method group' and 'method group'
+                //         goo += p.bar + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p.bar + far").WithArguments("+", "method group", "method group").WithLocation(11, 16),
+                // (12,16): error CS0019: Operator '+' cannot be applied to operands of type 'lambda expression' and 'method group'
+                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group").WithLocation(12, 16),
+                // (13,16): error CS0019: Operator '+' cannot be applied to operands of type 'anonymous method' and 'method group'
+                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16)
+                );
         }
 
         // Removal or concatenation for the delegate on Variance
@@ -1477,6 +1484,166 @@ class D
                 // (6,29): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         int[] arr = new int[m];    // Invalid
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "m").WithArguments("bool", "int").WithLocation(6, 29));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void ThrowExpression_ImplicitVoidConversion_Return()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        return true ? throw null : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,23): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
+                //         return true ? throw null : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 23));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void ThrowExpression_ImplicitVoidConversion_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = true ? throw null : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,29): error CS0029: Cannot implicitly convert type '<throw expression>' to 'void'
+                //         object obj = true ? throw null : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "throw null").WithArguments("<throw expression>", "void").WithLocation(6, 29));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void IntLiteral_ImplicitVoidConversion_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = true ? 0 : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
+                //         object obj = true ? 0 : M2();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                //         object obj = true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "true ? M2() : M2()").WithArguments("void", "object").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_DiscardAssignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        _ = true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_Assignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        object obj = M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,22): error CS0029: Cannot implicitly convert type 'void' to 'object'
+                //         object obj = M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("void", "object").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_DiscardAssignment()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        _ = M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS8209: A value of type 'void' may not be assigned.
+                //         _ = M2();
+                Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
+        public void VoidCall_ImplicitVoidConversion_Return()
+        {
+            string text = @"
+class C
+{
+    void M1()
+    {
+        return true ? M2() : M2();
+    }
+
+    void M2() { }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,9): error CS0127: Since 'C.M1()' returns void, a return keyword must not be followed by an object expression
+                //         return true ? M2() : M2();
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M1()").WithLocation(6, 9));
         }
 
         [Fact]
@@ -7045,14 +7212,15 @@ class MyDerived : MyClass
     }
 }
 ";
+
             CreateCompilation(source).VerifyDiagnostics(
-                // (28,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (28,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 15; // CS0191 - not in declaring class
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(28, 9),
-                // (11,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (11,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         t.TestInt = 14; // CS0191 - we can't be sure that the receiver is this
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "t.TestInt").WithLocation(11, 9),
-                // (16,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (16,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
                 //         TestInt = 19;                  // CS0191
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "TestInt").WithLocation(16, 9));
         }
@@ -12362,11 +12530,20 @@ namespace TestNamespace
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 10, Column = 23 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 11, Column = 23 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 12, Column = 22 },
-                                            new ErrorDescription { Code = (int)ErrorCode.ERR_LambdaInIsAs, Line = 13, Column = 22 }});
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b1 = (() => { }) is Del;   // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => { }) is Del").WithLocation(10, 23),
+                // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                );
         }
 
         [Fact]

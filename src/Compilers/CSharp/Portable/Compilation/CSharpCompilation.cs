@@ -2310,9 +2310,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Parallel.For(0, syntaxTrees.Length, parallelOptions,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
-                            var syntaxTree = syntaxTrees[i];
-                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
-                            builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            try
+                            {
+                                var syntaxTree = syntaxTrees[i];
+                                AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                                builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
+                            }
+                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                            {
+                                throw ExceptionUtilities.Unreachable;
+                            }
                         }));
                 }
                 else
@@ -3133,12 +3140,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                var elementType = elementTypes[i].EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
-                var annotation = elementNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : elementNullableAnnotations[i].ToInternalAnnotation();
+                ITypeSymbol typeSymbol = elementTypes[i];
+                var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
+                var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
                 typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
             }
 
-            return TupleTypeSymbol.Create(
+            return NamedTypeSymbol.CreateTuple(
                 locationOpt: null, // no location for the type declaration
                 elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
                 elementLocations: elementLocations,
@@ -3157,8 +3165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull(nameof(underlyingType));
 
-            int cardinality;
-            if (!csharpUnderlyingTuple.IsTupleCompatible(out cardinality))
+            if (!csharpUnderlyingTuple.IsTupleTypeOfCardinality(out int cardinality))
             {
                 throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
             }
@@ -3167,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckTupleElementLocations(cardinality, elementLocations);
             CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations);
 
-            var tupleType = TupleTypeSymbol.Create(
+            var tupleType = NamedTypeSymbol.CreateTuple(
                 csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
             if (!elementNullableAnnotations.IsDefault)
             {

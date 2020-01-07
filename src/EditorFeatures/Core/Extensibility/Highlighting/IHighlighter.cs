@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IHighlighter
     {
-        IEnumerable<TextSpan> GetHighlights(SyntaxNode root, int position, CancellationToken cancellationToken);
+        void AddHighlights(SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken);
     }
 }

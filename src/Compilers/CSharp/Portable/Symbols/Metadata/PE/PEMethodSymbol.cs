@@ -1265,6 +1265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
         // perf, not correctness
         internal override CSharpCompilation DeclaringCompilation => null;
 
