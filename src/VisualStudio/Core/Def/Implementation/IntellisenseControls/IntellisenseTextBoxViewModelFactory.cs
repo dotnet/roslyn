@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
           Func<IProjectionSnapshot, ITrackingSpan[]> createSpansMethod,
           string[][] rolesCollections, CancellationToken cancellationToken)
         {
-            IVsTextLines vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, contentType) as IVsTextLines;
+            var vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, contentType) as IVsTextLines;
             vsTextLines.InitializeContent(contentString, contentString.Length);
 
             var originalContextBuffer = _editorAdaptersFactoryService.GetDataBuffer(vsTextLines);
@@ -103,12 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
 
             _editorAdaptersFactoryService.SetDataBuffer(vsTextLines, projectionBuffer);
 
-            IntellisenseTextBoxViewModel[] result = new IntellisenseTextBoxViewModel[rolesCollections.Length];
-            for (int i = 0; i < rolesCollections.Length; i++)
+            var result = new IntellisenseTextBoxViewModel[rolesCollections.Length];
+            for (var i = 0; i < rolesCollections.Length; i++)
             {
-                ITextViewRoleSet roleSet = _textEditorFactoryService.CreateTextViewRoleSet(rolesCollections[i]);
+                var roleSet = _textEditorFactoryService.CreateTextViewRoleSet(rolesCollections[i]);
 
-                IVsTextView vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
+                var vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
 
                 vsTextView.Initialize(
                     vsTextLines,
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
                     s_InitViews);
 
                 // Here we need ITextViewModelProvider handling the corresponding role.
-                IWpfTextView wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
+                var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
                 wpfTextView.TextBuffer.ChangeContentType(contentType, null);
 
                 result[i] = new IntellisenseTextBoxViewModel(vsTextView, wpfTextView);
