@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             "Microsoft.NetCore.VisualBasic.Analyzers",
             "Microsoft.NetFramework.Analyzers",
             "Microsoft.NetFramework.CSharp.Analyzers",
-            "Microsoft.NetFramework.VisualBasic.Analyzers");
+            "Microsoft.NetFramework.VisualBasic.Analyzers",
+            "Text.Analyzers",
+            "Text.CSharp.Analyzers",
+            "Text.VisualBasic.Analyzers");
 
         private static readonly LocalizableString s_localizableUseLocalizableStringsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableUseLocalizableStringsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));

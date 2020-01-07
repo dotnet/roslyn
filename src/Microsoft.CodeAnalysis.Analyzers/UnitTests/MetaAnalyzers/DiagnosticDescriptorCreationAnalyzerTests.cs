@@ -1161,6 +1161,9 @@ End Class");
         [InlineData("Microsoft.NetFramework.Analyzers")]
         [InlineData("Microsoft.NetFramework.CSharp.Analyzers")]
         [InlineData("Microsoft.NetFramework.VisualBasic.Analyzers")]
+        [InlineData("Text.Analyzers")]
+        [InlineData("Text.CSharp.Analyzers")]
+        [InlineData("Text.VisualBasic.Analyzers")]
         public async Task RS1029_CADiagnosticIdOnRoslynAnalyzers_NoDiagnostic(string assemblyName)
         {
             await new VerifyCS.Test
