@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                 if (spans.Count > 0)
                 {
                     var previousToken = mod.GetPreviousToken();
-                    var lastSpan = spans[^1];
+                    var lastSpan = spans[spans.Count - 1];
                     if (lastSpan == previousToken.Span)
                     {
-                        spans[^1] = TextSpan.FromBounds(lastSpan.Start, mod.Span.End);
+                        spans[spans.Count - 1] = TextSpan.FromBounds(lastSpan.Start, mod.Span.End);
                         return true;
                     }
                 }

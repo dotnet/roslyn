@@ -150,10 +150,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 session.AddAdditionalAssets(optionAsset);
 
-                var result = await session.InvokeAsync(
+                var result = await session.Connection.InvokeAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     new object[] { argument },
-                    (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
 
                 ReportAnalyzerExceptions(project, result.Exceptions);
 
@@ -181,15 +181,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return asset;
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
             {
                 // handling of cancellation and exception
-                var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 using var reader = ObjectReader.TryGetReader(stream);
-                RoslynDebug.Assert(reader != null,
-@"We only ge a reader for data transmitted between live processes.
-This data should always be correct as we're never persisting the data between sessions.");
+
+                // We only get a reader for data transmitted between live processes.
+                // This data should always be correct as we're never persisting the data between sessions.
+                Contract.ThrowIfNull(reader);
+
                 return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, project, version, cancellationToken);
             }
 
