@@ -22,12 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     /// Run code actions handler.  Called when lightbulb invoked.
     /// Code actions must be applied from the UI thread in VS.
     /// </summary>
-    internal class RunCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
+    internal abstract class RunCodeActionsHandler : CodeActionsHandlerBase, ILspRequestHandler<LSP.ExecuteCommandParams, object, Solution>
     {
         private readonly IThreadingContext _threadingContext;
 
-        [ImportingConstructor]
-        public RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)
+        protected RunCodeActionsHandler(ICodeFixService codeFixService, ICodeRefactoringService codeRefactoringService, IThreadingContext threadingContext)
             : base(codeFixService, codeRefactoringService)
         {
             _threadingContext = threadingContext;
