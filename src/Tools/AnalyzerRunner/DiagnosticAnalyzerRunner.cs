@@ -45,12 +45,12 @@ namespace AnalyzerRunner
             }
 
             var solution = workspace.CurrentSolution;
-            var stopwatch = Stopwatch.StartNew();
+            var stopwatch = PerformanceTracker.StartNew();
 
             var analysisResult = await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
             var allDiagnostics = analysisResult.Where(pair => pair.Value != null).SelectMany(pair => pair.Value.GetAllDiagnostics()).ToImmutableArray();
 
-            Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.ElapsedMilliseconds}ms");
+            Console.WriteLine($"Found {allDiagnostics.Length} diagnostics in {stopwatch.GetSummary(preciseMemory: true)}");
             WriteTelemetry(analysisResult);
 
             if (_options.TestDocuments)

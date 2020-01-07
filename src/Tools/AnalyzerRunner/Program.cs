@@ -77,7 +77,7 @@ namespace AnalyzerRunner
                 ProfileOptimization.SetProfileRoot(options.ProfileRoot);
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            var stopwatch = PerformanceTracker.StartNew();
             var properties = new Dictionary<string, string>
             {
 #if NETCOREAPP
@@ -105,10 +105,12 @@ namespace AnalyzerRunner
                     solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
                 }
 
-                Console.WriteLine($"Loaded solution in {stopwatch.ElapsedMilliseconds}ms");
+                Console.WriteLine($"Loaded solution in {stopwatch.GetSummary(preciseMemory: true)}");
 
                 if (options.ShowStats)
                 {
+                    stopwatch = PerformanceTracker.StartNew();
+
                     List<Project> projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
 
                     Console.WriteLine("Number of projects:\t\t" + projects.Count);
@@ -119,6 +121,8 @@ namespace AnalyzerRunner
                     Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
                     Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
                     Console.WriteLine("Number of syntax trivia:\t" + statistics.NumberOfTrivia);
+
+                    Console.WriteLine($"Statistics gathered in {stopwatch.GetSummary(preciseMemory: true)}");
                 }
 
                 if (options.ShowCompilerDiagnostics)
