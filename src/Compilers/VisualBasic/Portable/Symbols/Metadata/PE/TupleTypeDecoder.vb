@@ -60,9 +60,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ' the back of the array and moves forward.
         Private _namesIndex As Integer
 
+        Private _foundErrorType As Boolean
+        Private _decodingFailed As Boolean
+
         Private Sub New(elementNames As ImmutableArray(Of String))
             _elementNames = elementNames
             _namesIndex = If(elementNames.IsDefault, 0, elementNames.Length)
+            _foundErrorType = False
+            _decodingFailed = False
         End Sub
 
         Public Shared Function DecodeTupleTypesIfApplicable(
@@ -98,19 +103,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim decoder = New TupleTypeDecoder(elementNames)
 
-            Try
-                Dim decoded = decoder.DecodeType(metadataType)
-                ' If not all of the names have been used, the metadata is bad
+            Dim decoded = decoder.DecodeType(metadataType)
+
+            If Not decoder._decodingFailed Then
                 If Not hasTupleElementNamesAttribute OrElse decoder._namesIndex = 0 Then
                     Return decoded
                 End If
+            End If
 
-            Catch ex As InvalidOperationException
-                ' Indicates that the tuple info in the attribute didn't match
-                ' the type. Bad metadata.
-            End Try
+            ' If not all of the names have been used, the metadata is bad
 
-            If metadataType.GetUseSiteErrorInfo() IsNot Nothing Then
+            If decoder._foundErrorType Then
                 Return metadataType
             End If
 
@@ -121,8 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Function DecodeType(type As TypeSymbol) As TypeSymbol
             Select Case type.Kind
                 Case SymbolKind.ErrorType
-                    Dim cardinality As Integer = 0
-                    Return If(type.IsTupleCompatible(cardinality), DecodeNamedType(DirectCast(type, NamedTypeSymbol)), type)
+
+                    _foundErrorType = True
+                    Return type
 
                 Case SymbolKind.DynamicType,
                     SymbolKind.TypeParameter,
@@ -269,7 +273,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' We've gone past the end of the names -- bad metadata
             If numberOfElements > _namesIndex Then
-                Throw New InvalidOperationException()
+                ' We'll want to continue decoding without consuming more names to see if there are any error types
+                _namesIndex = 0
+                _decodingFailed = True
+                Return Nothing
             End If
 
             ' Check to see if all the elements are null

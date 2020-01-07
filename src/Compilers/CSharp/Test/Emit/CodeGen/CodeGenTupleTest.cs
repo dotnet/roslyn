@@ -25798,9 +25798,11 @@ public class Class1
             Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
-        public void MissingTypeArgumentInBase_ValueTuple()
+        public void MissingTypeArgumentInBase_ValueTuple(bool useImageReference)
         {
             var lib_cs = @"
 public class ClassWithTwoTypeParameters<T1, T2>
@@ -25814,6 +25816,7 @@ public class SelfReferencingClassWithTuple
 ";
             var lib = CreateCompilationWithMscorlib40(lib_cs, references: s_valueTupleRefs);
             lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
 
             var source_cs = @"
 public class TriggerStackOverflowException
@@ -25824,17 +25827,60 @@ public class TriggerStackOverflowException
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { lib.EmitToImageReference() });
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { libRef });
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
         [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
-        public void MissingTypeArgumentInBase()
+        public void MissingTypeArgumentInBase_ValueTupleAndContainer(bool useImageReference)
+        {
+            var missingContainer_cs = @"
+public class MissingContainer<T>
+{
+}
+";
+            var missingContainer = CreateCompilationWithMscorlib40(missingContainer_cs, references: s_valueTupleRefs);
+            missingContainer.VerifyDiagnostics();
+            var missingContainerRef = useImageReference ? missingContainer.EmitToImageReference() : missingContainer.ToMetadataReference();
+
+            var lib_cs = @"
+public class C
+    : MissingContainer<(string A, int B)>
+{
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, missingContainerRef });
+            lib.VerifyDiagnostics();
+
+            var source_cs = @"
+public class C2
+{
+    void Method()
+    {
+        _ = new C();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: new[] { lib.EmitToImageReference() }); // missing System.ValueTuple and MissingContainer
+            comp.VerifyEmitDiagnostics();
+
+            var comp2 = CreateCompilationWithMscorlib40(source_cs, references: new[] { lib.EmitToImageReference(), missingContainerRef }); // missing System.ValueTuple
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase(bool useImageReference)
         {
             var missing_cs = @"public class Missing { }";
             var missing = CreateCompilation(missing_cs);
             missing.VerifyDiagnostics();
+            var missingRef = useImageReference ? missing.EmitToImageReference() : missing.ToMetadataReference();
 
             var lib_cs = @"
 public class ClassWithTwoTypeParameters<T1, T2>
@@ -25846,7 +25892,7 @@ public class SelfReferencingClassWithMissing
 {
 }
 ";
-            var lib = CreateCompilation(lib_cs, references: new[] { missing.EmitToImageReference() });
+            var lib = CreateCompilation(lib_cs, references: new[] { missingRef });
             lib.VerifyDiagnostics();
 
             var source_cs = @"

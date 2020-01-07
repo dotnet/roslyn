@@ -22524,13 +22524,12 @@ BC31091: Import of type 'ValueTuple(Of ,)' from assembly or module 'vt.dll' fail
             Dim classA = DirectCast(compilation.GetMember("ClassA"), NamedTypeSymbol)
             Dim iEnumerable = classA.Interfaces()(0)
 
-            Assert.Equal("System.Collections.Generic.IEnumerable(Of (alice As System.Int32, bob As System.Int32))",
+            Assert.Equal("System.Collections.Generic.IEnumerable(Of System.ValueTuple(Of System.Int32, System.Int32)[missing])",
                 iEnumerable.ToTestDisplayString())
 
             Dim tuple = iEnumerable.TypeArguments()(0)
-            Assert.Equal("(alice As System.Int32, bob As System.Int32)", tuple.ToTestDisplayString())
-            Assert.True(tuple.IsTupleType)
-            Assert.True(tuple.TupleUnderlyingType.IsErrorType())
+            Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)[missing]", tuple.ToTestDisplayString())
+            Assert.False(tuple.IsTupleType)
         End Sub
 
         <Fact>

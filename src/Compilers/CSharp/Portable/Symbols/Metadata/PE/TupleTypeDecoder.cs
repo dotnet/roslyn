@@ -64,11 +64,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Keep track of how many names we've "used" during decoding. Starts at
         // the back of the array and moves forward.
         private int _namesIndex;
+        private bool _foundErrorType;
+        private bool _decodingFailed;
 
         private TupleTypeDecoder(ImmutableArray<string> elementNames)
         {
             _elementNames = elementNames;
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
+            _decodingFailed = false;
+            _foundErrorType = false;
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -127,23 +131,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Debug.Assert((object)metadataType != null);
 
             var decoder = new TupleTypeDecoder(elementNames);
-            try
+            var decoded = decoder.DecodeType(metadataType);
+            if (!decoder._decodingFailed)
             {
-                var decoded = decoder.DecodeType(metadataType);
-                // If not all of the names have been used, the metadata is bad
-                if (!hasTupleElementNamesAttribute ||
-                    decoder._namesIndex == 0)
+                if (!hasTupleElementNamesAttribute || decoder._namesIndex == 0)
                 {
                     return decoded;
                 }
             }
-            catch (InvalidOperationException)
-            {
-                // Indicates that the tuple info in the attribute didn't match
-                // the type. Bad metadata.
-            }
 
-            if (metadataType.HasUseSiteError)
+            // If not all of the names have been used, the metadata is bad
+            if (decoder._foundErrorType)
             {
                 return metadataType;
             }
@@ -156,7 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             switch (type.Kind)
             {
-                case SymbolKind.ErrorType when type.IsTupleType:
+                case SymbolKind.ErrorType:
+                    _foundErrorType = true;
+                    return type;
+                case SymbolKind.DynamicType:
+                case SymbolKind.TypeParameter:
+                case SymbolKind.PointerType:
+                    return type;
+
                 case SymbolKind.NamedType:
                     // We may have a tuple type from a substituted type symbol,
                     // but it will be missing names from metadata, so we'll
@@ -182,12 +187,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 case SymbolKind.ArrayType:
                     return DecodeArrayType((ArrayTypeSymbol)type);
-
-                case SymbolKind.ErrorType:
-                case SymbolKind.DynamicType:
-                case SymbolKind.TypeParameter:
-                case SymbolKind.PointerType:
-                    return type;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
@@ -303,7 +302,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // We've gone past the end of the names -- bad metadata
             if (numberOfElements > _namesIndex)
             {
-                throw new InvalidOperationException();
+                // We'll want to continue decoding without consuming more names to see if there are any error types
+                _namesIndex = 0;
+                _decodingFailed = true;
+                return default;
             }
 
             // Check to see if all the elements are null
@@ -322,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (allNull)
             {
-                return default(ImmutableArray<string>);
+                return default;
             }
 
             var builder = ArrayBuilder<string>.GetInstance(numberOfElements);
