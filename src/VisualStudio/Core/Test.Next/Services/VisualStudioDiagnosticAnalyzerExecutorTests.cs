@@ -333,11 +333,9 @@ End Class";
             public override Workspace Workspace => _workspace;
         }
 
-        private class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
+        private sealed class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
         {
             private readonly CancellationTokenSource _source;
-
-            public bool Disposed = false;
 
             public InvokeThrowsCancellationConnection(CancellationTokenSource source)
             {
@@ -360,13 +358,6 @@ End Class";
             public override Task<T> InvokeAsync<T>(
                 string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
-
-            protected override void Dispose(bool disposing)
-            {
-                base.Dispose(disposing);
-
-                Disposed = true;
-            }
         }
     }
 }
