@@ -4,6 +4,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
 {
@@ -32,5 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
             => isVerbatim
                 ? text.Substring("@'".Length, text.Length - "@''".Length)
                 : text.Substring("'".Length, text.Length - "''".Length);
+
+        protected override bool IsConstMemberDeclaration(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        {
+            var declaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
+            if (declaration is null)
+            {
+                return false;
+            }
+
+            return syntaxFacts.GetModifiers(declaration).Contains(s => s.IsKind(SyntaxKind.ConstKeyword));
+        }
     }
 }

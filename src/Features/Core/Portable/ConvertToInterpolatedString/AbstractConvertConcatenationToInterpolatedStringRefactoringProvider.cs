@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
+        protected abstract bool IsConstMemberDeclaration(SyntaxNode node, ISyntaxFactsService syntaxFacts);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -36,6 +39,12 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 .LastOrDefault();
 
             if (top == null)
+            {
+                return;
+            }
+
+            // if there is a const keyword, the refactoring shouldn't show as interpolated string is not const string
+            if (IsConstMemberDeclaration(top, syntaxFacts))
             {
                 return;
             }

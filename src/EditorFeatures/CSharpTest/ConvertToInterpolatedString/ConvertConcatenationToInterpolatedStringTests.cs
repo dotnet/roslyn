@@ -875,5 +875,17 @@ public class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestConcatenationWithConstMember()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    const string Hello = ""Hello"";
+    const string World = ""World"";
+    const string Message = Hello + "" "" + [||]World;
+}");
+        }
     }
 }

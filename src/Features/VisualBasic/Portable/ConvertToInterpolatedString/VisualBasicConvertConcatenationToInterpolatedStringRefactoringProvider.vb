@@ -3,6 +3,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
@@ -28,6 +29,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
             Else
                 Return text.Substring("'".Length, text.Length - "''".Length)
             End If
+        End Function
+
+        Protected Overrides Function IsConstMemberDeclaration(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As Boolean
+            Dim declaration = node.FirstAncestorOrSelf(Of DeclarationStatementSyntax)()
+
+            If (declaration Is Nothing) Then
+                Return False
+            End If
+
+            Return syntaxFacts.GetModifiers(declaration).Contains(Function(s) s.IsKind(SyntaxKind.ConstKeyword))
         End Function
     End Class
 End Namespace
