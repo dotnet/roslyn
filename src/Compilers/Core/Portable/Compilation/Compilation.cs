@@ -3000,7 +3000,7 @@ namespace Microsoft.CodeAnalysis
             MarkImportDirectiveAsUsed(node.SyntaxTree, node.Span.Start);
         }
 
-        internal void MarkImportDirectiveAsUsed(SyntaxTree syntaxTree, int position)
+        internal void MarkImportDirectiveAsUsed(SyntaxTree? syntaxTree, int position)
         {
             // Optimization: Don't initialize TreeToUsedImportDirectivesMap in submissions.
             if (!IsSubmission && syntaxTree != null)

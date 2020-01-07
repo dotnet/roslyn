@@ -8834,14 +8834,14 @@ struct B
             compVerifier.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/31269")]
+        [Fact]
         [WorkItem(16195, "https://github.com/dotnet/roslyn/issues/31269")]
         public void TestIgnoreDynamicVsObjectAndTupleElementNames_01()
         {
             var source =
 @"public class Generic<T>
 {
-    public enum Color { Red, Blue }
+    public enum Color { Red=1, Blue=2 }
 }
 class Program
 {
@@ -8866,12 +8866,12 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (18,13): error CS8120: The switch case has already been handled by a previous case.
+                // (18,13): error CS0152: The switch statement contains multiple cases with the label value '1'
                 //             case Generic<dynamic>.Color.Red: // error: duplicate case
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "case Generic<dynamic>.Color.Red:").WithLocation(18, 13),
-                // (19,13): error CS8120: The switch case has already been handled by a previous case.
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case Generic<dynamic>.Color.Red:").WithArguments("1").WithLocation(18, 13),
+                // (19,13): error CS0152: The switch statement contains multiple cases with the label value '2'
                 //             case Generic<(int z, int w)>.Color.Blue: // error: duplicate case
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "case Generic<(int z, int w)>.Color.Blue:").WithLocation(19, 13)
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case Generic<(int z, int w)>.Color.Blue:").WithArguments("2").WithLocation(19, 13)
                 );
         }
 
@@ -8932,62 +8932,60 @@ None
 Generic<object>.Color.Red");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size      115 (0x73)
+  // Code size      108 (0x6c)
   .maxstack  2
   .locals init (Generic<long>.Color V_0, //c
                 object V_1,
                 Generic<object>.Color V_2,
-                Generic<dynamic>.Color V_3,
-                object V_4,
-                string V_5)
+                object V_3,
+                string V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_4
-  IL_0004:  ldloc.s    V_4
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  isinst     ""Generic<long>.Color""
-  IL_000d:  brfalse.s  IL_0018
-  IL_000f:  ldloc.1
-  IL_0010:  unbox.any  ""Generic<long>.Color""
-  IL_0015:  stloc.0
-  IL_0016:  br.s       IL_0038
-  IL_0018:  ldloc.1
-  IL_0019:  isinst     ""Generic<object>.Color""
-  IL_001e:  brfalse.s  IL_0067
-  IL_0020:  ldloc.1
-  IL_0021:  unbox.any  ""Generic<object>.Color""
-  IL_0026:  stloc.2
-  IL_0027:  ldloc.2
-  IL_0028:  ldc.i4.5
-  IL_0029:  beq.s      IL_0055
-  IL_002b:  ldloc.1
-  IL_002c:  unbox.any  ""Generic<dynamic>.Color""
-  IL_0031:  stloc.3
-  IL_0032:  ldloc.3
-  IL_0033:  ldc.i4.4
-  IL_0034:  beq.s      IL_005e
-  IL_0036:  br.s       IL_0067
-  IL_0038:  br.s       IL_003a
-  IL_003a:  ldstr      ""Generic<long>.Color.""
-  IL_003f:  ldloca.s   V_0
-  IL_0041:  constrained. ""Generic<long>.Color""
-  IL_0047:  callvirt   ""string object.ToString()""
-  IL_004c:  call       ""string string.Concat(string, string)""
-  IL_0051:  stloc.s    V_5
-  IL_0053:  br.s       IL_0070
-  IL_0055:  ldstr      ""Generic<object>.Color.Red""
-  IL_005a:  stloc.s    V_5
-  IL_005c:  br.s       IL_0070
-  IL_005e:  ldstr      ""Generic<dynamic>.Color.Blue""
-  IL_0063:  stloc.s    V_5
-  IL_0065:  br.s       IL_0070
-  IL_0067:  ldstr      ""None""
-  IL_006c:  stloc.s    V_5
-  IL_006e:  br.s       IL_0070
-  IL_0070:  ldloc.s    V_5
-  IL_0072:  ret
-}"
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.1
+  IL_0006:  isinst     ""Generic<long>.Color""
+  IL_000b:  brfalse.s  IL_0016
+  IL_000d:  ldloc.1
+  IL_000e:  unbox.any  ""Generic<long>.Color""
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0031
+  IL_0016:  ldloc.1
+  IL_0017:  isinst     ""Generic<object>.Color""
+  IL_001c:  brfalse.s  IL_0060
+  IL_001e:  ldloc.1
+  IL_001f:  unbox.any  ""Generic<object>.Color""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.4
+  IL_0027:  beq.s      IL_0057
+  IL_0029:  br.s       IL_002b
+  IL_002b:  ldloc.2
+  IL_002c:  ldc.i4.5
+  IL_002d:  beq.s      IL_004e
+  IL_002f:  br.s       IL_0060
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ldstr      ""Generic<long>.Color.""
+  IL_0038:  ldloca.s   V_0
+  IL_003a:  constrained. ""Generic<long>.Color""
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  call       ""string string.Concat(string, string)""
+  IL_004a:  stloc.s    V_4
+  IL_004c:  br.s       IL_0069
+  IL_004e:  ldstr      ""Generic<object>.Color.Red""
+  IL_0053:  stloc.s    V_4
+  IL_0055:  br.s       IL_0069
+  IL_0057:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_005c:  stloc.s    V_4
+  IL_005e:  br.s       IL_0069
+  IL_0060:  ldstr      ""None""
+  IL_0065:  stloc.s    V_4
+  IL_0067:  br.s       IL_0069
+  IL_0069:  ldloc.s    V_4
+  IL_006b:  ret
+}
+"
             );
         }
 
@@ -9359,7 +9357,7 @@ class Program
             var compVerifier = CompileAndVerify(compilation, expectedOutput: "abc");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size       86 (0x56)
+  // Code size       79 (0x4f)
   .maxstack  1
   .locals init (Generic<object, System.ValueTuple<int, int>> V_0, //g
                 Generic<dynamic, System.ValueTuple<int, int>> V_1, //g
@@ -9374,38 +9372,37 @@ class Program
   IL_0006:  isinst     ""Generic<object, System.ValueTuple<int, int>>""
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
-  IL_000d:  brtrue.s   IL_001a
-  IL_000f:  br.s       IL_0031
-  IL_0011:  ldloc.2
-  IL_0012:  castclass  ""Generic<dynamic, System.ValueTuple<int, int>>""
-  IL_0017:  stloc.1
-  IL_0018:  br.s       IL_0043
-  IL_001a:  ldarg.1
-  IL_001b:  brtrue.s   IL_001f
-  IL_001d:  br.s       IL_002c
-  IL_001f:  ldstr      ""a""
-  IL_0024:  call       ""void System.Console.Write(string)""
-  IL_0029:  nop
-  IL_002a:  br.s       IL_0055
-  IL_002c:  ldarg.2
-  IL_002d:  brtrue.s   IL_0036
-  IL_002f:  br.s       IL_0011
-  IL_0031:  ldarg.2
-  IL_0032:  brtrue.s   IL_0036
-  IL_0034:  br.s       IL_0055
-  IL_0036:  ldstr      ""b""
-  IL_003b:  call       ""void System.Console.Write(string)""
-  IL_0040:  nop
-  IL_0041:  br.s       IL_0055
-  IL_0043:  ldarg.3
-  IL_0044:  brtrue.s   IL_0048
-  IL_0046:  br.s       IL_0055
-  IL_0048:  ldstr      ""c""
-  IL_004d:  call       ""void System.Console.Write(string)""
-  IL_0052:  nop
-  IL_0053:  br.s       IL_0055
-  IL_0055:  ret
-}"
+  IL_000d:  brtrue.s   IL_0011
+  IL_000f:  br.s       IL_0028
+  IL_0011:  ldarg.1
+  IL_0012:  brtrue.s   IL_0016
+  IL_0014:  br.s       IL_0023
+  IL_0016:  ldstr      ""a""
+  IL_001b:  call       ""void System.Console.Write(string)""
+  IL_0020:  nop
+  IL_0021:  br.s       IL_004e
+  IL_0023:  ldarg.2
+  IL_0024:  brtrue.s   IL_002d
+  IL_0026:  br.s       IL_003a
+  IL_0028:  ldarg.2
+  IL_0029:  brtrue.s   IL_002d
+  IL_002b:  br.s       IL_004e
+  IL_002d:  ldstr      ""b""
+  IL_0032:  call       ""void System.Console.Write(string)""
+  IL_0037:  nop
+  IL_0038:  br.s       IL_004e
+  IL_003a:  ldloc.0
+  IL_003b:  stloc.1
+  IL_003c:  ldarg.3
+  IL_003d:  brtrue.s   IL_0041
+  IL_003f:  br.s       IL_004e
+  IL_0041:  ldstr      ""c""
+  IL_0046:  call       ""void System.Console.Write(string)""
+  IL_004b:  nop
+  IL_004c:  br.s       IL_004e
+  IL_004e:  ret
+}
+"
             );
         }
 
