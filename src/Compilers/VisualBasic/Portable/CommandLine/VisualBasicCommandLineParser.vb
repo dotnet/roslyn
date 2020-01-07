@@ -1703,8 +1703,11 @@ lVbRuntimePlus:
             For Each importNamespace In importsArray
                 Dim importDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
                 Dim import = GlobalImport.Parse(importNamespace, importDiagnostics)
+                Debug.Assert(import IsNot Nothing OrElse Not importDiagnostics.IsEmpty)
                 errors.AddRange(importDiagnostics)
-                globalImports.Add(import)
+                If import IsNot Nothing Then
+                    globalImports.Add(import)
+                End If
             Next
         End Sub
 
