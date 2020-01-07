@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom)
             End If
 
-            Using reader = ObjectReader.TryGetReader(stream, cancellationToken:=cancellationToken)
+            Using reader = ObjectReader.TryGetReader(stream, leaveOpen:=True, cancellationToken:=cancellationToken)
                 If reader Is Nothing Then
                     Throw New ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, NameOf(stream))
                 End If

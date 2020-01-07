@@ -1239,7 +1239,11 @@ recurse:
             return IsEquivalentToCore(node, topLevel);
         }
 
-        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Serializes the node to the given <paramref name="stream"/>.
+        /// Leaves the <paramref name="stream"/> open for further writes.
+        /// </summary>
+        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {
@@ -1251,10 +1255,8 @@ recurse:
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-            {
-                writer.WriteValue(this.Green);
-            }
+            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+            writer.WriteValue(Green);
         }
 
         #region Core Methods

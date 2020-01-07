@@ -41,8 +41,8 @@ namespace Roslyn.Utilities
         ///
         /// These are not readonly because they're structs and we mutate them.
         /// </summary>
-        private ReaderReferenceMap<object> _objectReferenceMap;
-        private ReaderReferenceMap<string> _stringReferenceMap;
+        private readonly ReaderReferenceMap<object> _objectReferenceMap;
+        private readonly ReaderReferenceMap<string> _stringReferenceMap;
 
         /// <summary>
         /// Copy of the global binder data that maps from Types to the appropriate reading-function
@@ -58,16 +58,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectReader"/>.
         /// </summary>
         /// <param name="stream">The stream to read objects from.</param>
+        /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
         /// <param name="cancellationToken"></param>
         private ObjectReader(
             Stream stream,
+            bool leaveOpen,
             CancellationToken cancellationToken)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _reader = new BinaryReader(stream, Encoding.UTF8);
+            _reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen);
             _objectReferenceMap = ReaderReferenceMap<object>.Create();
             _stringReferenceMap = ReaderReferenceMap<string>.Create();
 
@@ -85,6 +87,7 @@ namespace Roslyn.Utilities
         /// </summary>
         public static ObjectReader TryGetReader(
             Stream stream,
+            bool leaveOpen = false,
             CancellationToken cancellationToken = default)
         {
             if (stream == null)
@@ -98,7 +101,7 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return new ObjectReader(stream, cancellationToken);
+            return new ObjectReader(stream, leaveOpen, cancellationToken);
         }
 
         public void Dispose()

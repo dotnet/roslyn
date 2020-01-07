@@ -25,21 +25,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
-                using (var reader = ObjectReader.TryGetReader(stream))
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
+
+                if (reader != null)
                 {
-                    if (reader != null)
+                    var format = reader.ReadString();
+                    if (string.Equals(format, FormatVersion))
                     {
-                        var format = reader.ReadString();
-                        if (string.Equals(format, FormatVersion))
-                        {
-                            var textVersion = VersionStamp.ReadFrom(reader);
-                            var dataVersion = VersionStamp.ReadFrom(reader);
+                        var textVersion = VersionStamp.ReadFrom(reader);
+                        var dataVersion = VersionStamp.ReadFrom(reader);
 
-                            using var listDisposer = ArrayBuilder<TodoItem>.GetInstance(out var list);
-                            AppendItems(reader, value, list, cancellationToken);
+                        using var listDisposer = ArrayBuilder<TodoItem>.GetInstance(out var list);
+                        AppendItems(reader, value, list, cancellationToken);
 
-                            return new Data(textVersion, dataVersion, list.ToImmutable());
-                        }
+                        return new Data(textVersion, dataVersion, list.ToImmutable());
                     }
                 }
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
             protected override void WriteTo(Stream stream, Data data, CancellationToken cancellationToken)
             {
-                using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
+                using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken: cancellationToken);
 
                 writer.WriteString(FormatVersion);
                 data.TextVersion.WriteTo(writer);
