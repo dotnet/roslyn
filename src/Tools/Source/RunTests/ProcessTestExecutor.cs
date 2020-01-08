@@ -98,7 +98,7 @@ namespace RunTests
                 var environmentVariables = new Dictionary<string, string>();
                 Options.ProcDumpInfo?.WriteEnvironmentVariables(environmentVariables);
 
-                if (retry)
+                if (retry && File.Exists(resultsFilePath))
                 {
                     // Copy the results file path, since the new xunit run will overwrite it
                     var backupResultsFilePath = Path.ChangeExtension(resultsFilePath, ".old");

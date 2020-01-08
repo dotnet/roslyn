@@ -92,6 +92,11 @@
         <target state="translated">改行設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">using の整理</target>
@@ -1845,11 +1850,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">{0}' ステートメントに波かっこを追加します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">オプションはワークスペースに由来するものではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">
