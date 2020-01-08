@@ -145,7 +145,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
         /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return/initialization statements.</returns>
         /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
-        public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>? BatchGetOrComputeHazardousUsages(
+        public static PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? BatchGetOrComputeHazardousUsages(
             Compilation compilation,
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
             AnalyzerOptions analyzerOptions,
@@ -181,7 +181,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <param name="pessimisticAnalysis">Whether to be pessimistic.</param>
         /// <returns>Dictionary of <see cref="Location"/> and <see cref="IMethodSymbol"/> pairs mapping to the kind of hazardous usage (Flagged or MaybeFlagged).  The method in the key is null for return/initialization statements.</returns>
         /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
-        public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>? BatchGetOrComputeHazardousUsages(
+        public static PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? BatchGetOrComputeHazardousUsages(
             Compilation compilation,
             IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
             AnalyzerOptions analyzerOptions,
@@ -192,7 +192,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = false)
         {
-            PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>? allResults = null;
+            PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? allResults = null;
             foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
                 var success = Operation.TryGetEnclosingControlFlowGraph(out ControlFlowGraph? enclosingControlFlowGraph);
@@ -259,10 +259,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                 if (allResults == null)
                 {
-                    allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
+                    allResults = PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>.GetInstance();
                 }
 
-                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
+                foreach (KeyValuePair<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> kvp
                     in propertySetAnalysisResult.HazardousUsages)
                 {
                     if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))

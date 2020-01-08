@@ -31,5 +31,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string ConfigureGeneratedCodeAnalysisRuleId = "RS1025";
         public const string EnableConcurrentExecutionRuleId = "RS1026";
         public const string TypeIsNotDiagnosticAnalyzerRuleId = "RS1027";
+        public const string ProvideCustomTagsInDescriptorRuleId = "RS1028";
+        public const string DoNotUseReservedDiagnosticIdRuleId = "RS1029";
     }
 }

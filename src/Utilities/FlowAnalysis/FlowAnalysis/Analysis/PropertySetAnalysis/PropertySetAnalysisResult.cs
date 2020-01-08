@@ -14,7 +14,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
     {
         public PropertySetAnalysisResult(
             DataFlowAnalysisResult<PropertySetBlockAnalysisResult, PropertySetAbstractValue> propertySetAnalysisResult,
-            ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> hazardousUsages,
+            ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> hazardousUsages,
             ImmutableHashSet<IMethodSymbol> visitedLocalFunctions,
             ImmutableHashSet<IFlowAnonymousFunctionOperation> visitedLambdas)
             : base(propertySetAnalysisResult)
@@ -24,7 +24,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             this.VisitedLambdas = visitedLambdas;
         }
 
-        public ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> HazardousUsages { get; }
+        // Method == null => return / initialization
+        public ImmutableDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult> HazardousUsages { get; }
 
         public ImmutableHashSet<IMethodSymbol> VisitedLocalFunctions { get; }
 

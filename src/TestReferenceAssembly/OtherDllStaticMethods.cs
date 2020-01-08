@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// TODO(dotpaul): Enable nullable analysis.
-#nullable disable
-
 #pragma warning disable CA1801 // Remove unused parameter
 #pragma warning disable IDE0060 // Remove unused parameter
 
@@ -23,12 +20,14 @@ namespace OtherDll
     /// </remarks>
     public static class OtherDllStaticMethods
     {
-        public static T ReturnsInput<T>(T input)
+        public static T? ReturnsInput<T>(T? input)
+            where T : class
         {
             return input;
         }
 
-        public static T ReturnsDefault<T>(T input)
+        public static T? ReturnsDefault<T>(T? input)
+            where T : class
         {
             return default;
         }
@@ -42,12 +41,14 @@ namespace OtherDll
             return Encoding.ASCII.GetString(bytes);
         }
 
-        public static void SetsOutputToInput<T>(T input, out T output)
+        public static void SetsOutputToInput<T>(T? input, out T? output)
+            where T : class
         {
             output = input;
         }
 
-        public static void SetsOutputToDefault<T>(T input, out T output)
+        public static void SetsOutputToDefault<T>(T? input, out T? output)
+            where T : class
         {
             output = default;
         }
@@ -57,12 +58,14 @@ namespace OtherDll
             output = ReturnsRandom(input);
         }
 
-        public static void SetsReferenceToInput<T>(T input, ref T output)
+        public static void SetsReferenceToInput<T>(T? input, ref T? output)
+            where T : class
         {
             output = input;
         }
 
-        public static void SetsReferenceToDefault<T>(T input, ref T output)
+        public static void SetsReferenceToDefault<T>(T? input, ref T? output)
+            where T : class
         {
             output = default;
         }

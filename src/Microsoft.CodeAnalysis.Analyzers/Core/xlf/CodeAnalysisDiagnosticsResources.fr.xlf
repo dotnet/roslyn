@@ -52,6 +52,21 @@
         <target state="translated">Configurer l'analyse du code générée</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID.</source>
+        <target state="new">'{0}' is a reserved diagnostic ID.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs.</source>
+        <target state="new">Do not use reserved diagnostic IDs.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
         <source>Enable concurrent execution</source>
         <target state="translated">Activer l'exécution simultanée</target>
@@ -135,6 +150,21 @@
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
         <target state="translated">Vous devez spécifier au moins un genre de syntaxe, de symbole ou d'opération au moment d'inscrire une action d'analyseur de syntaxe, de symbole ou d'opération. Sinon, l'action inscrite n'est jamais appelée durant l'analyse.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="new">The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
+        <target state="new">Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
+        <target state="new">Provide non-null 'customTags' value to diagnostic descriptor constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">

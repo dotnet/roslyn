@@ -73,8 +73,7 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
 }
 ";
         private async Task TestCSharpCoreAsync(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic,
-            bool withCustomCodeActions = false, CompilerDiagnostics compilerDiagnostics = CompilerDiagnostics.Errors,
-            params DiagnosticResult[] expected)
+            bool withCustomCodeActions = false, params DiagnosticResult[] expected)
         {
             var fixAllProviderString = @"public override FixAllProvider GetFixAllProvider()
     {
@@ -90,11 +89,11 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
-            await VerifyCS.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, compilerDiagnostics, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
             expected = new DiagnosticResult[] { missingGetFixAllProviderOverrideDiagnostic };
-            await VerifyCS.VerifyAnalyzerAsync(source + sourceSuffix, compilerDiagnostics, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source + sourceSuffix, expected);
         }
 
         [Fact]
@@ -128,7 +127,7 @@ class C1 : CodeFixProvider
         var codeAction2_1 = CodeAction.Create(""Title2_1"", _ => Task.FromResult(context.Document), null);
         var codeAction2_2 = CodeAction.Create(createChangedDocument: _ => Task.FromResult(context.Document), equivalenceKey: null, title: ""Title2_2"");
         var codeAction2_3 = CodeAction.Create(""Title2_3"", _ => Task.FromResult(context.Document), equivalenceKey: null);
-        
+
         return null;
     }
 ";
@@ -177,8 +176,8 @@ class C1 : CodeFixProvider
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         // Overload resolution failure cases.
-        var codeAction1_1 = CodeAction.Create(""Title1_1"");
-        var codeAction1_2 = CodeAction.Create(createChangedDocument: _ => Task.FromResult(context.Document), equivalenceKey: null);
+        var codeAction1_1 = CodeAction.{|CS1501:Create|}(""Title1_1"");
+        var codeAction1_2 = CodeAction.{|CS7036:Create|}(createChangedDocument: _ => Task.FromResult(context.Document), equivalenceKey: null);
 
         // Correct non-null arguments
         var equivalenceKey = ""equivalenceKey"";
@@ -190,7 +189,7 @@ class C1 : CodeFixProvider
         string nullKey = null;
         var codeAction3_1 = CodeAction.Create(""Title3_1"", _ => Task.FromResult(context.Document), nullKey);
         var codeAction3_2 = CodeAction.Create(""Title3_1"", _ => Task.FromResult(context.Document), GetKey());
-        
+
         context.RegisterCodeFix(codeAction1_1, context.Diagnostics);
         context.RegisterCodeFix(codeAction1_2, context.Diagnostics);
 
@@ -213,7 +212,7 @@ class C1 : CodeFixProvider
             // Test0.cs(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
 
-            await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, compilerDiagnostics: CompilerDiagnostics.None);
+            await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
         }
 
         [Fact]
@@ -251,7 +250,7 @@ class C1 : CodeFixProvider
             // Test0.cs(12,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetCSharpOverrideGetFixAllProviderExpectedDiagnostic(12, 7, "C1");
 
-            await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, compilerDiagnostics: CompilerDiagnostics.None);
+            await TestCSharpCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
         }
 
         [Fact]
@@ -425,9 +424,8 @@ Public Class MyDerivedCodeActionWithEquivalenceKey
 	Inherits MyAbstractCodeActionWithEquivalenceKey
 End Class
 ";
-        private async Task TestBasicCore(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic,
-            bool withCustomCodeActions = false, CompilerDiagnostics compilerDiagnostics = CompilerDiagnostics.Errors,
-            params DiagnosticResult[] expected)
+        private async Task TestBasicCoreAsync(string source, DiagnosticResult missingGetFixAllProviderOverrideDiagnostic,
+            bool withCustomCodeActions = false, params DiagnosticResult[] expected)
         {
             var fixAllProviderString = @"Public Overrides Function GetFixAllProvider() As FixAllProvider
 	Return WellKnownFixAllProviders.BatchFixer
@@ -444,11 +442,11 @@ End Class
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
-            await VerifyVB.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, compilerDiagnostics, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source + fixAllProviderString + sourceSuffix, expected);
 
             // Verify RS1016 (OverrideGetFixAllProviderRule) diagnostic for fixer that does not support FixAllProvider.
             expected = new DiagnosticResult[] { missingGetFixAllProviderOverrideDiagnostic };
-            await VerifyVB.VerifyAnalyzerAsync(source + sourceSuffix, compilerDiagnostics, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source + sourceSuffix, expected);
         }
 
         [Fact]
@@ -503,7 +501,7 @@ Class C1
             // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
 
-            await TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
+            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
         [Fact]
@@ -526,8 +524,8 @@ Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Overload resolution failure cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"")
-		Dim codeAction1_2 = CodeAction.Create(createChangedDocument := Function(x) Task.FromResult(context.Document), equivalenceKey := Nothing)
+		Dim codeAction1_1 = CodeAction.{|BC30516:Create|}(""Title1_1"")
+		Dim codeAction1_2 = CodeAction.{|BC30518:Create|}(createChangedDocument := Function(x) Task.FromResult(context.Document), equivalenceKey := Nothing)
 
 		' Correct non-null arguments
 		Dim equivalenceKey = ""equivalenceKey""
@@ -560,7 +558,7 @@ Class C1
             // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
 
-            await TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, compilerDiagnostics: CompilerDiagnostics.None);
+            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
         }
 
         [Fact]
@@ -598,7 +596,7 @@ Class C1
             // Test0.vb(12,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(12, 7, "C1");
 
-            await TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, compilerDiagnostics: CompilerDiagnostics.None);
+            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic);
         }
 
         [Fact]
@@ -633,7 +631,7 @@ MustInherit Class C1
 	End Function
 ";
             var expected = new DiagnosticResult[]
-            {                
+            {
                 // Test0.vb(21,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetBasicCreateCodeActionWithEquivalenceKeyExpectedDiagnostic(21, 23)
             };
@@ -641,7 +639,7 @@ MustInherit Class C1
             // Test0.vb(12,19): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(12, 19, "C1");
 
-            await TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
+            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, expected: expected);
         }
 
         [Fact]
@@ -677,7 +675,7 @@ Class C1
             // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
 
-            await TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true, expected: expected);
+            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true, expected: expected);
         }
 
         [Fact]
@@ -715,7 +713,7 @@ Class C1
             // Test0.vb(8,7): warning RS1016: 'C1' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.
             var missingGetFixAllProviderOverrideDiagnostic = GetBasicOverrideGetFixAllProviderExpectedDiagnostic(8, 7, "C1");
 
-            await TestBasicCore(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
+            await TestBasicCoreAsync(source, missingGetFixAllProviderOverrideDiagnostic, withCustomCodeActions: true);
         }
 
         #endregion
