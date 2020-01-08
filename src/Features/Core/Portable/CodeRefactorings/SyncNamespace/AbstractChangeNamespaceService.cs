@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
             var memberDecls = GetMemberDeclarationsInContainer(container);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
             foreach (var memberDecl in memberDecls)
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarations = GetMemberDeclarationsInContainer(container);
             var builder = ArrayBuilder<ISymbol>.GetInstance();
 
