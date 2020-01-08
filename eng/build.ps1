@@ -49,8 +49,7 @@ param (
   [string]$officialSkipApplyOptimizationData = "",
   [string]$officialSkipTests = "",
   [string]$officialSourceBranchName = "",
-  [string]$officialIbcSourceBranchName = "",
-  [string]$officialIbcDropId = "",
+  [string]$officialIbcDrop = "",
 
   # Test actions
   [switch]$test32,
@@ -108,10 +107,8 @@ function Print-Usage() {
   Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
   Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
   Write-Host "  -officialSourceBranchName <string>          The source branch name"
-  Write-Host "  -officialIbcDropId <string>                 IBC data drop to use (e.g. '20190210.1/935479/1')."
+  Write-Host "  -officialIbcDrop <string>                   IBC data drop to use (e.g. 'ProfilingOutputs/DevDiv/VS/..')."
   Write-Host "                                              'default' for the most recent available for the branch."
-  Write-Host "  -officialIbcSourceBranchName <string>       IBC source branch (e.g. 'master-vs-deps')"
-  Write-Host "                                              'default' to select branch based on eng/config/PublishData.json."
   Write-Host ""
   Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -146,8 +143,6 @@ function Process-Arguments() {
   OfficialBuildOnly "officialSkipTests"
   OfficialBuildOnly "officialSkipApplyOptimizationData"
   OfficialBuildOnly "officialSourceBranchName"
-  OfficialBuildOnly "officialIbcDropId"
-  OfficialBuildOnly "officialIbcSourceBranchName"
 
   if ($officialBuildId) {
     $script:useGlobalNuGetCache = $false
@@ -220,8 +215,7 @@ function BuildSolution() {
 
   $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
   
-  $ibcSourceBranchName = GetIbcSourceBranchName
-  $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
+  $ibcDropName = GetIbcDropName
 
   # Do not set this property to true explicitly, since that would override values set in projects.
   $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
@@ -257,10 +251,9 @@ function BuildSolution() {
       /p:BootstrapBuildPath=$bootstrapDir `
       /p:TestTargetFrameworks=$testTargetFrameworks `
       /p:TreatWarningsAsErrors=true `
-      /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
-      /p:VisualStudioIbcDropId=$ibcDropId `
       /p:EnableNgenOptimization=$applyOptimizationData `
       /p:IbcOptimizationDataDir=$ibcDir `
+      /p:VisualStudioIbcDrop=$ibcDropName `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
       $buildFromSource `
@@ -280,31 +273,40 @@ function GetIbcSourceBranchName() {
   }
 
   function calculate {
-    $fallback = "master-vs-deps"
-
-    if (!$officialIbcSourceBranchName) {
-      return $fallback
-    }  
-
-    if ($officialIbcSourceBranchName -ne "default") {
-      return $officialIbcSourceBranchName
-    }
+    $fallback = "master"
 
     $branchData = GetBranchPublishData $officialSourceBranchName
     if ($branchData -eq $null) {
       Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
-      Write-Host "Override by setting IbcSourceBranchName build variable." -ForegroundColor Yellow
+      Write-Host "Override by setting IbcDrop build variable." -ForegroundColor Yellow
       return $fallback
     }
 
-    if (Get-Member -InputObject $branchData -Name "ibcSourceBranch") {
-      return $branchData.ibcSourceBranch 
-    }
-
-    return $officialSourceBranchName
+    return $branchData.vsBranch
   }
 
   return $global:_IbcSourceBranchName = calculate
+}
+
+function GetIbcDropName() {
+
+    if ($officialIbcDrop -and $officialIbcDrop -ne "default"){
+        return $officialIbcDrop
+    }
+
+    # Don't try and get the ibc drop if we're not in an official build as it won't be used anyway
+    if (!$officialBuildId) {
+        return ""
+    }
+
+    # Bring in the ibc tools
+    $packagePath = Join-Path (Get-PackageDir "Microsoft.DevDiv.Optimization.Data.PowerShell") "lib\net461"
+    Import-Module (Join-Path $packagePath "Optimization.Data.PowerShell.dll")
+    
+    # Find the matching drop
+    $branch = GetIbcSourceBranchName
+    $drop = Find-OptimizationInputsStoreForBranch -ProjectName "DevDiv" -RepositoryName "VS" -BranchName $branch
+    return $drop.Name
 }
 
 # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
