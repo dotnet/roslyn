@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
             var actions = refactoring == null
                 ? ImmutableArray<CodeAction>.Empty
-                : refactoring.CodeActions.Select(n => n.action).AsImmutable();
+                : refactoring.CodeActions.Select(n => n.action).ToImmutableArray();
             actions = MassageActions(actions);
             return (actions, actions.IsDefaultOrEmpty ? null : actions[parameters.index]);
         }

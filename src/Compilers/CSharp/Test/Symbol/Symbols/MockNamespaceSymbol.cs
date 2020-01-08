@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return _children.AsImmutable();
+            return _children.ToImmutableArray();
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)

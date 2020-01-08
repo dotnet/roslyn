@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.CodeActions
                 operations.AddLast(new RoslynRemoteCodeActionOperation(_codeActionCommand, _lspClient));
             }
 
-            return operations.AsImmutable();
+            return operations.ToImmutableArray();
         }
 
         private async Task<Document> ApplyEditsAsync(Document document, LSP.TextEdit[] textEdits, CancellationToken cancellationToken)

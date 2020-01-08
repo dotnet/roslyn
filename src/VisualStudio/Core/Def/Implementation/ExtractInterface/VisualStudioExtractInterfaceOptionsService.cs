@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
 
                 return new ExtractInterfaceOptionsResult(
                     isCancelled: false,
-                    includedMembers: includedMembers.AsImmutable(),
+                    includedMembers: includedMembers.ToImmutableArray(),
                     interfaceName: viewModel.InterfaceName.Trim(),
                     fileName: viewModel.FileName.Trim(),
                     location: GetLocation(viewModel.Destination));

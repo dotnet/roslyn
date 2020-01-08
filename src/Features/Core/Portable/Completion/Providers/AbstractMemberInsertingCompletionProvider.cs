@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var members = root.GetAnnotatedNodesAndTokens(_annotation)
-                              .AsImmutable()
+                              .ToImmutableArray()
                               .Select(m => m.AsNode());
 
             root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepUnbalancedDirectives);

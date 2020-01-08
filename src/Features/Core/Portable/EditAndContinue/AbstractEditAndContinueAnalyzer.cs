@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count > 0)
                 {
                     DocumentAnalysisResults.Log.Write("{0} syntactic rude edits, first: '{1}'", diagnostics.Count, document.FilePath);
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
+                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.ToImmutableArray());
                 }
 
                 // Disallow addition of a new file.
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (diagnostics.Count > 0)
                 {
                     DocumentAnalysisResults.Log.Write("{0} trivia rude edits, first: {1}@{2}", diagnostics.Count, document.FilePath, diagnostics.First().Span.Start);
-                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
+                    return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.ToImmutableArray());
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -568,16 +568,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (diagnostics.Count > 0)
                     {
                         DocumentAnalysisResults.Log.Write("{0}@{1}: semantic rude edit ({2} total)", document.FilePath, diagnostics.First().Span.Start, diagnostics.Count);
-                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.AsImmutable());
+                        return DocumentAnalysisResults.Errors(newActiveStatements.AsImmutable(), diagnostics.ToImmutableArray());
                     }
                 }
 
                 return new DocumentAnalysisResults(
                     newActiveStatements.AsImmutable(),
-                    diagnostics.AsImmutable(),
+                    diagnostics.ToImmutableArray(),
                     semanticEdits.AsImmutableOrEmpty(),
                     newExceptionRegions.AsImmutable(),
-                    lineEdits.AsImmutable(),
+                    lineEdits.ToImmutableArray(),
                     hasSemanticErrors: false);
             }
             catch (Exception e) when (ReportFatalErrorAnalyzeDocumentAsync(baseActiveStatements, e))

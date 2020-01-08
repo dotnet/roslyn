@@ -416,7 +416,7 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
                 Dim tupleElementNamesAttr =
                     If(forReturnType, DirectCast(symbol, MethodSymbol).GetReturnTypeAttributes(), symbol.GetAttributes()).
                     Where(Function(attr) String.Equals(attr.AttributeClass.Name, "TupleElementNamesAttribute", StringComparison.Ordinal)).
-                    AsImmutable()
+                    ToImmutableArray()
 
                 If Not expectedTupleNamesAttribute Then
                     Assert.Empty(tupleElementNamesAttr)

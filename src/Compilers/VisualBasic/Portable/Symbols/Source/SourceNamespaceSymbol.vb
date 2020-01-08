@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If hasType Then
                         If hasNamespace Then
-                            dictionary.Add(kvp.Key, members.OfType(Of NamedTypeSymbol).AsImmutable())
+                            dictionary.Add(kvp.Key, members.OfType(Of NamedTypeSymbol).ToImmutableArray())
                         Else
                             dictionary.Add(kvp.Key, members.As(Of NamedTypeSymbol))
                         End If

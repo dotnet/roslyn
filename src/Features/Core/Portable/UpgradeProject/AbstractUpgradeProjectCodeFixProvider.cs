@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
             var result = new List<CodeAction>();
             var language = project.Language;
 
-            var upgradeableProjects = solution.Projects.Where(p => CanUpgrade(p, language, newVersion)).AsImmutable();
+            var upgradeableProjects = solution.Projects.Where(p => CanUpgrade(p, language, newVersion)).ToImmutableArray();
 
             if (upgradeableProjects.Length == 0)
             {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
                 result.Add(fixAllProjects);
             }
 
-            return result.AsImmutable();
+            return result.ToImmutableArray();
         }
 
         public Solution UpgradeAllProjects(Solution solution, string language, string version, CancellationToken cancellationToken)

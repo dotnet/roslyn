@@ -397,7 +397,7 @@ G();
                 syntaxTrees: new[] { tree });
 
             var global = compilation.GlobalNamespace;
-            var members = global.GetMembers().Where(m => !m.IsImplicitlyDeclared).AsImmutable();
+            var members = global.GetMembers().Where(m => !m.IsImplicitlyDeclared).ToImmutableArray();
 
             Assert.Equal(1, members.Length);
             Assert.Equal("Goo", members[0].Name);

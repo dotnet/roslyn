@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            Dim members = StaticCast(Of Symbol).From(CapturedLocals.AsImmutable())
+            Dim members = StaticCast(Of Symbol).From(CapturedLocals.ToImmutableArray())
             If _sharedConstructor IsNot Nothing Then
                 members = members.AddRange(ImmutableArray.Create(Of Symbol)(_constructor, _sharedConstructor, _singletonCache))
             Else

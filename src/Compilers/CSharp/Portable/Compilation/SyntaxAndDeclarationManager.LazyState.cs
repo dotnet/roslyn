@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationTable declarationTable)
             {
                 Debug.Assert(syntaxTrees.All(tree => syntaxTrees[syntaxTreeOrdinalMap[tree]] == tree));
-                Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer<SyntaxTree>.Default));
+                Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.ToImmutableArray(), EqualityComparer<SyntaxTree>.Default));
 
                 this.SyntaxTrees = syntaxTrees;
                 this.OrdinalMap = syntaxTreeOrdinalMap;

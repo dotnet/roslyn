@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             protected override IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject)
-                => fromProject.State.AnalyzerConfigDocumentIds.AsImmutable();
+                => fromProject.State.AnalyzerConfigDocumentIds.ToImmutableArray();
 
             protected override TextDocument GetDocument(Solution currentSolution)
                 => currentSolution.GetAnalyzerConfigDocument(this.DocumentId);

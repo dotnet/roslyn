@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 ? ExtractInterfaceOptionsResult.Cancelled
                 : new ExtractInterfaceOptionsResult(
                     isCancelled: false,
-                    includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
+                    includedMembers: (ChosenMembers ?? AllExtractableMembers).ToImmutableArray(),
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
                     location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);

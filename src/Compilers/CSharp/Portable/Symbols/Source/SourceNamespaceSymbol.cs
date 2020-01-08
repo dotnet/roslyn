@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (hasNamespace)
                     {
-                        dictionary.Add(kvp.Key, members.OfType<NamedTypeSymbol>().AsImmutable());
+                        dictionary.Add(kvp.Key, members.OfType<NamedTypeSymbol>().ToImmutableArray());
                     }
                     else
                     {

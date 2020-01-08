@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     foreach (var typeAndBuilderPair in _exceptionTextBuilders)
                     {
-                        _comment._exceptionTexts.Add(typeAndBuilderPair.Key, typeAndBuilderPair.Value.AsImmutable());
+                        _comment._exceptionTexts.Add(typeAndBuilderPair.Key, typeAndBuilderPair.Value.ToImmutable());
                     }
                 }
 

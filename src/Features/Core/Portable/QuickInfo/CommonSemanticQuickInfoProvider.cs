@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
             var showSymbolGlyph = true;
 
-            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
+            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
 
             bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
                 => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;

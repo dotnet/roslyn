@@ -1210,7 +1210,7 @@ End Class
         ' SOURCE ATTRIBUTES
 
         Dim allSrcAttrs = assembly.GetAttributes()
-        Dim srcAttrs = allSrcAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
+        Dim srcAttrs = allSrcAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).ToImmutableArray()
 
         Assert.Equal(expectedSrcAttrCount, srcAttrs.Length)
 
@@ -1227,7 +1227,7 @@ End Class
             GetAssemblyCustomAttributesToEmit(New ModuleCompilationState, emittingRefAssembly:=False, emittingAssemblyAttributesInNetModule:=False).
             Cast(Of VisualBasicAttributeData)()
 
-        Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).AsImmutable()
+        Dim emittedAttrs = allEmittedAttrs.Where(Function(a) a.AttributeClass.Name.Equals(attrTypeName)).ToImmutableArray()
 
         Assert.Equal(expectedEmittedAttrsCount, emittedAttrs.Length)
         Dim uniqueAttributes = New HashSet(Of VisualBasicAttributeData)(comparer:=CommonAttributeDataComparer.Instance)

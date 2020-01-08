@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Return (From m In GetMembers() Where IdentifierComparison.Equals(m.Name, name)).AsImmutable
+            Return (From m In GetMembers() Where IdentifierComparison.Equals(m.Name, name)).ToImmutableArray()
         End Function
 
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)

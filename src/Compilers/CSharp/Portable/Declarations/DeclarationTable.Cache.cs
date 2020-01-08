@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public Cache(DeclarationTable table)
             {
                 this.MergedRoot = new Lazy<MergedNamespaceDeclaration>(
-                    () => MergedNamespaceDeclaration.Create(table._allOlderRootDeclarations.InInsertionOrder.AsImmutable<SingleNamespaceDeclaration>()));
+                    () => MergedNamespaceDeclaration.Create(table._allOlderRootDeclarations.InInsertionOrder.ToImmutableArray<SingleNamespaceDeclaration>()));
 
                 this.TypeNames = new Lazy<ISet<string>>(
                     () => GetTypeNames(this.MergedRoot.Value));
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     () => GetNamespaceNames(this.MergedRoot.Value));
 
                 this.ReferenceDirectives = new Lazy<ImmutableArray<ReferenceDirective>>(
-                    () => MergedRoot.Value.Declarations.OfType<RootSingleNamespaceDeclaration>().SelectMany(r => r.ReferenceDirectives).AsImmutable());
+                    () => MergedRoot.Value.Declarations.OfType<RootSingleNamespaceDeclaration>().SelectMany(r => r.ReferenceDirectives).ToImmutableArray());
             }
         }
     }
