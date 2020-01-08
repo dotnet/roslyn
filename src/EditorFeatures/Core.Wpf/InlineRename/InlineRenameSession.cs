@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -298,7 +299,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
                     _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-                    RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray());
+                    var locations = _workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges ? t.Result.Locations.Where(l => l.Document.CanApplyChange()) : t.Result.Locations;
+                    RaiseSessionSpansUpdated(locations.ToImmutableArray());
                 },
                 _cancellationTokenSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
