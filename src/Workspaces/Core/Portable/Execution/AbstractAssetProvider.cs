@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Execution
         /// </summary>
         public abstract Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken);
 
-        public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public async Task<(SolutionInfo, SerializableOptionSet)> CreateSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var solutionChecksumObject = await GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
             var solutionInfo = await GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
@@ -35,7 +36,9 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            return SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects);
+            var info = SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects);
+            var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksumObject.Options, cancellationToken).ConfigureAwait(false);
+            return (info, options);
         }
 
         public async Task<ProjectInfo> CreateProjectInfoAsync(Checksum projectChecksum, CancellationToken cancellationToken)

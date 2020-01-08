@@ -38,13 +38,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
                 return null;
             }
 
-            var innerSession = await _client.TryCreateSessionAsync(_serviceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (innerSession == null)
+            var connection = await _client.TryCreateConnectionAsync(_serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (connection == null)
             {
                 return null;
             }
 
-            return new Session(innerSession);
+            SessionWithSolution? session = null;
+            try
+            {
+                // transfer ownership of the connection to the session object:
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (session == null)
+                {
+                    connection.Dispose();
+                }
+            }
+
+            return new Session(session);
         }
 
         [Obsolete("Use TryRunRemoteAsync instead")]

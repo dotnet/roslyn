@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
                 {
-                    var newOptions = await _assetService.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
+                    var newOptions = await _assetProvider.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
                     solution = solution.WithOptions(newOptions);
                 }
 

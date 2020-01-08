@@ -429,7 +429,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 await Verify(currentSolution, oopSolution3, expectRemoteSolutionToCurrent: true);
 
                 // move to new solution backward
-                var (solutionInfo, options) = await service.GetSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+                var (solutionInfo, options) = await service.AssetProvider.CreateSolutionInfoAndOptionsAsync(await solution1.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
                 Assert.False(remoteWorkspace.TryAddSolutionIfPossible(solutionInfo, solution1.WorkspaceVersion, options, out var _));
 
                 // move to new solution forward

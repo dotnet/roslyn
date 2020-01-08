@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static string CreateClientId(string prefix)
         {
-            return $"VS ({prefix}) ({Guid.NewGuid().ToString()})";
+            return $"VS ({prefix}) ({Guid.NewGuid()})";
         }
 
         public static Task<RemoteHostClient?> TryGetClientAsync(Project project, CancellationToken cancellationToken)
@@ -95,35 +95,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return service.TryGetRemoteHostClientAsync(cancellationToken);
-        }
-
-        /// <summary>
-        /// Creates <see cref="SessionWithSolution"/> for the <paramref name="serviceName"/> if possible, otherwise returns <see langword="null"/>.
-        /// </summary>
-        [Obsolete("Used by LUT", error: false)]
-        public async Task<SessionWithSolution?> TryCreateSessionAsync(string serviceName, Solution solution, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            var connection = await TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            if (connection == null)
-            {
-                return null;
-            }
-
-            SessionWithSolution? session = null;
-            try
-            {
-                // transfer ownership of the connection to the session object:
-                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                if (session == null)
-                {
-                    connection.Dispose();
-                }
-            }
-
-            return session;
         }
 
         /// <summary>
