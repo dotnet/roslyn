@@ -24,21 +24,6 @@ namespace Roslyn.Utilities
             return ImmutableArray.Create<T>(items);
         }
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
-        {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            if (items is ImmutableArray<T> array)
-            {
-                return array.NullToEmpty();
-            }
-
-            return ImmutableArray.CreateRange<T>(items);
-        }
-
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
             => items.IsDefault ? ImmutableArray<T>.Empty : items;
 

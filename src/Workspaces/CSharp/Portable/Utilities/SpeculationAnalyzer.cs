@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             var argumentsList = GetArgumentList(expression);
             return argumentsList != null ?
-                argumentsList.Arguments.AsImmutableOrEmpty() :
+                argumentsList.Arguments.ToImmutableArrayOrEmpty() :
                 default;
         }
 

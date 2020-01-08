@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     var immutableMap = ImmutableDictionary.CreateBuilder<DiagnosticId, ImmutableArray<CodeFixProvider>>();
                     foreach (var diagnosticIdAndFixers in mutableMap)
                     {
-                        immutableMap.Add(diagnosticIdAndFixers.Key, diagnosticIdAndFixers.Value.AsImmutableOrEmpty());
+                        immutableMap.Add(diagnosticIdAndFixers.Key, diagnosticIdAndFixers.Value.ToImmutableArrayOrEmpty());
                     }
 
                     return immutableMap.ToImmutable();

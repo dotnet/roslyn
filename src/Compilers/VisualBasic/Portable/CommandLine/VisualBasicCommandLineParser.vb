@@ -1344,7 +1344,7 @@ lVbRuntimePlus:
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                 kind:=If(IsScriptCommandLineParser, SourceCodeKind.Script, SourceCodeKind.Regular),
-                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
+                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.ToImmutableArrayOrEmpty()),
                 features:=parsedFeatures)
 
             ' We want to report diagnostics with source suppression in the error log file.
@@ -1439,7 +1439,7 @@ lVbRuntimePlus:
                 .CompilationOptions = options,
                 .ParseOptions = parseOptions,
                 .EmitOptions = emitOptions,
-                .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
+                .ScriptArguments = scriptArgs.ToImmutableArrayOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
                 .EmitPdb = emitPdb AndAlso Not refOnly, ' Silently ignore emitPdb when refOnly is set

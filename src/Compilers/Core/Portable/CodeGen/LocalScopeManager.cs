@@ -455,8 +455,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     var newScope = new Cci.LocalScope(
                         begin,
                         end,
-                        _localConstants.AsImmutableOrEmpty<Cci.ILocalDefinition>(),
-                        _localVariables.AsImmutableOrEmpty<Cci.ILocalDefinition>());
+                        _localConstants.ToImmutableArrayOrEmpty<Cci.ILocalDefinition>(),
+                        _localVariables.ToImmutableArrayOrEmpty<Cci.ILocalDefinition>());
 
                     result.Add(newScope);
                 }

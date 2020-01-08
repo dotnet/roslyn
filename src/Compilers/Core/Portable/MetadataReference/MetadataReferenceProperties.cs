@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// </exception>
         public MetadataReferenceProperties WithAliases(IEnumerable<string> aliases)
         {
-            return WithAliases(aliases.AsImmutableOrEmpty());
+            return WithAliases(aliases.ToImmutableArrayOrEmpty());
         }
 
         /// <summary>

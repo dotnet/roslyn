@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
                    strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
         {
-            this.Usings = usings.AsImmutableOrEmpty();
+            this.Usings = usings.ToImmutableArrayOrEmpty();
             this.AllowUnsafe = allowUnsafe;
             this.TopLevelBinderFlags = topLevelBinderFlags;
             this.NullableContextOptions = nullableContextOptions;
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpCompilationOptions WithUsings(IEnumerable<string> usings) =>
-            new CSharpCompilationOptions(this) { Usings = usings.AsImmutableOrEmpty() };
+            new CSharpCompilationOptions(this) { Usings = usings.ToImmutableArrayOrEmpty() };
 
         public CSharpCompilationOptions WithUsings(params string[] usings) => WithUsings((IEnumerable<string>)usings);
 

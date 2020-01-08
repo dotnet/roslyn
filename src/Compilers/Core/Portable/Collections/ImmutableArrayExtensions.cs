@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="items">The sequence to convert.</param>
         /// <returns>An immutable copy of the contents of the sequence.</returns>
         /// <remarks>If the sequence is null, this will return an empty array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this IEnumerable<T>? items)
+        public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
         {
             if (items == null)
             {

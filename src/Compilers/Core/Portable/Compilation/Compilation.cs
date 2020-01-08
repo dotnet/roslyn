@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis
         internal static ImmutableArray<MetadataReference> ValidateReferences<T>(IEnumerable<MetadataReference>? references)
             where T : CompilationReference
         {
-            var result = references.AsImmutableOrEmpty();
+            var result = references.ToImmutableArrayOrEmpty();
             for (int i = 0; i < result.Length; i++)
             {
                 var reference = result[i];

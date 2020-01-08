@@ -1463,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationOptions = options,
                 ParseOptions = parseOptions,
                 EmitOptions = emitOptions,
-                ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
+                ScriptArguments = scriptArgs.ToImmutableArrayOrEmpty(),
                 TouchedFilesPath = touchedFilesPath,
                 PrintFullPaths = printFullPaths,
                 ShouldIncludeErrorEndLocation = errorEndLocation,

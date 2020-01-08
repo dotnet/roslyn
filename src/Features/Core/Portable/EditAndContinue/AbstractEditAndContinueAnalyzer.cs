@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return new DocumentAnalysisResults(
                     newActiveStatements.AsImmutable(),
                     diagnostics.ToImmutableArray(),
-                    semanticEdits.AsImmutableOrEmpty(),
+                    semanticEdits.ToImmutableArrayOrEmpty(),
                     newExceptionRegions.AsImmutable(),
                     lineEdits.ToImmutableArray(),
                     hasSemanticErrors: false);

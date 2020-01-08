@@ -10,9 +10,6 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
-            => items == null ? ImmutableArray<T>.Empty : ImmutableArray.CreateRange(items);
-
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
             => items.IsDefault ? ImmutableArray<T>.Empty : items;
 
