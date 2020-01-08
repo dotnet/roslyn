@@ -4922,33 +4922,52 @@ class C
         public void StaticLocalFunctionLocalFunctionReference_02()
         {
             var source =
-@"#pragma warning disable 0219
-#pragma warning disable 8321
+@"#pragma warning disable 8321
 class Program
 {
     static void Method()
     {
-        int i = 0;
-        void Local1<T>()
-        {
-            i = 0;
-        }
-        void Local2<T>() { }
+        void Local<T>() {}
         static void StaticLocal()
         {
-            Local1<int>();
-            Local2<int>();
+            Local<int>();
         }
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,13): error CS8421: A static local function cannot contain a reference to 'Local1'.
-                //             Local1<int>();
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local1<int>()").WithArguments("Local1").WithLocation(15, 13),
-                // (16,13): error CS8421: A static local function cannot contain a reference to 'Local2'.
-                //             Local2<int>();
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local2<int>()").WithArguments("Local2").WithLocation(16, 13));
+                // (9,13): error CS8421: A static local function cannot contain a reference to 'Local'.
+                //             Local<int>();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>()").WithArguments("Local").WithLocation(9, 13));
+        }
+
+        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        public void StaticLocalFunctionLocalFunctionReference_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Method()
+    {
+        int i = 0;
+        void Local<T>()
+        {
+            i = 0;
+        }
+        Action a = () => i++;
+        static void StaticLocal()
+        {
+            Local<int>();
+        }
+        StaticLocal();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (14,13): error CS8421: A static local function cannot contain a reference to 'Local'.
+                //             Local<int>();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>()").WithArguments("Local").WithLocation(14, 13));
         }
 
         [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
@@ -4989,7 +5008,7 @@ class Program
 {
     static void Method()
     {
-        void Local<T>() { }
+        void Local<T>() {}
         static System.Action StaticLocal()
         {
             return Local<int>;
@@ -5001,6 +5020,62 @@ class Program
                 // (9,20): error CS8421: A static local function cannot contain a reference to 'Local'.
                 //             return Local<int>;
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>").WithArguments("Local").WithLocation(9, 20));
+        }
+
+        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        public void StaticLocalFunctionLocalFunctionDelegateReference_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Method()
+    {
+        int i = 0;
+        void Local<T>()
+        {
+            i = 0;
+        }
+        Action a = () => i++;
+        a = StaticLocal();
+        static Action StaticLocal()
+        {
+            return Local<int>;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,20): error CS8421: A static local function cannot contain a reference to 'Local'.
+                //             return Local<int>;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>").WithArguments("Local").WithLocation(15, 20));
+        }
+
+        [Fact]
+        public void StaticLocalFunctionGenericStaticLocalFunction()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        static void F1<T>()
+        {
+            Console.WriteLine(typeof(T));
+        }
+        static void F2()
+        {
+            F1<int>();
+            Action a = F1<string>;
+            a();
+        }
+        F2();
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Int32
+System.String");
         }
 
         [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
