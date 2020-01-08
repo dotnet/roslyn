@@ -252,6 +252,7 @@ class C
         }
 
         [Fact, WorkItem(35684, "https://github.com/dotnet/roslyn/issues/35684")]
+        [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_Unconstrained()
         {
             string source = @"
@@ -267,9 +268,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                // (6,16): error CS8761: Operator '==' cannot be applied to operands of type 'T' and 'default' (this was incorrectly allowed in an early version of the compiler as an object comparison)
                 //         return x == default // 1
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //             && x == default(T); // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
@@ -292,7 +293,33 @@ class C
             Assert.Equal(Conversion.Identity, model.GetConversion(default2));
         }
 
+        [Fact, WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        public void ComparisonWithGenericType_Unconstrained_Inequality()
+        {
+            string source = @"
+class C
+{
+    static bool M<T>(T x = default)
+    {
+        return default != x // 1
+            && default(T) != x; // 2
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8761: Operator '!=' cannot be applied to operands of type 'default' and 'T' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                //         return default != x // 1
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "default", "T").WithLocation(6, 16),
+                // (7,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
+                //             && default(T) != x; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(7, 16)
+                );
+        }
+
         [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_ValueType()
         {
             string source = @"
@@ -308,9 +335,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                // (6,16): error CS8761: Operator '==' cannot be applied to operands of type 'T' and 'default' (this was incorrectly allowed in an early version of the compiler as an object comparison)
                 //         return x == default // 1
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //             && x == default(T); // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)

@@ -22,6 +22,11 @@
         <target state="translated">Aby użyć elementu „@$” zamiast elementu „$@” w interpolowanym ciągu dosłownym, użyj wersji języka „{0}” lub nowszej.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">Nie można użyć typu referencyjnego dopuszczającego wartość null podczas tworzenia obiektu.</target>

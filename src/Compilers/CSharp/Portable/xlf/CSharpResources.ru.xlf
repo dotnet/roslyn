@@ -22,6 +22,11 @@
         <target state="translated">Чтобы применять "@$" вместо "$@" для интерполированной строки verbatim, следует использовать версию языка "{0}" или более позднюю.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">При создании объекта невозможно использовать ссылочный тип, допускающий значения NULL.</target>

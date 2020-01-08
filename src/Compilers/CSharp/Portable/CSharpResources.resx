@@ -441,6 +441,9 @@
   <data name="ERR_BadBinaryOps" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'</value>
   </data>
+  <data name="ERR_AmbigBinaryOpsOnUnconstrainedDefault" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</value>
+  </data>
   <data name="ERR_IntDivByZero" xml:space="preserve">
     <value>Division by constant zero</value>
   </data>

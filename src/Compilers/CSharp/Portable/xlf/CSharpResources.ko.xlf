@@ -22,6 +22,11 @@
         <target state="translated">보간된 verbatim 문자열에 '$@' 대신 '@$'를 사용하려면 언어 버전 '{0}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</source>
+        <target state="new">Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' (this was incorrectly allowed in an early version of the compiler as an object comparison)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">nullable 참조 형식은 개체를 만드는 데 사용할 수 없습니다.</target>
