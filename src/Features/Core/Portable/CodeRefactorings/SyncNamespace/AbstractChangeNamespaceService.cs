@@ -191,10 +191,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ImmutableArray.Create(declaredNamespace, targetNamespace),
                     cancellationToken).ConfigureAwait(false);
 
-                var mergedSolution = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
-                (_, mergedSolution) = await mergedSolution.ExcludeDisallowedDocumentTextChangesAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                return mergedSolution;
+                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
