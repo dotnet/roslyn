@@ -47,7 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     if (identifier.Identifier.Text == "_")
                     {
                         var symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken);
-                        ClassifySymbol(syntax, symbolInfo, result);
+
+                        if (symbolInfo.Symbol?.Kind == SymbolKind.Discard)
+                        {
+                            result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
+                        }
                     }
                     break;
 
@@ -76,16 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 {
                     result.Add(new ClassifiedSpan(parameter.Locations[0].SourceSpan, ClassificationTypeNames.Keyword));
                 }
-            }
-        }
-
-        private void ClassifySymbol(SyntaxNode syntax, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
-        {
-            // the general case for all discarding symbols
-
-            if (symbolInfo.Symbol?.Kind == SymbolKind.Discard)
-            {
-                result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
             }
         }
     }
