@@ -82,26 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return false;
             }
 
-            DataFlowAnalysis? _lazyAnalysis = null;
-
             foreach (var parameter in symbol.Parameters)
             {
                 if (parameter.IsDiscard)
                 {
                     result.Add(new ClassifiedSpan(parameter.Locations[0].SourceSpan, ClassificationTypeNames.Keyword));
-                }
-                else if (parameter.Name == "_") //unfortunately parameter.IsDiscard currently doesn't work for all cases
-                {
-                    if (_lazyAnalysis == null)
-                    {
-                        _lazyAnalysis = semanticModel.AnalyzeDataFlow(lambda.Body);
-                    }
-
-                    //make sure the parameter isn't used in the lambda, in which case it wouldn't be discarding
-                    if (!_lazyAnalysis.ReadInside.Contains(parameter))
-                    {
-                        result.Add(new ClassifiedSpan(parameter.Locations[0].SourceSpan, ClassificationTypeNames.Keyword));
-                    }
                 }
             }
 

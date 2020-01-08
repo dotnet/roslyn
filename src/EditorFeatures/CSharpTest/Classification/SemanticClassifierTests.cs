@@ -3730,7 +3730,7 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DiscardInLambda()
+        public async Task UnusedUnderscoreParameterInLambda()
         {
             await TestAsync(@"
 class X
@@ -3741,26 +3741,40 @@ class X
     }
 }",
             Namespace("System"),
-            Delegate("Func"),
-            Keyword("_"));
+            Delegate("Func"));
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task NonDiscardInLambda()
+        public async Task UsedUnderscoreParameterInLambda()
         {
             await TestAsync(@"
 class X
 {
     void N()
     {
-        System.Func<int, int> a = (int _) => _.GetHashCode();
+        System.Func<int, int> a = (int _) => _;
     }
 }",
             Namespace("System"),
             Delegate("Func"),
-            Parameter("_"),
-            Method("GetHashCode"));
+            Parameter("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambda()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (int _, int _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
         }
     }
 }
