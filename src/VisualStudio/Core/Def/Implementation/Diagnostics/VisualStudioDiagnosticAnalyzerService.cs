@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            var solution = _workspace.CurrentSolution;
+            Solution solution = _workspace.CurrentSolution;
             string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             void HandleProjectsWithDisabledAnalysis()
             {
                 // First clear all special host diagostics for all involved projects.
-                IEnumerable<Project> projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
+                var projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
                 foreach (var project in projects)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(project.Id, key: this);
