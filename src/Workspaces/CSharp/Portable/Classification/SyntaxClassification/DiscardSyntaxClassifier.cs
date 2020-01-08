@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 case ParameterSyntax parameter when parameter.Identifier.Text == "_":
                     var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
 
-                    if (symbol.IsDiscard)
+                    if (symbol?.IsDiscard == true)
                     {
                         result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
                     }
