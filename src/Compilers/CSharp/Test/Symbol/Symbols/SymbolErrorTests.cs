@@ -20139,7 +20139,7 @@ namespace A
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies, "ClassB.MethodB").WithArguments("CModule.dll", "C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "C.ClassC", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10332")]
+        [Fact]
         [WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]
         public void MultipleTypeForwardersToTheSameAssemblyShouldNotResultInMultipleForwardError()
         {
