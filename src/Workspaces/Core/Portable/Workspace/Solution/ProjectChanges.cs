@@ -132,9 +132,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments()
-        {
-            return GetChangedDocuments(false);
-        }
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges: false, ignoreUnchangeableDocuments: false);
 
         /// <summary>
         /// Get Changed Documents:
@@ -145,6 +143,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="onlyGetDocumentsWithTextChanges"></param>
         /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments: false);
+
+        internal IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges, bool ignoreUnchangeableDocuments)
         {
             foreach (var id in _newProject.DocumentIds)
             {
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (onlyGetDocumentsWithTextChanges)
                     {
-                        if (newState.HasTextChanged(oldState))
+                        if (newState.HasTextChanged(oldState, ignoreUnchangeableDocuments))
                             yield return id;
                     }
                     else

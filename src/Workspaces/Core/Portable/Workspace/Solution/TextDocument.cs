@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if the text of the document change.
         /// </summary>
-        internal bool HasTextChanged(TextDocument otherTextDocument)
+        internal bool HasTextChanged(TextDocument otherTextDocument, bool ignoreUnchangeableDocument)
         {
-            return State.HasTextChanged(otherTextDocument.State);
+            return State.HasTextChanged(otherTextDocument.State, ignoreUnchangeableDocument);
         }
     }
 }

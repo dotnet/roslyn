@@ -375,10 +375,14 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion.Version;
         }
 
-        public bool HasTextChanged(TextDocumentState oldState)
+        public bool HasTextChanged(TextDocumentState oldState, bool ignoreUnchangeableDocument)
         {
-            return oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
+            if (ignoreUnchangeableDocument && !oldState.CanApplyChange())
+            {
+                return false;
+            }
+
+            return oldState.TextAndVersionSource != TextAndVersionSource;
         }
 
         public bool HasInfoChanged(TextDocumentState oldState)

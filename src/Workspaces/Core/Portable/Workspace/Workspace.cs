@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool TestHookPartialSolutionsDisabled { get; set; }
 
+        internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
+
         private Action<string>? _testMessageLogger;
 
         /// <summary>
@@ -1231,10 +1233,21 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
             }
 
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument)
-                && projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).Any())
+            var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, IgnoreUnchangeableDocumentsWhenApplyingChanges).ToImmutableArray();
+
+            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
+            }
+
+            // Checking for unchangeable documents will only be done if we were asked not to ignore them.
+            foreach (var documentId in changedDocumentIds)
+            {
+                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId)!;
+                if (!document.CanApplyChange())
+                {
+                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
+                }
             }
 
             if (projectChanges.GetAddedAdditionalDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddAdditionalDocument))
@@ -1295,15 +1308,6 @@ namespace Microsoft.CodeAnalysis
             if (projectChanges.GetRemovedAnalyzerReferences().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference))
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
-            }
-
-            foreach (var documentId in projectChanges.GetChangedDocuments())
-            {
-                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId)!;
-                if (!document.CanApplyChange())
-                {
-                    throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));
-                }
             }
         }
 
@@ -1452,8 +1456,8 @@ namespace Microsoft.CodeAnalysis
             var oldDoc = projectChanges.OldProject.GetDocument(documentId)!;
             var newDoc = projectChanges.NewProject.GetDocument(documentId)!;
 
-            // update text if changed
-            if (newDoc.HasTextChanged(oldDoc))
+            // update text if it's changed (unless it's unchangeable and we were asked to exclude them)
+            if (newDoc.HasTextChanged(oldDoc, IgnoreUnchangeableDocumentsWhenApplyingChanges))
             {
                 // What we'd like to do here is figure out what actual text changes occurred and pass them on to the host.
                 // However, since it is likely that the change was done by replacing the syntax tree, getting the actual text changes is non trivial.
