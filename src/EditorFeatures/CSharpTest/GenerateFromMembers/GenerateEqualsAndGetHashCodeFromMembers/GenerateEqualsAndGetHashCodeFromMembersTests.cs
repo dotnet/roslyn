@@ -2434,5 +2434,53 @@ class Program
     int [|a|];
 }");
         }
+
+        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestFoo()
+        {
+            await TestInRegularAndScript1Async(
+@"#nullable enable
+using System;
+
+namespace N {
+    public class C[||]
+    {
+        public int X;
+    }
+}",
+@"#nullable enable
+using System;
+
+namespace N
+{
+    public class C
+    {
+        public int X;
+
+        public override bool Equals(object? obj)
+        {
+            return obj is C c &&
+                   X == c.X;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(X);
+        }
+
+        public static bool operator ==(C left, C right)
+        {
+            return global::System.Collections.Generic.EqualityComparer<global::N.C>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(C left, C right)
+        {
+            return !(left == right);
+        }
+    }
+}",
+index: 0);
+        }
     }
 }
