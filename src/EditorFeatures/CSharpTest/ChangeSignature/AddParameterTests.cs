@@ -66,7 +66,7 @@ static class Ext
 static class Ext
 {
     /// <summary>
-    /// This is a summary of <see cref=""M(object, string,int,string, string)""/>
+    /// This is a summary of <see cref=""M(object, string, int, string, string)""/>
     /// </summary>
     /// <param name=""o""></param>
     /// <param name=""b""></param>
@@ -79,24 +79,24 @@ static class Ext
     {
         object t = new object();
 
-        M(t, ""two"", 12345,, ""four"");
-        M(t, ""two"", 12345,, ""four"");
-        t.M(""two"", 12345,, ""four"");
-        t.M(""two"", 12345,, ""four"");
+        M(t, ""two"", 12345, , ""four"");
+        M(t, ""two"", 12345, , ""four"");
+        t.M(""two"", 12345, , ""four"");
+        t.M(""two"", 12345, , ""four"");
 
-        M(t, ""two"", 12345,, ""four"");
-        M(t, ""two"", 12345,);
-        M(t, ""two"", 12345,);
+        M(t, ""two"", 12345, , ""four"");
+        M(t, ""two"", 12345, );
+        M(t, ""two"", 12345, );
 
-        M(t, ""two"", 12345,);
-        M(t, ""two"", 12345,, y: ""four"");
+        M(t, ""two"", 12345, );
+        M(t, ""two"", 12345, , y: ""four"");
 
-        M(t, ""two"", 12345,);
-        M(t, ""two"", 12345,);
-        M(t, ""two"", 12345,, y: ""four"");
-        M(t, ""two"", 12345,);
+        M(t, ""two"", 12345, );
+        M(t, ""two"", 12345, );
+        M(t, ""two"", 12345, , y: ""four"");
+        M(t, ""two"", 12345, );
 
-        M(t, ""two"", 12345,, y: ""four"");
+        M(t, ""two"", 12345, , y: ""four"");
         M(t, y: ""four"", newIntegerParameter: 12345, newString:, b: ""two"");
         M(t, y: ""four"", newIntegerParameter: 12345, newString:, b: ""two"");
         M(t, y: ""four"", newIntegerParameter: 12345, newString:, b: ""two"");
@@ -1024,7 +1024,7 @@ class C
 class C
 {
     /// <summary>
-    /// See <see cref=""M(string,byte, int)""/> and <see cref=""M""/>
+    /// See <see cref=""M(string, byte,  int)""/> and <see cref=""M""/>
     /// </summary>
     void M(string y, byte b, int x)
     { }
