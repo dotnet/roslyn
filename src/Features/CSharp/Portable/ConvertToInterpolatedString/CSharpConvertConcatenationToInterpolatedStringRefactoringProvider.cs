@@ -37,14 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
 
         protected override bool IsConstMemberDeclaration(SyntaxNode node, ISyntaxFactsService syntaxFacts)
         {
-            var declaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-
-            if (declaration is null)
-            {
-                return false;
-            }
-
-            return syntaxFacts.GetModifiers(declaration).Contains(s => s.IsKind(SyntaxKind.ConstKeyword));
+            return syntaxFacts.GetModifiers(node).Any(SyntaxKind.ConstKeyword);
         }
     }
 }

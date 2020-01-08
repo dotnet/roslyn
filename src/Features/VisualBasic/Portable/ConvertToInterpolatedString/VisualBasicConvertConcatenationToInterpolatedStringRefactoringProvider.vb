@@ -32,13 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         End Function
 
         Protected Overrides Function IsConstMemberDeclaration(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As Boolean
-            Dim declaration = node.FirstAncestorOrSelf(Of DeclarationStatementSyntax)()
-
-            If (declaration Is Nothing) Then
-                Return False
-            End If
-
-            Return syntaxFacts.GetModifiers(declaration).Contains(Function(s) s.IsKind(SyntaxKind.ConstKeyword))
+            Return syntaxFacts.GetModifiers(node).Contains(Function(s) s.IsKind(SyntaxKind.ConstKeyword))
         End Function
     End Class
 End Namespace

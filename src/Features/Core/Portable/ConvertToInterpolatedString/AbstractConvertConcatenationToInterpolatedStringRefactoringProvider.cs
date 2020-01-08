@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             // if there is a const keyword, the refactoring shouldn't show as interpolated string is not const string
-            if (IsConstMemberDeclaration(top, syntaxFacts))
+            var declaration = top.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember);
+            if (declaration != null && IsConstMemberDeclaration(declaration, syntaxFacts))
             {
                 return;
             }
