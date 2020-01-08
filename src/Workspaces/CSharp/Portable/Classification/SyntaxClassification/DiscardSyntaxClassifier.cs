@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             switch (syntax)
             {
-                case ParameterSyntax parameter:
+                case ParameterSyntax parameter when parameter.Identifier.Text == "_":
                     var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
 
                     if (symbol.IsDiscard)
@@ -45,21 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     }
                     break;
 
-                case IdentifierNameSyntax identifier:
-                    if (identifier.Identifier.Text == "_")
-                    {
-                        var symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+                case IdentifierNameSyntax identifierName when identifierName.Identifier.Text == "_":
+                    var symbolInfo = semanticModel.GetSymbolInfo(identifierName, cancellationToken);
 
-                        if (symbolInfo.Symbol?.Kind == SymbolKind.Discard)
-                        {
-                            result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
-                        }
+                    if (symbolInfo.Symbol?.Kind == SymbolKind.Discard)
+                    {
+                        result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
                     }
                     break;
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            };
+            }
         }
     }
 }
