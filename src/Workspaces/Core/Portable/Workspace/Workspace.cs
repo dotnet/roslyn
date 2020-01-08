@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
             var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService, serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty);
             _latestSolution = CreateSolution(info, emptyOptions);
 
-            _taskQueue.ScheduleTask(() => TryRegisterDocumentOptionsProvider(), nameof(TryRegisterDocumentOptionsProvider));
+            TryRegisterDocumentOptionsProvider();
         }
 
         internal void TryRegisterDocumentOptionsProvider()
