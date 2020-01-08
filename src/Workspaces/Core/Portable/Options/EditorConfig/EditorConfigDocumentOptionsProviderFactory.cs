@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
                 return null;
             }
 
-            return new EditorConfigDocumentOptionsProvider(workspace.Services.GetRequiredService<IErrorLoggerService>());
+            return new EditorConfigDocumentOptionsProvider(workspace.Services.GetService<IErrorLoggerService>());
         }
 
         private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
         private class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
         {
-            private readonly IErrorLoggerService _errorLogger;
+            private readonly IErrorLoggerService? _errorLogger;
 
-            public EditorConfigDocumentOptionsProvider(IErrorLoggerService errorLogger)
+            public EditorConfigDocumentOptionsProvider(IErrorLoggerService? errorLogger)
             {
                 _errorLogger = errorLogger;
             }
@@ -54,9 +54,9 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
             private class DocumentOptions : IDocumentOptions
             {
                 private readonly ImmutableDictionary<string, string> _options;
-                private readonly IErrorLoggerService _errorLogger;
+                private readonly IErrorLoggerService? _errorLogger;
 
-                public DocumentOptions(ImmutableDictionary<string, string> options, IErrorLoggerService errorLogger)
+                public DocumentOptions(ImmutableDictionary<string, string> options, IErrorLoggerService? errorLogger)
                 {
                     _options = options;
                     _errorLogger = errorLogger;
