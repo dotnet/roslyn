@@ -3776,5 +3776,22 @@ class X
             Keyword("_"),
             Keyword("_"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardsInLambdaWithInferredType()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        System.Func<int, int, int> a = (_, _) => 0;
+    }
+}",
+            Namespace("System"),
+            Delegate("Func"),
+            Keyword("_"),
+            Keyword("_"));
+        }
     }
 }
