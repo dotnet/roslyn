@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     break;
 
                 default:
-                    Debug.Assert(false, "This shouldn't be hit");
-                    break;
+                    throw ExceptionUtilities.Unreachable;
             };
         }
 
