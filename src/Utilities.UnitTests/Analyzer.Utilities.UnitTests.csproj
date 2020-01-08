@@ -8,6 +8,6 @@
     <ProjectReference Include="..\Test.Utilities\Test.Utilities.csproj" />
 
     <!-- To get all the shared project code, like FlowAnalysis -->
-    <ProjectReference Include="..\Microsoft.NetCore.Analyzers\Core\Microsoft.NetCore.Analyzers.csproj" />
+    <ProjectReference Include="..\NetAnalyzers\Core\Microsoft.CodeAnalysis.NetAnalyzers.csproj" />
   </ItemGroup>
 </Project>
