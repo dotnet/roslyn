@@ -236,26 +236,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return false;
         }
 
-        #region IDisposable Support
-        private void Dispose(bool disposing)
-        {
-            if (!_isDisposed)
-            {
-                if (disposing)
-                {
-                    var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
-                    runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
-                    _runningDocumentTableEventsCookie = 0;
-                }
-
-                _isDisposed = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(true);
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            var runningDocumentTableForEvents = (IVsRunningDocumentTable)_runningDocumentTable;
+            runningDocumentTableForEvents.UnadviseRunningDocTableEvents(_runningDocumentTableEventsCookie);
+            _runningDocumentTableEventsCookie = 0;
+
+            _isDisposed = true;
         }
-        #endregion
     }
 }

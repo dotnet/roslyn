@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _hasNoBaseCycles;
 
         // Only the compiler can create NamedTypeSymbols.
-        internal NamedTypeSymbol()
+        internal NamedTypeSymbol(TupleExtraData tupleData = null)
         {
+            _lazyTupleData = tupleData;
         }
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -636,8 +637,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
         {
-            Debug.Assert(!this.IsTupleType);
-
             if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
@@ -650,16 +649,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         return true;
                     }
-                }
-            }
-
-            if ((comparison & TypeCompareKind.IgnoreTupleNames) != 0)
-            {
-                // If ignoring tuple element names, compare underlying tuple types
-                if (t2.IsTupleType)
-                {
-                    t2 = t2.TupleUnderlyingType;
-                    if (this.Equals(t2, comparison, isValueTypeOverrideOpt)) return true;
                 }
             }
 
@@ -680,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((thisIsOriginalDefinition || otherIsOriginalDefinition) &&
-                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
+                (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)) == 0)
             {
                 return false;
             }
@@ -689,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // symbols.  Therefore this code may not behave correctly if 'this' is List<int>
             // where List`1 is a missing metadata type symbol, and other is similarly List<int>
             // but for a reference-distinct List`1.
-            if (!TypeSymbol.Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
+            if (!Equals(thisOriginalDefinition, otherOriginalDefinition, comparison, isValueTypeOverrideOpt))
             {
                 return false;
             }
@@ -729,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if ((thisIsNotConstructed || otherIsNotConstructed) &&
-                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions)) == 0)
+                 (comparison & (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.AllNullableIgnoreOptions | TypeCompareKind.IgnoreTupleNames)) == 0)
             {
                 return false;
             }
@@ -751,7 +740,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (this.IsTupleType && !tupleNamesEquals(other, comparison))
+            {
+                return false;
+            }
+
             return true;
+
+            bool tupleNamesEquals(NamedTypeSymbol other, TypeCompareKind comparison)
+            {
+                // Make sure field names are the same.
+                if ((comparison & TypeCompareKind.IgnoreTupleNames) == 0)
+                {
+                    var elementNames = TupleElementNames;
+                    var otherElementNames = other.TupleElementNames;
+                    return elementNames.IsDefault ? otherElementNames.IsDefault : !otherElementNames.IsDefault && elementNames.SequenceEqual(otherElementNames);
+                }
+
+                return true;
+            }
         }
 
         internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
@@ -803,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeMap substitution = new TypeMap(this.OriginalDefinition.GetAllTypeParameters(),
                                                    allTypeArguments.ToImmutableAndFree());
 
-                result = substitution.SubstituteNamedType(this.OriginalDefinition);
+                result = substitution.SubstituteNamedType(this.OriginalDefinition).WithTupleDataFrom(this);
             }
 
             return true;
@@ -836,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var definition = this.OriginalDefinition;
                 TypeMap substitution = new TypeMap(definition.GetAllTypeParameters(), allTypeArguments.ToImmutable());
-                result = substitution.SubstituteNamedType(definition);
+                result = substitution.SubstituteNamedType(definition).WithTupleDataFrom(this);
             }
 
             allTypeArguments.Free();
@@ -869,7 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeArguments.Free();
             allTypeParameters.Free();
-            return result;
+
+            return IsTupleType ? MergeTupleNames((NamedTypeSymbol)other, result) : result;
         }
 
         /// <summary>
@@ -889,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(typeA.Equals(typeB, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
             // Tuple types act as covariant when merging equivalent types.
-            bool isTuple = typeA.IsTupleCompatible();
+            bool isTuple = typeA.IsTupleType;
 
             var definition = typeA.OriginalDefinition;
             bool haveChanges = false;
@@ -1466,29 +1474,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         /// <returns></returns>
-        public sealed override bool IsTupleCompatible(out int tupleCardinality)
+        internal bool IsTupleTypeOfCardinality(out int tupleCardinality)
         {
-            if (IsTupleType)
-            {
-                tupleCardinality = 0;
-                return false;
-            }
-
             // Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             if (!IsUnboundGenericType &&
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
-                Name == TupleTypeSymbol.TupleTypeName &&
+                Name == ValueTupleTypeName &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;
 
-                if (arity > 0 && arity < TupleTypeSymbol.RestPosition)
+                if (arity >= 0 && arity < ValueTupleRestPosition)
                 {
                     tupleCardinality = arity;
                     return true;
                 }
-                else if (arity == TupleTypeSymbol.RestPosition && !IsDefinition)
+                else if (arity == ValueTupleRestPosition && !IsDefinition)
                 {
                     // Skip through "Rest" extensions
                     TypeSymbol typeToCheck = this;
@@ -1497,29 +1499,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     do
                     {
                         levelsOfNesting++;
-                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type;
+                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[ValueTupleRestPosition - 1].Type;
                     }
-                    while (TypeSymbol.Equals(typeToCheck.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2) && !typeToCheck.IsDefinition);
-
-                    if (typeToCheck.IsTupleType)
-                    {
-                        var underlying = typeToCheck.TupleUnderlyingType;
-                        if (underlying.Arity == TupleTypeSymbol.RestPosition && !TypeSymbol.Equals(underlying.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
-                        {
-                            tupleCardinality = 0;
-                            return false;
-                        }
-
-                        tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypesWithAnnotations.Length;
-                        return true;
-                    }
+                    while (Equals(typeToCheck.OriginalDefinition, this.OriginalDefinition, TypeCompareKind.ConsiderEverything) && !typeToCheck.IsDefinition);
 
                     arity = (typeToCheck as NamedTypeSymbol)?.Arity ?? 0;
 
-                    if (arity > 0 && arity < TupleTypeSymbol.RestPosition && typeToCheck.IsTupleCompatible(out tupleCardinality))
+                    if (arity > 0 && arity < ValueTupleRestPosition && ((NamedTypeSymbol)typeToCheck).IsTupleTypeOfCardinality(out tupleCardinality))
                     {
-                        Debug.Assert(tupleCardinality < TupleTypeSymbol.RestPosition);
-                        tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting;
+                        Debug.Assert(tupleCardinality < ValueTupleRestPosition);
+                        tupleCardinality += (ValueTupleRestPosition - 1) * levelsOfNesting;
                         return true;
                     }
                 }

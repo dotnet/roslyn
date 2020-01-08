@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly SymbolDisplayFormat TestDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier);
 
         internal static TypeWithAnnotations Create(bool isNullableEnabled, TypeSymbol typeSymbol, bool isAnnotated = false)
         {
@@ -305,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return str + "?";
                 }
                 else if (NullableAnnotation.IsNotAnnotated() &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
+                    format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier) &&
                     (!HasType || (!Type.IsValueType && !Type.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "!";
@@ -434,17 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: false);
-        public TypeWithAnnotations SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap) =>
-            _extensions.SubstituteType(this, typeMap, withTupleUnification: true);
+            _extensions.SubstituteType(this, typeMap);
 
-        internal TypeWithAnnotations TransformToTupleIfCompatible() => _extensions.TransformToTupleIfCompatible(this);
-
-        internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap, bool withTupleUnification)
+        internal TypeWithAnnotations SubstituteTypeCore(AbstractTypeMap typeMap)
         {
             var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             TypeSymbol typeSymbol = this.Type;
-            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol, withTupleUnification);
+            var newTypeWithModifiers = typeMap.SubstituteType(typeSymbol);
 
             if (!typeSymbol.IsTypeParameter())
             {
@@ -590,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return type.IsNullableType();
             }
-            return type.IsValueType && !type.IsTupleType;
+            return type.IsValueType;
         }
 
         public void AddNullableTransforms(ArrayBuilder<byte> transforms)
@@ -830,8 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract TypeWithAnnotations WithTypeAndModifiers(TypeWithAnnotations type, TypeSymbol typeSymbol, ImmutableArray<CustomModifier> customModifiers);
 
             internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt);
-            internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification);
-            internal abstract TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type);
+            internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
             internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
 
             internal abstract void TryForceResolveAsNullableValueType();
@@ -889,20 +883,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.TypeSymbolEqualsCore(other, comparison, isValueTypeOverrideOpt);
             }
 
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
             {
-                return type.SubstituteTypeCore(typeMap, withTupleUnification);
-            }
-
-            internal override TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type)
-            {
-                var defaultType = type.DefaultType;
-                var transformedType = TupleTypeSymbol.TransformToTupleIfCompatible(defaultType);
-                if ((object)defaultType != transformedType)
-                {
-                    return TypeWithAnnotations.Create(transformedType, type.NullableAnnotation, _customModifiers);
-                }
-                return type;
+                return type.SubstituteTypeCore(typeMap);
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
@@ -1022,14 +1005,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type;
             }
 
-            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap, bool withTupleUnification)
+            internal override TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap)
             {
                 if ((object)_resolved != null)
                 {
-                    return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                    return type.SubstituteTypeCore(typeMap);
                 }
 
-                var newUnderlying = _underlying.SubstituteTypeCore(typeMap, withTupleUnification);
+                var newUnderlying = _underlying.SubstituteTypeCore(typeMap);
                 if (!newUnderlying.IsSameAs(this._underlying))
                 {
                     if (newUnderlying.Type.Equals(this._underlying.Type, TypeCompareKind.ConsiderEverything) &&
@@ -1038,17 +1021,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return CreateLazyNullableType(_compilation, newUnderlying);
                     }
 
-                    return type.SubstituteTypeCore(typeMap, withTupleUnification);
+                    return type.SubstituteTypeCore(typeMap);
                 }
                 else
                 {
                     return type; // substitution had no effect on the type or modifiers
                 }
-            }
-
-            internal override TypeWithAnnotations TransformToTupleIfCompatible(TypeWithAnnotations type)
-            {
-                return type;
             }
 
             internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)

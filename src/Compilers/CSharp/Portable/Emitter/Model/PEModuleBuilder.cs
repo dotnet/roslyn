@@ -803,8 +803,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else if (namedTypeSymbol.IsTupleType)
             {
-                Debug.Assert(!needDeclaration);
-                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
                 CheckTupleUnderlyingType(namedTypeSymbol, syntaxNodeOpt, diagnostics);
             }
 
@@ -1000,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsVirtualTupleField, "virtual tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1162,15 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
-            else if (methodSymbol.IsTupleMethod)
-            {
-                Debug.Assert(!needDeclaration);
-                Debug.Assert(container.IsTupleType);
-                container = container.TupleUnderlyingType;
-                methodSymbol = methodSymbol.TupleUnderlyingMethod;
-            }
 
-            Debug.Assert(!container.IsTupleType);
             Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             if (!methodSymbol.IsDefinition)

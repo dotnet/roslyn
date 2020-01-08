@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
     internal static class SolutionInfoCreator
     {
-        public static async Task<SolutionInfo> CreateSolutionInfoAsync(IAssetProvider assetProvider, Checksum solutionChecksum, CancellationToken cancellationToken)
+        public static async Task<(SolutionInfo, SerializableOptionSet)> CreateSolutionInfoAndOptionsAsync(IAssetProvider assetProvider, Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var solutionChecksumObject = await assetProvider.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
             var solutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksumObject.Info, cancellationToken).ConfigureAwait(false);
@@ -38,7 +39,10 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            return SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects);
+            var info = SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects);
+            var options = await assetProvider.GetAssetAsync<SerializableOptionSet>(solutionChecksumObject.Options, cancellationToken).ConfigureAwait(false);
+            return (info, options);
+
         }
 
         public static async Task<ProjectInfo> CreateProjectInfoAsync(IAssetProvider assetProvider, Checksum projectChecksum, CancellationToken cancellationToken)

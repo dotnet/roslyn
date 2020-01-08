@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution),
                 onAnalyzerException: service.GetOnAnalyzerException(project.Id, logAggregator),
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         break;
                     case LocationKind.SourceFile:
                         {
+                            RoslynDebug.Assert(location.SourceTree != null);
                             if (project.GetDocument(location.SourceTree) == null)
                             {
                                 // Disallow diagnostics with source locations outside this project.

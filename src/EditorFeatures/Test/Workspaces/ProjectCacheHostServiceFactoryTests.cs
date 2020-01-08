@@ -1,14 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -250,43 +250,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        private class MockOptionService : IWorkspaceOptionService
-        {
-            private readonly OptionSet _optionSet = new WorkspaceOptionSet(null);
-
-#pragma warning disable CS0067 // unused event
-            public event EventHandler<OptionChangedEventArgs> OptionChanged;
-#pragma warning restore CS0067
-
-            public T GetOption<T>(Option<T> option) => option.DefaultValue;
-
-            public T GetOption<T>(PerLanguageOption<T> option, string languageName) => option.DefaultValue;
-
-            public object GetOption(OptionKey optionKey) => optionKey.Option.DefaultValue;
-
-            public OptionSet GetOptions() => _optionSet;
-
-            public IEnumerable<IOption> GetRegisteredOptions() => Enumerable.Empty<IOption>();
-
-            public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken) => SpecializedTasks.FromResult(_optionSet);
-            public void OnWorkspaceDisposed(Workspace workspace) { }
-
-            public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider) { }
-
-            public void SetOptions(OptionSet optionSet) { }
-        }
-
         private class MockHostWorkspaceServices : HostWorkspaceServices
         {
             private readonly HostServices _hostServices;
             private readonly Workspace _workspace;
             private static readonly IWorkspaceTaskSchedulerFactory s_taskSchedulerFactory = new WorkspaceTaskSchedulerFactory();
-            private static readonly IWorkspaceOptionService s_optionService = new MockOptionService();
+            private readonly OptionServiceFactory.OptionService _optionService;
 
             public MockHostWorkspaceServices(HostServices hostServices, Workspace workspace)
             {
                 _hostServices = hostServices;
                 _workspace = workspace;
+
+                var globalOptionService = new GlobalOptionService(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersister>>.Empty);
+                _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 
             public override HostServices HostServices => _hostServices;
@@ -304,9 +281,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     return (TWorkspaceService)s_taskSchedulerFactory;
                 }
-                else if (s_optionService is TWorkspaceService)
+                else if (_optionService is TWorkspaceService workspaceOptionService)
                 {
-                    return (TWorkspaceService)s_optionService;
+                    return workspaceOptionService;
                 }
 
                 return default;

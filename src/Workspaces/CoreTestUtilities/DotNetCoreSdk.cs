@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 => "The location of dotnet SDK can't be determined (DOTNET_INSTALL_DIR environment variable is unset)";
         }
 
-        public static string ExePath { get; }
+        public static string? ExePath { get; }
 
         static DotNetCoreSdk()
         {

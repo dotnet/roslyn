@@ -14,10 +14,8 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
-        void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken);
 
         CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
-        OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken);
     }
 }

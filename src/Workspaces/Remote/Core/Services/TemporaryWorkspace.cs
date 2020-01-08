@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this.SetCurrentSolution(solution);
         }
 
-        public TemporaryWorkspace(SolutionInfo solutionInfo) : this()
+        public TemporaryWorkspace(SolutionInfo solutionInfo, SerializableOptionSet options) : this()
         {
             this.OnSolutionAdded(solutionInfo);
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
         }
 
         // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish

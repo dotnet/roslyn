@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private XmlReader _xmlReader;
         private readonly Reader _textReader = new Reader();
 
-        private static readonly ObjectPool<XmlFragmentParser> s_pool =
-            new ObjectPool<XmlFragmentParser>(() => new XmlFragmentParser(), size: 2);
+        private static readonly ObjectPool<XmlFragmentParser> s_pool = SharedPools.Default<XmlFragmentParser>();
 
         /// <summary>
         /// Parse the given XML fragment. The given callback is executed until either the end of the fragment

@@ -15,8 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         internal KeepAliveSession UnderlyingObject { get; }
 
-        public Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync<T>(targetName, solution, arguments, cancellationToken);
+        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        {
+            var result = await UnderlyingObject.TryInvokeAsync<T>(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
+            return result.HasValue ? result.Value : default;
+        }
 
         public Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(targetName, arguments, cancellationToken);
@@ -24,7 +27,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
             => UnderlyingObject.TryInvokeAsync(targetName, solution, arguments, cancellationToken);
 
-        public Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject.TryInvokeAsync<T>(targetName, arguments, cancellationToken);
+        public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        {
+            var result = await UnderlyingObject.TryInvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return result.HasValue ? result.Value : default;
+        }
     }
 }

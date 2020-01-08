@@ -82,6 +82,16 @@
         <target state="translated">Evite los parámetros sin usar en el código. Si el parámetro no se puede quitar, cámbielo de nombre para que empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">No se pueden aplicar los cambios. Error inesperado: "{0}"</target>
@@ -327,6 +337,11 @@
         <target state="translated">La indexación de direcciones puede ser simplificado</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introducir la sangría</target>
@@ -520,6 +535,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edición superficial</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1636,16 +1656,6 @@ Do you want to continue?</source>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
         <target state="translated">&lt;pendiente&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">La tarea esperada devuelve</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">no hay valor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
