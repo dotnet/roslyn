@@ -1533,6 +1533,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Live Share C#/Visual Basic Language Server Client.
+        /// </summary>
+        internal static string Live_Share_CSharp_Visual_Basic_Language_Server_Client {
+            get {
+                return ResourceManager.GetString("Live_Share_CSharp_Visual_Basic_Language_Server_Client", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location:.
         /// </summary>
         internal static string Location_colon {
@@ -3701,6 +3710,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Yes {
             get {
                 return ResourceManager.GetString("Yes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must change the signature.
+        /// </summary>
+        internal static string You_must_change_the_signature {
+            get {
+                return ResourceManager.GetString("You_must_change_the_signature", resourceCulture);
             }
         }
         

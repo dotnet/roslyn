@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -425,14 +426,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             declarationSymbol As ISymbol,
             Optional isReducedExtensionMethod As Boolean = False) As SeparatedSyntaxList(Of ArgumentSyntax)
 
-            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(document, declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature, isReducedExtensionMethod)
+            Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(Of ArgumentSyntax)(declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature, isReducedExtensionMethod)
 
             Dim numSeparatorsToSkip = arguments.Count - newArguments.Count
             Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
         End Function
 
         Private Function PermuteDeclaration(Of T As SyntaxNode)(list As SeparatedSyntaxList(Of T), updatedSignature As SignatureChange) As SeparatedSyntaxList(Of T)
-            Dim originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters()
+            Dim originalParameterSymbols = updatedSignature.OriginalConfiguration.ToListOfParameters().Select(Function(p) p.Symbol).ToArray()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
 
             Dim numAddedParameters = 0
@@ -440,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Dim newParameters = New List(Of T)
             For index = 0 To reorderedParameters.Count - 1
                 Dim newParam = reorderedParameters(index)
-                Dim pos = originalParameters.IndexOf(Function(p) p.Symbol Is newParam.Symbol)
+                Dim pos = originalParameterSymbols.IndexOf(newParam.Symbol)
 
                 If pos = -1 Then
                     ' Added parameter
@@ -465,14 +466,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Next
 
             Dim numSeparatorsToSkip As Integer
-            If originalParameters.Count = 0 Then
+            If originalParameterSymbols.Length = 0 Then
                 ' () 
                 ' Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1
+                numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count + 1
             Else
                 ' (a,b,c)
                 ' Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count
+                numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count
             End If
 
             Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip))
@@ -673,7 +674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return New AbstractFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
-        Protected Overrides Function CreateRegularArgumentSyntax(callsiteValue As String) As IUnifiedArgumentSyntax
+        Protected Overrides Function CreateRegularArgumentSyntax(Of T)(callsiteValue As String) As IUnifiedArgumentSyntax
             Return UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callsiteValue)))
         End Function
     End Class

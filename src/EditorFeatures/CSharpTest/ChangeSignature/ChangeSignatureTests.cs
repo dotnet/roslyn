@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -315,7 +316,7 @@ public class C3
             using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
             {
                 testState.TestChangeSignatureOptionsService.IsCancelled = false;
-                testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+                testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature.Select(i => new AddedParameterOrExistingIndex(i)).ToArray();
                 var result = testState.ChangeSignature();
 
                 Assert.True(result.Succeeded);

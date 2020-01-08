@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
             var result = new List<StatementSyntax>();
             var remainingTrivia = Expand(result, usingStatement);
 
-            if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+            if (remainingTrivia.Any(t => t.IsSingleOrMultiLineComment() || t.IsDirective))
             {
                 var lastStatement = result[result.Count - 1];
                 result[result.Count - 1] = lastStatement.WithAppendedTrailingTrivia(

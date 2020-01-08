@@ -202,6 +202,11 @@
         <target state="translated">Art</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Liveanalyse (VSIX-Erweiterung)</target>
@@ -631,6 +636,11 @@
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Das Aktualisieren von Visual Basic-Kompilierungsoptionen wird von diesem Arbeitsbereich nicht unterstützt.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="You_must_change_the_signature">
+        <source>You must change the signature</source>
+        <target state="new">You must change the signature</target>
+        <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>

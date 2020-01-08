@@ -3964,15 +3964,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This signature does not contain parameters that can be changed..
-        /// </summary>
-        internal static string This_signature_does_not_contain_parameters_that_can_be_changed {
-            get {
-                return ResourceManager.GetString("This_signature_does_not_contain_parameters_that_can_be_changed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This symbol has related definitions or references in metadata. Changing its signature may result in build errors.
         ///
         ///Do you want to continue?.

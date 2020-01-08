@@ -1603,11 +1603,6 @@ Do you want to continue?</source>
         <target state="translated">한정자 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_signature_does_not_contain_parameters_that_can_be_changed">
-        <source>This signature does not contain parameters that can be changed.</source>
-        <target state="translated">이 시그니처에는 변경할 수 있는 매개 변수가 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unknown_error_occurred">
         <source>Unknown error occurred</source>
         <target state="translated">알 수 없는 오류 발생</target>

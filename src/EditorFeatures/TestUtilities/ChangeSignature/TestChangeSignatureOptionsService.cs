@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             Document document)
         {
             var list = parameters.ToListOfParameters();
-            var updateParameters = UpdatedSignature.Select(item => item.IsExisting
+            var updateParameters = UpdatedSignature?.Select(item => item.IsExisting
             ? list[item.OldIndex]
             : item.AddedParameter).ToList();
 

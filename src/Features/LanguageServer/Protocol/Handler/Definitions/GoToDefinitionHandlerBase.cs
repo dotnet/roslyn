@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, bool typeOnly, bool keepThreadContext, CancellationToken cancellationToken)
+        protected async Task<LSP.Location[]> GetDefinitionAsync(Solution solution, LSP.TextDocumentPositionParams request, bool typeOnly, CancellationToken cancellationToken)
         {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return locations.ToArrayAndFree();
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var definitionService = document.Project.LanguageServices.GetService<IGoToDefinitionService>();
-            var definitions = await definitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(keepThreadContext);
+            var definitions = await definitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (definitions != null && definitions.Count() > 0)
             {
                 foreach (var definition in definitions)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         continue;
                     }
 
-                    var definitionText = await definition.Document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+                    var definitionText = await definition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     locations.Add(new LSP.Location
                     {
                         Uri = definition.Document.GetURI(),
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             else if (document.SupportsSemanticModel && _metadataAsSourceFileService != null)
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
-                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(keepThreadContext);
+                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (symbol != null && symbol.Locations != null && !symbol.Locations.IsEmpty && symbol.Locations.First().IsInMetadata)
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, false, cancellationToken).ConfigureAwait(keepThreadContext);
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, false, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
