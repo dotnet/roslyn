@@ -5,6 +5,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -223,9 +224,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim isFixed = Aggregate arg In arguments
                           Select arg = TryCast(arg, SimpleArgumentSyntax)
                           Select arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
-                          Into ToList()
+                          Into ToImmutableArray()
 
-            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToList()
+            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index))).
                                  ToImmutableArray()
@@ -245,30 +246,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim isFixed = Aggregate arg In arguments
                           Select arg = TryCast(arg, SimpleArgumentSyntax)
                           Select arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
-                          Into ToList()
+                          Into ToImmutableArray()
 
-            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToList()
+            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToImmutableArray()
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
                                  ToImmutableArray()
-        End Function
-
-        Private Function SetEquals(array1 As ImmutableArray(Of ISymbol), array2 As ImmutableArray(Of ISymbol)) As Boolean
-            ' Do some quick up front checks so we won't have to allocate memory below.
-            If array1.Length = 0 AndAlso array2.Length = 0 Then
-                Return True
-            End If
-
-            If array1.Length = 0 OrElse array2.Length = 0 Then
-                Return False
-            End If
-
-            If array1.Length = 1 AndAlso array2.Length = 1 Then
-                Return array1(0).Equals(array2(0))
-            End If
-
-            Dim [set] = New HashSet(Of ISymbol)(array1)
-            Return [set].SetEquals(array2)
         End Function
 
         <Extension()>

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
             get { return LocationKind.None; }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return (object)this == obj;
         }

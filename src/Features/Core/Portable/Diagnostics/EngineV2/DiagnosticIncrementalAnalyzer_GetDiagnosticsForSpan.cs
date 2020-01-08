@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, CancellationToken cancellationToken)
+        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, includeSuppressedDiagnostics, diagnosticId, cancellationToken).ConfigureAwait(false);
-            return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
+            return await getter.TryGetAsync(result, addOperationScope, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, CancellationToken cancellationToken)
+        public async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var list = new List<DiagnosticData>();
-            var result = await TryAppendDiagnosticsForSpanAsync(document, range, list, diagnosticId, includeSuppressedDiagnostics, blockForData, cancellationToken).ConfigureAwait(false);
+            var result = await TryAppendDiagnosticsForSpanAsync(document, range, list, diagnosticId, includeSuppressedDiagnostics, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
             Debug.Assert(result);
             return list;
         }
@@ -68,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  string? diagnosticId = null,
                  CancellationToken cancellationToken = default)
             {
-                // REVIEW: IsAnalyzerSuppressed can be quite expensive in some cases. try to find a way to make it cheaper
-                //         Here we don't filter out hidden diagnostic only analyzer since such analyzer can produce hidden diagnostic
-                //         on active file (non local diagnostic)
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => !owner.AnalyzerService.IsAnalyzerSuppressed(s.Analyzer, document.Project));
 
@@ -108,14 +104,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
             }
 
-            public async Task<bool> TryGetAsync(List<DiagnosticData> list, CancellationToken cancellationToken)
+            public async Task<bool> TryGetAsync(List<DiagnosticData> list, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
             {
                 try
                 {
                     var containsFullResult = true;
                     foreach (var stateSet in _stateSets)
                     {
-                        using (RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, stateSet.Analyzer, cancellationToken))
+                        var analyzerTypeName = stateSet.Analyzer.GetType().Name;
+                        using (addOperationScope?.Invoke(analyzerTypeName))
+                        using (addOperationScope is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             {
                                 var avoidLoadingData = true;
                                 var state = stateSet.GetOrCreateProjectState(_project.Id);
-                                var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                                var result = await state.GetAnalysisDataAsync(_owner.PersistentStorageService, _document, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
                                 // no previous compilation end diagnostics in this file.
                                 var version = await GetDiagnosticVersionAsync(_project, cancellationToken).ConfigureAwait(false);
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var state = stateSet.GetOrCreateProjectState(_document.Project.Id);
 
                 // see whether we can use existing info
-                var result = await state.GetAnalysisDataAsync(_document, avoidLoadingData: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var result = await state.GetAnalysisDataAsync(_owner.PersistentStorageService, _document, avoidLoadingData: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
                 if (result.Version == version)
                 {
@@ -416,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.TextSpan)
+                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.GetTextSpan())
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
             }

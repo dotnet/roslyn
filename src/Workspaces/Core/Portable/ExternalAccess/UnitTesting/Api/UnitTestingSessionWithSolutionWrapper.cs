@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => UnderlyingObject = underlyingObject;
 
         public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject?.InvokeAsync(targetName, arguments, cancellationToken) ?? Task.CompletedTask;
+            => UnderlyingObject?.Connection.InvokeAsync(targetName, arguments, cancellationToken) ?? Task.CompletedTask;
 
         public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            => UnderlyingObject?.InvokeAsync<T>(targetName, arguments, cancellationToken);
+            => UnderlyingObject?.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
         public void Dispose()
             => UnderlyingObject?.Dispose();

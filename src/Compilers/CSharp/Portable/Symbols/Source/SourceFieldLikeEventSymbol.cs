@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_AbstractEventInitializer, this.Locations[0], this);
                 }
+                else if (this.IsExtern)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.Locations[0], this);
+                }
             }
 
             // NOTE: if there's an initializer in source, we'd better create a backing field, regardless of

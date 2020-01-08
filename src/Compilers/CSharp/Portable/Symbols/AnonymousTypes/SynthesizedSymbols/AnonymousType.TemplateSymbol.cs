@@ -120,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new AnonymousTypeToStringMethodSymbol(this));
             }
 
+            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+                => throw ExceptionUtilities.Unreachable;
+
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
                 var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
@@ -293,6 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override bool MightContainExtensionMethods
             {
                 get { return false; }
+            }
+
+            public sealed override bool AreLocalsZeroed
+            {
+                get { return ContainingModule.AreLocalsZeroed; }
             }
 
             public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()

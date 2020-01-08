@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             lock (_exceptions)
             {
                 var list = _exceptions.GetOrAdd(analyzer, _ => new HashSet<DiagnosticData>());
-                list.Add(DiagnosticData.Create(_project.Solution.Workspace, diagnostic, _project.Id));
+                list.Add(DiagnosticData.Create(diagnostic, _project));
             }
         }
 

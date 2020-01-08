@@ -19,10 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public const string AnyProviderName = "any";
 
         public const string CSharpLspLanguageName = "C#_LSP";
-        public const string CSharpLspContentTypeName = "C#_LSP";
         public const string TypeScriptLanguageName = "TypeScript";
         public const string VBLspLanguageName = "VB_LSP";
-        public const string VBLspContentTypeName = "VB_LSP";
 
         public const string CSharpLspPackageGuidString = "BB7E83F4-EAF6-456C-B140-F8C027A7ED8A";
         public const string CSharpLspLanguageServiceGuidString = "B7B576C5-24AE-4FBB-965E-382125FD4889";

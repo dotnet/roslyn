@@ -20,7 +20,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// File name with extension.
         /// </summary>
-        string FileName { get; }
+        string? FileName { get; }
 
         /// <summary>
         /// A hash of the file contents.

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(directive As DirectiveTriviaSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             If TypeOf directive Is RegionDirectiveTriviaSyntax OrElse
                TypeOf directive Is EndRegionDirectiveTriviaSyntax Then
 
@@ -30,12 +30,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                                        DirectCast(directive, EndRegionDirectiveTriviaSyntax),
                                        DirectCast(match, EndRegionDirectiveTriviaSyntax))
 
-                    Return {TextSpan.FromBounds(region.HashToken.SpanStart, region.RegionKeyword.Span.End),
-                            TextSpan.FromBounds(endRegion.HashToken.SpanStart, endRegion.RegionKeyword.Span.End)}
+                    highlights.Add(TextSpan.FromBounds(region.HashToken.SpanStart, region.RegionKeyword.Span.End))
+                    highlights.Add(TextSpan.FromBounds(endRegion.HashToken.SpanStart, endRegion.RegionKeyword.Span.End))
                 End If
             End If
-
-            Return Enumerable.Empty(Of TextSpan)()
-        End Function
+        End Sub
     End Class
 End Namespace

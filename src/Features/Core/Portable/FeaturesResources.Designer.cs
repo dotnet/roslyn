@@ -742,11 +742,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Awaited task returns.
+        ///   Looks up a localized string similar to Awaited task returns &apos;{0}&apos;.
         /// </summary>
-        internal static string Awaited_task_returns {
+        internal static string Awaited_task_returns_0 {
             get {
-                return ResourceManager.GetString("Awaited_task_returns", resourceCulture);
+                return ResourceManager.GetString("Awaited_task_returns_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Awaited task returns no value.
+        /// </summary>
+        internal static string Awaited_task_returns_no_value {
+            get {
+                return ResourceManager.GetString("Awaited_task_returns_no_value", resourceCulture);
             }
         }
         
@@ -2292,6 +2301,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interpolation can be simplified.
+        /// </summary>
+        internal static string Interpolation_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Interpolation_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Introduce constant.
         /// </summary>
         internal static string Introduce_constant {
@@ -2567,6 +2585,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Make_local_function_static {
             get {
                 return ResourceManager.GetString("Make_local_function_static", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make static.
+        /// </summary>
+        internal static string Make_member_static {
+            get {
+                return ResourceManager.GetString("Make_member_static", resourceCulture);
             }
         }
         
@@ -2942,15 +2969,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Naming_Styles {
             get {
                 return ResourceManager.GetString("Naming_Styles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to no value..
-        /// </summary>
-        internal static string no_value {
-            get {
-                return ResourceManager.GetString("no_value", resourceCulture);
             }
         }
         
@@ -3707,6 +3725,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_default_expression {
             get {
                 return ResourceManager.GetString("Simplify_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify interpolation.
+        /// </summary>
+        internal static string Simplify_interpolation {
+            get {
+                return ResourceManager.GetString("Simplify_interpolation", resourceCulture);
             }
         }
         

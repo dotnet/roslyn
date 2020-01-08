@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -14,8 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solutionDifferences = newSolution.GetChanges(oldSolution);
             var projectId = solutionDifferences.GetProjectChanges().Single().ProjectId;
 
-            var oldProject = oldSolution.GetProject(projectId);
-            var newProject = newSolution.GetProject(projectId);
+            var oldProject = oldSolution.GetRequiredProject(projectId);
+            var newProject = newSolution.GetRequiredProject(projectId);
 
             return newProject.GetChanges(oldProject);
         }
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
             var documentId = projectDifferences.GetChangedDocuments().Single();
 
-            return newSolution.GetDocument(documentId);
+            return newSolution.GetDocument(documentId)!;
         }
 
         public static TextDocument GetSingleChangedAdditionalDocument(Solution oldSolution, Solution newSolution)
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
             var documentId = projectDifferences.GetChangedAdditionalDocuments().Single();
 
-            return newSolution.GetAdditionalDocument(documentId);
+            return newSolution.GetAdditionalDocument(documentId)!;
         }
 
         public static IEnumerable<DocumentId> GetChangedDocuments(Solution oldSolution, Solution newSolution)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
             var documentId = projectDifferences.GetAddedDocuments().Single();
 
-            return newSolution.GetDocument(documentId);
+            return newSolution.GetDocument(documentId)!;
         }
 
         public static IEnumerable<DocumentId> GetTextChangedDocuments(Solution oldSolution, Solution newSolution)

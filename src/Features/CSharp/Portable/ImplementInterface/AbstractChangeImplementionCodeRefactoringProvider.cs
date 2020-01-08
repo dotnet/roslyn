@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                 return;
 
             var (document, _, cancellationToken) = context;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var member = semanticModel.GetDeclaredSymbol(container, cancellationToken);
             Contract.ThrowIfNull(member);
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
-            for (var node = token.Parent; node != null; node = node.Parent)
+            for (SyntaxNode? node = token.Parent; node != null; node = node.Parent)
             {
                 var result = node switch
                 {

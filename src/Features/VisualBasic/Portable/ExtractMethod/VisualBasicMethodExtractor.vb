@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As OptionSet, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
-                If Not AllNullabilityIgnoringSymbolComparer.Instance.Equals(currentType, typeParameter) Then
+                If Not SymbolEqualityComparer.Default.Equals(currentType, typeParameter) Then
                     Return New OperationStatus(OperationStatusFlag.BestEffort,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),

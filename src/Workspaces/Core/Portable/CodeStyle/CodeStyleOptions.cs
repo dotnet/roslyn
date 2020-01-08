@@ -197,6 +197,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_compound_assignment"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCompoundAssignment") });
 
+        internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferSimplifiedInterpolation = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedInterpolation),
+            defaultValue: TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[]{
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_simplified_interpolation"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PreferSimplifiedInterpolation)}") });
+
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferNoneUnusedParametersPreference =
             new CodeStyleOption<UnusedParametersPreference>(default, NotificationOption.None);
         private static readonly CodeStyleOption<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =

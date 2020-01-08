@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
             public static StatementSyntax Rewrite(
                 SwitchStatementSyntax switchStatement,
+                ITypeSymbol declaratorToRemoveTypeOpt,
                 SyntaxKind nodeToGenerate, bool shouldMoveNextStatementToSwitchExpression, bool generateDeclaration)
             {
                 var rewriter = new Rewriter(isAllThrowStatements: nodeToGenerate == SyntaxKind.ThrowStatement);
@@ -36,12 +37,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 // Generate the final statement to wrap the switch expression, e.g. a "return" or an assignment.
                 return rewriter.GetFinalStatement(switchExpression,
-                    switchStatement.SwitchKeyword.LeadingTrivia, nodeToGenerate, generateDeclaration);
+                    switchStatement.SwitchKeyword.LeadingTrivia, declaratorToRemoveTypeOpt, nodeToGenerate, generateDeclaration);
             }
 
             private StatementSyntax GetFinalStatement(
                 ExpressionSyntax switchExpression,
                 SyntaxTriviaList leadingTrivia,
+                ITypeSymbol declaratorToRemoveTypeOpt,
                 SyntaxKind nodeToGenerate,
                 bool generateDeclaration)
             {
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 Debug.Assert(_assignmentTargetOpt != null);
 
                 return generateDeclaration
-                    ? GenerateVariableDeclaration(switchExpression, leadingTrivia)
+                    ? GenerateVariableDeclaration(switchExpression, leadingTrivia, declaratorToRemoveTypeOpt)
                     : GenerateAssignment(switchExpression, nodeToGenerate, leadingTrivia);
             }
 
@@ -78,18 +80,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     .WithLeadingTrivia(leadingTrivia);
             }
 
-            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia)
+            private StatementSyntax GenerateVariableDeclaration(ExpressionSyntax switchExpression, SyntaxTriviaList leadingTrivia, ITypeSymbol declaratorToRemoveTypeOpt)
             {
                 Debug.Assert(_assignmentTargetOpt is IdentifierNameSyntax);
 
+                // There is a probability that we cannot use var if the declaration type is a reference type or nullable type.
+                // In these cases, we generate the explicit type for now and decide later whether or not to use var.
+                var cannotUseVar = declaratorToRemoveTypeOpt != null && (declaratorToRemoveTypeOpt.IsReferenceType || declaratorToRemoveTypeOpt.IsNullable());
+                var type = cannotUseVar ? declaratorToRemoveTypeOpt.GenerateTypeSyntax() : IdentifierName("var");
+
                 return LocalDeclarationStatement(
-                        VariableDeclaration(
-                            type: IdentifierName(Identifier(leadingTrivia, "var", trailing: default)),
-                            variables: SingletonSeparatedList(
-                                        VariableDeclarator(
-                                            identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
-                                            argumentList: null,
-                                            initializer: EqualsValueClause(switchExpression)))));
+                    VariableDeclaration(
+                        type,
+                        variables: SingletonSeparatedList(
+                                    VariableDeclarator(
+                                        identifier: ((IdentifierNameSyntax)_assignmentTargetOpt).Identifier,
+                                        argumentList: null,
+                                        initializer: EqualsValueClause(switchExpression)))));
             }
 
             private SwitchExpressionArmSyntax GetSwitchExpressionArm(SwitchSectionSyntax node)

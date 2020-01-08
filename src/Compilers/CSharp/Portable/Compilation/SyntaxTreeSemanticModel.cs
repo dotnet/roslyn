@@ -1858,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Case: multiple aliases, not the first (see DevDiv #9368)
-                return new AliasSymbol(binder, declarationSyntax).GetPublicSymbol();
+                return new AliasSymbol(binder, declarationSyntax.Name, declarationSyntax.Alias).GetPublicSymbol();
             }
         }
 
