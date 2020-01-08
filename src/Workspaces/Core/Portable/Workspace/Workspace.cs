@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
 
-            _workspaceOptionService?.RegisterDocumentOptionsProvider(documentOptionsProvider);
+            _optionService?.RegisterDocumentOptionsProvider(documentOptionsProvider);
         }
 
         internal void LogTestMessage(string message)
