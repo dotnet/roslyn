@@ -254,7 +254,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             private readonly OptionSet _optionSet = new WorkspaceOptionSet(null);
 
+#pragma warning disable CS0067 // unused event
             public event EventHandler<OptionChangedEventArgs> OptionChanged;
+#pragma warning restore CS0067
 
             public T GetOption<T>(Option<T> option) => option.DefaultValue;
 
