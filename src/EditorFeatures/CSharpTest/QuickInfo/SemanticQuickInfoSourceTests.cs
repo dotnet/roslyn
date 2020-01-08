@@ -6527,7 +6527,7 @@ class X
         }
     }
 }",
-                MainDescription($"({FeaturesResources.local_variable}) string s"),
+                MainDescription($"({FeaturesResources.local_variable}) string? s"),
                 NullabilityAnalysis(string.Format(CSharpFeaturesResources._0_is_not_null_here, "s")));
         }
 
