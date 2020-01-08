@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((object)candidate != null && !candidate.CandidateSymbols.IsEmpty) ? candidate.CandidateSymbols : candidateSymbols;
         }
 
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override DiagnosticInfo ErrorInfo
         {
             get

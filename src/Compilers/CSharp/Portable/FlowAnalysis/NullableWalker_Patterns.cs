@@ -98,7 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool isExplicitNullCheck = cp.Value.ConstantValue == ConstantValue.Null;
                     if (isExplicitNullCheck)
                     {
-                        LearnFromNullTest(inputSlot, inputType, ref this.State);
+                        // Since we're not branching on this null test here, we just infer the top level
+                        // nullability.  We'll branch on it later.
+                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
                     }
                     break;
                 case BoundDeclarationPattern _:
@@ -142,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
-            int slot = MakeSlot(node.Expression);
+            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
             if (slot > 0)
             {
                 var originalInputType = node.Expression.Type;
@@ -349,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagNonNullTest t:
                                     if (inputSlot > 0)
                                     {
+                                        MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
@@ -357,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagExplicitNullTest t:
                                     if (inputSlot > 0)
                                     {
-                                        LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue);
+                                        LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue, markDependentSlotsNotNull: true);
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenFalse);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
@@ -493,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
-            int slot = MakeSlot(node.Expression);
+            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
             if (slot > 0)
             {
                 var originalInputType = node.Expression.Type;

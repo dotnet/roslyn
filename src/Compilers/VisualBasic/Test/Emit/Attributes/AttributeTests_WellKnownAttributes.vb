@@ -5126,6 +5126,484 @@ End Class
         End Sub
 #End Region
 
+#Region "SkipLocalsInitAttribute"
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnMethod()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Sub S()
+    End Sub
+
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Function F() As Integer
+        Return 1
+    End Function
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnClass()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Class C
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnProperty()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnAccessors()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Property P As Integer
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+        Get
+            Return 1
+        End Get
+
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnModule()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Module: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<Module: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnAssembly()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Assembly: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<Assembly: System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnEnum()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Enum E
+    Member
+End Enum
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnEnumMember()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Enum E
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Member1
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Member2
+End Enum
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnEvent()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Event E(ByVal i As Integer)
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnDelegate()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Delegate Sub D()
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnInterface()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Interface I
+End Interface
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnStructure()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+Structure S
+End Structure
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+<System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnReturnValue()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Function F() As <System.Runtime.CompilerServices.SkipLocalsInitAttribute> Integer
+        Return 1
+    End Function
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    Function F() As <System.Runtime.CompilerServices.SkipLocalsInitAttribute> Integer
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnParameter()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Sub M(<System.Runtime.CompilerServices.SkipLocalsInitAttribute> ByVal i As Integer)
+    End Sub
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    Sub M(<System.Runtime.CompilerServices.SkipLocalsInitAttribute> ByVal i As Integer)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SkipLocalsInitAttributeOnField()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class SkipLocalsInitAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+    Dim i As Integer
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.SkipLocalsInitAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.SkipLocalsInitAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+#End Region
+
 #Region "RequiredAttributeAttribute"
 
         <Fact, WorkItem(81, "https://github.com/dotnet/roslyn/issues/81")>

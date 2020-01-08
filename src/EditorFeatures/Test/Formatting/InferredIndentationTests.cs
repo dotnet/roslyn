@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
     [UseExportProvider]
     public class InferredIndentationTests
     {
-#if false
         [Fact]
         public async Task BlankFileMatchesWorkspaceSettings()
         {
@@ -58,6 +57,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
             return workspace;
         }
-#endif
     }
 }

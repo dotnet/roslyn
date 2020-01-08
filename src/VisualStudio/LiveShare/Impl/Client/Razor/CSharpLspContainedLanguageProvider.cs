@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging;
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
 
         public IContentType GetContentType(string filePath)
         {
-            return _contentTypeRegistry.GetContentType(StringConstants.CSharpLspContentTypeName);
+            return _contentTypeRegistry.GetContentType(ContentTypeNames.CSharpLspContentTypeName);
         }
 
         public IVsContainedLanguage GetLanguage(string filePath, IVsTextBufferCoordinator bufferCoordinator)

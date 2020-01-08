@@ -85,7 +85,7 @@ unsafe class Test
             Assert.Equal("obj5", obj5.Identifier.Text);
 
             var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-            Assert.Null(obj5Value.Type);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
         }
@@ -160,7 +160,7 @@ unsafe class Test
             Assert.Equal("obj5", obj5.Identifier.Text);
 
             var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
-            Assert.Null(obj5Value.Type);
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)obj5Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Double, ((IPointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
         }

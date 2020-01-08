@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
 using Microsoft.CodeAnalysis.Test.Utilities.Workspaces;
@@ -1227,5 +1228,67 @@ partial class MyClass
 {
 }",
     expectedSuccess: false);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        [WorkItem(39234, "https://github.com/dotnet/roslyn/issues/39234")]
+        public async Task TestMultiTargetingProject()
+        {
+            // Create two projects with same project file path and single linked document to simulate a multi-targeting project.
+            var input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" FilePath=""SharedProj.csproj"">
+        <Document FilePath=""CurrentDocument.cs"">
+namespace A
+{
+    public class Class1
+    {
+    }
+
+    public class Class2[||]
+    {
+    }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" FilePath=""SharedProj.csproj"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expected =
+@"namespace A
+{
+    public class Class1
+    {
+    }
+}
+
+namespace B
+{
+    public class Class2
+    {
+    }
+}";
+            using var workspace = TestWorkspace.Create(System.Xml.Linq.XElement.Parse(input), exportProvider: ExportProviderFactory.CreateExportProvider());
+
+            // Set the target namespace to "B"
+            var testDocument = workspace.Projects.Single(p => p.Name == "Proj1").Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var movenamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
+            var moveToNamespaceOptions = new MoveToNamespaceOptionsResult("B");
+            ((TestMoveToNamespaceOptionsService)movenamespaceService.OptionsService).SetOptions(moveToNamespaceOptions);
+
+            var (_, action) = await GetCodeActionsAsync(workspace, default);
+            var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
+            var result = ApplyOperationsAndGetSolution(workspace, operations);
+
+            // Make sure both linked documents are changed.
+            foreach (var id in workspace.Documents.Select(d => d.Id))
+            {
+                var changedDocument = result.Item2.GetDocument(id);
+                var changedRoot = await changedDocument.GetSyntaxRootAsync();
+                var actualText = changedRoot.ToFullString();
+                Assert.Equal(expected, actualText);
+            }
+        }
     }
 }

@@ -109,17 +109,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
-            Return diagnosticId = BC36610 And
+            Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
                 AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
-            If diagnosticId <> AddImportDiagnosticIds.BC36593 Then
-                Return False
-            End If
-
-            Dim queryClause = node.GetAncestor(Of QueryExpressionSyntax)()
-            Return queryClause IsNot Nothing
+            Return diagnosticId = AddImportDiagnosticIds.BC36593 AndAlso
+                node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
         Private Function IsOutermostQueryExpression(node As SyntaxNode) As Boolean

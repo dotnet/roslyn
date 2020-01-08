@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
-        /// namespce to be changed. If this reference is the right side of a qualified name, the new node returned would
+        /// namespace to be changed. If this reference is the right side of a qualified name, the new node returned would
         /// be the entire qualified name. Depends on whether <paramref name="newNamespaceParts"/> is provided, the name 
         /// in the new node might be qualified with this new namespace instead.
         /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated 
+        /// <param name="reference">A reference to a type declared inside the namespace to be changed, which is calculated 
         /// based on results from `SymbolFinder.FindReferencesAsync`.</param>
         /// <param name="newNamespaceParts">If specified, the namespace of original reference will be replaced with given 
         /// namespace in the replacement node.</param>
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 // After changing documents, we still need to remove unnecessary imports related to our change.
                 // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
-                // just ones that fully matche the old/new namespace. Because it's hard to get it right and will almost 
+                // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
                 // certainly cause perf issue.
                 // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
                 // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // TODO: figure out how to properly determine if and how a document is linked using project system.
 
-            // If we found a linked document which is part of a project with differenct project file,
+            // If we found a linked document which is part of a project with different project file,
             // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
             if (linkedDocumentIds.Any(id =>
                     !PathUtilities.PathsEqual(solution.GetRequiredDocument(id).Project.FilePath, document.Project.FilePath)))

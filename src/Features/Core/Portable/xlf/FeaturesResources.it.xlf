@@ -82,6 +82,16 @@
         <target state="translated">Evitare parametri inutilizzati nel codice. Se non è possibile rimuovere il parametro, modificarne il nome in modo che inizi con un carattere di sottolineatura e, facoltativamente, sia seguito da un numero intero, ad esempio '_', '_1', '_2' e così via. Questi vengono considerati come nomi di simboli speciali di rimozione.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Non è possibile applicare le modifiche. Errore imprevisto: '{0}'</target>
@@ -327,6 +337,11 @@
         <target state="translated">L'indicizzazione può essere semplificata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Interpolation_can_be_simplified">
+        <source>Interpolation can be simplified</source>
+        <target state="new">Interpolation can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Introduci costante</target>
@@ -345,6 +360,11 @@
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">Introduci la variabile di query</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_member_static">
+        <source>Make static</source>
+        <target state="new">Make static</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly_fields_writable">
@@ -515,6 +535,11 @@
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modifica non applicabile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_interpolation">
+        <source>Simplify interpolation</source>
+        <target state="new">Simplify interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1631,16 +1656,6 @@ Continuare?</target>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
         <target state="translated">&lt;In sospeso&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">Restituzioni attività attese</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">nessun valore.</target>
         <note />
       </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">

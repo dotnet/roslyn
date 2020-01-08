@@ -168,12 +168,6 @@
   <data name="Adding_projects_is_not_supported" xml:space="preserve">
     <value>Adding projects is not supported.</value>
   </data>
-  <data name="Workspace_error" xml:space="preserve">
-    <value>Workspace error</value>
-  </data>
-  <data name="Error_reading_content_of_source_file_0_1" xml:space="preserve">
-    <value>Error reading content of source file '{0}' -- '{1}'.</value>
-  </data>
   <data name="Workspace_is_not_empty" xml:space="preserve">
     <value>Workspace is not empty.</value>
   </data>
@@ -464,9 +458,6 @@
   </data>
   <data name="This_workspace_does_not_support_opening_and_closing_documents" xml:space="preserve">
     <value>This workspace does not support opening and closing documents.</value>
-  </data>
-  <data name="Usage_colon" xml:space="preserve">
-    <value>Usage:</value>
   </data>
   <data name="Exceptions_colon" xml:space="preserve">
     <value>Exceptions:</value>

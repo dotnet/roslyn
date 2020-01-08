@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Host
         ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
 
         // new tree from root node
-        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root, ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions);
+        SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root, AnalyzerConfigOptionsResult analyzerConfigOptionsResult);
 
         // new tree from text
-        SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, ImmutableDictionary<string, ReportDiagnostic>? treeDiagnosticReportingOptions, CancellationToken cancellationToken);
+        SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, AnalyzerConfigOptionsResult? analyzerConfigOptionsResult, CancellationToken cancellationToken);
 
         bool CanCreateRecoverableTree(SyntaxNode root);
 
