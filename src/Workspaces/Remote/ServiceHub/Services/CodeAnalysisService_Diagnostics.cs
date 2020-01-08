@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
         /// </summary>
-        public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
+        public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string pipeName, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async () =>
             {
@@ -30,25 +30,24 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
                 using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
                 {
-                    try
+                    // entry point for diagnostic service
+                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+                    var projectId = arguments.ProjectId;
+                    var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
+
+                    var result = await new DiagnosticComputer(solution.GetProject(projectId)).GetDiagnosticsAsync(
+                        analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+
+                    await RemoteEndPoint.WriteDataToNamedPipeAsync(pipeName, result, (writer, data, cancellationToken) =>
                     {
-                        // entry point for diagnostic service
-                        var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                        var (diagnostics, telemetry, exceptions) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, data, cancellationToken);
 
-                        var projectId = arguments.ProjectId;
-                        var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
+                        // save log for debugging
+                        Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}, exceptions: {exceptions}");
 
-                        var diagnosticComputer = new DiagnosticComputer(solution.GetProject(projectId));
-                        var result = await diagnosticComputer.GetDiagnosticsAsync(
-                            analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
-
-                        await SerializeDiagnosticResultAsync(streamName, result, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (IOException)
-                    {
-                        // direct stream to send over result has closed before we
-                        // had chance to check cancellation
-                    }
+                        return Task.CompletedTask;
+                    }, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }
@@ -70,23 +69,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     service.AddSnapshot(snapshot, unitCount);
                 }
             }, cancellationToken);
-        }
-
-        private async Task SerializeDiagnosticResultAsync(string streamName, DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result, CancellationToken cancellationToken)
-        {
-            using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_SerializeDiagnosticResultAsync, GetResultLogInfo, result, cancellationToken))
-            using (var stream = await DirectStream.GetAsync(streamName, cancellationToken).ConfigureAwait(false))
-            {
-                using (var writer = new ObjectWriter(stream))
-                {
-                    var (diagnostics, telemetry, exceptions) = DiagnosticResultSerializer.WriteDiagnosticAnalysisResults(writer, result, cancellationToken);
-
-                    // save log for debugging
-                    Log(TraceEventType.Information, $"diagnostics: {diagnostics}, telemetry: {telemetry}, exceptions: {exceptions}");
-                }
-
-                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-            }
         }
 
         private static string GetResultLogInfo(DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder> result)

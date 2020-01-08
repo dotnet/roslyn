@@ -625,6 +625,7 @@ expectedOutput:=<![CDATA[
         <WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")>
         <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
         <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
+        <WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")>
         <Fact>
         Public Sub DecimalLiteral_BreakingChange()
 

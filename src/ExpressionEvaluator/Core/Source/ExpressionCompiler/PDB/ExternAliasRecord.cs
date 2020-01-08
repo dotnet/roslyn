@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+#nullable enable
+
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct ExternAliasRecord
+    internal readonly struct ExternAliasRecord
     {
         public readonly string Alias;
 
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public ExternAliasRecord(string alias, IAssemblySymbolInternal targetAssembly)
         {
-            Debug.Assert(alias != null);
-            Debug.Assert(targetAssembly != null);
+            RoslynDebug.AssertNotNull(alias);
+            RoslynDebug.AssertNotNull(targetAssembly);
 
             Alias = alias;
             TargetAssembly = targetAssembly;
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public ExternAliasRecord(string alias, AssemblyIdentity targetIdentity)
         {
-            Debug.Assert(alias != null);
-            Debug.Assert(targetIdentity != null);
+            RoslynDebug.AssertNotNull(alias);
+            RoslynDebug.AssertNotNull(targetIdentity);
 
             Alias = alias;
             TargetAssembly = targetIdentity;

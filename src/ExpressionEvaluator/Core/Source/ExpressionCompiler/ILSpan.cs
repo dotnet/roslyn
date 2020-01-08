@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -7,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     // TODO: use TextSpan?
-    internal struct ILSpan : IEquatable<ILSpan>
+    internal readonly struct ILSpan : IEquatable<ILSpan>
     {
         public static readonly ILSpan MaxValue = new ILSpan(0, uint.MaxValue);
 

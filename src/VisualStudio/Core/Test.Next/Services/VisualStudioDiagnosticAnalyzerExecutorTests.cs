@@ -139,14 +139,13 @@ End Class";
                 var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
                 var source = new CancellationTokenSource();
-                var connection = new InvokeThrowsCancellationConnection(source);
+                using var connection = new InvokeThrowsCancellationConnection(source);
                 var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
                 Assert.Equal(exception.CancellationToken, source.Token);
 
                 // make sure things that should have been cleaned up are cleaned up
                 var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
                 Assert.Null(await service.TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
-                Assert.True(connection.Disposed);
             }
         }
 
@@ -356,10 +355,6 @@ End Class";
 
             public override Task<T> InvokeAsync<T>(
                 string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
-
-            public override Task InvokeAsync(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
 
             public override Task<T> InvokeAsync<T>(

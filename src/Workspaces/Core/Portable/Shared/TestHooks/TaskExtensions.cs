@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return task.CompletesTrackingOperation(asyncToken);
         }
 
+        [PerformanceSensitive(
+            "https://developercommunity.visualstudio.com/content/problem/854696/changing-target-framework-takes-10-minutes-with-10.html",
+            AllowCaptures = false)]
         public static Task CompletesTrackingOperation(this Task task, IDisposable token)
         {
             if (token == null || token == EmptyAsyncToken.Instance)
@@ -26,11 +29,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 return task;
             }
 
-            return task.SafeContinueWith(
-                t => token.Dispose(),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
+            return CompletesTrackingOperationSlow(task, token);
+
+            static Task CompletesTrackingOperationSlow(Task task, IDisposable token)
+            {
+                return task.SafeContinueWith(
+                    t => token.Dispose(),
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract TMethodSymbol GetMethod(TCompilation compilation, DkmClrInstructionAddress instructionAddress);
 
-        internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string> argumentValues = null)
+        internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string?>? argumentValues = null)
         {
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             // parameter list...
             var parameters = ((IMethodSymbol)method.GetISymbol()).Parameters;
-            var includeArgumentValues = (argumentValues != null) && (parameters.Length == argumentValues.Count);
+            var includeArgumentValues = argumentValues != null && parameters.Length == argumentValues.Count;
             if (includeParameterTypes || includeParameterNames || includeArgumentValues)
             {
                 builder.Append('(');
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                     if (includeArgumentValues)
                     {
-                        var argumentValue = argumentValues[i];
+                        var argumentValue = argumentValues![i];
                         if (argumentValue != null)
                         {
                             if (includeParameterTypes || includeParameterNames)
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract TypeNameDecoder<TModuleSymbol, TTypeSymbol> GetTypeNameDecoder(TCompilation compilation, TMethodSymbol method);
 
-        internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string[] serializedTypeNames)
+        internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string?[]? serializedTypeNames)
         {
             if (serializedTypeNames == null)
             {
