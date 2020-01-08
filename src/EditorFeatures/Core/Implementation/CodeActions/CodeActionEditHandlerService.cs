@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             // application of these operations.  This way we should be able to undo 
             // them all with one user action.
             //
-            // The reason we don't always create a gobal undo is that a global undo
+            // The reason we don't always create a global undo is that a global undo
             // forces all files to save.  And that's rather a heavyweight and 
             // unexpected experience for users (for the common case where a single 
             // file got edited).
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 
             var changedAdditionalDocuments = projectChange.GetChangedAdditionalDocuments().ToImmutableArray();
-            var changedDocuments = projectChange.GetChangedDocuments().ToImmutableArray();
+            var changedDocuments = projectChange.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true).ToImmutableArray();
             var changedAnalyzerConfigDocuments = projectChange.GetChangedAnalyzerConfigDocuments().ToImmutableArray();
 
             if (changedAdditionalDocuments.Length + changedDocuments.Length + changedAnalyzerConfigDocuments.Length != 1)
