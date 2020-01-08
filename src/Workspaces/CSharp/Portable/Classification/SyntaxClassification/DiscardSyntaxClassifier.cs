@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
@@ -33,16 +34,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return;
             }
 
-            var symbolInfo = semanticModel.GetSymbolInfo(syntax, cancellationToken);
-
             switch (syntax)
             {
-                case LambdaExpressionSyntax _:
-                    ClassifyLambdaParameter(symbolInfo, result);
+                case LambdaExpressionSyntax lambda:
+                    {
+                        var symbolInfo = semanticModel.GetSymbolInfo(lambda, cancellationToken);
+                        ClassifyLambdaParameter(symbolInfo, result);
+                    }
+                    break;
+
+                case IdentifierNameSyntax identifier:
+                    if (identifier.Identifier.Text == "_")
+                    {
+                        var symbolInfo = semanticModel.GetSymbolInfo(identifier, cancellationToken);
+                        ClassifySymbol(syntax, symbolInfo, result);
+                    }
                     break;
 
                 default:
-                    ClassifySymbol(syntax, symbolInfo, result);
+                    Debug.Assert(false, "This shouldn't be hit");
                     break;
             };
         }
