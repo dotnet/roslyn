@@ -374,5 +374,16 @@ namespace Microsoft.CodeAnalysis
             var textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return textAndVersion.Version;
         }
+
+        public bool HasTextChanged(TextDocumentState oldState)
+        {
+            return oldState.sourceText != sourceText
+                || oldState.TextAndVersionSource != TextAndVersionSource;
+        }
+
+        public bool HasInfoChanged(TextDocumentState oldState)
+        {
+            return oldState.Attributes != Attributes;
+        }
     }
 }

@@ -307,25 +307,6 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        /// <summary>
-        /// True if the content (text/tree) has changed.
-        /// </summary>
-        public bool HasContentChanged(DocumentState oldState)
-        {
-            return oldState._treeSource != _treeSource
-                || oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
-        }
-
-        /// <summary>
-        /// True if the Text has changed
-        /// </summary>
-        public bool HasTextChanged(DocumentState oldState)
-        {
-            return oldState.sourceText != sourceText
-                || oldState.TextAndVersionSource != TextAndVersionSource;
-        }
-
         public DocumentState UpdateParseOptions(ParseOptions options)
         {
             var originalSourceKind = this.SourceCodeKind;

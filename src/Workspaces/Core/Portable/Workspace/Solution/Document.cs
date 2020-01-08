@@ -61,11 +61,6 @@ namespace Microsoft.CodeAnalysis
                    DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
         }
 
-        internal bool HasTextChanged(Document otherDocument)
-        {
-            return DocumentState.HasTextChanged(otherDocument.DocumentState);
-        }
-
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
         /// In almost all cases, you should call <see cref="GetSyntaxTreeAsync"/> to fetch the tree, which will parse the tree
