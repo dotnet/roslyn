@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
             typeof(DiscardDesignationSyntax),
             typeof(DiscardPatternSyntax),
-            typeof(LambdaExpressionSyntax),
+            typeof(ParameterSyntax),
             typeof(IdentifierNameSyntax));
 
         public override void AddClassifications(
@@ -36,10 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             switch (syntax)
             {
-                case LambdaExpressionSyntax lambda:
+                case ParameterSyntax parameter:
+                    var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
+
+                    if (symbol.IsDiscard)
                     {
-                        var symbolInfo = semanticModel.GetSymbolInfo(lambda, cancellationToken);
-                        ClassifyLambdaParameter(symbolInfo, result);
+                        result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
                     }
                     break;
 
@@ -58,28 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 default:
                     throw ExceptionUtilities.Unreachable;
             };
-        }
-
-        private void ClassifyLambdaParameter(SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
-        {
-            // classify lambda parameters of the forms 
-            // (int _, int _) => ... 
-            // or 
-            // (_, _) => ...
-            // which aren't covered by TryClassifySymbol
-
-            if (!(symbolInfo.Symbol is IMethodSymbol symbol))
-            {
-                return;
-            }
-
-            foreach (var parameter in symbol.Parameters)
-            {
-                if (parameter.IsDiscard)
-                {
-                    result.Add(new ClassifiedSpan(parameter.Locations[0].SourceSpan, ClassificationTypeNames.Keyword));
-                }
-            }
         }
     }
 }
