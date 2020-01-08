@@ -38,8 +38,6 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Map of reference id's to deserialized objects.
-        ///
-        /// These are not readonly because they're structs and we mutate them.
         /// </summary>
         private readonly ReaderReferenceMap<object> _objectReferenceMap;
         private readonly ReaderReferenceMap<string> _stringReferenceMap;
@@ -249,11 +247,12 @@ namespace Roslyn.Utilities
         /// <summary>
         /// An reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private struct ReaderReferenceMap<T> where T : class
+        private struct ReaderReferenceMap<T> : IDisposable
+            where T : class
         {
             private readonly List<T> _values;
 
-            internal static readonly ObjectPool<List<T>> s_objectListPool
+            private static readonly ObjectPool<List<T>> s_objectListPool
                 = new ObjectPool<List<T>>(() => new List<T>(20));
 
             private ReaderReferenceMap(List<T> values)
@@ -267,7 +266,6 @@ namespace Roslyn.Utilities
                 _values.Clear();
                 s_objectListPool.Free(_values);
             }
-
 
             public int GetNextObjectId()
             {
