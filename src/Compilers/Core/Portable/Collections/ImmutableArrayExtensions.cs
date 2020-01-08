@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray.CreateRange<T>(items);
         }
 
+        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
+            => items.IsDefault ? ImmutableArray<T>.Empty : items;
+
         /// <summary>
         /// Converts a sequence to an immutable array.
         /// </summary>
