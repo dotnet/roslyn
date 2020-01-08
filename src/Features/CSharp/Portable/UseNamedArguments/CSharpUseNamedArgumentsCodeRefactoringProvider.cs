@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
             protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
                 => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
 
-            protected override ExpressionSyntax GetArgumentExpression(ArgumentSyntax argumentSyntax) => argumentSyntax.Expression;
+            protected override ExpressionSyntax GetArgumentExpression(ArgumentSyntax argumentSyntax)
+                => argumentSyntax.Expression;
         }
 
         private class AttributeArgumentAnalyzer :

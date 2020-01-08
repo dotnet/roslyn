@@ -515,54 +515,46 @@ class C : System.Attribute
         public async Task TestMissingForImplicitRangeIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
-                @"class C { string M(string arg1) => arg1[[||]1..^1]; }" + TestSources.Range + TestSources.Index,
-                new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+                @"class C { string M(string arg1) => arg1[[||]1..^1]; }" + TestSources.Range + TestSources.Index);
         }
 
         [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestMissingForImplicitIndexIndexer()
         {
             await TestMissingInRegularAndScriptAsync(
-                @"class C { string M(string arg1) => arg1[[||]^1]; }" + TestSources.Index,
-                new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+                @"class C { string M(string arg1) => arg1[[||]^1]; }" + TestSources.Index);
         }
 
         [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealRangeIndexer()
         {
             await TestInRegularAndScriptAsync(
-                @"
-using System; 
+                @"using System; 
 class C { 
     int this[Range range] => default; 
     int M(C arg1) => arg1[[||]1..^1]; 
 }" + TestSources.Range + TestSources.Index,
-                @"
-using System; 
+                @"using System; 
 class C { 
     int this[Range range] => default; 
     int M(C arg1) => arg1[range: 1..^1]; 
-}" + TestSources.Range + TestSources.Index,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+}" + TestSources.Range + TestSources.Index);
         }
 
         [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
         public async Task TestForRealIndexIndexer()
         {
             await TestInRegularAndScriptAsync(
-                @"
-using System; 
+                @"using System; 
 class C { 
     int this[Index index] => default; 
     int M(C arg1) => arg1[[||]^1]; 
 }" + TestSources.Index,
-                @"
-using System; 
+                @"using System; 
 class C { 
     int this[Index index] => default; 
     int M(C arg1) => arg1[index: ^1]; 
-}" + TestSources.Index,
-                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+}" + TestSources.Index);
         }
     }
 }
