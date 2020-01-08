@@ -4893,7 +4893,7 @@ class Program
         }
 
         [Fact, WorkItem(38129, "https://github.com/dotnet/roslyn/issues/38129")]
-        public void StaticLocalFunctionLocalFunctionReference()
+        public void StaticLocalFunctionLocalFunctionReference_01()
         {
             var source =
 @"#pragma warning disable 8321
@@ -4918,8 +4918,41 @@ class C
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1()").WithArguments("F1").WithLocation(11, 13));
         }
 
+        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        public void StaticLocalFunctionLocalFunctionReference_02()
+        {
+            var source =
+@"#pragma warning disable 0219
+#pragma warning disable 8321
+class Program
+{
+    static void Method()
+    {
+        int i = 0;
+        void Local1<T>()
+        {
+            i = 0;
+        }
+        void Local2<T>() { }
+        static void StaticLocal()
+        {
+            Local1<int>();
+            Local2<int>();
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,13): error CS8421: A static local function cannot contain a reference to 'Local1'.
+                //             Local1<int>();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local1<int>()").WithArguments("Local1").WithLocation(15, 13),
+                // (16,13): error CS8421: A static local function cannot contain a reference to 'Local2'.
+                //             Local2<int>();
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local2<int>()").WithArguments("Local2").WithLocation(16, 13));
+        }
+
         [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
-        public void StaticLocalFunctionLocalFunctionDelegateReference()
+        public void StaticLocalFunctionLocalFunctionDelegateReference_01()
         {
             var source =
 @"#pragma warning disable 8321
@@ -4945,6 +4978,29 @@ class C
                 // (12,28): error CS8421: A static local function cannot contain a reference to 'F1'.
                 //             _ = new Action(F1);
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "F1").WithArguments("F1").WithLocation(12, 28));
+        }
+
+        [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]
+        public void StaticLocalFunctionLocalFunctionDelegateReference_02()
+        {
+            var source =
+@"#pragma warning disable 8321
+class Program
+{
+    static void Method()
+    {
+        void Local<T>() { }
+        static System.Action StaticLocal()
+        {
+            return Local<int>;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,20): error CS8421: A static local function cannot contain a reference to 'Local'.
+                //             return Local<int>;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>").WithArguments("Local").WithLocation(9, 20));
         }
 
         [Fact, WorkItem(38240, "https://github.com/dotnet/roslyn/issues/38240")]
