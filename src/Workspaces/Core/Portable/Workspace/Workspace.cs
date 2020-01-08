@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             // initialize with empty solution
             _latestSolution = CreateSolution(SolutionId.CreateNewId());
 
-            _taskQueue.ScheduleTask(() => TryRegisterDocumentOptionsProvider(), nameof(TryRegisterDocumentOptionsProvider));
+            TryRegisterDocumentOptionsProvider();
         }
 
         internal void TryRegisterDocumentOptionsProvider()
