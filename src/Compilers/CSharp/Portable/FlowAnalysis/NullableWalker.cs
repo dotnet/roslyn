@@ -6132,8 +6132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         FlowAnalysisAnnotations ToInwardAnnotations(FlowAnalysisAnnotations outwardAnnotations)
         {
             var annotations = FlowAnalysisAnnotations.None;
-            if ((outwardAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull)
+            if ((outwardAnnotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
+                // MaybeNull and MaybeNullWhen count as MaybeNull
                 annotations |= FlowAnalysisAnnotations.AllowNull;
             }
             if ((outwardAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull)
