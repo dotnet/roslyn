@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             if (newSolution != null)
             {
                 var solutionChanges = newSolution.GetChanges(oldSolution);
+                var ignoreUnchangeableDocuments = oldSolution.Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges;
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
                 {
@@ -93,7 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     var oldProject = projectChanges.OldProject;
                     var newProject = projectChanges.NewProject;
 
-                    foreach (var documentId in projectChanges.GetChangedDocuments())
+                    // Exclude changes to unchangeable documents if they will be ignored when applied to workspace.
+                    foreach (var documentId in projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, ignoreUnchangeableDocuments))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(documentId.ProjectId, documentId, c =>

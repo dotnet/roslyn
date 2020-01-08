@@ -116,7 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var builder = ArrayBuilder<AbstractChange>.GetInstance();
 
             // Documents
-            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments());
+            // (exclude unchangeable ones if they will be ignored when applied to workspace.)
+            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, _oldSolution.Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges));
             var addedDocuments = projectChanges.SelectMany(p => p.GetAddedDocuments());
             var removedDocuments = projectChanges.SelectMany(p => p.GetRemovedDocuments());
 
