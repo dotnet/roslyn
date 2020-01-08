@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
+using IComparer = System.Collections.IComparer;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -266,6 +268,13 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         private void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, ImmutableArray<DiagnosticAnalyzer> analyzers, DiagnosticResult[] expectedResults, IVerifier verifier)
         {
+            var matchedDiagnostics = MatchDiagnostics(actualResults.ToArray(), expectedResults);
+            verifier.Equal(actualResults.Count(), matchedDiagnostics.Count(x => x.actual is object), $"{nameof(MatchDiagnostics)} failed to include all actual diagnostics in the result");
+            verifier.Equal(expectedResults.Length, matchedDiagnostics.Count(x => x.expected is object), $"{nameof(MatchDiagnostics)} failed to include all expected diagnostics in the result");
+
+            actualResults = matchedDiagnostics.Select(x => x.actual).WhereNotNull();
+            expectedResults = matchedDiagnostics.Where(x => x.expected is object).Select(x => x.expected.GetValueOrDefault()).ToArray();
+
             var expectedCount = expectedResults.Length;
             var actualCount = actualResults.Count();
 
@@ -315,6 +324,178 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     verifier.Equal(expected.Message, actual.GetMessage(), $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
                 }
+            }
+        }
+
+        private ImmutableArray<(Diagnostic? actual, DiagnosticResult? expected)> MatchDiagnostics(Diagnostic[] actualResults, DiagnosticResult[] expectedResults)
+        {
+            expectedResults = expectedResults.ToOrderedArray();
+
+            var bestMatchCount = actualResults.Length + expectedResults.Length;
+            var bestMatch = actualResults.Select(result => ((Diagnostic?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default(Diagnostic?), (DiagnosticResult?)result))).ToImmutableArray();
+
+            var builder = ImmutableArray.CreateBuilder<(Diagnostic? actual, DiagnosticResult? expected)>();
+            bool[] usedExpected = new bool[expectedResults.Length];
+            RecursiveMatch(0, 0, 0, usedExpected);
+
+            return bestMatch;
+
+            // Returns the minimum number of unmatched items
+            int RecursiveMatch(int firstActualIndex, int firstExpectedIndex, int unmatchedActualResults, bool[] usedExpected)
+            {
+                var matchedOnEntry = firstActualIndex - unmatchedActualResults;
+                var bestPossibleUnmatchedExpected = Math.Max(0, expectedResults.Length - matchedOnEntry - (actualResults.Length - unmatchedActualResults));
+                var bestPossible = unmatchedActualResults + bestPossibleUnmatchedExpected;
+
+                if (firstActualIndex == actualResults.Length)
+                {
+                    var totalUnmatched = unmatchedActualResults + (expectedResults.Length - matchedOnEntry);
+                    if (totalUnmatched < bestMatchCount)
+                    {
+                        var addedCount = 0;
+
+                        // Add the remaining unmatched expected diagnostics
+                        for (var i = firstExpectedIndex; i < expectedResults.Length; i++)
+                        {
+                            if (!usedExpected[i])
+                            {
+                                addedCount++;
+                                builder.Add((null, (DiagnosticResult?)expectedResults[i]));
+                            }
+                        }
+
+                        bestMatchCount = totalUnmatched;
+                        bestMatch = builder.ToImmutable();
+
+                        for (var i = 0; i < addedCount; i++)
+                        {
+                            builder.RemoveAt(builder.Count - 1);
+                        }
+                    }
+
+                    return totalUnmatched;
+                }
+
+                var currentBest = actualResults.Length + expectedResults.Length - (2 * matchedOnEntry);
+                for (var i = firstExpectedIndex; i < expectedResults.Length; i++)
+                {
+                    if (usedExpected[i])
+                    {
+                        continue;
+                    }
+
+                    if (!IsMatch(actualResults[firstActualIndex], expectedResults[i]))
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        usedExpected[i] = true;
+                        builder.Add((actualResults[firstActualIndex], expectedResults[i]));
+                        var bestResultWithCurrentMatch = RecursiveMatch(firstActualIndex + 1, i == firstExpectedIndex ? firstExpectedIndex + 1 : firstExpectedIndex, unmatchedActualResults, usedExpected);
+                        currentBest = Math.Min(bestResultWithCurrentMatch, currentBest);
+                        if (currentBest == bestPossible)
+                        {
+                            return bestPossible;
+                        }
+                    }
+                    finally
+                    {
+                        usedExpected[i] = false;
+                        builder.RemoveAt(builder.Count - 1);
+                    }
+                }
+
+                if (currentBest > unmatchedActualResults)
+                {
+                    // We might be able to improve the results by leaving the current actual diagnostic unmatched
+                    var bestResultWithCurrentUnmatched = RecursiveMatch(firstActualIndex + 1, firstExpectedIndex, unmatchedActualResults + 1, usedExpected);
+                    return Math.Min(bestResultWithCurrentUnmatched, currentBest);
+                }
+
+                Debug.Assert(currentBest == unmatchedActualResults, $"Assertion failure: {currentBest} == {unmatchedActualResults}");
+                return currentBest;
+            }
+
+            static bool IsMatch(Diagnostic diagnostic, DiagnosticResult diagnosticResult)
+            {
+                return IsLocationMatch(diagnostic, diagnosticResult)
+                    && diagnostic.Id == diagnosticResult.Id
+                    && diagnostic.Severity == diagnosticResult.Severity
+                    && IsMessageMatch(diagnostic, diagnosticResult);
+            }
+
+            static bool IsLocationMatch(Diagnostic diagnostic, DiagnosticResult diagnosticResult)
+            {
+                if (!diagnosticResult.HasLocation)
+                {
+                    return Equals(Location.None, diagnostic.Location);
+                }
+                else
+                {
+                    if (!IsLocationMatch2(diagnostic.Location, diagnosticResult.Spans[0]))
+                    {
+                        return false;
+                    }
+
+                    if (diagnosticResult.Spans[0].Options.HasFlag(DiagnosticLocationOptions.IgnoreAdditionalLocations))
+                    {
+                        return true;
+                    }
+
+                    var additionalLocations = diagnostic.AdditionalLocations.ToArray();
+                    if (additionalLocations.Length != diagnosticResult.Spans.Length - 1)
+                    {
+                        // Number of additional locations does not match expected result
+                        return false;
+                    }
+
+                    for (var i = 0; i < additionalLocations.Length; i++)
+                    {
+                        if (!IsLocationMatch2(additionalLocations[i], diagnosticResult.Spans[i + 1]))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+
+            static bool IsLocationMatch2(Location actual, DiagnosticLocation expected)
+            {
+                var actualSpan = actual.GetLineSpan();
+
+                var assert = actualSpan.Path == expected.Span.Path || (actualSpan.Path?.Contains("Test0.") == true && expected.Span.Path.Contains("Test."));
+                if (!assert)
+                {
+                    // Expected diagnostic to be in file "{expected.Span.Path}" was actually in file "{actualSpan.Path}"
+                    return false;
+                }
+
+                if (actualSpan.StartLinePosition != expected.Span.StartLinePosition)
+                {
+                    return false;
+                }
+
+                if (!expected.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength)
+                    && actualSpan.EndLinePosition != expected.Span.EndLinePosition)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            static bool IsMessageMatch(Diagnostic actual, DiagnosticResult expected)
+            {
+                if (expected.Message is null)
+                {
+                    return true;
+                }
+
+                return string.Equals(expected.Message, actual.GetMessage());
             }
         }
 
@@ -493,7 +674,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="Diagnostic.Location"/>.</returns>
         private async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync((string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, ProjectState[] additionalProjects, MetadataReference[] additionalMetadataReferences, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
         {
-            return await GetSortedDiagnosticsAsync(await GetSolutionAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, verifier, cancellationToken), analyzers, CompilerDiagnostics, cancellationToken);
+            var solution = await GetSolutionAsync(sources, additionalFiles, additionalProjects, additionalMetadataReferences, verifier, cancellationToken);
+            return await GetSortedDiagnosticsAsync(solution, analyzers, CompilerDiagnostics, cancellationToken);
         }
 
         /// <summary>
@@ -771,7 +953,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 .OrderBy(d => d.Location.GetLineSpan().Path, StringComparer.Ordinal)
                 .ThenBy(d => d.Location.SourceSpan.Start)
                 .ThenBy(d => d.Location.SourceSpan.End)
-                .ThenBy(d => d.Id).ToArray();
+                .ThenBy(d => d.Id)
+                .ThenBy(d => GetArguments(d), LexicographicComparer.Instance).ToArray();
+        }
+
+        private static IReadOnlyList<object?> GetArguments(Diagnostic diagnostic)
+        {
+            return (IReadOnlyList<object?>?)diagnostic.GetType().GetProperty("Arguments", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(diagnostic)
+                ?? new object[0];
         }
 
         /// <summary>
@@ -781,5 +970,62 @@ namespace Microsoft.CodeAnalysis.Testing
         /// New instances of all the analyzers being tested.
         /// </returns>
         protected abstract IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers();
+
+        private sealed class LexicographicComparer : IComparer<IEnumerable<object?>>
+        {
+            public static LexicographicComparer Instance { get; } = new LexicographicComparer();
+
+            public int Compare(IEnumerable<object?> x, IEnumerable<object?> y)
+            {
+                using var xe = x.GetEnumerator();
+                using var ye = y.GetEnumerator();
+
+                while (xe.MoveNext())
+                {
+                    if (!ye.MoveNext())
+                    {
+                        // y has fewer elements
+                        return 1;
+                    }
+
+                    IComparer elementComparer = Comparer<object>.Default;
+                    if (xe.Current is string && ye.Current is string)
+                    {
+                        // Avoid culture-sensitive string comparisons
+                        elementComparer = StringComparer.Ordinal;
+                    }
+
+                    try
+                    {
+                        var elementComparison = elementComparer.Compare(xe.Current, ye.Current);
+                        if (elementComparison == 0)
+                        {
+                            continue;
+                        }
+
+                        return elementComparison;
+                    }
+                    catch (ArgumentException)
+                    {
+                        // The arguments are not directly comparable, so convert the values to strings and try again
+                        var elementComparison = string.CompareOrdinal(xe.Current?.ToString(), ye.Current?.ToString());
+                        if (elementComparison == 0)
+                        {
+                            continue;
+                        }
+
+                        return elementComparison;
+                    }
+                }
+
+                if (ye.MoveNext())
+                {
+                    // x has fewer elements
+                    return -1;
+                }
+
+                return 0;
+            }
+        }
     }
 }

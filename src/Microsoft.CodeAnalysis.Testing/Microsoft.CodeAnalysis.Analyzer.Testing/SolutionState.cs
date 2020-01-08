@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (MarkupHandling == MarkupMode.None)
             {
-                return (explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)).ToOrderedArray(), sources.ToArray());
+                return (explicitDiagnostics.Select(diagnostic => diagnostic.WithDefaultPath(defaultPath)).ToArray(), sources.ToArray());
             }
 
             var sourceFiles = new List<(string filename, SourceText content)>();
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            return (diagnostics.ToOrderedArray(), sourceFiles.ToArray());
+            return (diagnostics.ToArray(), sourceFiles.ToArray());
         }
 
         private DiagnosticResult? CreateDiagnosticForPosition(
