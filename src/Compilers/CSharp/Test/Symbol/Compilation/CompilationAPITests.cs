@@ -2682,6 +2682,22 @@ public class C { public static FrameworkName Goo() { return null; }}";
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
         }
 
+        [Fact]
+        [WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")]
+        public void GetMetadataReference_VisualBasicSymbols()
+        {
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+
+            var comp = CreateCompilation("");
+
+            var assembly = (IAssemblySymbol)vbComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value;
+            var metadataRef = comp.GetMetadataReference(assembly);
+            Assert.Null(metadataRef);
+
+            metadataRef = comp.GetMetadataReference(vbComp.Assembly);
+            Assert.Null(metadataRef);
+        }
+
         #region Script return values
 
         [ConditionalFact(typeof(DesktopOnly))]
