@@ -169,18 +169,9 @@ namespace Microsoft.CodeAnalysis.Host
 
             public void Dispose()
             {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-
-            private void Dispose(bool disposing)
-            {
-                if (disposing)
-                {
-                    // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
-                    // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
-                    _memoryMappedFile.Dispose();
-                }
+                // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
+                // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
+                _memoryMappedFile.Dispose();
             }
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess

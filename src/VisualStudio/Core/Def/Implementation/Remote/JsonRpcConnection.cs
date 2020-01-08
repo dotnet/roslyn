@@ -52,17 +52,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> directStreamReader, CancellationToken cancellationToken)
             => _serviceEndPoint.InvokeAsync(targetName, arguments, directStreamReader, cancellationToken);
 
-        protected override void Dispose(bool disposing)
+        protected override void DisposeImpl()
         {
-            if (disposing)
-            {
-                // dispose service and snapshot channels
-                _serviceEndPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
-                _serviceEndPoint.Dispose();
-                _remoteDataRpc.Dispose();
-            }
+            // dispose service and snapshot channels
+            _serviceEndPoint.UnexpectedExceptionThrown -= UnexpectedExceptionThrown;
+            _serviceEndPoint.Dispose();
+            _remoteDataRpc.Dispose();
 
-            base.Dispose(disposing);
+            base.DisposeImpl();
         }
     }
 }
