@@ -507,17 +507,25 @@ namespace Microsoft.CodeAnalysis
                 {
                     var compilation = CreateEmptyCompilation();
 
-                    var trees = new SyntaxTree[ProjectState.DocumentIds.Count];
-                    var index = 0;
+                    var trees = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentIds.Count);
                     foreach (var document in this.ProjectState.OrderedDocumentStates)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        trees[index] = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        index++;
+
+                        // Do not include syntax trees for documents whose content failed to load.
+                        // Analyzers should not run on these (empty) syntax trees.
+                        var loadDiagnostic = await document.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+                        if (loadDiagnostic == null)
+                        {
+                            trees.Add(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+                        }
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-                    this.WriteState(new FullDeclarationState(compilation), solution);
+
+                    trees.Free();
+
+                    WriteState(new FullDeclarationState(compilation), solution);
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
