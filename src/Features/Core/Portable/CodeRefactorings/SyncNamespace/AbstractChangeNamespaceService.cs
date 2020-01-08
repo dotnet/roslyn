@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -90,8 +91,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             = CodeActions.WarningAnnotation.Create(
                 FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
 
-        protected abstract TCompilationUnitSyntax ChangeNamespaceDeclaration(
-            TCompilationUnitSyntax root, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts, SemanticModel? semanticModel);
+        protected abstract Task<TCompilationUnitSyntax> ChangeNamespaceDeclaration(
+            Document document, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts, CancellationToken cancellationToken);
 
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 
@@ -631,7 +632,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var documentWithAddedImports = await AddImportsInContainersAsync(
                     document,
@@ -641,10 +641,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     placeSystemNamespaceFirst,
                     cancellationToken).ConfigureAwait(false);
 
-            var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts, semanticModel)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var documentWithRenameAnnotations = await GetRenameSymbolAnnotatedRootAsync(documentWithAddedImports, cancellationToken).ConfigureAwait(false);
+            var compilationUnit = await ChangeNamespaceDeclaration(documentWithRenameAnnotations, oldNamespaceParts, newNamespaceParts, cancellationToken).ConfigureAwait(false);
+            SyntaxNode root = compilationUnit.WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
             root = Formatter.Format(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken);
@@ -652,6 +651,18 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
             var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
             return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Document> GetRenameSymbolAnnotatedRootAsync(Document document, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            return document.WithSyntaxRoot(
+                root.ReplaceNodes(
+                    root.GetAnnotatedNodes(ContainerAnnotation).SelectMany(c => c is TCompilationUnitSyntax ? syntaxFacts.GetMembersOfCompilationUnit(c) : syntaxFacts.GetMembersOfNamespaceDeclaration(c)),
+                    (original, current) => current.WithRenameSymbolAnnotation(semanticModel)));
         }
 
         private async Task<Document> FixReferencingDocumentAsync(

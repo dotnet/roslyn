@@ -21,6 +21,10 @@ namespace Microsoft.CodeAnalysis.Rename
         public static SyntaxAnnotation Create(ISymbol oldSymbol)
             => new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol));
 
+        public static TNode WithRenameSymbolAnnotation<TNode>(this TNode node, SemanticModel semanticModel)
+            where TNode : SyntaxNode
+            => node.WithAdditionalAnnotations(Create(semanticModel.GetDeclaredSymbol(node)));
+
         public static async Task<ImmutableDictionary<ISymbol, ISymbol>> GatherChangedSymbolsInDocumentsAsync(
             IEnumerable<DocumentId> changedDocumentIds,
             Solution newSolution, Solution oldSolution,
@@ -82,7 +86,10 @@ namespace Microsoft.CodeAnalysis.Rename
             return oldSymbolKey.Symbol;
         }
 
-        private static string SerializeData(ISymbol oldSymbol)
-            => oldSymbol.GetSymbolKey().ToString();
+        private static string SerializeData(ISymbol symbol)
+        {
+            symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
+            return symbol.GetSymbolKey().ToString();
+        }
     }
 }

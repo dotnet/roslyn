@@ -233,13 +233,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         ///     - if target namespace is "", then we try to move all members in declared 
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
         /// </summary>
-        protected override CompilationUnitSyntax ChangeNamespaceDeclaration(
-            CompilationUnitSyntax root,
+        protected override async Task<CompilationUnitSyntax> ChangeNamespaceDeclaration(
+            Document document,
             ImmutableArray<string> declaredNamespaceParts,
             ImmutableArray<string> targetNamespaceParts,
-            SemanticModel? semanticModel)
+            CancellationToken cancellationToken)
         {
             Debug.Assert(!declaredNamespaceParts.IsDefault && !targetNamespaceParts.IsDefault);
+            var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var container = root.GetAnnotatedNodes(ContainerAnnotation).Single();
 
             if (container is CompilationUnitSyntax compilationUnit)
@@ -262,8 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                     namespaceDecl,
                     namespaceDecl.WithName(
                         CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
-                        .WithTriviaFrom(namespaceDecl.Name).WithAdditionalAnnotations(WarningAnnotation))
-                        .WithoutAnnotations(ContainerAnnotation));      // Make sure to remove the annotation we added
+                        .WithTriviaFrom(namespaceDecl.Name)
+                        .WithAdditionalAnnotations(WarningAnnotation))
+                    .WithoutAnnotations(ContainerAnnotation));      // Make sure to remove the annotation we added
             }
 
             throw ExceptionUtilities.Unreachable;
@@ -318,31 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts, SemanticModel? semanticModel)
         {
             Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
+            compilationUnit = compilationUnit.ReplaceNodes(
+                compilationUnit.Members,
+                (original, current) => semanticModel?.GetDeclaredSymbol(current) is null ? current : current.WithRenameSymbolAnnotation(semanticModel));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                 name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                         .WithAdditionalAnnotations(WarningAnnotation),
                 externs: default,
                 usings: default,
-                members: AnnotateMembers(compilationUnit.Members, semanticModel));
+                members: compilationUnit.Members);
             return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
                 .WithoutAnnotations(ContainerAnnotation);   // Make sure to remove the annotation we added
-        }
-
-        private static SyntaxList<MemberDeclarationSyntax> AnnotateMembers(SyntaxList<MemberDeclarationSyntax> members, SemanticModel? semanticModel)
-        {
-            var annotatedSyntaxList = new SyntaxList<MemberDeclarationSyntax>();
-            foreach (var member in members)
-            {
-                var symbol = semanticModel?.GetDeclaredSymbol(member);
-                var annotatedMember = symbol is null
-                    ? member
-                    : member.WithAdditionalAnnotations(RenameSymbolAnnotation.Create(symbol));
-
-                annotatedSyntaxList.Add(annotatedMember);
-            }
-
-            return annotatedSyntaxList;
         }
 
         /// <summary>

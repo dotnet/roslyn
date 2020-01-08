@@ -425,9 +425,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 foreach (var refactorNotifyService in _refactorNotifyServices)
                 {
-                    if (refactorNotifyService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false))
+                    if (refactorNotifyService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false))
                     {
-                        refactorNotifyService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.Name, throwOnFailure: false);
+                        refactorNotifyService.Value.TryOnAfterGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false);
                     }
                 }
             }
