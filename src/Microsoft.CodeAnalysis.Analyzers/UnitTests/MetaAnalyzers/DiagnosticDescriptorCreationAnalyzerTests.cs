@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticDescriptorCreationAnalyzer,
@@ -925,6 +926,316 @@ End Class",
         }
         #endregion
 
+        #region RS1029 (DoNotUseReservedDiagnosticIdRuleId)
+
+        [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
+        public async Task RS1029_AlreadyUsedId_Diagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor(""CA0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        new DiagnosticDescriptor(""CS0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        new DiagnosticDescriptor(""BC0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""CA00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor5 =
+        new DiagnosticDescriptor(""CS00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor6 =
+        new DiagnosticDescriptor(""BC00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor1);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+                GetCSharpRS1029ResultAt(13, 34, "CA0"),
+                GetCSharpRS1029ResultAt(16, 34, "CS0"),
+                GetCSharpRS1029ResultAt(19, 34, "BC0"),
+                GetCSharpRS1029ResultAt(22, 34, "CA00000000000000000000"),
+                GetCSharpRS1029ResultAt(25, 34, "CS00000000000000000000"),
+                GetCSharpRS1029ResultAt(28, 34, "BC00000000000000000000"));
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor5 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor6 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC00000000000000000000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Return ImmutableArray.Create(descriptor1)
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+    End Sub
+End Class",
+                GetBasicRS1029ResultAt(12, 92, "CA0"),
+                GetBasicRS1029ResultAt(13, 92, "CS0"),
+                GetBasicRS1029ResultAt(14, 92, "BC0"),
+                GetBasicRS1029ResultAt(15, 92, "CA00000000000000000000"),
+                GetBasicRS1029ResultAt(16, 92, "CS00000000000000000000"),
+                GetBasicRS1029ResultAt(17, 92, "BC00000000000000000000"));
+        }
+
+        [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
+        public async Task RS1029_DiagnosticIdSimilarButNotReserved_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor(""CAA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        new DiagnosticDescriptor(""CSA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        new DiagnosticDescriptor(""BCA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor4 =
+        new DiagnosticDescriptor(""CA00A0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor5 =
+        new DiagnosticDescriptor(""CS00A0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor6 =
+        new DiagnosticDescriptor(""BC00A0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor1);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CAA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CSA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BCA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor4 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA00A0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor5 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS00A0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor6 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC00A0"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Return ImmutableArray.Create(descriptor1)
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+    End Sub
+End Class");
+        }
+
+        [Fact, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
+        public async Task RS1029_DiagnosticIdSimilarButTooShort_NoDiagnostic()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor(""CA"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor2 =
+        new DiagnosticDescriptor(""CS"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    private static readonly DiagnosticDescriptor descriptor3 =
+        new DiagnosticDescriptor(""BC"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor1);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""CS"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+    Private Shared ReadOnly descriptor3 As DiagnosticDescriptor = New DiagnosticDescriptor(""BC"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Return ImmutableArray.Create(descriptor1)
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+    End Sub
+End Class");
+        }
+
+        [Theory, WorkItem(1727, "https://github.com/dotnet/roslyn-analyzers/issues/1727")]
+        [InlineData("Microsoft.CodeAnalysis.VersionCheckAnalyzer")]
+        [InlineData("Microsoft.CodeAnalysis.NetAnalyzers")]
+        [InlineData("Microsoft.CodeAnalysis.CSharp.NetAnalyzers")]
+        [InlineData("Microsoft.CodeAnalysis.VisualBasic.NetAnalyzers")]
+        [InlineData("Microsoft.CodeQuality.Analyzers")]
+        [InlineData("Microsoft.CodeQuality.CSharp.Analyzers")]
+        [InlineData("Microsoft.CodeQuality.VisualBasic.Analyzers")]
+        [InlineData("Microsoft.NetCore.Analyzers")]
+        [InlineData("Microsoft.NetCore.CSharp.Analyzers")]
+        [InlineData("Microsoft.NetCore.VisualBasic.Analyzers")]
+        [InlineData("Microsoft.NetFramework.Analyzers")]
+        [InlineData("Microsoft.NetFramework.CSharp.Analyzers")]
+        [InlineData("Microsoft.NetFramework.VisualBasic.Analyzers")]
+        [InlineData("Text.Analyzers")]
+        [InlineData("Text.CSharp.Analyzers")]
+        [InlineData("Text.VisualBasic.Analyzers")]
+        public async Task RS1029_CADiagnosticIdOnRoslynAnalyzers_NoDiagnostic(string assemblyName)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzer : DiagnosticAnalyzer
+{
+    private static LocalizableResourceString dummyLocalizableTitle = null;
+
+    private static readonly DiagnosticDescriptor descriptor1 =
+        new DiagnosticDescriptor(""CA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: ""HelpLink"", customTags: """");
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+    {
+        get
+        {
+            return ImmutableArray.Create(descriptor1);
+        }
+    }
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}",
+                SolutionTransforms =
+                {
+                    (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
+                },
+            }.RunAsync();
+
+            await new VerifyVB.Test
+            {
+                TestCode = @"
+Imports System
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+Class MyAnalyzer
+    Inherits DiagnosticAnalyzer
+
+    Private Shared dummyLocalizableTitle As LocalizableResourceString = Nothing
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""CA0000"", dummyLocalizableTitle, ""MyDiagnosticMessage"", ""NotAllowedCategory"", DiagnosticSeverity.Warning, True, Nothing, ""HelpLink"", ""customTag"")
+
+    Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
+        Get
+            Return ImmutableArray.Create(descriptor1)
+        End Get
+    End Property
+
+    Public Overrides Sub Initialize(ByVal context As AnalysisContext)
+    End Sub
+End Class",
+                SolutionTransforms =
+                {
+                    (solution, projectId) => solution.GetProject(projectId).WithAssemblyName(assemblyName).Solution,
+                },
+            }.RunAsync();
+        }
+
+        #endregion
+
         #region Helpers
 
         private static DiagnosticResult GetCSharpRS1007ExpectedDiagnostic(int line, int column) =>
@@ -997,6 +1308,16 @@ End Class",
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.AnalyzerCategoryAndIdRangeFileInvalidRule)
                 .WithLocation(AdditionalFileName, line, column)
                 .WithArguments(invalidEntry, additionalFile);
+
+        private static DiagnosticResult GetCSharpRS1029ResultAt(int line, int column, string ruleId) =>
+            VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
+                .WithLocation(line, column)
+                .WithArguments(ruleId);
+
+        private static DiagnosticResult GetBasicRS1029ResultAt(int line, int column, string ruleId) =>
+            VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DoNotUseReservedDiagnosticIdRule)
+                .WithLocation(line, column)
+                .WithArguments(ruleId);
 
         private const string AdditionalFileName = "DiagnosticCategoryAndIdRanges.txt";
 
