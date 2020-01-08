@@ -1262,13 +1262,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ConcurrentDictionary<string, NamespaceSymbol>? _externAliasTargets;
+        private ConcurrentDictionary<string?, NamespaceSymbol>? _externAliasTargets;
 
-        internal bool GetExternAliasTarget(string aliasName, out NamespaceSymbol? @namespace)
+        internal bool GetExternAliasTarget(string? aliasName, out NamespaceSymbol? @namespace)
         {
             if (_externAliasTargets == null)
             {
-                Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string, NamespaceSymbol>(), null);
+                Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string?, NamespaceSymbol>(), null);
             }
             else if (_externAliasTargets.TryGetValue(aliasName, out @namespace))
             {
