@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         {
         }
 
-        public static PointsToAnalysisResult TryGetOrComputeResult(
+        public static PointsToAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
@@ -39,14 +39,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
-        public static PointsToAnalysisResult TryGetOrComputeResult(
+        public static PointsToAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             WellKnownTypeProvider wellKnownTypeProvider,
-            out CopyAnalysisResult copyAnalysisResultOpt,
+            out CopyAnalysisResult? copyAnalysisResultOpt,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
+            InterproceduralAnalysisPredicate? interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis = true,
             bool performCopyAnalysis = false,
             bool exceptionPathsAnalysis = false)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static PointsToAnalysisResult TryGetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
+        private static PointsToAnalysisResult? TryGetOrComputeResultForAnalysisContext(PointsToAnalysisContext analysisContext)
         {
             using var trackedEntitiesBuilder = new TrackedEntitiesBuilder();
             var defaultPointsToValueGenerator = new DefaultPointsToValueGenerator(trackedEntitiesBuilder);
@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 dataFlowAnalysisResult,
                 operationVisitor.GetEscapedLocationsThroughOperationsMap(),
                 operationVisitor.GetEscapedLocationsThroughReturnValuesMap(),
-                operationVisitor.GetEscapedLocationsThroughEntitiesMap());
+                operationVisitor.GetEscapedLocationsThroughEntitiesMap(),
+                operationVisitor.TrackedEntitiesBuilder);
         }
         protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
             => new PointsToBlockAnalysisResult(basicBlock, blockAnalysisData);

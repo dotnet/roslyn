@@ -74,9 +74,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        internal ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
+        internal ValueContentAbstractValueCallback? MapFromValueContentAbstractValue { get; }
 
-        internal PointsToAbstractValueCallback MapFromPointsToAbstractValue { get; }
+        internal PointsToAbstractValueCallback? MapFromPointsToAbstractValue { get; }
 
         internal ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
 
@@ -108,7 +108,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return this.Equals(obj as ConstructorMapper);
         }
 
-        public bool Equals(ConstructorMapper other)
+        public bool Equals(ConstructorMapper? other)
         {
             return other != null
                 && this.MapFromValueContentAbstractValue == other.MapFromValueContentAbstractValue

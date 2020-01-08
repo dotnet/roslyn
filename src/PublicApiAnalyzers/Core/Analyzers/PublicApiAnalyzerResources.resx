@@ -154,7 +154,7 @@
     <value>The symbol '{0}' appears more than once in the public API files.</value>
   </data>
   <data name="PublicImplicitConstructorErrorMessageName" xml:space="preserve">
-    <value>implicit constructor for {0}</value>
+    <value>implicit constructor for '{0}'</value>
   </data>
   <data name="AvoidMultipleOverloadsWithOptionalParametersTitle" xml:space="preserve">
     <value>Do not add multiple public overloads with optional parameters</value>
@@ -169,10 +169,10 @@
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
   </data>
   <data name="PublicImplicitGetAccessor" xml:space="preserve">
-    <value>implicit get-accessor for {0}</value>
+    <value>implicit get-accessor for '{0}'</value>
   </data>
   <data name="PublicImplicitSetAccessor" xml:space="preserve">
-    <value>implicit set-accessor for {0}</value>
+    <value>implicit set-accessor for '{0}'</value>
   </data>
   <data name="PublicApiFilesMissingTitle" xml:space="preserve">
     <value>One or both of the public API files are missing</value>

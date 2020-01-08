@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
@@ -8,9 +9,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     {
         private sealed class CoreTaintedDataAnalysisDataDomain : AnalysisEntityMapAbstractDomain<TaintedDataAbstractValue>
         {
-            public static readonly CoreTaintedDataAnalysisDataDomain Instance = new CoreTaintedDataAnalysisDataDomain(TaintedDataAbstractValueDomain.Default);
-
-            private CoreTaintedDataAnalysisDataDomain(TaintedDataAbstractValueDomain valueDomain) : base(valueDomain)
+            public CoreTaintedDataAnalysisDataDomain(PointsToAnalysisResult? pointsToAnalysisResultOpt)
+                : base(TaintedDataAbstractValueDomain.Default, pointsToAnalysisResultOpt)
             {
             }
 

@@ -60,16 +60,16 @@ namespace Analyzer.Utilities.Extensions
             return source.OrderBy((t1, t2) => t1.CompareTo(t2));
         }
 
-        private static readonly Func<object, bool> s_notNullTest = x => x != null;
+        private static readonly Func<object?, bool> s_notNullTest = x => x != null;
 
-        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source) where T : class
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source) where T : class
         {
             if (source == null)
             {
                 return ImmutableArray<T>.Empty;
             }
 
-            return source.Where((Func<T, bool>)s_notNullTest);
+            return source.Where((Func<T?, bool>)s_notNullTest)!;
         }
 
         public static ImmutableArray<TSource> WhereAsArray<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> selector)
@@ -95,8 +95,8 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
-        public static void Dispose<T>(this IEnumerable<T> collection)
-            where T : IDisposable
+        public static void Dispose<T>(this IEnumerable<T?> collection)
+            where T : class, IDisposable
         {
             foreach (var item in collection)
             {

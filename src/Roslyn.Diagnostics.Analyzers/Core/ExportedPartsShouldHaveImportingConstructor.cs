@@ -76,7 +76,7 @@ namespace Roslyn.Diagnostics.Analyzers
             });
         }
 
-        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol exportAttributeOpt, INamedTypeSymbol importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol? exportAttributeOpt, INamedTypeSymbol? importingConstructorAttribute, INamedTypeSymbol namedType, IEnumerable<AttributeData> exportAttributes)
         {
             if (exportAttributeOpt is null)
             {
@@ -89,8 +89,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 return;
             }
 
-            IMethodSymbol importingConstructor = null;
-            ImmutableArray<IMethodSymbol> nonImportingConstructors = ImmutableArray<IMethodSymbol>.Empty;
+            IMethodSymbol? importingConstructor = null;
+            var nonImportingConstructors = ImmutableArray<IMethodSymbol>.Empty;
             foreach (var constructor in namedType.Constructors)
             {
                 if (constructor.IsStatic)
@@ -127,7 +127,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            IMethodSymbol missingImportingConstructor = null;
+            IMethodSymbol? missingImportingConstructor = null;
             if (importingConstructor is null)
             {
                 missingImportingConstructor = nonImportingConstructors.FirstOrDefault(constructor => constructor.DeclaredAccessibility == Accessibility.Public)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// </summary>
         protected sealed class PerEntityPredicatedAnalysisData : IDisposable
         {
-            public PerEntityPredicatedAnalysisData(DictionaryAnalysisData<TKey, TValue> truePredicatedData, DictionaryAnalysisData<TKey, TValue> falsePredicatedData)
+            public PerEntityPredicatedAnalysisData(DictionaryAnalysisData<TKey, TValue>? truePredicatedData, DictionaryAnalysisData<TKey, TValue>? falsePredicatedData)
             {
                 Debug.Assert(truePredicatedData != null || falsePredicatedData != null);
 
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             /// Analysis data for <code>true</code> value of the corresponding <see cref="AnalysisEntity"/> on which this data is predicated.
             /// <code>null</code> value indicates the corresponding <see cref="AnalysisEntity"/> can never be <code>true</code>.
             /// </summary>
-            public DictionaryAnalysisData<TKey, TValue> TruePredicatedData { get; private set; }
+            public DictionaryAnalysisData<TKey, TValue>? TruePredicatedData { get; private set; }
 
             /// <summary>
             /// Analysis data for <code>false</code> value of the corresponding <see cref="AnalysisEntity"/> on which this data is predicated.
             /// <code>null</code> value indicates the corresponding <see cref="AnalysisEntity"/> can never be <code>false</code>.
             /// </summary>
-            public DictionaryAnalysisData<TKey, TValue> FalsePredicatedData { get; private set; }
+            public DictionaryAnalysisData<TKey, TValue>? FalsePredicatedData { get; private set; }
 
             public void Dispose()
             {

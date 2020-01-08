@@ -57,9 +57,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             bool performCopyAnalysis,
             bool pessimisticAnalysis = true)
         {
-            Debug.Assert(topmostBlock != null);
-
             var cfg = topmostBlock.GetEnclosingControlFlowGraph();
+            if (cfg == null)
+            {
+                return ImmutableDictionary<IParameterSymbol, SyntaxNode>.Empty;
+            }
+
             var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(compilation);
             var pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt: null, pessimisticAnalysis, performCopyAnalysis);
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             return ImmutableDictionary<IParameterSymbol, SyntaxNode>.Empty;
         }
 
-        private static ParameterValidationAnalysisResult TryGetOrComputeResult(
+        private static ParameterValidationAnalysisResult? TryGetOrComputeResult(
             ControlFlowGraph cfg,
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
@@ -86,15 +89,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             bool pessimisticAnalysis,
             PointsToAnalysisResult pointsToAnalysisResult)
         {
-            Debug.Assert(pointsToAnalysisResult != null);
-
             var analysisContext = ParameterValidationAnalysisContext.Create(ParameterValidationAbstractValueDomain.Default,
                 wellKnownTypeProvider, cfg, owningSymbol, analyzerOptions, nullCheckValidationMethods, interproceduralAnalysisConfig,
                 pessimisticAnalysis, pointsToAnalysisResult, TryGetOrComputeResultForAnalysisContext);
             return TryGetOrComputeResultForAnalysisContext(analysisContext);
         }
 
-        private static ParameterValidationAnalysisResult TryGetOrComputeResultForAnalysisContext(ParameterValidationAnalysisContext analysisContext)
+        private static ParameterValidationAnalysisResult? TryGetOrComputeResultForAnalysisContext(ParameterValidationAnalysisContext analysisContext)
         {
             var operationVisitor = new ParameterValidationDataFlowOperationVisitor(analysisContext);
             var analysis = new ParameterValidationAnalysis(ParameterValidationAnalysisDomainInstance, operationVisitor);
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
                 if (block.ConditionalSuccessor != null)
                 {
-                    _ = FlowBranch(newOperationVisitor, block.FallThroughSuccessor, data);
+                    _ = FlowBranch(newOperationVisitor, block.ConditionalSuccessor, data);
                 }
             }
 

@@ -44,7 +44,7 @@ namespace Analyzer.Utilities.PooledObjects
 #pragma warning disable CA1051 // Do not declare visible instance fields
         private struct Element
         {
-            internal T Value;
+            internal T? Value;
         }
 #pragma warning restore CA1051 // Do not declare visible instance fields
 #pragma warning restore CA1815 // Override equals and operator equals on value types
@@ -57,7 +57,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         // Storage for the pool objects. The first item is stored in a dedicated field because we
         // expect to be able to satisfy most requests from it.
-        private T _firstItem;
+        private T? _firstItem;
         private readonly Element[] _items;
 
         // factory is stored for the lifetime of the pool. We will call this only when pool needs to
@@ -137,7 +137,7 @@ namespace Analyzer.Utilities.PooledObjects
             // Note that the initial read is optimistically not synchronized. That is intentional. 
             // We will interlock only when we have a candidate. in a worst case we may miss some
             // recently returned objects. Not a big deal.
-            T inst = _firstItem;
+            T? inst = _firstItem;
             if (inst == null || inst != Interlocked.CompareExchange(ref _firstItem, null, inst))
             {
                 inst = AllocateSlow();
@@ -164,7 +164,7 @@ namespace Analyzer.Utilities.PooledObjects
                 // Note that the initial read is optimistically not synchronized. That is intentional. 
                 // We will interlock only when we have a candidate. in a worst case we may miss some
                 // recently returned objects. Not a big deal.
-                T inst = items[i].Value;
+                T? inst = items[i].Value;
                 if (inst != null)
                 {
                     if (inst == Interlocked.CompareExchange(ref items[i].Value, null, inst))
@@ -228,7 +228,7 @@ namespace Analyzer.Utilities.PooledObjects
         /// return a larger array to the pool than was originally allocated.
         /// </summary>
         [Conditional("DEBUG")]
-        internal static void ForgetTrackedObject(T old, T replacement = null)
+        internal static void ForgetTrackedObject(T old, T? replacement = null)
         {
 #if DETECT_LEAKS
             LeakTracker tracker;
@@ -263,8 +263,6 @@ namespace Analyzer.Utilities.PooledObjects
         [Conditional("DEBUG")]
         private void Validate(object obj)
         {
-            Debug.Assert(obj != null, "freeing null?");
-
             Debug.Assert(_firstItem != obj, "freeing twice?");
 
             var items = _items;

@@ -44,23 +44,23 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         }
 
         [SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "Method returns an analyzer that is registered by the caller.")]
-        protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        protected override DiagnosticAnalyzerSymbolAnalyzer? GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
             Compilation compilation = compilationContext.Compilation;
 
-            INamedTypeSymbol compilationType = compilation.GetOrCreateTypeByMetadataName(s_compilationTypeFullName);
+            INamedTypeSymbol? compilationType = compilation.GetOrCreateTypeByMetadataName(s_compilationTypeFullName);
             if (compilationType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol symbolType = compilation.GetOrCreateTypeByMetadataName(s_symbolTypeFullName);
+            INamedTypeSymbol? symbolType = compilation.GetOrCreateTypeByMetadataName(s_symbolTypeFullName);
             if (symbolType == null)
             {
                 return null;
             }
 
-            INamedTypeSymbol operationType = compilation.GetOrCreateTypeByMetadataName(s_operationTypeFullName);
+            INamedTypeSymbol? operationType = compilation.GetOrCreateTypeByMetadataName(s_operationTypeFullName);
             if (operationType == null)
             {
                 return null;
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private readonly INamedTypeSymbol _compilationType;
             private readonly INamedTypeSymbol _symbolType;
             private readonly INamedTypeSymbol _operationType;
-            private readonly INamedTypeSymbol _attributeUsageAttribute;
+            private readonly INamedTypeSymbol? _attributeUsageAttribute;
 
-            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol attributeUsageAttribute, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol? attributeUsageAttribute, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _compilationType = compilationType;

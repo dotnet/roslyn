@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     {
         ControlFlowGraph ControlFlowGraph { get; }
         ISymbol OwningSymbol { get; }
-        ControlFlowGraph GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction);
-        ControlFlowGraph GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation lambda);
+        ControlFlowGraph? GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction);
+        ControlFlowGraph? GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation lambda);
     }
 }

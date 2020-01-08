@@ -19,15 +19,16 @@ namespace OtherDll
     /// analysis implementations.
     /// </remarks>
     public class OtherDllClass<T>
+        where T : class
     {
-        public OtherDllClass(T constructedInput)
+        public OtherDllClass(T? constructedInput)
         {
             this.ConstructedInput = constructedInput;
         }
 
-        public T ConstructedInput { get; set; }
+        public T? ConstructedInput { get; set; }
 
-        public T Default
+        public T? Default
         {
             get { return default; }
             set { }
@@ -47,22 +48,22 @@ namespace OtherDll
             set { }
         }
 
-        public T ReturnsConstructedInput()
+        public T? ReturnsConstructedInput()
         {
             return this.ConstructedInput;
         }
 
-        public T ReturnsDefault()
+        public T? ReturnsDefault()
         {
             return default;
         }
 
-        public T ReturnsInput(T input)
+        public T? ReturnsInput(T? input)
         {
             return input;
         }
 
-        public T ReturnsDefault(T input)
+        public T? ReturnsDefault(T? input)
         {
             return default;
         }
@@ -76,22 +77,22 @@ namespace OtherDll
             return Encoding.ASCII.GetString(bytes);
         }
 
-        public void SetsOutputToConstructedInput(out T output)
+        public void SetsOutputToConstructedInput(out T? output)
         {
             output = this.ConstructedInput;
         }
 
-        public void SetsOutputToDefault(out T output)
+        public void SetsOutputToDefault(out T? output)
         {
             output = default;
         }
 
-        public void SetsOutputToInput(T input, out T output)
+        public void SetsOutputToInput(T? input, out T? output)
         {
             output = input;
         }
 
-        public void SetsOutputToDefault(T input, out T output)
+        public void SetsOutputToDefault(T? input, out T? output)
         {
             output = default;
         }
@@ -105,22 +106,22 @@ namespace OtherDll
             output = Encoding.ASCII.GetString(bytes);
         }
 
-        public void SetsReferenceToConstructedInput(ref T output)
+        public void SetsReferenceToConstructedInput(ref T? output)
         {
             output = this.ConstructedInput;
         }
 
-        public void SetsReferenceToDefault(ref T output)
+        public void SetsReferenceToDefault(ref T? output)
         {
             output = default;
         }
 
-        public void SetsReferenceToInput(T input, ref T output)
+        public void SetsReferenceToInput(T? input, ref T? output)
         {
             output = input;
         }
 
-        public void SetsReferenceToDefault(T input, ref T output)
+        public void SetsReferenceToDefault(T? input, ref T? output)
         {
             output = default;
         }

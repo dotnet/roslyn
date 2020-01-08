@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
@@ -71,6 +72,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         private PropertyMapperCollection()
         {
+            throw new NotSupportedException();
         }
 
         private ImmutableDictionary<string, (int Index, PropertyMapper PropertyMapper)> PropertyMappersWithIndex { get; }
@@ -79,7 +81,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         internal int PropertyValuesCount { get; }
 
-        internal bool TryGetPropertyMapper(string propertyName, out PropertyMapper propertyMapper, out int index)
+        internal bool TryGetPropertyMapper(
+            string propertyName,
+            [NotNullWhen(returnValue: true)] out PropertyMapper? propertyMapper,
+            out int index)
         {
             if (this.PropertyMappersWithIndex.TryGetValue(propertyName, out (int Index, PropertyMapper PropertyMapper) tuple))
             {

@@ -66,10 +66,10 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document;
             }
 
-            INamedTypeSymbol partNotDiscoverableAttributeSymbol = null;
+            INamedTypeSymbol? partNotDiscoverableAttributeSymbol = null;
             foreach (var attributeData in exportedType.GetAttributes())
             {
-                INamedTypeSymbol exportAttributeSymbol = null;
+                INamedTypeSymbol? exportAttributeSymbol = null;
                 foreach (var attributeClass in attributeData.AttributeClass.GetBaseTypesAndThis())
                 {
                     if (attributeClass.Name == nameof(ExportAttribute))

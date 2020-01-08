@@ -9,7 +9,7 @@ namespace Test.Utilities
 {
     public sealed class EnsureEnglishUICulture : IDisposable
     {
-        public static CultureInfo PreferredOrNull
+        public static CultureInfo? PreferredOrNull
         {
             get
             {
@@ -24,13 +24,13 @@ namespace Test.Utilities
         }
 
         private bool _needToRestore;
-        private readonly CultureInfo _threadUICulture;
+        private readonly CultureInfo? _threadUICulture;
         private readonly int _threadId;
 
         public EnsureEnglishUICulture()
         {
             _threadId = Thread.CurrentThread.ManagedThreadId;
-            CultureInfo preferred = PreferredOrNull;
+            CultureInfo? preferred = PreferredOrNull;
 
             if (preferred != null)
             {
