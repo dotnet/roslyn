@@ -571,20 +571,6 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
                 </expected>)
         End Sub
 
-        <WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")>
-        <Fact>
-        Public Sub GetMetadataReference_CSCompilation()
-            Dim csComp = CreateCSharpCompilation("", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
-            Dim assembly = csComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value
-
-            Dim comp As Compilation = CreateCompilation("")
-            Dim metadataRef = comp.GetMetadataReference(DirectCast(assembly.GetISymbol(), IAssemblySymbol))
-            Assert.Null(metadataRef)
-
-            metadataRef = comp.GetMetadataReference(csComp.Assembly)
-            Assert.Null(metadataRef)
-        End Sub
-
     End Class
 
 End Namespace

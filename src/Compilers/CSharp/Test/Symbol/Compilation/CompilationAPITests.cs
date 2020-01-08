@@ -2268,6 +2268,20 @@ public class C { public static FrameworkName Goo() { return null; }}";
         }
 
         [Fact]
+        [WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")]
+        public void GetMetadataReference_VisualBasicSymbols()
+        {
+            var comp = CreateCompilation("");
+
+            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+            var assembly = (IAssemblySymbol)vbComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value;
+
+            Assert.Null(comp.GetMetadataReference(assembly));
+            Assert.Null(comp.GetMetadataReference(vbComp.Assembly));
+            Assert.Null(comp.GetMetadataReference((IAssemblySymbol)null));
+        }
+
+        [Fact]
         public void ConsistentParseOptions()
         {
             var tree1 = SyntaxFactory.ParseSyntaxTree("", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -2680,22 +2694,6 @@ public class C { public static FrameworkName Goo() { return null; }}";
             comp = CreateVisualBasicCompilation("");
             typeArguments = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
-        }
-
-        [Fact]
-        [WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")]
-        public void GetMetadataReference_VisualBasicSymbols()
-        {
-            var vbComp = CreateVisualBasicCompilation("", referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
-
-            var comp = CreateCompilation("");
-
-            var assembly = (IAssemblySymbol)vbComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value;
-            var metadataRef = comp.GetMetadataReference(assembly);
-            Assert.Null(metadataRef);
-
-            metadataRef = comp.GetMetadataReference(vbComp.Assembly);
-            Assert.Null(metadataRef);
         }
 
         #region Script return values

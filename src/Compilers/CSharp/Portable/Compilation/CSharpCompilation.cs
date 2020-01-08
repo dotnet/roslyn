@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            if (assemblySymbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: AssemblySymbol underlyingSymbol })
+            if (assemblySymbol is Symbols.PublicModel.AssemblySymbol { UnderlyingAssemblySymbol: var underlyingSymbol })
             {
                 return GetMetadataReference(underlyingSymbol);
             }
