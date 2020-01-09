@@ -248,28 +248,15 @@
         <summary>SyntaxToken representing the less than token.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ModifiedType&gt;" MinCount="1">
+    <Field Name="Parameters" Type="SeparatedSyntaxList&lt;ParameterSyntax&gt;" MinCount="1">
       <PropertyComment>
-        <summary>SeparatedSyntaxList of ModifiedTypes representing the list of parameters and return type.</summary>
+        <summary>SeparatedSyntaxList of ParameterSyntaxes representing the list of parameters and return type.</summary>
       </PropertyComment>
     </Field>
     <Field Name="GreaterThanToken" Type="SyntaxToken">
       <Kind Name="GreaterThanToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the greater than token.</summary>
-      </PropertyComment>
-    </Field>
-  </Node>
-  <Node Name="ModifiedType" Base="CSharpSyntaxNode">
-    <Kind Name="ModifiedType"/>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
-      <PropertyComment>
-        <summary>SyntaxList of the optional modifier keywords.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Type" Type="TypeSyntax">
-      <PropertyComment>
-        <summary>TypeSyntax representing the modified type.</summary>
       </PropertyComment>
     </Field>
   </Node>

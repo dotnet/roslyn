@@ -6380,9 +6380,9 @@ done:;
             if (!IsPossibleFunctionPointerParameterListStart(CurrentToken))
             {
                 var lessThanTokenError = WithAdditionalDiagnostics(SyntaxFactory.MissingToken(SyntaxKind.LessThanToken), GetExpectedTokenError(SyntaxKind.LessThanToken, SyntaxKind.None));
-                var missingTypes = _pool.AllocateSeparated<ModifiedType>();
+                var missingTypes = _pool.AllocateSeparated<ParameterSyntax>();
                 var missingTypeName = CreateMissingIdentifierName();
-                var missingType = SyntaxFactory.ModifiedType(default, missingTypeName);
+                var missingType = SyntaxFactory.Parameter(attributeLists: default, modifiers: default, missingTypeName, identifier: CreateMissingIdentifierToken(), @default: null);
                 missingTypes.Add(missingType);
                 // Handle the simple case of delegate*>. We don't try to deal with any variation of delegate*invalid>, as
                 // we don't know for sure that the expression isn't a relational with something else.
@@ -6396,7 +6396,7 @@ done:;
             var lessThanToken = EatTokenAsKind(SyntaxKind.LessThanToken);
             var saveTerm = _termState;
             _termState |= (lessThanToken.IsMissing ? TerminatorState.IsEndOfFunctionPointerParameterListErrored : TerminatorState.IsEndOfFunctionPointerParameterList);
-            var types = _pool.AllocateSeparated<ModifiedType>();
+            var types = _pool.AllocateSeparated<ParameterSyntax>();
 
             try
             {
@@ -6408,7 +6408,7 @@ done:;
                         ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
 
                         var parameterType = ParseTypeOrVoid();
-                        types.Add(SyntaxFactory.ModifiedType(modifiers, parameterType));
+                        types.Add(SyntaxFactory.Parameter(attributeLists: default, modifiers, parameterType, identifier: CreateMissingIdentifierToken(), @default: null));
 
                         if (skipBadFunctionPointerParameterListTokens() == PostSkipAction.Abort)
                         {
@@ -6470,15 +6470,9 @@ done:;
             // calling convention no matter what. If it wasn't intended to be a calling convention
             // we'd have an error anyway, and it's more likely the user intended for it to be a
             // function pointer convention than not.
-            // PROTOTYPE(func-ptr): refactor this out into a helper method to share with binding
-            switch (CurrentToken.Text)
+            if (FunctionPointerTypeSymbol.GetCallingConvention(CurrentToken.Text).IsValid)
             {
-                case "cdecl":
-                case "managed":
-                case "unmanaged":
-                case "thiscall":
-                case "stdcall":
-                    return true;
+                return true;
             }
 
             // For nicer error recovery, we only treat predefined types and identifiers as if they could be the

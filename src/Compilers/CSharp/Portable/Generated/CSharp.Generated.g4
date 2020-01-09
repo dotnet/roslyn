@@ -337,11 +337,7 @@ array_rank_specifier
   ;
 
 function_pointer_type
-  : 'delegate' '*' syntax_token? '<' modified_type (',' modified_type)* '>'
-  ;
-
-modified_type
-  : modifier* type
+  : 'delegate' '*' syntax_token? '<' parameter (',' parameter)* '>'
   ;
 
 nullable_type

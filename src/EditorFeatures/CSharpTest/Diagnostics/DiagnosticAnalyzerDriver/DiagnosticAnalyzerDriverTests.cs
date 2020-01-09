@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var missingSyntaxNodes = new HashSet<SyntaxKind>()
             {
                 // PROTOYPE(func-ptr): Remove
-                SyntaxKind.FunctionPointerType,
-                SyntaxKind.ModifiedType,
+                SyntaxKind.FunctionPointerType
             };
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

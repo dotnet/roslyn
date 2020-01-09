@@ -19,6 +19,7 @@ namespace Microsoft.Cci
     /// <summary>
     /// Specifies how the caller passes parameters to the callee and who cleans up the stack.
     /// </summary>
+    // PROTOTYPE(func-ptr): represent `unmanaged`
     [Flags]
     internal enum CallingConvention
     {
@@ -26,7 +27,7 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = SignatureCallingConvention.CDecl,
+        CDecl = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
@@ -66,7 +67,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = SignatureAttributes.ExplicitThis
+        ExplicitThis = SignatureAttributes.ExplicitThis,
     }
 
     /// <summary>

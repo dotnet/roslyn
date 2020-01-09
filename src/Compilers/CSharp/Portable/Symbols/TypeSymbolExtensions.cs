@@ -631,14 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                         {
                             // Let's try to avoid early resolution of nullable types
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
-                                type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType);
+                            var result = visitType(typeArg);
                             if (result is object)
                             {
                                 return result;
@@ -654,6 +647,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         next = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations;
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        {
+                            MethodSymbol currentPointer = ((FunctionPointerTypeSymbol)current).Signature;
+                            var result = visitType(currentPointer.ReturnTypeWithAnnotations);
+                            if (result is object)
+                            {
+                                return result;
+                            }
+
+                            foreach (var parameter in currentPointer.Parameters)
+                            {
+                                result = visitType(parameter.TypeWithAnnotations);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+                        }
+
+                        return null;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(current.TypeKind);
                 }
@@ -662,6 +676,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeWithAnnotationsOpt = canDigThroughNullable ? default : next;
                 type = canDigThroughNullable ? next.NullableUnderlyingTypeOrSelf : null;
             }
+
+            TypeSymbol? visitType(TypeWithAnnotations typeArg) => VisitType(
+                    typeWithAnnotationsOpt: canDigThroughNullable ? default : typeArg,
+                    type: canDigThroughNullable ? typeArg.NullableUnderlyingTypeOrSelf : null,
+                    typeWithAnnotationsPredicate,
+                    typePredicate,
+                    arg,
+                    canDigThroughNullable,
+                    useDefaultType);
         }
 
         private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
