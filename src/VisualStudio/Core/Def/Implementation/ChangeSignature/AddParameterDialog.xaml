@@ -32,16 +32,16 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Label x:Name="TypeNameLabel" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
+            <Label x:Name="TypeNameLabelName" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=TypeNameLabel}" />
             <Border Grid.Row="1" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="0,5,0,5">
-                <ContentControl x:Name="TypeContentControl" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabel}"/>
+                <ContentControl x:Name="TypeContentControl" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" AutomationProperties.LabeledBy="{Binding ElementName=TypeNameLabelName}"/>
             </Border>
-            <Label x:Name="ParameterNameLabel" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
+            <Label x:Name="ParameterNameLabelName" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=ParameterNameLabel}" />
             <Border Grid.Row="3" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="0,5,0,5">
-                <ContentControl x:Name="NameContentControl" Height="16" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabel}"/>
+                <ContentControl x:Name="NameContentControl" Height="16" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeNameContentControl_PreviewKeyDown" AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
             </Border>
-            <Label x:Name="CallsiteValueLabel" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
-            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CallsiteValue, Mode=TwoWay}"  Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=CallsiteValueLabel}" />
+            <Label x:Name="CallsiteValueLabelName" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
+            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CallsiteValue, Mode=TwoWay}"  Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=CallsiteValueLabelName}" />
         </Grid>
         <StackPanel Grid.Row="1"
                     HorizontalAlignment="Right" 
