@@ -5479,6 +5479,30 @@ namespace Microsoft
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyPredefinedTypeMemberAccessThatIsInScope()
+        {
+            await TestInRegularAndScript1Async(
+@"using static System.Int32;
+
+class Goo
+{
+    public void Bar(string a)
+    {
+        var v = [|int|].Parse(a);
+    }
+}",
+@"using static System.Int32;
+
+class Goo
+{
+    public void Bar(string a)
+    {
+        var v = Parse(a);
+    }
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]

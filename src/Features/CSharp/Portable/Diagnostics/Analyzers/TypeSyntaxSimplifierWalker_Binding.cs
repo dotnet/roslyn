@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 return;
 
             var memberName = node.Name.Identifier.ValueText!;
-            if (TrySimplifyObjectAccessExpression(node, memberName))
+            if (TrySimplifyPredefinedAccessExpression(node, memberName))
                 return;
 
             // Look for one of the following:
@@ -194,17 +194,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             Visit(node.Expression);
         }
 
-        private bool TrySimplifyObjectAccessExpression(MemberAccessExpressionSyntax node, string memberName)
+        private bool TrySimplifyPredefinedAccessExpression(MemberAccessExpressionSyntax node, string memberName)
         {
             // if we have a call like `object.Equals(...)` we may be able to reduce that to just
             // `Equals(...)` since `object` member are in scope within us.
+            //
+            // Also, predefined types might be in scope statically.  i.e. `using static System.String;`
+            // Have to try to simplify to the member access call off of them if that's teh case.
 
-            var expr = node.Expression;
-            if (!expr.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax predefinedType) ||
-                predefinedType.Keyword.Kind() != SyntaxKind.ObjectKeyword)
-            {
+            if (!node.Expression.IsKind(SyntaxKind.PredefinedType))
                 return false;
-            }
 
             return TrySimplifyStaticMemberAccessInScope(node, memberName);
         }
