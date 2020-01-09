@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 GetNodesOrTokensToCheckForConflicts(SyntaxNode syntaxRoot)
             {
                 return syntaxRoot.DescendantNodesAndTokens(descendIntoTrivia: true)
-                    .Where(_renameAnnotations.HasAnnotations)
+                    .Where(s => _renameAnnotations.HasAnnotations<RenameActionAnnotation>(s))
                     .Select(s => (s, _renameAnnotations.GetAnnotations<RenameActionAnnotation>(s).Single()));
             }
 
