@@ -104,16 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
 
-        internal IComponentModel ComponentModel
-        {
-            get
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                return (IComponentModel)GetService(typeof(SComponentModel));
-            }
-        }
-
         protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);
 
         protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
