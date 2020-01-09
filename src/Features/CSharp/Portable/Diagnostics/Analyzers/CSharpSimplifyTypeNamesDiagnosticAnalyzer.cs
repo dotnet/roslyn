@@ -22,9 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly ConditionalWeakTable<Compilation, HashSet<string>> s_compilationToTypeNames = new ConditionalWeakTable<Compilation, HashSet<string>>();
-        private static readonly ConditionalWeakTable<Compilation, HashSet<string>>.CreateValueCallback
-
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
             ImmutableArray.Create(
                 SyntaxKind.QualifiedName,
