@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
         {
-            if (token.SyntaxTree is null) return false;
+            RoslynDebug.Assert(token.SyntaxTree is object);
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
         }
 
