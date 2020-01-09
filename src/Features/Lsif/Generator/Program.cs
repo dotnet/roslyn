@@ -6,6 +6,7 @@ using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis.Lsif.Generator.Writing;
@@ -69,11 +70,23 @@ namespace Microsoft.CodeAnalysis.Lsif.Generator
 
         private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, TextWriter outputWriter, LsifFormat outputFormat, TextWriter logFile)
         {
+            // Make sure we pick the highest version
+            var msbuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
+            if (msbuildInstance == null)
+            {
+                throw new Exception("No MSBuild instances installed with Visual Studio could be found.");
+            }
+            else
+            {
+                await logFile.WriteLineAsync($"Using the MSBuild instance located at {msbuildInstance.MSBuildPath}.");
+            }
+
+            MSBuildLocator.RegisterInstance(msbuildInstance);
+
             await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
-            MSBuildLocator.RegisterDefaults();
             var msbuildWorkspace = MSBuildWorkspace.Create();
             var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
 
