@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     internal static class IEnumerableExtensions
     {
+        private static readonly Func<object?, bool> s_notNullTest = x => x is object;
+
         public static DiagnosticResult[] ToOrderedArray(this IEnumerable<DiagnosticResult> diagnosticResults)
         {
             return diagnosticResults
@@ -18,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Span.End.Character)
                 .ThenBy(diagnosticResult => diagnosticResult.Id, StringComparer.Ordinal)
                 .ToArray();
+        }
+
+        internal static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source)
+            where T : class
+        {
+            return source.Where<T?>(s_notNullTest)!;
         }
     }
 }
