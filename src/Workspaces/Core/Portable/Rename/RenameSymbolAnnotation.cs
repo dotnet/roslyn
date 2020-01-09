@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -18,8 +20,15 @@ namespace Microsoft.CodeAnalysis.Rename
     {
         public const string RenameSymbolKind = nameof(RenameSymbolAnnotation);
 
+        public static bool ShouldAnnotateSymbol(ISymbol symbol)
+            => symbol.DeclaringSyntaxReferences.Any();
+
         public static SyntaxAnnotation Create(ISymbol oldSymbol)
-            => new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol));
+        {
+            return ShouldAnnotateSymbol(oldSymbol) ?
+                new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol)) :
+                null;
+        }
 
         public static TNode WithRenameSymbolAnnotation<TNode>(this TNode node, SemanticModel semanticModel)
             where TNode : SyntaxNode
