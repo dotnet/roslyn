@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.cs(1,23): warning Brace: message" + Environment.NewLine +
-                "GetCSharpResultAt(1, 23, HighlightBracesAnalyzer.Brace)" + Environment.NewLine +
+                "VerifyCS.Diagnostic().WithSpan(1, 23, 1, 24)" + Environment.NewLine +
                 Environment.NewLine;
             Assert.Equal(expected, exception.Message);
         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// File1.txt(1,14): warning Brace: message" + Environment.NewLine +
-                "new DiagnosticResult(HighlightBracesAnalyzer.Brace).WithSpan(\"File1.txt\", 1, 14, 1, 15)" + Environment.NewLine +
+                "new DiagnosticResult().WithSpan(\"File1.txt\", 1, 14, 1, 15)" + Environment.NewLine +
                 Environment.NewLine;
             Assert.Equal(expected, exception.Message);
         }

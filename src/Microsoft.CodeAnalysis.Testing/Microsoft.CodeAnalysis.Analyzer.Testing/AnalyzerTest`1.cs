@@ -549,6 +549,7 @@ namespace Microsoft.CodeAnalysis.Testing
             for (var i = 0; i < diagnostics.Length; ++i)
             {
                 var diagnosticsId = diagnostics[i].Id;
+                var location = diagnostics[i].Location;
 
                 builder.Append("// ").AppendLine(diagnostics[i].ToString());
 
@@ -556,38 +557,52 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (applicableAnalyzer != null)
                 {
                     var analyzerType = applicableAnalyzer.GetType();
+                    var rule = applicableAnalyzer.SupportedDiagnostics.Length == 1 ? string.Empty : $"{analyzerType.Name}.{diagnosticsId}";
 
-                    var location = diagnostics[i].Location;
-                    if (location == Location.None)
+                    if (location == Location.None || !location.IsInSource)
                     {
-                        builder.AppendFormat("GetGlobalResult({0}.{1})", analyzerType.Name, diagnosticsId);
-                    }
-                    else if (!location.IsInSource)
-                    {
-                        var lineSpan = diagnostics[i].Location.GetLineSpan();
-                        builder.AppendFormat($"new DiagnosticResult({analyzerType.Name}.{diagnosticsId}).WithSpan(\"{lineSpan.Path}\", {lineSpan.StartLinePosition.Line + 1}, {lineSpan.StartLinePosition.Character + 1}, {lineSpan.EndLinePosition.Line + 1}, {lineSpan.EndLinePosition.Character + 1})", analyzerType.Name, diagnosticsId);
+                        builder.Append($"new DiagnosticResult({rule})");
                     }
                     else
                     {
-                        var resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs") ? "GetCSharpResultAt" : "GetBasicResultAt";
-                        var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
-
-                        builder.AppendFormat(
-                            "{0}({1}, {2}, {3}.{4})",
-                            resultMethodName,
-                            linePosition.Line + 1,
-                            linePosition.Character + 1,
-                            analyzerType.Name,
-                            diagnosticsId);
+                        var resultMethodName = location.SourceTree.FilePath.EndsWith(".cs") ? "VerifyCS.Diagnostic" : "VerifyVB.Diagnostic";
+                        builder.Append($"{resultMethodName}({rule})");
                     }
-
-                    if (i != diagnostics.Length - 1)
-                    {
-                        builder.Append(',');
-                    }
-
-                    builder.AppendLine();
                 }
+                else
+                {
+                    builder.Append(
+                        diagnostics[i].Severity switch
+                        {
+                            DiagnosticSeverity.Error => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostics[i].Id}\")",
+                            DiagnosticSeverity.Warning => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostics[i].Id}\")",
+                            var severity => $"new {nameof(DiagnosticResult)}(\"{diagnostics[i].Id}\", {nameof(DiagnosticSeverity)}.{severity})",
+                        });
+                }
+
+                if (location == Location.None)
+                {
+                    // No additional location data needed
+                }
+                else if (!location.IsInSource)
+                {
+                    var lineSpan = diagnostics[i].Location.GetLineSpan();
+                    builder.Append($".WithSpan(\"{lineSpan.Path}\", {lineSpan.StartLinePosition.Line + 1}, {lineSpan.StartLinePosition.Character + 1}, {lineSpan.EndLinePosition.Line + 1}, {lineSpan.EndLinePosition.Character + 1})");
+                }
+                else
+                {
+                    var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
+                    var endLinePosition = diagnostics[i].Location.GetLineSpan().EndLinePosition;
+
+                    builder.Append($".WithSpan({linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1})");
+                }
+
+                if (i != diagnostics.Length - 1)
+                {
+                    builder.Append(',');
+                }
+
+                builder.AppendLine();
             }
 
             return builder.ToString();
