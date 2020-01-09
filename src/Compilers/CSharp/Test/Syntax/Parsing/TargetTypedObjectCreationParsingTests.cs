@@ -308,6 +308,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // new(Int32,Int32) +
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 19));
 
+            N(expressionKind);
+            {
+                N(SyntaxKind.ImplicitObjectCreationExpression);
+                {
+                    N(SyntaxKind.NewKeyword);
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Int32");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Int32");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(tokenKind);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+
             UsingExpression($"new(Int32,Int32){SyntaxFacts.GetText(tokenKind),2}e", DefaultParseOptions);
 
             N(expressionKind);

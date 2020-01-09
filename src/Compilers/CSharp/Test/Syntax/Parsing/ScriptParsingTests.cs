@@ -93,6 +93,32 @@ new in
                 // (2,5): error CS7017: Member definition, statement, or end-of-file expected
                 // new in
                 Diagnostic(ErrorCode.ERR_GlobalDefinitionOrStatementExpected, "in").WithLocation(2, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.ObjectCreationExpression);
+                        {
+                            N(SyntaxKind.NewKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.ArgumentList);
+                            {
+                                M(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         #region Method Declarations

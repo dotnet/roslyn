@@ -6011,6 +6011,7 @@ done:
                             case ParseTypeMode.Normal:
                             case ParseTypeMode.Parameter:
                             case ParseTypeMode.AfterOut:
+                            case ParseTypeMode.AfterRef:
                             case ParseTypeMode.AsExpression:
                             case ParseTypeMode.NewExpression:
                                 type = this.ParsePointerTypeMods(type);
