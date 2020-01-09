@@ -460,5 +460,6 @@ namespace Analyzer.Utilities
         public const string MicrosoftAspNetCoreMvcHttpOptionsAttribute = "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute";
         public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
         public const string SystemWebHttpApplication = "System.Web.HttpApplication";
+        public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
     }
 }
