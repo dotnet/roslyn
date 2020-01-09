@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 }
                 if (SymbolSearchPreviewUtility.EditorHandlesSymbolSearch(workspace))
                 {
+                    // User opted into using a prototype where Editor handles FAR commands.
+                    // Editor will call into our implementation of ISymbolSourceProvider
                     return false;
                 }
 

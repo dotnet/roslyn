@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             if (SymbolSearchPreviewUtility.EditorHandlesSymbolSearch(document.Project.Solution.Workspace))
             {
+                // User opted into using a prototype where Editor handles FAR commands.
+                // Editor will call into our implementation of ISymbolSourceProvider
                 return false;
             }
 
