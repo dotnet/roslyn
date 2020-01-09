@@ -327,20 +327,52 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
+        /// <summary>
+        /// Match actual diagnostics with expected diagnostics.
+        /// </summary>
+        /// <remarks>
+        /// <para>While each actual diagnostic contains complete information about the diagnostic (location, severity,
+        /// message, etc.), the expected diagnostics sometimes contain partial information. It is therefore possible for
+        /// an expected diagnostic to match more than one actual diagnostic, while another expected diagnostic with more
+        /// complete information only matches a single specific actual diagnostic.</para>
+        ///
+        /// <para>This method attempts to find a best matching of actual and expected diagnostics.</para>
+        /// </remarks>
+        /// <param name="actualResults">The actual diagnostics reported by analysis.</param>
+        /// <param name="expectedResults">The expected diagnostics.</param>
+        /// <returns>
+        /// <para>A collection of matched diagnostics, with the following characteristics:</para>
+        ///
+        /// <list type="bullet">
+        /// <item><description>Every element of <paramref name="actualResults"/> will appear exactly once as the first element of an item in the result.</description></item>
+        /// <item><description>Every element of <paramref name="expectedResults"/> will appear exactly once as the second element of an item in the result.</description></item>
+        /// <item><description>An item in the result which specifies both a <see cref="Diagnostic"/> and a <see cref="DiagnosticResult"/> indicates a matched pair, i.e. the actual and expected results are believed to refer to the same diagnostic.</description></item>
+        /// <item><description>An item in the result which specifies only a <see cref="Diagnostic"/> indicates an actual diagnostic for which no matching expected diagnostic was found.</description></item>
+        /// <item><description>An item in the result which specifies only a <see cref="DiagnosticResult"/> indicates an expected diagnostic for which no matching actual diagnostic was found.</description></item>
+        ///
+        /// <para>If no exact match is found (all actual diagnostics are matched to an expected diagnostic without
+        /// errors), this method is <em>allowed</em> to attempt fall-back matching using a strategy intended to minimize
+        /// the total number of mismatched pairs.</para>
+        /// </list>
+        /// </returns>
         private ImmutableArray<(Diagnostic? actual, DiagnosticResult? expected)> MatchDiagnostics(Diagnostic[] actualResults, DiagnosticResult[] expectedResults)
         {
             expectedResults = expectedResults.ToOrderedArray();
 
+            // Initialize the best match to a trivial result where everything is unmatched. This will be updated if/when
+            // better matches are found.
             var bestMatchCount = actualResults.Length + expectedResults.Length;
             var bestMatch = actualResults.Select(result => ((Diagnostic?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default(Diagnostic?), (DiagnosticResult?)result))).ToImmutableArray();
 
             var builder = ImmutableArray.CreateBuilder<(Diagnostic? actual, DiagnosticResult? expected)>();
-            bool[] usedExpected = new bool[expectedResults.Length];
-            RecursiveMatch(0, 0, 0, usedExpected);
+            var usedExpected = new bool[expectedResults.Length];
+            _ = RecursiveMatch(0, 0, 0, usedExpected);
 
             return bestMatch;
 
-            // Returns the minimum number of unmatched items
+            // Match items using recursive backtracking. Returns the distance the best match under this path is from an
+            // ideal result of 0 (1-1 matching of actual and expected results). Currently the distance is calculated as
+            // the number of unmatched items.
             int RecursiveMatch(int firstActualIndex, int firstExpectedIndex, int unmatchedActualResults, bool[] usedExpected)
             {
                 var matchedOnEntry = firstActualIndex - unmatchedActualResults;
@@ -349,7 +381,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (firstActualIndex == actualResults.Length)
                 {
+                    // We reached the end of the actual diagnostics. Any remaning unmatched expected diagnostics should
+                    // be added to the end. If this path produced a better result than the best known path so far,
+                    // update the best match to this one.
                     var totalUnmatched = unmatchedActualResults + (expectedResults.Length - matchedOnEntry);
+
+                    // Avoid manipulating the builder if we know the current path is no better than the previous best.
                     if (totalUnmatched < bestMatchCount)
                     {
                         var addedCount = 0;
@@ -397,6 +434,8 @@ namespace Microsoft.CodeAnalysis.Testing
                         currentBest = Math.Min(bestResultWithCurrentMatch, currentBest);
                         if (currentBest == bestPossible)
                         {
+                            // Return immediately if we know the current actual result cannot be paired with a different
+                            // expected result to produce a better match.
                             return bestPossible;
                         }
                     }
