@@ -18,11 +18,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="csi.coreclr.rsp" Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <None Include="csi.coreclr.rsp" Condition="'$(TargetFramework)' == '$(RoslynNetCoreTargetFramework)'">
       <Link>csi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="csi.desktop.rsp" Condition="'$(TargetFramework)' != 'netcoreapp2.1'">
+    <None Include="csi.desktop.rsp" Condition="'$(TargetFramework)' != '$(RoslynNetCoreTargetFramework)'">
       <Link>csi.rsp</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

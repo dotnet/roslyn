@@ -10,7 +10,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 
 // The ShadowCopyAnalyzerAssemblyLoader type is only defined for the below platforms
-#if NET472 || NETCOREAPP2_1
+#if NET472 || NETCOREAPP3_1
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
