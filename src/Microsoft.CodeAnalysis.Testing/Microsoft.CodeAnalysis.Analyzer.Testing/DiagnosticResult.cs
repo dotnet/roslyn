@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Testing
             string? message,
             DiagnosticSeverity severity,
             string id,
-            LocalizableString messageFormat,
-            object[] messageArguments)
+            LocalizableString? messageFormat,
+            object?[]? messageArguments)
         {
             _spans = spans;
             _suppressMessage = suppressMessage;
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public LocalizableString MessageFormat { get; }
+        public LocalizableString? MessageFormat { get; }
 
-        public object[] MessageArguments { get; }
+        public object?[]? MessageArguments { get; }
 
         public bool HasLocation => !Spans.IsEmpty;
 
