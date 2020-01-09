@@ -597,14 +597,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         return _addedParameter.CallsiteValue;
                     }
 
-                    return "<TODO>";
+                    return ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable;
                 }
             }
 
             internal override Parameter CreateParameter()
                 => new AddedParameter(Type, Parameter, Callsite);
 
-            public override string InitialIndex => "<new>";
+            public override string InitialIndex => ServicesVSResources.ChangeSignature_NewParameterIndicator;
 
             // Newly added parameters cannot have modifiers yet
             public override string Modifier => string.Empty;

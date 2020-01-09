@@ -606,6 +606,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;new&gt;.
+        /// </summary>
+        internal static string ChangeSignature_NewParameterIndicator {
+            get {
+                return ResourceManager.GetString("ChangeSignature_NewParameterIndicator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;TODO&gt;.
+        /// </summary>
+        internal static string ChangeSignature_NewParameterIntroduceTODOVariable {
+            get {
+                return ResourceManager.GetString("ChangeSignature_NewParameterIntroduceTODOVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Choose a Symbol Specification and a Naming Style..
         /// </summary>
         internal static string Choose_a_Symbol_Specification_and_a_Naming_Style {
