@@ -491,7 +491,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex.Value].ParameterAutomationText, AllParameters[SelectedIndex.Value - 1].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value - 1].ParameterAutomationText);
             }
         }
 
@@ -504,7 +504,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex.Value].ParameterAutomationText, AllParameters[SelectedIndex.Value + 1].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value + 1].ParameterAutomationText);
             }
         }
 
@@ -517,7 +517,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Remove_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Remove_0, AllParameters[SelectedIndex.Value].ShortAutomationText);
             }
         }
 
@@ -530,20 +530,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Restore_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
-            }
-        }
-
-        public string EditAutomationText
-        {
-            get
-            {
-                if (!CanEdit)
-                {
-                    return string.Empty;
-                }
-
-                return string.Format(ServicesVSResources.Edit_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Restore_0, AllParameters[SelectedIndex.Value].ShortAutomationText);
             }
         }
 
@@ -554,7 +541,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract string Type { get; }
             public abstract string Parameter { get; }
             public abstract bool IsRemoved { get; set; }
-            public abstract string ParameterAutomationText { get; }
+            public abstract string ShortAutomationText { get; }
+            public abstract string FullAutomationText { get; }
             public abstract bool IsDisabled { get; }
             public abstract string Callsite { get; }
 
@@ -587,7 +575,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
 
-            public override string ParameterAutomationText => $"{Type} {Parameter}";
+            public override string ShortAutomationText => $"{Type} {Parameter}";
+            public override string FullAutomationText
+            {
+                get
+                {
+                    var text = $"{Modifier} {Type} {Parameter}";
+                    if (!string.IsNullOrWhiteSpace(Default))
+                    {
+                        text += $" = {Default}";
+                    }
+
+                    return text;
+                }
+            }
+
             public override bool IsDisabled => false;
             public override string Callsite
             {
@@ -633,7 +635,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return new ExistingParameter(ParameterSymbol);
             }
 
-            public override string ParameterAutomationText => $"{Type} {Parameter}";
+            public override string ShortAutomationText => $"{Type} {Parameter}";
 
             public override string Callsite => string.Empty;
 
