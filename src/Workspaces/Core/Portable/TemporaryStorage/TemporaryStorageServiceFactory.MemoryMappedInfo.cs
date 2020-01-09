@@ -61,6 +61,19 @@ namespace Microsoft.CodeAnalysis.Host
             /// </remarks>
             private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
+            public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
+            {
+                _memoryMappedFile = memoryMappedFile;
+                Name = name;
+                Offset = offset;
+                Size = size;
+            }
+
+            public MemoryMappedInfo(string name, long offset, long size)
+                : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
+            {
+            }
+
             /// <summary>
             /// The name of the memory mapped file.
             /// </summary>
@@ -77,34 +90,6 @@ namespace Microsoft.CodeAnalysis.Host
             /// <see cref="MemoryMappedInfo"/>.
             /// </summary>
             public long Size { get; }
-
-            public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
-            {
-                _memoryMappedFile = memoryMappedFile;
-                Name = name;
-                Offset = offset;
-                Size = size;
-            }
-
-            public MemoryMappedInfo(string name, long offset, long size)
-                : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
-            {
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-
-            private void Dispose(bool disposing)
-            {
-                if (disposing)
-                {
-                    // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
-                    // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
-                    _memoryMappedFile.Dispose();
-                }
             }
 
             /// <summary>
@@ -185,6 +170,22 @@ namespace Microsoft.CodeAnalysis.Host
                 GC.Collect();
             }
 
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            private void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
+                    // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
+                    _memoryMappedFile.Dispose();
+                }
+            }
+
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
                 private readonly ReferenceCountedDisposable<MemoryMappedViewAccessor> _accessor;
@@ -199,23 +200,6 @@ namespace Microsoft.CodeAnalysis.Host
                     _current = _start = (byte*)_accessor.Target.SafeMemoryMappedViewHandle.DangerousGetHandle() + _accessor.Target.PointerOffset;
                     _end = checked(_start + length);
                 }
-
-                protected override void Dispose(bool disposing)
-                {
-                    base.Dispose(disposing);
-
-                    if (disposing)
-                    {
-                        _accessor.Dispose();
-                    }
-
-                    _start = null;
-                }
-
-                /// <summary>
-                /// Get underlying native memory directly.
-                /// </summary>
-                public IntPtr GetPointer() => (IntPtr)_start;
 
                 public override bool CanRead => true;
                 public override bool CanSeek => true;
@@ -296,6 +280,26 @@ namespace Microsoft.CodeAnalysis.Host
                 public override void Flush() => throw new NotSupportedException();
                 public override void SetLength(long value) => throw new NotSupportedException();
                 public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+                protected override void Dispose(bool disposing)
+                {
+                    base.Dispose(disposing);
+
+                    if (disposing)
+                    {
+                        _accessor.Dispose();
+                    }
+
+                    _start = null;
+                }
+
+                /// <summary>
+                /// Get underlying native memory directly.
+                /// </summary>
+                public IntPtr GetPointer()
+                {
+                    return (IntPtr)_start;
+                }
             }
         }
     }
