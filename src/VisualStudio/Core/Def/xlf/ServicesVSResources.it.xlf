@@ -102,6 +102,16 @@
         <target state="new">Callsite Value</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIndicator">
+        <source>&lt;new&gt;</source>
+        <target state="new">&lt;new&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>&lt;TODO&gt;</source>
+        <target state="new">&lt;TODO&gt;</target>
+        <note>"TODO" is an indication that there is work to be done still</note>
+      </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
         <target state="translated">Classificazioni</target>
