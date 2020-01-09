@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-Wrong file text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
+            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-Wrong file text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-  File text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
+            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-  File text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
         }
 
         [Fact]
@@ -161,8 +161,9 @@ namespace Microsoft.CodeAnalysis.Testing
                 Environment.NewLine +
                 "Diagnostics:" + Environment.NewLine +
                 "// Test0.cs(1,24): error CS1513: } expected" + Environment.NewLine +
+                "DiagnosticResult.CompilerError(\"CS1513\").WithSpan(1, 24, 1, 24)" + Environment.NewLine +
                 Environment.NewLine;
-            Assert.Equal(expected, exception.Message);
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
         [Fact]
