@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis
         #endregion
 
         #region Equivalence 
-        public virtual bool IsEquivalentTo(GreenNode other)
+        public virtual bool IsEquivalentTo(GreenNode? other)
         {
             if (this == other)
             {

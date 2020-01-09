@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal abstract void CopyTo(ArrayElement<GreenNode>[] array, int offset);
 
-        internal static GreenNode Concat(GreenNode left, GreenNode right)
+        internal static GreenNode? Concat(GreenNode? left, GreenNode? right)
         {
             if (left == null)
             {

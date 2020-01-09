@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis
             return _node == other._node;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxList<TNode> && Equals((SyntaxList<TNode>)obj);
         }

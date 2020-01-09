@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
+        public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation>? annotations) where TNode : GreenNode
         {
             var existingAnnotations = node.GetAnnotations();
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
+        public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation>? annotations) where TNode : GreenNode
         {
             var existingAnnotations = node.GetAnnotations();
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static TNode WithDiagnosticsGreen<TNode>(this TNode node, DiagnosticInfo[] diagnostics) where TNode : GreenNode
+        public static TNode WithDiagnosticsGreen<TNode>(this TNode node, DiagnosticInfo[]? diagnostics) where TNode : GreenNode
         {
             return (TNode)node.SetDiagnostics(diagnostics);
         }
