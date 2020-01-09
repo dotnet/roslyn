@@ -7483,19 +7483,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
 
             var operand = node.Operand;
+            var typeExpr = node.TargetType;
+
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            var slotBuilder = ArrayBuilder<int>.GetInstance();
-            GetSlotsToMarkAsNotNullable(operand, slotBuilder);
-            if (slotBuilder.Count > 0)
+            Split();
+            LearnFromNonNullTest(operand, ref StateWhenTrue);
+            if (typeExpr.Type?.SpecialType == SpecialType.System_Object)
             {
-                Split();
-                MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
+                LearnFromNullTest(operand, ref StateWhenFalse);
             }
-            slotBuilder.Free();
 
-            VisitTypeExpression(node.TargetType);
+            VisitTypeExpression(typeExpr);
             SetNotNullResult(node);
             return result;
         }

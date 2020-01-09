@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="inputType">Type type of the input expression (before nullable analysis).
         /// Used to determine which types can contain null.</param>
-        /// <returns>true if there is a top-level explicit null check</returns>
         private void LearnFromAnyNullPatterns(
             int inputSlot,
             TypeSymbol inputType,
@@ -352,6 +351,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (inputSlot > 0)
                                     {
                                         MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
+                                        if (t.Syntax is RecursivePatternSyntax { Type: null, Designation: null, PositionalPatternClause: null } syntax &&
+                                            syntax.PropertyPatternClause?.Subpatterns.Count == 0)
+                                        {
+                                            LearnFromNullTest(inputSlot, inputType, ref this.StateWhenFalse, markDependentSlotsNotNull: false);
+                                        }
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
