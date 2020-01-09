@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 {
                     return false;
                 }
+
                 if (SymbolSearchPreviewUtility.EditorHandlesSymbolSearch(workspace))
                 {
                     // User opted into using a prototype where Editor handles FAR commands.

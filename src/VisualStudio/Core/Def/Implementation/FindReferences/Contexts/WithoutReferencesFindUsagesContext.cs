@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
@@ -97,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];
-                var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, CancellationToken).ConfigureAwait(false);
+                var (projectGuid, projectName, sourceText) = await FindUsagesHelpers.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, CancellationToken).ConfigureAwait(false);
 
-                var lineText = FindUsagesUtilities.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
-                var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                var lineText = FindUsagesHelpers.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
+                var mappedDocumentSpan = await FindUsagesHelpers.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result

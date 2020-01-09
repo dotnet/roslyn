@@ -11,20 +11,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     internal class SymbolSearchContext : FindUsagesContext
     {
+        public override CancellationToken CancellationToken { get; }
+
         internal SymbolSearchSource SymbolSource { get; }
+
+        /// <summary>
+        /// <see cref="RoslynSymbolSearchResult"/>s using this <see cref="LocalOrigin"/> 
+        /// will be considered exact results, and will be sorted above other results, e.g. remote or from metadata
+        /// </summary>
         internal SymbolOrigin LocalOrigin { get; }
 
-        private readonly ISymbolSearchCallback Callback;
-        public new readonly CancellationToken CancellationToken;
-        private readonly Dictionary<DefinitionItem, RoslynSymbolSearchResult> DefinitionResults = new Dictionary<DefinitionItem, RoslynSymbolSearchResult>();
-        private object Gate = new object();
+        private readonly ISymbolSearchCallback _callback;
 
-        public SymbolSearchContext(SymbolSearchSource symbolSource, ISymbolSearchCallback callback, string rootNodeName, CancellationToken token)
+        /// <summary>
+        /// Stores a mapping from <see cref="DefinitionItem"/> to its matching <see cref="RoslynSymbolSearchResult"/>,
+        /// so that we can group <see cref="RoslynSymbolSearchResult"/>s by definition
+        /// </summary>
+        private readonly Dictionary<DefinitionItem, RoslynSymbolSearchResult> _definitionResults = new Dictionary<DefinitionItem, RoslynSymbolSearchResult>();
+
+        /// <summary>
+        /// Protects access to <see cref="_definitionResults"/>
+        /// </summary>
+        private object _definitionResultsLock = new object();
+
+        public SymbolSearchContext(SymbolSearchSource symbolSource, ISymbolSearchCallback callback, string rootNodeName, CancellationToken cancellationToken)
         {
             this.SymbolSource = symbolSource;
-            this.Callback = callback;
-            this.CancellationToken = token;
+            this.CancellationToken = cancellationToken;
             this.LocalOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty, default);
+            _callback = callback;
         }
 
         public override async Task OnDefinitionFoundAsync(DefinitionItem definition)
@@ -33,10 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
             {
                 var result = await RoslynSymbolSearchResult.MakeAsync(this, definition, definition.SourceSpans[0], CancellationToken)
                     .ConfigureAwait(false);
-                this.Callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
-                lock (Gate)
+                _callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
+
+                lock (_definitionResultsLock)
                 {
-                    this.DefinitionResults.Add(definition, result);
+                    _definitionResults.Add(definition, result);
                 }
             }
             else if (definition.SourceSpans.Length > 1)
@@ -49,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                         .ConfigureAwait(false);
                     builder.Add(result);
                 }
-                this.Callback.AddRange(builder.ToImmutable());
+                _callback.AddRange(builder.ToImmutable());
             }
 
             return;
@@ -59,22 +75,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
         {
             var result = await RoslynSymbolSearchResult.MakeAsync(this, reference, reference.SourceSpan, CancellationToken)
                 .ConfigureAwait(false);
-            this.Callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
+            _callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
             return;
         }
 
         internal RoslynSymbolSearchResult GetDefinitionResult(DefinitionItem definition)
         {
-            lock (Gate)
+            lock (_definitionResultsLock)
             {
-                if (DefinitionResults.TryGetValue(definition, out var definitionResult))
-                {
-                    return definitionResult;
-                }
-                else
-                {
-                    return null;
-                }
+                return _definitionResults.TryGetValue(definition, out var definitionResult)
+                    ? definitionResult : null;
             }
         }
     }

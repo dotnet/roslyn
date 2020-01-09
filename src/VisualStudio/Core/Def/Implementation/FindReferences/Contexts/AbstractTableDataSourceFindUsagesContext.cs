@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -288,10 +289,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableDictionary<string, string> additionalProperties)
             {
                 var document = documentSpan.Document;
-                var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(document, CancellationToken).ConfigureAwait(false);
-                var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, CancellationToken).ConfigureAwait(false);
+                var (projectGuid, projectName, sourceText) = await FindUsagesHelpers.GetGuidAndProjectNameAndSourceTextAsync(document, CancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await FindUsagesHelpers.ExcerptAsync(sourceText, documentSpan, CancellationToken).ConfigureAwait(false);
 
-                var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await FindUsagesHelpers.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result
