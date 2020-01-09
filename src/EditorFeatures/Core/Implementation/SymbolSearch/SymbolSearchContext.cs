@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     internal class SymbolSearchContext : FindUsagesContext
     {

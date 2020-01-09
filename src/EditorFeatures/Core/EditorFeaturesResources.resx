@@ -932,4 +932,13 @@ Do you want to proceed?</value>
   <data name="Removal_of_document_not_supported" xml:space="preserve">
     <value>Removal of document not supported</value>
   </data>
+  <data name="Symbol_search_current_solution" xml:space="preserve">
+    <value>Current Solution</value>
+  </data>
+  <data name="Symbol_search_known_solution" xml:space="preserve">
+    <value>'{0}' Solution</value>
+  </data>
+  <data name="Symbol_search_source_name" xml:space="preserve">
+    <value>Local language service</value>
+  </data>
 </root>

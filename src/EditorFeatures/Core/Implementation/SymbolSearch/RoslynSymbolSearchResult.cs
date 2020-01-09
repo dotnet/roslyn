@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -14,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     internal class RoslynSymbolSearchResult : SymbolSearchResult, IResultWithFileLocation, IResultWithContext, IResultWithNamedProject, IResultWithVSGuids, IResultWithReferenceOrDefinition, IResultWithIcon, IResultWithCustomData /* takes care of containin member, containing type and kind */
     {
@@ -42,15 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
 
         private static async Task<RoslynSymbolSearchResult> MakeResultAsync(SymbolSearchContext context, DocumentSpan documentSpan, SourceReferenceItem referenceItem, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            var (projectGuid, documentGuid, projectName, sourceText) = await FindUsagesUtilities.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, cancellationToken)
+            var (projectGuid, projectName, sourceText) = await FindUsagesHelpers.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, cancellationToken)
                 .ConfigureAwait(false);
 
-            var (excerptResult, lineText) = await FindUsagesUtilities.ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
+            var (excerptResult, lineText) = await FindUsagesHelpers.ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
             var plainText = excerptResult.Content.ToString();
             var result = new RoslynSymbolSearchResult(context, plainText);
 
             result.ProjectGuid = projectGuid.ToString();
-            result.DocumentGuid = documentGuid.ToString();
             result.ProjectName = projectName;
 
             if (referenceItem != null)
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
             }
 
             // Set location so that Editor can navigate to the result
-            var mappedDocumentSpan = await FindUsagesUtilities.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
+            var mappedDocumentSpan = await FindUsagesHelpers.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
             if (mappedDocumentSpan.HasValue)
             {
                 var location = mappedDocumentSpan.Value;

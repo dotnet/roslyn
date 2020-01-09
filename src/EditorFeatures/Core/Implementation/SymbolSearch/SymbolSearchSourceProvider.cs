@@ -3,12 +3,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     [Export(typeof(ISymbolSourceProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +11,7 @@ using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     internal class SymbolSearchSource : ISymbolSourceFromLocation
     {
@@ -28,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
 
         public string DescriptionText => string.Empty;
 
-        string INamed.DisplayName => ServicesVSResources.Symbol_search_source_name;
+        string INamed.DisplayName => EditorFeaturesResources.Symbol_search_source_name;
 
         string ISymbolSource.Id => nameof(SymbolSearchSource);
 
@@ -40,8 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SymbolSearch
 
             var solutionPath = roslynDocument.Project.Solution.FilePath;
             var rootNodeName = !string.IsNullOrWhiteSpace(solutionPath)
-                ? string.Format(ServicesVSResources.Symbol_search_known_solution, Path.GetFileNameWithoutExtension(solutionPath))
-                : ServicesVSResources.Symbol_search_current_solution;
+                ? string.Format(EditorFeaturesResources.Symbol_search_known_solution, Path.GetFileNameWithoutExtension(solutionPath))
+                : EditorFeaturesResources.Symbol_search_current_solution;
 
             var symbolSearchContext = new SymbolSearchContext(this, callback, rootNodeName, token);
 
