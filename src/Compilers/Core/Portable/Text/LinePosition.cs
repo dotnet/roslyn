@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Determines whether two <see cref="LinePosition"/> are the same.
         /// </summary>
         /// <param name="obj">The object to compare.</param>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is LinePosition && Equals((LinePosition)obj);
         }

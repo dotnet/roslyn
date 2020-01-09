@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Compares current instance of <see cref="TextChangeRange"/> to another.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextChangeRange && Equals((TextChangeRange)obj);
         }

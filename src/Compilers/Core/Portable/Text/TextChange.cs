@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Text
             return string.Format("{0}: {{ {1}, \"{2}\" }}", this.GetType().Name, Span, NewText);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextChange && this.Equals((TextChange)obj);
         }

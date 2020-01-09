@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (changes == null)
             {
-                throw new ArgumentException("changes");
+                throw new ArgumentNullException(nameof(changes));
             }
 
             this.OldText = oldText;

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }
