@@ -485,24 +485,15 @@ namespace [||]{declaredNamespace}
     class Class1 
     {{ 
     }}
-    
-    class Class2 
-    {{ 
-    }}
 }}</Document>
 <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"" CanApplyChange=""false""> 
 using Foo.Bar.Baz;
 
-namespace Foo
+namespace X
 {{
     class RefClass
     {{
         private Class1 c1;
-
-        void M1()
-        {{
-            Bar.Baz.Class2 c2 = null;
-        }}
     }}
 }}</Document>
     </Project>
@@ -514,12 +505,23 @@ namespace Foo
     class Class1
     {
     }
+}";
+            var expectedSourceReference =
+@"
+using A.B.C;
 
-    class Class2
+namespace X
+{
+    class RefClass
     {
+        private Class1 c1;
     }
 }";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+            // Changes in unchangeable document is expected as long as the solution isn't applied back to workspace
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+
+            // Changes in unchangeable document should be excluded after being applied back to workspace
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, applyChangeToWorkspace: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -542,7 +544,7 @@ namespace [||]{declaredNamespace}
         void M1(Interface1 c1);   
     }}
 }}</Document>
-<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"" CanApplyChange=""false""> 
 namespace Foo
 {{
     using {declaredNamespace};

@@ -335,7 +335,29 @@ public class C3
                     }
                     else if (updatedDocument.Name == "C3.cs")
                     {
-                        // shouldn't change unchangeable document
+                        // change should be in new solution in unchangeable document
+                        Assert.Contains("bool _x = C1.M(2, 1);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    }
+                }
+
+                // Actually apply the change to workspace
+                Assert.True(testState.Workspace.TryApplyChanges(result.UpdatedSolution));
+
+                foreach (var updatedDocument in testState.Workspace.CurrentSolution.Projects.SelectMany(p => p.Documents))
+                {
+                    if (updatedDocument.Name == "C1.cs")
+                    {
+                        // declaration should be changed
+                        Assert.Contains("public static bool M(int y, int x)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    }
+                    else if (updatedDocument.Name == "C2.cs")
+                    {
+                        // changeable document should be changed
+                        Assert.Contains("bool _x = C1.M(2, 1);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                    }
+                    else if (updatedDocument.Name == "C3.cs")
+                    {
+                        // changes to unchangeable doc should be excluded when applied to workspace 
                         Assert.Contains("bool _x = C1.M(1, 2);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
                     }
                 }

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -6193,7 +6194,7 @@ End Class
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="C#">
-                        <Document>
+                        <Document FilePath="A.cs">
                             class [|$$A|]
                             {
                                 void M()
@@ -6202,7 +6203,7 @@ End Class
                                 }
                             }
                         </Document>
-                        <Document CanApplyChange="false">
+                        <Document FilePath="B.cs" CanApplyChange="false">
                             class B
                             {
                                 void M()
@@ -6214,7 +6215,21 @@ End Class
                     </Project>
                 </Workspace>, renameTo:="C")
 
-                result.AssertLabeledSpansAre("stmt", "A", RelatedLocationType.UnresolvedConflict)
+                ' Expect reference in unchangeable doc to be renamed as long as the new solution is not applied back to workspace
+                result.AssertLabeledSpansAre("stmt", "C", RelatedLocationType.UnresolvedConflict)
+
+                Assert.True(result.Workspace.TryApplyChanges(result.ConflictResolution.NewSolution))
+
+                ' Changes to unchangeable document will be excluded when applied back to namespace
+                For Each doc In result.Workspace.CurrentSolution.Projects.SelectMany(Function(p)
+                                                                                         Return p.Documents
+                                                                                     End Function)
+                    If doc.Name = "A.cs" Then
+                        Assert.True(doc.GetTextSynchronously(CancellationToken.None).ToString().Contains("C a = new C();"))
+                    ElseIf doc.Name = "B.cs" Then
+                        Assert.True(doc.GetTextSynchronously(CancellationToken.None).ToString().Contains("A a;"))
+                    End If
+                Next
             End Using
         End Sub
 
