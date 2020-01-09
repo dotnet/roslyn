@@ -13,31 +13,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
-using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
-    using CompilationTypeNameMap = ConditionalWeakTable<Compilation, HashSet<string>>;
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
-        private static readonly CompilationTypeNameMap s_compilationToTypeNames = new CompilationTypeNameMap();
-        private static readonly CompilationTypeNameMap.CreateValueCallback s_getCompilationTypeNames = c =>
-        {
-            var result = new HashSet<string>();
-            result.AddAll(c.Assembly.TypeNames);
-            foreach (var reference in c.References)
-            {
-                if (c.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
-                    result.AddAll(assembly.TypeNames);
-            }
-
-            return result;
-        };
+        private static readonly ConditionalWeakTable<Compilation, HashSet<string>> s_compilationToTypeNames = new ConditionalWeakTable<Compilation, HashSet<string>>();
+        private static readonly ConditionalWeakTable<Compilation, HashSet<string>>.CreateValueCallback
 
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
             ImmutableArray.Create(
@@ -58,10 +44,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {
-            var compilationTypeNames = s_compilationToTypeNames.GetValue(
-                context.Compilation, s_getCompilationTypeNames);
+            var compilationTypeNames = GetCompilationTypeNames(context.Compilation);
 
             context.RegisterSemanticModelAction(c => AnalyzeSemanticModel(c, compilationTypeNames));
+        }
+
+        private static HashSet<string> GetCompilationTypeNames(Compilation compilation)
+        {
+            var result = new HashSet<string>();
+            result.AddAll(compilation.Assembly.TypeNames);
+            foreach (var reference in compilation.References)
+            {
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+                    result.AddAll(assembly.TypeNames);
+            }
+
+            return result;
         }
 
         private void AnalyzeSemanticModel(
