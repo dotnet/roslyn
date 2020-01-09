@@ -5290,6 +5290,32 @@ class Bar
 ");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifySystemAttribute()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Runtime.Serialization;
+
+namespace Microsoft
+{
+    [[|System|].Serializable]
+    public struct ClassifiedToken
+    {
+    }
+}",
+@"using System;
+using System.Runtime.Serialization;
+
+namespace Microsoft
+{
+    [Serializable]
+    public struct ClassifiedToken
+    {
+    }
+}");
+        }
+
         [WorkItem(40633, "https://github.com/dotnet/roslyn/issues/40633")]
         [WorkItem(542100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542100")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]

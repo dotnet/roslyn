@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -132,7 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             {
                 _staticNamesInScope.Add(symbol.Name);
                 if (symbol is INamespaceOrTypeSymbol)
+                {
                     _declarationNamesInScope.Add(symbol.Name);
+                    if (symbol.Name.TryGetWithoutAttributeSuffix(isCaseSensitive: true, out var name))
+                    {
+                        _declarationNamesInScope.Add(name);
+                    }
+                }
             }
 
             // Now add information about the aliases in scope.
