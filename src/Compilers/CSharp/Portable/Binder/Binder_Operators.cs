@@ -706,9 +706,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
                     return;
                 }
-                else if ((leftDefault && right.Type is TypeParameterSymbol) || (rightDefault && left.Type is TypeParameterSymbol))
+                else if (leftDefault && right.Type is TypeParameterSymbol)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Display, right.Display);
+                    Debug.Assert(!right.Type.IsReferenceType);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Display);
+                    return;
+                }
+                else if (rightDefault && left.Type is TypeParameterSymbol)
+                {
+                    Debug.Assert(!left.Type.IsReferenceType);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Display);
                     return;
                 }
             }

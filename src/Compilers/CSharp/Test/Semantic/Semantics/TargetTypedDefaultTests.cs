@@ -268,9 +268,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8761: Operator '==' cannot be applied to operands of type 'T' and 'default' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (6,16): error CS8761: Operator '==' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return x == default // 1
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //             && x == default(T); // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
@@ -309,9 +309,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8761: Operator '!=' cannot be applied to operands of type 'default' and 'T' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (6,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return default != x // 1
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "default", "T").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
                 //             && default(T) != x; // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(7, 16)
@@ -369,27 +369,27 @@ public class Derived : C2<int?>
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (13,16): error CS8761: Operator '!=' cannot be applied to operands of type 'default' and 'T' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (13,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return default != x // 1
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "default", "T").WithLocation(13, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(13, 16),
                 // (14,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
                 //             && default(T) != x; // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(14, 16),
-                // (18,16): error CS8761: Operator '!=' cannot be applied to operands of type 'default' and 'T' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (18,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return default != x // 3
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "default", "T").WithLocation(18, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(18, 16),
                 // (19,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
                 //             && default(T) != x; // 4
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(19, 16),
-                // (28,16): error CS8761: Operator '!=' cannot be applied to operands of type 'default' and 'T' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (28,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return default != x // 5
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "default", "T").WithLocation(28, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(28, 16),
                 // (29,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
                 //             && default(T) != x; // 6
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(29, 16),
-                // (38,16): error CS8761: Operator '!=' cannot be applied to operands of type 'default' and 'T' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (38,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return default != x // 7
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "default", "T").WithLocation(38, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(38, 16),
                 // (39,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
                 //             && default(T) != x; // 8
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(39, 16)
@@ -413,9 +413,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS8761: Operator '==' cannot be applied to operands of type 'T' and 'default' (this was incorrectly allowed in an early version of the compiler as an object comparison)
+                // (6,16): error CS8761: Operator '==' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison)
                 //         return x == default // 1
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //             && x == default(T); // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
