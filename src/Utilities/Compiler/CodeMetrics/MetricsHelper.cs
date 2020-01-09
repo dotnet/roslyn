@@ -280,6 +280,11 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
             // Compat
             static bool isIgnoreableType(INamedTypeSymbol namedType)
             {
+                if (namedType.IsAnonymousType)
+                {
+                    return true;
+                }
+
                 switch (namedType.SpecialType)
                 {
                     case SpecialType.System_Boolean:
