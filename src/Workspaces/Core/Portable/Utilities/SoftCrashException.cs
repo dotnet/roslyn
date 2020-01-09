@@ -6,6 +6,8 @@ using System.Threading;
 namespace Roslyn.Utilities
 {
     /// <summary>
+    /// TODO: remove this exception: https://github.com/dotnet/roslyn/issues/40476
+    /// 
     /// this represents soft crash request compared to hard crash which will bring down VS.
     /// 
     /// by soft crash, it means everything same as hard crash except it should use NFW and info bar

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), options),
                 GenerateModifiers(field, options),
                 SyntaxFactory.VariableDeclaration(
-                    field.Type.WithNullability(field.NullableAnnotation).GenerateTypeSyntax(),
+                    field.Type.GenerateTypeSyntax(),
                     SyntaxFactory.SingletonSeparatedList(
                         AddAnnotationsTo(field, SyntaxFactory.VariableDeclarator(field.Name.ToIdentifierToken(), null, initializer)))));
 

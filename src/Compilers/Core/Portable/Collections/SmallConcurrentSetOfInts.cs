@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private int _v2;
         private int _v3;
         private int _v4;
-        private SmallConcurrentSetOfInts _next;
+        private SmallConcurrentSetOfInts? _next;
 
         private const int unoccupied = int.MinValue;
 
@@ -51,18 +53,19 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private static bool Contains(SmallConcurrentSetOfInts set, int i)
         {
+            SmallConcurrentSetOfInts? current = set;
             do
             {
                 // PERF: Not testing for unoccupied slots since it adds complexity. The extra comparisons
                 // would slow down this inner loop such that any benefit of an 'early out' would be lost.
-                if (set._v1 == i || set._v2 == i || set._v3 == i || set._v4 == i)
+                if (current._v1 == i || current._v2 == i || current._v3 == i || current._v4 == i)
                 {
                     return true;
                 }
 
-                set = set._next;
+                current = current._next;
             }
-            while (set != null);
+            while (current != null);
 
             return false;
         }

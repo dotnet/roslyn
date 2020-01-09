@@ -1896,8 +1896,8 @@ class Test
 
     void Test7<T>(int i, T x)
     {
-        _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-        _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
+        _ = i switch { 1 => x, _ => default }/*T:T*/;
+        _ = i switch { 1 => default, _ => x }/*T:T*/;
     }
 }
 
@@ -1912,7 +1912,6 @@ public interface IIn<in T> { }
 public interface IOut<out T> { }
 ");
             c.VerifyTypes();
-            // Should not report warnings 5 or 6 (see https://github.com/dotnet/roslyn/issues/39888).
             c.VerifyDiagnostics(
                 // (33,15): error CS8506: No best type was found for the switch expression.
                 //         _ = i switch { 1 => x, _ => y }/*T:!*/; // 1
@@ -1925,13 +1924,129 @@ public interface IOut<out T> { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(39, 37),
                 // (40,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29),
-                // (45,37): warning CS8601: Possible null reference assignment.
-                //         _ = i switch { 1 => x, _ => default }/*T:T*/; // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(45, 37),
-                // (46,29): warning CS8601: Possible null reference assignment.
-                //         _ = i switch { 1 => default, _ => x }/*T:T*/; // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "default").WithLocation(46, 29));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29));
+        }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    string? field = string.Empty;
+    string? otherField = string.Empty;
+
+    void M1(C c)
+    {
+        if (c.field == null) return;
+        
+        c.field.ToString();
+    }
+
+    void M2(C c)
+    {
+        if (c is { field: null }) return;
+        
+        c.field.ToString();
+    }
+
+    void M3(C c)
+    {
+        switch (c)
+        {
+            case { field: null }:
+                break;
+            default:
+                c.field.ToString();
+                break;
+        }
+    }
+
+    void M4(C c)
+    {
+        _ = c switch
+        {
+            { field: null } => string.Empty,
+            _ => c.field.ToString(),
+        };
+    }
+
+    void M5(C c)
+    {
+        if (c is { field: null }) return;
+        
+        c.otherField.ToString(); // W
+    }
+}
+");
+            c.VerifyDiagnostics(
+                // (47,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.otherField.ToString(); // W
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.otherField").WithLocation(47, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_02()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    C? c = null;
+
+    void M1(C c)
+    {
+        if (c is { c: null })
+        {
+            if (c.c != null)
+            {
+                c.c.c.c.ToString();
+            }
+        }
+    }
+}
+");
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_03()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+public class C {
+    C? c = null;
+
+    public static void Main()
+    {
+        C c = new C();
+        M1(c, new C());
+    }
+
+    static void M1(C c, C c2)
+    {
+        if (c is { c : null } && c2 is { c: null })
+        {
+            c.c = c2;
+            if (c.c != null)
+            {
+                c.c.c.ToString(); // warning
+            }
+        }
+    }
+}
+");
+            c.VerifyDiagnostics(
+                // (19,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(19, 17)
+                );
         }
     }
 }

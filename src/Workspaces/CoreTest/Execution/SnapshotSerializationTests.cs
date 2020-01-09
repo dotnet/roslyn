@@ -32,18 +32,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = snapshot.SolutionChecksum;
-            var solutionSyncObject = snapshot.GetRemotableData(checksum, CancellationToken.None);
+            var solutionSyncObject = await snapshot.GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
 
-            VerifySynchronizationObjectInService(snapshotService, solutionSyncObject);
+            await VerifySynchronizationObjectInServiceAsync(snapshotService, solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-            VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
 
-            var projectsSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
-            VerifySynchronizationObjectInService(snapshotService, projectsSyncObject);
+            var projectsSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
+            await VerifySynchronizationObjectInServiceAsync(snapshotService, projectsSyncObject).ConfigureAwait(false);
 
             Assert.Equal(0, solutionObject.Projects.Count);
         }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
             await VerifySolutionStateSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
         }
@@ -63,22 +63,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var project = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false);
             var checksum = snapshot.SolutionChecksum;
-            var solutionSyncObject = snapshot.GetRemotableData(checksum, CancellationToken.None);
+            var solutionSyncObject = await snapshot.GetRemotableDataAsync(checksum, CancellationToken.None).ConfigureAwait(false);
 
-            VerifySynchronizationObjectInService(snapshotService, solutionSyncObject);
+            await VerifySynchronizationObjectInServiceAsync(snapshotService, solutionSyncObject).ConfigureAwait(false);
 
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-            VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
 
-            var projectSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
-            VerifySynchronizationObjectInService(snapshotService, projectSyncObject);
+            var projectSyncObject = await snapshot.GetRemotableDataAsync(solutionObject.Projects.Checksum, CancellationToken.None).ConfigureAwait(false);
+            await VerifySynchronizationObjectInServiceAsync(snapshotService, projectSyncObject).ConfigureAwait(false);
 
             Assert.Equal(1, solutionObject.Projects.Count);
-            VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 0, 0, 0, 0, 0);
+            await VerifySnapshotInServiceAsync(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 0, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
@@ -98,17 +98,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var document = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp).AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(document.Project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(document.Project.Solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = snapshot.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
+            var syncObject = await snapshot.GetRemotableDataAsync(snapshot.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
-            VerifySynchronizationObjectInService(snapshotService, syncObject);
-            VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
-            VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
+            await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
             Assert.Equal(1, solutionObject.Projects.Count);
-            VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 1, 0, 0, 0, 0);
+            await VerifySnapshotInServiceAsync(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 1, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var document = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp).AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(document.Project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(document.Project.Solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false);
             await VerifySolutionStateSerializationAsync(snapshotService, document.Project.Solution, snapshot.SolutionChecksum).ConfigureAwait(false);
         }
@@ -131,20 +131,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var firstProjectChecksum = await solution.GetProject(solution.ProjectIds[0]).State.GetChecksumAsync(CancellationToken.None);
             var secondProjectChecksum = await solution.GetProject(solution.ProjectIds[1]).State.GetChecksumAsync(CancellationToken.None);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
-            var syncObject = snapshot.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
+            var syncObject = await snapshot.GetRemotableDataAsync(snapshot.SolutionChecksum, CancellationToken.None).ConfigureAwait(false);
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
-            VerifySynchronizationObjectInService(snapshotService, syncObject);
-            VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
-            VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
+            await VerifySynchronizationObjectInServiceAsync(snapshotService, syncObject).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
 
             Assert.Equal(2, solutionObject.Projects.Count);
 
             var projects = solutionObject.Projects.ToProjectObjects(snapshotService);
-            VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1);
-            VerifySnapshotInService(snapshotService, projects.Where(p => p.Checksum == secondProjectChecksum).First(), 1, 0, 0, 0, 0);
+            await VerifySnapshotInServiceAsync(snapshotService, projects.Where(p => p.Checksum == firstProjectChecksum).First(), 1, 1, 1, 1, 1).ConfigureAwait(false);
+            await VerifySnapshotInServiceAsync(snapshotService, projects.Where(p => p.Checksum == secondProjectChecksum).First(), 1, 0, 0, 0, 0).ConfigureAwait(false);
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
             await VerifySolutionStateSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
         }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot.SolutionChecksum);
             await VerifyAssetAsync(snapshotService, solutionObject).ConfigureAwait(false);
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
             var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot.SolutionChecksum);
             await VerifyAssetAsync(snapshotService, solutionObject).ConfigureAwait(false);
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionStateChecksums solutionId1;
             SolutionStateChecksums solutionId2;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using (var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 solutionId1 = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot1.SolutionChecksum).ConfigureAwait(false);
@@ -218,10 +218,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
 
             var serializer = workspace.Services.GetService<ISerializerService>();
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
 
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            _ = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
         }
 
         [Fact]
@@ -229,15 +229,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
-            var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
+            using var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
 
             // recover solution from given snapshot
             var recovered = await GetSolutionAsync(snapshotService, snapshot1).ConfigureAwait(false);
             var solutionObject1 = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot1.SolutionChecksum).ConfigureAwait(false);
 
             // create new snapshot from recovered solution
-            var snapshot2 = await snapshotService.CreatePinnedRemotableDataScopeAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+            using var snapshot2 = await snapshotService.CreatePinnedRemotableDataScopeAsync(recovered, CancellationToken.None).ConfigureAwait(false);
 
             // verify asset created by recovered solution is good
             var solutionObject2 = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot2.SolutionChecksum).ConfigureAwait(false);
@@ -269,15 +269,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
-            var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
+            using var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
 
             // recover solution from given snapshot
             var recovered = await GetSolutionAsync(snapshotService, snapshot1).ConfigureAwait(false);
             var solutionObject1 = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot1.SolutionChecksum).ConfigureAwait(false);
 
             // create new snapshot from recovered solution
-            var snapshot2 = await snapshotService.CreatePinnedRemotableDataScopeAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+            using var snapshot2 = await snapshotService.CreatePinnedRemotableDataScopeAsync(recovered, CancellationToken.None).ConfigureAwait(false);
 
             // verify asset created by recovered solution is good
             var solutionObject2 = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot2.SolutionChecksum).ConfigureAwait(false);
@@ -333,9 +333,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = new MissingMetadataReference();
 
             // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
         }
 
         [Fact]
@@ -347,9 +347,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
 
             // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
         }
 
         [Fact]
@@ -364,9 +364,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = new AnalyzerFileReference("missing_reference", new MissingAnalyzerLoader());
 
             // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
-            var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
+            await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
         }
 
         [Fact]
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var reference = new AnalyzerFileReference(location, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(location, file.Path)));
 
             // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
             var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
         }
@@ -407,7 +407,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var reference = new AnalyzerFileReference(location, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(location, file.Path)));
 
             // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
             var assetFromStorage2 = await CloneAssetAsync(serializer, assetFromStorage).ConfigureAwait(false);
         }
@@ -425,7 +425,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             var serializer = workspace.Services.GetService<ISerializerService>();
 
             // make sure this doesn't throw
-            var assetFromFile = SolutionAsset.Create(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
+            var assetFromFile = new SolutionAsset(serializer.CreateChecksum(reference, CancellationToken.None), reference, serializer);
 
             // this will verify serialized analyzer reference return same checksum as the original one
             var assetFromStorage = await CloneAssetAsync(serializer, assetFromFile).ConfigureAwait(false);
@@ -631,7 +631,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
                                                .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
                                                .Solution;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = (IRemotableDataService)new RemotableDataServiceFactory().CreateService(solution.Workspace.Services);
             using var scope = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None);
             // recover solution from given snapshot
             var recovered = await GetSolutionAsync(snapshotService, scope);
@@ -682,7 +682,7 @@ MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
-            var assetFromStorage = SolutionAsset.Create(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);
+            var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered, serializer);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
             return assetFromStorage;

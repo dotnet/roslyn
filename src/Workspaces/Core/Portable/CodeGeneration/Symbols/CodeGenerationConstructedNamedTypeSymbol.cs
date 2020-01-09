@@ -8,16 +8,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
     {
-        private readonly CodeGenerationAbstractNamedTypeSymbol _constructedFrom;
+        private readonly CodeGenerationNamedTypeSymbol _constructedFrom;
         private readonly ImmutableArray<ITypeSymbol> _typeArguments;
 
         public CodeGenerationConstructedNamedTypeSymbol(
-            CodeGenerationAbstractNamedTypeSymbol constructedFrom,
+            CodeGenerationNamedTypeSymbol constructedFrom,
             ImmutableArray<ITypeSymbol> typeArguments,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
             : base(constructedFrom.ContainingType, constructedFrom.GetAttributes(),
                    constructedFrom.DeclaredAccessibility, constructedFrom.Modifiers,
-                   constructedFrom.Name, constructedFrom.SpecialType, typeMembers)
+                   constructedFrom.Name, constructedFrom.SpecialType, constructedFrom.NullableAnnotation, typeMembers)
         {
             _constructedFrom = constructedFrom;
             this.OriginalDefinition = constructedFrom.OriginalDefinition;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override ImmutableArray<ITypeSymbol> TypeArguments => _typeArguments;
 
-        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _typeArguments.SelectAsArray(t => t.GetNullability());
+        public override ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => _typeArguments.SelectAsArray(t => t.NullableAnnotation);
 
         public override int Arity => _constructedFrom.Arity;
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
                 null;
 
-        public override INamedTypeSymbol ConstructedFrom => _constructedFrom;
+        protected override CodeGenerationNamedTypeSymbol ConstructedFrom => _constructedFrom;
 
         public override INamedTypeSymbol ConstructUnboundGenericType()
         {
@@ -90,9 +90,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override TypeKind TypeKind => _constructedFrom.TypeKind;
 
-        protected override CodeGenerationSymbol Clone()
+        protected override CodeGenerationTypeSymbol CloneWithNullableAnnotation(NullableAnnotation nullableAnnotation)
         {
-            return new CodeGenerationConstructedNamedTypeSymbol(_constructedFrom, _typeArguments, this.TypeMembers);
+            return new CodeGenerationConstructedNamedTypeSymbol(
+                (CodeGenerationNamedTypeSymbol)_constructedFrom.WithNullableAnnotation(nullableAnnotation),
+                _typeArguments,
+                this.TypeMembers);
         }
 
         public override ImmutableArray<ITypeParameterSymbol> TypeParameters => _constructedFrom.TypeParameters;

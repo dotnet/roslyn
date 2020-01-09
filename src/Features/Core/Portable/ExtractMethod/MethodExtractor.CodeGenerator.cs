@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -31,9 +32,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
+            protected readonly OptionSet Options;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, bool localFunction = false)
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, OptionSet options = null, bool localFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
 
+                Options = options;
                 LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
-            protected abstract SyntaxToken CreateMethodName(bool localFunction);
+            protected abstract SyntaxToken CreateMethodName();
             protected abstract bool LastStatementOrHasReturnStatementInReturnableConstruct();
 
             protected abstract TNodeUnderContainer GetFirstStatementOrInitializerSelectedAtCallSite();
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, parseOptions: destination?.SyntaxTree.Options));
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: this.Options, parseOptions: destination?.SyntaxTree.Options));
                     newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
                 }
                 else
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     destination = previousMemberNode.Parent ?? previousMemberNode;
                     newContainer = codeGenerationService.AddMethod(
                         destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: this.Options),
                         cancellationToken);
                 }
 
@@ -320,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     }
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
-                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(),
+                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(), parameter.NullableAnnotation,
                         parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
                         parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }

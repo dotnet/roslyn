@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -87,9 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CancellationToken cancellationToken)
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
         {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, LocalFunction, cancellationToken);
+            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var typeName = SyntaxFactory.ParseTypeName(typeParameter.Name);
                 var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
-                if (currentType == null || !AllNullabilityIgnoringSymbolComparer.Instance.Equals(currentType, typeParameter))
+                if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, typeParameter))
                 {
                     return new OperationStatus(OperationStatusFlag.BestEffort,
                         string.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,

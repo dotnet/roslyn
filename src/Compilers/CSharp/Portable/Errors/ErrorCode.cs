@@ -1605,6 +1605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UndecoratedCancellationTokenParameter = 8425,
         ERR_MultipleEnumeratorCancellationAttributes = 8426,
         ERR_VarianceInterfaceNesting = 8427,
+        ERR_ImplicitIndexIndexerWithName = 8428,
+        ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -1641,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
         WRN_UnboxPossibleNull = 8605,
-        WRN_NullReferenceIterationVariable = 8606,
+        // WRN_NullReferenceIterationVariable = 8606 (unavailable, may be used in warning suppressions in early C# 8.0 code)
         WRN_DisallowNullAttributeForbidsMaybeNullAssignment = 8607,
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
@@ -1740,6 +1742,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced in preview
 
         ERR_InvalidFunctionPointerCallingConvention = 8752,
+
+        ERR_ExternEventInitializer = 8760,
 
         #endregion
 

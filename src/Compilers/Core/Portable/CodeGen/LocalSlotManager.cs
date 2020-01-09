@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Structure that represents a local signature (as in <a href="http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-335.pdf">ECMA-335</a>, Partition I, §8.6.1.3 Local signatures).
         /// </summary>
-        private struct LocalSignature : IEquatable<LocalSignature>
+        private readonly struct LocalSignature : IEquatable<LocalSignature>
         {
             private readonly Cci.ITypeReference _type;
             private readonly LocalSlotConstraints _constraints;
@@ -54,15 +54,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             public override int GetHashCode()
-            {
-                var code = Hash.Combine(_type, (int)_constraints);
-                return code;
-            }
+                => Hash.Combine(_type, (int)_constraints);
 
             public override bool Equals(object obj)
-            {
-                return this.Equals((LocalSignature)obj);
-            }
+                => Equals((LocalSignature)obj);
         }
 
         // maps local identities to locals.
@@ -76,18 +71,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // An optional allocator that provides slots for locals.
         // Used when emitting an update to a method body during EnC.
-        private readonly VariableSlotAllocator? _slotAllocatorOpt;
+        private readonly VariableSlotAllocator? _slotAllocator;
 
-        public LocalSlotManager(VariableSlotAllocator? slotAllocatorOpt)
+        public LocalSlotManager(VariableSlotAllocator? slotAllocator)
         {
-            _slotAllocatorOpt = slotAllocatorOpt;
+            _slotAllocator = slotAllocator;
 
             // Add placeholders for pre-allocated locals. 
             // The actual identities are populated if/when the locals are reused.
-            if (slotAllocatorOpt != null)
+            if (slotAllocator != null)
             {
                 _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>();
-                slotAllocatorOpt.AddPreviousLocals(_lazyAllLocals);
+                slotAllocator.AddPreviousLocals(_lazyAllLocals);
             }
         }
 
@@ -169,16 +164,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal LocalDefinition AllocateSlot(
             Cci.ITypeReference type,
             LocalSlotConstraints constraints,
-            ImmutableArray<bool> dynamicTransformFlags = default(ImmutableArray<bool>),
-            ImmutableArray<string> tupleElementNames = default(ImmutableArray<string>))
+            ImmutableArray<bool> dynamicTransformFlags = default,
+            ImmutableArray<string> tupleElementNames = default)
         {
-            LocalDefinition? local;
-            if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out local))
+            if (!FreeSlots.TryPop(new LocalSignature(type, constraints), out LocalDefinition? local))
             {
-                local = this.DeclareLocalImpl(
+                local = DeclareLocalImpl(
                     type: type,
-                    symbolOpt: null,
-                    nameOpt: null,
+                    symbol: null,
+                    name: null,
                     kind: SynthesizedLocalKind.EmitterTemp,
                     id: LocalDebugId.None,
                     pdbAttributes: LocalVariableAttributes.DebuggerHidden,
@@ -192,8 +186,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private LocalDefinition DeclareLocalImpl(
             Cci.ITypeReference type,
-            ILocalSymbolInternal? symbolOpt,
-            string? nameOpt,
+            ILocalSymbolInternal? symbol,
+            string? name,
             SynthesizedLocalKind kind,
             LocalDebugId id,
             LocalVariableAttributes pdbAttributes,
@@ -206,20 +200,21 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _lazyAllLocals = new ArrayBuilder<Cci.ILocalDefinition>(1);
             }
 
-            LocalDefinition local;
+            LocalDefinition? local;
 
-            if (symbolOpt != null && _slotAllocatorOpt != null)
+            if (symbol != null && _slotAllocator != null)
             {
-                local = _slotAllocatorOpt.GetPreviousLocal(
+                local = _slotAllocator.GetPreviousLocal(
                     type,
-                    symbolOpt,
-                    nameOpt,
+                    symbol,
+                    name,
                     kind,
                     id,
                     pdbAttributes,
                     constraints,
                     dynamicTransformFlags: dynamicTransformFlags,
                     tupleElementNames: tupleElementNames);
+
                 if (local != null)
                 {
                     int slot = local.SlotIndex;
@@ -229,8 +224,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             local = new LocalDefinition(
-                symbolOpt: symbolOpt,
-                nameOpt: nameOpt,
+                symbolOpt: symbol,
+                nameOpt: name,
                 type: type,
                 slot: _lazyAllLocals.Count,
                 synthesizedKind: kind,
