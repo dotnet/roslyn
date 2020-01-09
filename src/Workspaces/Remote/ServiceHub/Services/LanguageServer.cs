@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Structure);
 
         public LanguageServer(Stream stream, IServiceProvider serviceProvider)
-            : base(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+            : base(serviceProvider, stream)
         {
             StartService();
         }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var convertedResults = await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
 
-                await InvokeAsync(
+                await EndPoint.InvokeAsync(
                     VSSymbolMethods.WorkspacePublishSymbolName,
                     new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
                     cancellationToken).ConfigureAwait(false);

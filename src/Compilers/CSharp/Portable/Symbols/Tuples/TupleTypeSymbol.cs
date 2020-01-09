@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             // <param name="type">Type that we'll try to find member in.</param>
             // <param name="relativeMember">A reference to a well-known member type descriptor. Note however that the type in that descriptor is ignored here.</param>
-            static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember)
+            static Symbol? GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember)
             {
                 Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 && relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor);
                 Debug.Assert(type.IsDefinition);
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol currentValueTuple = this;
             int currentNestingLevel = 0;
 
-            var currentFieldsForElements = ArrayBuilder<FieldSymbol>.GetInstance(currentValueTuple.Arity);
+            var currentFieldsForElements = ArrayBuilder<FieldSymbol?>.GetInstance(currentValueTuple.Arity);
 
             // Lookup field definitions that we are interested in
             collectTargetTupleFields(currentValueTuple.Arity, getOriginalFields(currentMembers), currentFieldsForElements);
@@ -811,18 +811,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return found;
             }
 
-            static void collectTargetTupleFields(int arity, ImmutableArray<Symbol> members, ArrayBuilder<FieldSymbol> fieldsForElements)
+            static void collectTargetTupleFields(int arity, ImmutableArray<Symbol> members, ArrayBuilder<FieldSymbol?> fieldsForElements)
             {
                 int fieldsPerType = Math.Min(arity, ValueTupleRestPosition - 1);
 
                 for (int i = 0; i < fieldsPerType; i++)
                 {
                     WellKnownMember wellKnownTupleField = GetTupleTypeMember(arity, i + 1);
-                    fieldsForElements.Add((FieldSymbol)GetWellKnownMemberInType(members, wellKnownTupleField));
+                    fieldsForElements.Add((FieldSymbol?)GetWellKnownMemberInType(members, wellKnownTupleField));
                 }
             }
 
-            static Symbol GetWellKnownMemberInType(ImmutableArray<Symbol> members, WellKnownMember relativeMember)
+            static Symbol? GetWellKnownMemberInType(ImmutableArray<Symbol> members, WellKnownMember relativeMember)
             {
                 Debug.Assert(relativeMember >= WellKnownMember.System_ValueTuple_T1__Item1 && relativeMember <= WellKnownMember.System_ValueTuple_TRest__ctor);
 

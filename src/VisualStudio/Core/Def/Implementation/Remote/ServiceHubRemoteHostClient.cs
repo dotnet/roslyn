@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Telemetry;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
@@ -28,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Finished
         }
 
-        private readonly JsonRpc _rpc;
+        private readonly RemoteEndPoint _endPoint;
         private readonly ConnectionManager _connectionManager;
         private readonly CancellationTokenSource _shutdownCancellationTokenSource;
 
@@ -42,83 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly object _globalNotificationsGate = new object();
         private Task<GlobalNotificationState> _globalNotificationsTask = Task.FromResult(GlobalNotificationState.NotStarted);
 
-        public static async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
-            {
-                var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
-                var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
-                var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
-
-                // let each client to have unique id so that we can distinguish different clients when service is restarted
-                var clientId = CreateClientId(Process.GetCurrentProcess().Id.ToString());
-
-                var hostGroup = new HostGroup(clientId);
-                var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-
-                ServiceHubRemoteHostClient? client = null;
-                try
-                {
-                    // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
-                    var snapshotServiceStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
-                    var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
-
-                    var remotableDataRpc = new RemotableDataJsonRpc(workspace, primary.Logger, snapshotServiceStream);
-                    var connectionManager = new ConnectionManager(primary, hostGroup, enableConnectionPool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
-
-                    client = new ServiceHubRemoteHostClient(workspace, primary.Logger, connectionManager, remoteHostStream);
-
-                    var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
-                    var cultureLCID = CultureInfo.CurrentCulture.LCID;
-
-                    // make sure connection is done right
-                    var host = await client._rpc.InvokeWithCancellationAsync<string>(
-                        nameof(IRemoteHostService.Connect), new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() }, cancellationToken).ConfigureAwait(false);
-
-                    client.Started();
-
-                    return client;
-                }
-                catch (ConnectionLostException ex)
-                {
-                    RemoteHostCrashInfoBar.ShowInfoBar(workspace, ex);
-
-                    Shutdown(ex);
-
-                    // dont crash VS because OOP is failed to start. we will show info bar telling users to restart
-                    // but never physically crash VS.
-                    return null;
-                }
-                catch (SoftCrashException ex)
-                {
-                    Shutdown(ex);
-
-                    // at this point, we should have shown info bar (RemoteHostCrashInfoBar.ShowInfoBar) to users
-                    // returning null here will disable OOP for this VS session. 
-                    // * Note * this is not trying to recover the exception. but giving users to time
-                    // to clean up before restart VS
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    Shutdown(ex);
-                    throw;
-                }
-
-                void Shutdown(Exception ex)
-                {
-                    // make sure we shutdown client if initializing client has failed.
-                    client?.Shutdown();
-
-                    // translate to our own cancellation if it is raised.
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // otherwise, report watson
-                    ex.ReportServiceHubNFW("ServiceHub creation failed");
-                }
-            }
-        }
-
         private ServiceHubRemoteHostClient(
             Workspace workspace,
             TraceSource logger,
@@ -130,12 +54,107 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _connectionManager = connectionManager;
 
-            _rpc = stream.CreateStreamJsonRpc(target: this, logger);
+            _endPoint = new RemoteEndPoint(stream, logger, incomingCallTarget: this);
+            _endPoint.Disconnected += OnDisconnected;
+            _endPoint.UnexpectedExceptionThrown += OnUnexpectedExceptionThrown;
+            _endPoint.StartListening();
+        }
 
-            // handle disconnected situation
-            _rpc.Disconnected += OnRpcDisconnected;
+        private void OnUnexpectedExceptionThrown(Exception unexpectedException)
+            => RemoteHostCrashInfoBar.ShowInfoBar(Workspace, unexpectedException);
 
-            _rpc.StartListening();
+        public static async Task<RemoteHostClient?> CreateAsync(Workspace workspace, CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
+            {
+                var enableConnectionPool = workspace.Options.GetOption(RemoteHostOptions.EnableConnectionPool);
+                var maxConnection = workspace.Options.GetOption(RemoteHostOptions.MaxPoolConnection);
+
+                // let each client to have unique id so that we can distinguish different clients when service is restarted
+                var clientId = CreateClientId(Process.GetCurrentProcess().Id.ToString());
+
+                var hostGroup = new HostGroup(clientId);
+                var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+
+                // Create the RemotableDataJsonRpc before we create the remote host: this call implicitly sets up the remote IExperimentationService so that will be available for later calls
+                var snapshotServiceStream = await RequestServiceAsync(workspace, hubClient, WellKnownServiceHubServices.SnapshotService, hostGroup, cancellationToken).ConfigureAwait(false);
+                var remoteHostStream = await RequestServiceAsync(workspace, hubClient, WellKnownRemoteHostServices.RemoteHostService, hostGroup, cancellationToken).ConfigureAwait(false);
+
+                var remotableDataRpc = new RemotableDataJsonRpc(workspace, hubClient.Logger, snapshotServiceStream);
+                var connectionManager = new ConnectionManager(workspace, hubClient, hostGroup, enableConnectionPool, maxConnection, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
+
+                var client = new ServiceHubRemoteHostClient(workspace, hubClient.Logger, connectionManager, remoteHostStream);
+
+                var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
+                var cultureLCID = CultureInfo.CurrentCulture.LCID;
+
+                bool success = false;
+                try
+                {
+                    // initialize the remote service
+                    _ = await client._endPoint.InvokeAsync<string>(
+                        nameof(IRemoteHostService.Connect),
+                        new object[] { clientId, uiCultureLCID, cultureLCID, TelemetryService.DefaultSession.SerializeSettings() },
+                        cancellationToken).ConfigureAwait(false);
+
+                    success = true;
+                }
+                finally
+                {
+                    if (!success)
+                    {
+                        client.Dispose();
+                    }
+                }
+
+                client.Started();
+                return client;
+            }
+        }
+
+        public static async Task<Stream> RequestServiceAsync(
+            Workspace workspace,
+            HubClient client,
+            string serviceName,
+            HostGroup hostGroup,
+            CancellationToken cancellationToken)
+        {
+            const string LogMessage = "Unexpected exception from HubClient";
+
+            var descriptor = new ServiceDescriptor(serviceName) { HostGroup = hostGroup };
+            try
+            {
+                return await client.RequestServiceAsync(descriptor, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (ReportNonFatalWatson(e, cancellationToken))
+            {
+                // TODO: Once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1040692.
+                // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
+                // even if our cancellation token is signaled. Cancel the operation and do not report an error in these cases.
+                // 
+                // If ServiceHub did not throw non-cancellation exceptions when cancellation token is signaled,
+                // we can assume that these exceptions indicate a failure and should be reported to the user.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                client.Logger.TraceEvent(TraceEventType.Error, 1, $"{LogMessage}: {e}");
+
+                RemoteHostCrashInfoBar.ShowInfoBar(workspace, e);
+
+                // TODO: Propagate the original exception (see https://github.com/dotnet/roslyn/issues/40476)
+                throw new SoftCrashException(LogMessage, e, cancellationToken);
+            }
+
+            static bool ReportNonFatalWatson(Exception e, CancellationToken cancellationToken)
+            {
+                // ServiceHub may throw non-cancellation exceptions if it is called after VS started to shut down,
+                // even if our cancellation token is signaled. Do not report Watson in such cases to reduce noice.
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    RemoteEndPoint.ReportNonFatalWatsonWithServiceHubLogs(e, LogMessage);
+                }
+
+                return true;
+            }
         }
 
         public override string ClientId => _connectionManager.HostGroup.Id;
@@ -150,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             RegisterGlobalOperationNotifications();
         }
 
-        protected override void OnStopped()
+        public override void Dispose()
         {
             // cancel all pending async work
             _shutdownCancellationTokenSource.Cancel();
@@ -162,10 +181,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // we don't need the event, otherwise, Disconnected event will be called twice.
             UnregisterGlobalOperationNotifications();
 
-            _rpc.Disconnected -= OnRpcDisconnected;
-            _rpc.Dispose();
+            _endPoint.Disconnected -= OnDisconnected;
+            _endPoint.UnexpectedExceptionThrown -= OnUnexpectedExceptionThrown;
+            _endPoint.Dispose();
 
-            _connectionManager.Shutdown();
+            _connectionManager.Dispose();
+
+            base.Dispose();
         }
 
         public HostGroup HostGroup
@@ -212,26 +234,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             localTask.Wait();
         }
 
-        private async Task RpcInvokeAsync(string targetName, params object[] arguments)
-        {
-            // handle exception gracefully. don't crash VS due to this.
-            // especially on shutdown time. because of pending async BG work such as 
-            // OnGlobalOperationStarted and more, we can get into a situation where either
-            // we are in the middle of call when we are disconnected, or we runs
-            // after shutdown.
-            try
-            {
-                await _rpc.InvokeWithCancellationAsync(targetName, arguments?.AsArray(), _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
-            }
-            catch (Exception ex) when (ReportUnlessCanceled(ex))
-            {
-                if (!_shutdownCancellationTokenSource.IsCancellationRequested)
-                {
-                    RemoteHostCrashInfoBar.ShowInfoBar(Workspace, ex);
-                }
-            }
-        }
-
         private void OnGlobalOperationStarted(object sender, EventArgs e)
         {
             lock (_globalNotificationsGate)
@@ -249,7 +251,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                await RpcInvokeAsync(nameof(IRemoteHostService.OnGlobalOperationStarted), "").ConfigureAwait(false);
+                await _endPoint.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStarted),
+                    new object[] { "" },
+                    _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
 
                 return GlobalNotificationState.Started;
             }
@@ -272,27 +277,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return previousTask.Result;
                 }
 
-                await RpcInvokeAsync(nameof(IRemoteHostService.OnGlobalOperationStopped), e.Operations, e.Cancelled).ConfigureAwait(false);
+                await _endPoint.InvokeAsync(
+                    nameof(IRemoteHostService.OnGlobalOperationStopped),
+                    new object[] { e.Operations, e.Cancelled },
+                    _shutdownCancellationTokenSource.Token).ConfigureAwait(false);
 
                 // Mark that we're stopped now.
                 return GlobalNotificationState.NotStarted;
             }
         }
 
-        private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        private void OnDisconnected(JsonRpcDisconnectedEventArgs e)
         {
-            Stopped();
-        }
-
-        private bool ReportUnlessCanceled(Exception ex)
-        {
-            if (_shutdownCancellationTokenSource.IsCancellationRequested)
-            {
-                return true;
-            }
-
-            ex.ReportServiceHubNFW("JsonRpc invoke Failed");
-            return true;
+            Dispose();
         }
     }
 }

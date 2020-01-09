@@ -976,5 +976,62 @@ class MyClass
     }
 }");
         }
+
+        [Fact]
+        [WorkItem(40240, "https://github.com/dotnet/roslyn/issues/40240")]
+        public async Task TestAddMissingCasesForNullableEnum()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Program
+{
+    void Main() 
+    {
+        Bar? bar;
+        [||]switch (bar)
+        {
+            case Bar.Option1:
+                break;
+            case Bar.Option2:
+                break;
+            case null:
+                break;
+        }
+    }
+}
+
+public enum Bar
+{
+    Option1, 
+    Option2, 
+    Option3,
+}
+",
+@"public class Program
+{
+    void Main() 
+    {
+        Bar? bar;
+        switch (bar)
+        {
+            case Bar.Option1:
+                break;
+            case Bar.Option2:
+                break;
+            case null:
+                break;
+            case Bar.Option3:
+                break;
+        }
+    }
+}
+
+public enum Bar
+{
+    Option1, 
+    Option2, 
+    Option3,
+}
+");
+        }
     }
 }
