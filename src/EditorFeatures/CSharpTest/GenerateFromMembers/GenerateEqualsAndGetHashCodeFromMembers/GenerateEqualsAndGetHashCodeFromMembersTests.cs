@@ -2441,7 +2441,7 @@ class Program
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsNullableType()
+        public async Task TestEqualsNullableAnnotation()
         {
             await TestWithPickMembersDialogAsync(
 @"
