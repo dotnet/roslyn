@@ -1404,4 +1404,10 @@ I agree to all of the foregoing:</value>
     <value>&lt;TODO&gt;</value>
     <comment>"TODO" is an indication that there is work to be done still</comment>
   </data>
+  <data name="Added_Parameter" xml:space="preserve">
+    <value>Added parameter.</value>
+  </data>
+  <data name="Inserting_call_site_value_0" xml:space="preserve">
+    <value>Inserting call site value '{0}'</value>
+  </data>
 </root>

@@ -577,11 +577,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    var text = $"{Modifier} {Type} {Parameter}";
+                    var text = ServicesVSResources.Added_Parameter;
+
+                    text += $"{Modifier} {Type} {Parameter}";
+
                     if (!string.IsNullOrWhiteSpace(Default))
                     {
                         text += $" = {Default}";
                     }
+
+                    text += string.Format(ServicesVSResources.Inserting_call_site_value_0, Callsite);
 
                     return text;
                 }

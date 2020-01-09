@@ -235,6 +235,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Added parameter..
+        /// </summary>
+        internal static string Added_Parameter {
+            get {
+                return ResourceManager.GetString("Added_Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Additional changes are needed to complete the refactoring. Review changes below..
         /// </summary>
         internal static string Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below {
@@ -1409,6 +1418,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Inherits_ {
             get {
                 return ResourceManager.GetString("Inherits_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inserting call site value &apos;{0}&apos;.
+        /// </summary>
+        internal static string Inserting_call_site_value_0 {
+            get {
+                return ResourceManager.GetString("Inserting_call_site_value_0", resourceCulture);
             }
         }
         

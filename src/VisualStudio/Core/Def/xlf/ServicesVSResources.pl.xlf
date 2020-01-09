@@ -27,6 +27,11 @@
         <target state="translated">Dodaj do _bieżącego pliku</target>
         <note />
       </trans-unit>
+      <trans-unit id="Added_Parameter">
+        <source>Added parameter.</source>
+        <target state="new">Added parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
         <target state="translated">W celu ukończenia refaktoryzacji wymagane są dodatkowe zmiany. Przejrzyj zmiany poniżej.</target>
@@ -190,6 +195,11 @@
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">W innych operatorach</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_call_site_value_0">
+        <source>Inserting call site value '{0}'</source>
+        <target state="new">Inserting call site value '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
