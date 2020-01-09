@@ -155,8 +155,10 @@ class {|Definition:C1|}
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestDocumentOperationCanApplyChange() As System.Threading.Tasks.Task
+        <InlineData(True)>
+        <InlineData(False)>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDocumentOperationCanApplyChange(ignoreUnchangeableDocuments As Boolean) As System.Threading.Tasks.Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -166,7 +168,7 @@ class C { }
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance)
+            Using workspace = TestWorkspace.Create(input, documentServiceProvider:=TestDocumentServiceProvider.Instance, ignoreUnchangeableDocumentsWhenApplyingChanges:=ignoreUnchangeableDocuments)
 
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
@@ -180,7 +182,19 @@ class C { }
                 Assert.False(document.CanApplyChange())
 
                 ' see whether changes can be applied to the solution
-                Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
+                If ignoreUnchangeableDocuments Then
+                    Assert.True(workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+                    Assert.True(workspace.TryApplyChanges(newDocument.Project.Solution))
+
+                    ' Changes should not be made if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is true
+                    Dim currentDocument = workspace.CurrentSolution.GetDocument(document.Id)
+                    Assert.True(currentDocument.GetTextSynchronously(CancellationToken.None).ContentEquals(document.GetTextSynchronously(CancellationToken.None)))
+                Else
+                    Assert.False(workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges)
+
+                    ' should throw if Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges is false
+                    Assert.Throws(Of NotSupportedException)(Sub() workspace.TryApplyChanges(newDocument.Project.Solution))
+                End If
             End Using
         End Function
 

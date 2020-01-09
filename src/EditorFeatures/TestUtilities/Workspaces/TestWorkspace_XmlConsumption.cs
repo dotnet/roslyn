@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool openDocuments = true,
             ExportProvider exportProvider = null,
             string workspaceKind = null,
-            IDocumentServiceProvider documentServiceProvider = null)
+            IDocumentServiceProvider documentServiceProvider = null,
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
         {
             if (workspaceElement.Name != WorkspaceElementName)
             {
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             exportProvider ??= TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
-            var workspace = new TestWorkspace(exportProvider, workspaceKind);
+            var workspace = new TestWorkspace(exportProvider, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
 
             var projectNameToTestHostProject = new Dictionary<string, TestHostProject>();
             var projectElementToProjectName = new Dictionary<XElement, string>();

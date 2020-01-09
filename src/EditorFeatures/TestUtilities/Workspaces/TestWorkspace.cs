@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
-        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = true;
+        internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
         }
 
-        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true)
+        public TestWorkspace(ExportProvider exportProvider, string? workspaceKind = null, bool disablePartialSolutions = true, bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
             : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Test)
         {
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
+            this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
 
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
