@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
         {
+            if (token.SyntaxTree is null) return false;
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
         }
 
