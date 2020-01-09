@@ -341,6 +341,7 @@ namespace BuildBoss
                         case "netcoreapp2.1":
                         case "netcoreapp3.0":
                         case "$(RoslynPortableTargetFrameworks)":
+                        case "$(RoslynPortableTestFrameworks)":
                             continue;
                     }
                 }
