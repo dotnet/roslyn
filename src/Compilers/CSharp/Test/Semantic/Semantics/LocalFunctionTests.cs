@@ -5004,22 +5004,28 @@ class C
         {
             var source =
 @"#pragma warning disable 8321
+using System;
 class Program
 {
     static void Method()
     {
         void Local<T>() {}
-        static System.Action StaticLocal()
+        static void StaticLocal()
         {
-            return Local<int>;
+            Action a;
+            a = Local<int>;
+            a = new Action(Local<string>);
         }
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,20): error CS8421: A static local function cannot contain a reference to 'Local'.
-                //             return Local<int>;
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>").WithArguments("Local").WithLocation(9, 20));
+                // (11,17): error CS8421: A static local function cannot contain a reference to 'Local'.
+                //             a = Local<int>;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<int>").WithArguments("Local").WithLocation(11, 17),
+                // (12,28): error CS8421: A static local function cannot contain a reference to 'Local'.
+                //             a = new Action(Local<string>);
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "Local<string>").WithArguments("Local").WithLocation(12, 28));
         }
 
         [Fact, WorkItem(39706, "https://github.com/dotnet/roslyn/issues/39706")]

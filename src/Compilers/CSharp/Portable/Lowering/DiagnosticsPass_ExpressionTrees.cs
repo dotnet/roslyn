@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
         {
-            if (method.OriginalDefinition is LocalFunctionSymbol localFunction)
+            if (method?.OriginalDefinition is LocalFunctionSymbol localFunction)
             {
                 CheckReferenceToVariable(node, localFunction);
             }
@@ -664,11 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckReceiverIfField(node.ReceiverOpt);
-
-            if (!(method is null))
-            {
-                CheckReferenceToMethodIfLocalFunction(node, method);
-            }
+            CheckReferenceToMethodIfLocalFunction(node, method);
 
             if (method is null || method.RequiresInstanceReceiver)
             {
