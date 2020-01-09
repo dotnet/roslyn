@@ -589,12 +589,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string ParameterAutomationText => $"{Type} {Parameter}";
             public override bool IsDisabled => false;
-            public override string Callsite => _addedParameter.CallsiteValue;
+            public override string Callsite
+            {
+                get
+                {
+                    if (!string.IsNullOrWhiteSpace(_addedParameter.CallsiteValue))
+                    {
+                        return _addedParameter.CallsiteValue;
+                    }
+
+                    return "<TODO>";
+                }
+            }
 
             internal override Parameter CreateParameter()
                 => new AddedParameter(Type, Parameter, Callsite);
 
-            public override string InitialIndex => "+";
+            public override string InitialIndex => "<new>";
 
             // Newly added parameters cannot have modifiers yet
             public override string Modifier => string.Empty;
