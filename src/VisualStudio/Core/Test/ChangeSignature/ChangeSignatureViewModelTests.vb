@@ -137,7 +137,6 @@ class MyClass
             monitor.AddExpectation(Function() viewModel.CanRestore)
             monitor.AddExpectation(Function() viewModel.RestoreAutomationText)
             monitor.AddExpectation(Function() viewModel.CanEdit)
-            monitor.AddExpectation(Function() viewModel.EditAutomationText)
 
             viewModel.Remove()
 
@@ -178,7 +177,6 @@ class MyClass
             selectionChangedMonitor.AddExpectation(Function() viewModel.CanRestore)
             selectionChangedMonitor.AddExpectation(Function() viewModel.RestoreAutomationText)
             selectionChangedMonitor.AddExpectation(Function() viewModel.CanEdit)
-            selectionChangedMonitor.AddExpectation(Function() viewModel.EditAutomationText)
 
             viewModel.SelectedIndex = 1
 

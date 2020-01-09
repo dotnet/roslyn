@@ -230,7 +230,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(CanRestore));
             NotifyPropertyChanged(nameof(RestoreAutomationText));
             NotifyPropertyChanged(nameof(CanEdit));
-            NotifyPropertyChanged(nameof(EditAutomationText));
         }
 
         internal ParameterConfiguration GetParameterConfiguration()
@@ -478,7 +477,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 NotifyPropertyChanged(nameof(CanRestore));
                 NotifyPropertyChanged(nameof(RestoreAutomationText));
                 NotifyPropertyChanged(nameof(CanEdit));
-                NotifyPropertyChanged(nameof(EditAutomationText));
             }
         }
 
@@ -491,7 +489,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value - 1].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Move_0_above_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value - 1].ShortAutomationText);
             }
         }
 
@@ -504,7 +502,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return string.Empty;
                 }
 
-                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value + 1].ParameterAutomationText);
+                return string.Format(ServicesVSResources.Move_0_below_1, AllParameters[SelectedIndex.Value].ShortAutomationText, AllParameters[SelectedIndex.Value + 1].ShortAutomationText);
             }
         }
 
@@ -636,6 +634,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             public override string ShortAutomationText => $"{Type} {Parameter}";
+            public override string FullAutomationText
+            {
+                get
+                {
+                    var text = $"{Modifier} {Type} {Parameter}";
+                    if (!string.IsNullOrWhiteSpace(Default))
+                    {
+                        text += $" = {Default}";
+                    }
+
+                    return text;
+                }
+            }
 
             public override string Callsite => string.Empty;
 
