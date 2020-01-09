@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -50,16 +51,33 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         }
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
+        private struct ApiName
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+        {
+            public string Name { get; }
+            public string NameWithNullability { get; }
+
+            public ApiName(string name, string nameWithNullability)
+            {
+                Name = name;
+                NameWithNullability = nameWithNullability;
+            }
+        }
+
+#pragma warning disable CA1815 // Override equals and operator equals on value types
         private readonly struct ApiData
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
             public ImmutableArray<ApiLine> ApiList { get; }
             public ImmutableArray<RemovedApiLine> RemovedApiList { get; }
+            // Number for the max line where #nullable enable was found (-1 otherwise)
+            public int NullableRank { get; }
 
-            internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList)
+            internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList, int nullableRank)
             {
                 ApiList = apiList;
                 RemovedApiList = removedApiList;
+                NullableRank = nullableRank;
             }
         }
 
@@ -70,6 +88,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
             private readonly Compilation _compilation;
             private readonly ApiData _unshippedData;
+            private readonly bool _useNullability;
             private readonly ConcurrentDictionary<ITypeSymbol, bool> _typeCanBeExtendedCache = new ConcurrentDictionary<ITypeSymbol, bool>();
             private readonly ConcurrentDictionary<string, UnusedValue> _visitedApiList = new ConcurrentDictionary<string, UnusedValue>(StringComparer.Ordinal);
             private readonly IReadOnlyDictionary<string, ApiLine> _publicApiMap;
@@ -77,6 +96,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             internal Impl(Compilation compilation, ApiData shippedData, ApiData unshippedData)
             {
                 _compilation = compilation;
+                _useNullability = shippedData.NullableRank >= 0 || unshippedData.NullableRank >= 0;
                 _unshippedData = unshippedData;
 
                 var publicApiMap = new Dictionary<string, ApiLine>(StringComparer.Ordinal);
@@ -178,8 +198,9 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             {
                 Debug.Assert(IsPublicAPI(symbol));
 
-                string publicApiName = GetPublicApiName(symbol);
-                _visitedApiList.TryAdd(publicApiName, default);
+                ApiName publicApiName = GetPublicApiName(symbol);
+                _visitedApiList.TryAdd(publicApiName.Name, default);
+                _visitedApiList.TryAdd(publicApiName.NameWithNullability, default);
 
                 List<Location> locationsToReport = new List<Location>();
 
@@ -193,25 +214,42 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     locationsToReport.AddRange(locations.Where(l => l.IsInSource));
                 }
 
-                var hasPublicApiEntry = _publicApiMap.TryGetValue(publicApiName, out ApiLine apiLine);
-                if (!hasPublicApiEntry)
+                ApiLine foundApiLine;
+                if (_useNullability)
                 {
-                    // Unshipped public API with no entry in public API file - report diagnostic.
-                    string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
-                    // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).
-                    var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
-                        .Add(PublicApiNamePropertyBagKey, publicApiName)
-                        .Add(MinimalNamePropertyBagKey, errorMessageName)
-                        .Add(PublicApiNamesOfSiblingsToRemovePropertyBagKey, siblingPublicApiNamesToRemove);
+                    var hasPublicApiEntryWithNullability = _publicApiMap.TryGetValue(publicApiName.NameWithNullability, out foundApiLine);
+                    if (!hasPublicApiEntryWithNullability)
+                    {
+                        var hasPublicApiEntryWithoutNullability = _publicApiMap.TryGetValue(publicApiName.Name, out foundApiLine);
+                        if (!hasPublicApiEntryWithoutNullability)
+                        {
+                            reportDeclareNewApi(symbol, isImplicitlyDeclaredConstructor, publicApiName.NameWithNullability);
+                        }
+                        else
+                        {
+                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi);
+                        }
+                    }
+                }
+                else
+                {
+                    var hasPublicApiEntryWithoutNullability = _publicApiMap.TryGetValue(publicApiName.Name, out foundApiLine);
+                    if (!hasPublicApiEntryWithoutNullability)
+                    {
+                        reportDeclareNewApi(symbol, isImplicitlyDeclaredConstructor, publicApiName.Name);
+                    }
 
-                    reportDiagnosticAtLocations(DeclareNewApiRule, propertyBag, errorMessageName);
+                    if (publicApiName.Name != publicApiName.NameWithNullability)
+                    {
+                        // '#nullable enable' would be useful and should be set
+                        reportDiagnosticAtLocations(ShouldAnnotateApiFilesRule, ImmutableDictionary<string, string>.Empty);
+                    }
                 }
 
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var method = (IMethodSymbol)symbol;
-                    var isMethodShippedApi = hasPublicApiEntry && apiLine.IsShippedApi;
+                    var isMethodShippedApi = foundApiLine?.IsShippedApi == true;
 
                     // Check if a public API is a constructor that makes this class instantiable, even though the base class
                     // is not instantiable. That API pattern is not allowed, because it causes protected members of
@@ -274,7 +312,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 else if (!overloadHasOptionalParams)
                                 {
                                     var overloadPublicApiName = GetPublicApiName(overload);
-                                    var isOverloadUnshipped = !_publicApiMap.TryGetValue(overloadPublicApiName, out ApiLine overloadPublicApiLine) ||
+                                    var isOverloadUnshipped = !lookupPublicApi(overloadPublicApiName, out ApiLine overloadPublicApiLine) ||
                                         !overloadPublicApiLine.IsShippedApi;
                                     if (isOverloadUnshipped)
                                     {
@@ -293,9 +331,49 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 // local functions
                 void reportDiagnosticAtLocations(DiagnosticDescriptor descriptor, ImmutableDictionary<string, string> propertyBag, params object[] args)
                 {
-                    foreach (Location location in locationsToReport)
+                    foreach (var location in locationsToReport)
                     {
                         reportDiagnostic(Diagnostic.Create(descriptor, location, propertyBag, args));
+                    }
+                }
+
+                void reportDeclareNewApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, string publicApiName)
+                {
+                    // Unshipped public API with no entry in public API file - report diagnostic.
+                    string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
+                    // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).
+                    var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
+                        .Add(PublicApiNamePropertyBagKey, publicApiName)
+                        .Add(MinimalNamePropertyBagKey, errorMessageName)
+                        .Add(PublicApiNamesOfSiblingsToRemovePropertyBagKey, siblingPublicApiNamesToRemove);
+
+                    reportDiagnosticAtLocations(DeclareNewApiRule, propertyBag, errorMessageName);
+                }
+
+                void reportAnnotateApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, ApiName publicApiName, bool isShipped)
+                {
+                    // Public API missing annotations in public API file - report diagnostic.
+                    string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
+                        .Add(PublicApiNamePropertyBagKey, publicApiName.Name)
+                        .Add(PublicApiNameWithNullabilityPropertyBagKey, publicApiName.NameWithNullability)
+                        .Add(MinimalNamePropertyBagKey, errorMessageName)
+                        .Add(PublicApiIsShippedPropertyBagKey, isShipped ? "true" : "false");
+
+                    reportDiagnosticAtLocations(AnnotateApiRule, propertyBag, errorMessageName);
+                }
+
+                bool lookupPublicApi(ApiName overloadPublicApiName, out ApiLine overloadPublicApiLine)
+                {
+                    if (_useNullability)
+                    {
+                        return _publicApiMap.TryGetValue(overloadPublicApiName.NameWithNullability, out overloadPublicApiLine) ||
+                            _publicApiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
+                    }
+                    else
+                    {
+                        return _publicApiMap.TryGetValue(overloadPublicApiName.Name, out overloadPublicApiLine);
                     }
                 }
             }
@@ -348,7 +426,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     var nestedNamespaceOrTypesPublicApiNames = new List<string>(nestedNamespaceOrTypeMembers.Length);
                     foreach (var nestedNamespaceOrType in nestedNamespaceOrTypeMembers)
                     {
-                        var nestedNamespaceOrTypePublicApiName = GetPublicApiName(nestedNamespaceOrType);
+                        var nestedNamespaceOrTypePublicApiName = GetPublicApiName(nestedNamespaceOrType).Name;
                         nestedNamespaceOrTypesPublicApiNames.Add(nestedNamespaceOrTypePublicApiName);
                     }
 
@@ -356,13 +434,13 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     foreach (var apiLine in _unshippedData.ApiList)
                     {
                         var apiLineText = apiLine.Text;
-                        if (apiLineText == containingSymbolPublicApiName)
+                        if (apiLineText == containingSymbolPublicApiName.Name)
                         {
                             // Not a sibling of symbol.
                             continue;
                         }
 
-                        if (!ContainsPublicApiName(apiLineText, containingSymbolPublicApiName + "."))
+                        if (!ContainsPublicApiName(apiLineText, containingSymbolPublicApiName.Name + "."))
                         {
                             // Doesn't contain containingSymbol public API name - not a sibling of symbol.
                             continue;
@@ -406,7 +484,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             }
 
                             var siblingPublicApiName = GetPublicApiName(sibling);
-                            publicApiLinesForSiblingsOfSymbol.Remove(siblingPublicApiName);
+                            publicApiLinesForSiblingsOfSymbol.Remove(siblingPublicApiName.Name);
                         }
 
                         // Join all the symbols names with a special separator.
@@ -417,44 +495,49 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return string.Empty;
             }
 
-            private string GetPublicApiName(ISymbol symbol)
+            private ApiName GetPublicApiName(ISymbol symbol)
             {
-                string publicApiName = symbol.ToDisplayString(s_publicApiFormat);
+                return new ApiName(getPublicApiString(s_publicApiFormat), getPublicApiString(s_publicApiFormatWithNullability));
 
-                ITypeSymbol? memberType = null;
-                if (symbol is IMethodSymbol)
+                string getPublicApiString(SymbolDisplayFormat format)
                 {
-                    memberType = ((IMethodSymbol)symbol).ReturnType;
-                }
-                else if (symbol is IPropertySymbol)
-                {
-                    memberType = ((IPropertySymbol)symbol).Type;
-                }
-                else if (symbol is IEventSymbol)
-                {
-                    memberType = ((IEventSymbol)symbol).Type;
-                }
-                else if (symbol is IFieldSymbol)
-                {
-                    memberType = ((IFieldSymbol)symbol).Type;
-                }
+                    string publicApiName = symbol.ToDisplayString(format);
 
-                if (memberType != null)
-                {
-                    publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
-                }
+                    ITypeSymbol? memberType = null;
+                    if (symbol is IMethodSymbol)
+                    {
+                        memberType = ((IMethodSymbol)symbol).ReturnType;
+                    }
+                    else if (symbol is IPropertySymbol)
+                    {
+                        memberType = ((IPropertySymbol)symbol).Type;
+                    }
+                    else if (symbol is IEventSymbol)
+                    {
+                        memberType = ((IEventSymbol)symbol).Type;
+                    }
+                    else if (symbol is IFieldSymbol)
+                    {
+                        memberType = ((IFieldSymbol)symbol).Type;
+                    }
 
-                if (((symbol as INamespaceSymbol)?.IsGlobalNamespace).GetValueOrDefault())
-                {
-                    return string.Empty;
-                }
+                    if (memberType != null)
+                    {
+                        publicApiName = publicApiName + " -> " + memberType.ToDisplayString(format);
+                    }
 
-                if (symbol.ContainingAssembly != null && !symbol.ContainingAssembly.Equals(_compilation.Assembly))
-                {
-                    publicApiName += $" (forwarded, contained in {symbol.ContainingAssembly.Name})";
-                }
+                    if (((symbol as INamespaceSymbol)?.IsGlobalNamespace).GetValueOrDefault())
+                    {
+                        return string.Empty;
+                    }
 
-                return publicApiName;
+                    if (symbol.ContainingAssembly != null && !symbol.ContainingAssembly.Equals(_compilation.Assembly))
+                    {
+                        publicApiName += $" (forwarded, contained in {symbol.ContainingAssembly.Name})";
+                    }
+
+                    return publicApiName;
+                }
             }
 
             private static bool ContainsPublicApiName(string apiLineText, string publicApiNameToSearch)

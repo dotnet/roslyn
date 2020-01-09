@@ -252,4 +252,7 @@
   <data name="TestExportsShouldNotBeDiscoverableCodeFix" xml:space="preserve">
     <value>Apply PartNotDiscoverableAttribute</value>
   </data>
+  <data name="FixNumberedComments" xml:space="preserve">
+    <value>Fix numbered comments</value>
+  </data>
 </root>
