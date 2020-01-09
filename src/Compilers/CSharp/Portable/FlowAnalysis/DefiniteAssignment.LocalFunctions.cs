@@ -77,22 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private int RootSlot(int slot)
-        {
-            while (true)
-            {
-                var varInfo = variableBySlot[slot];
-                if (varInfo.ContainingSlot == 0)
-                {
-                    return slot;
-                }
-                else
-                {
-                    slot = varInfo.ContainingSlot;
-                }
-            }
-        }
-
         private void RecordReadInLocalFunction(int slot)
         {
             var localFunc = GetNearestLocalFunctionOpt(CurrentSymbol);

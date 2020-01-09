@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
-    [ExportOptionProvider, Shared]
+    [ExportOptionProvider(LanguageNames.CSharp), Shared]
     internal class CSharpCodeStyleOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
