@@ -207,6 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable;
         internal override ObsoleteAttributeData? ObsoleteAttributeData => throw ExceptionUtilities.Unreachable;
+
+        public override bool AreLocalsZeroed => throw ExceptionUtilities.Unreachable;
         public override DllImportData GetDllImportData() => throw ExceptionUtilities.Unreachable;
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => throw ExceptionUtilities.Unreachable;
         internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => throw ExceptionUtilities.Unreachable;

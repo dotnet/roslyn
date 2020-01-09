@@ -119,12 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation();
 
-#nullable enable
         /// <summary>
         /// Marshalling information for return value (FieldMarshal in metadata).
         /// </summary>
-        internal abstract MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation { get; }
-#nullable restore
+        internal abstract MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation { get; }
 
         /// <summary>
         /// True if the method calls another method containing security code (metadata flag RequiresSecurityObject is set).
@@ -359,7 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-#nullable enable
         /// <summary>
         /// If this method has MethodKind of MethodKind.PropertyGet or MethodKind.PropertySet,
         /// returns the property that this method is the getter or setter for.
@@ -368,8 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note, the set of possible associated symbols might be expanded in the future to
         /// reflect changes in the languages.
         /// </summary>
-        public abstract Symbol? AssociatedSymbol { get; }
-#nullable restore
+        public abstract Symbol AssociatedSymbol { get; }
 
         /// <summary>
         /// Returns the original virtual or abstract method which a given method symbol overrides,

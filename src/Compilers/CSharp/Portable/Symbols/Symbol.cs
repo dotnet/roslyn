@@ -89,12 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public abstract SymbolKind Kind { get; }
 
-#nullable enable
         /// <summary>
         /// Get the symbol that logically contains this symbol. 
         /// </summary>
-        public abstract Symbol? ContainingSymbol { get; }
-#nullable restore
+        public abstract Symbol ContainingSymbol { get; }
 
         /// <summary>
         /// Returns the nearest lexically enclosing type, or null if there is none.
@@ -1129,13 +1127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
         /// <summary>
         /// Returns data decoded from <see cref="ObsoleteAttribute"/> attribute or null if there is no <see cref="ObsoleteAttribute"/> attribute.
         /// This property returns <see cref="Microsoft.CodeAnalysis.ObsoleteAttributeData.Uninitialized"/> if attribute arguments haven't been decoded yet.
         /// </summary>
-        internal abstract ObsoleteAttributeData? ObsoleteAttributeData { get; }
-#nullable restore
+        internal abstract ObsoleteAttributeData ObsoleteAttributeData { get; }
 
         /// <summary>
         /// Returns true and a <see cref="string"/> from the first <see cref="GuidAttribute"/> on the symbol, 
