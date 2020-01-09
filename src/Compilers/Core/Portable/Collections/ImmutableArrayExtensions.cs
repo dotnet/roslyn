@@ -617,5 +617,34 @@ namespace Microsoft.CodeAnalysis
 
             return true;
         }
+
+        // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
+        internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+        {
+            int low = 0;
+            int high = array.Length - 1;
+
+            while (low <= high)
+            {
+                int middle = low + ((high - low) >> 1);
+                int comparison = comparer(array[middle], value);
+
+                if (comparison == 0)
+                {
+                    return middle;
+                }
+
+                if (comparison > 0)
+                {
+                    high = middle - 1;
+                }
+                else
+                {
+                    low = middle + 1;
+                }
+            }
+
+            return ~low;
+        }
     }
 }
