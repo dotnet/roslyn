@@ -137,6 +137,21 @@
         <target state="translated">Simbolo - Statico</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search_current_solution">
+        <source>Current Solution</source>
+        <target state="new">Current Solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_search_known_solution">
+        <source>'{0}' Solution</source>
+        <target state="new">'{0}' Solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_search_source_name">
+        <source>Local language service</source>
+        <target state="new">Local language service</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
         <source>The symbol has no base.</source>
         <target state="translated">Non è presente alcuna base per il simbolo.</target>

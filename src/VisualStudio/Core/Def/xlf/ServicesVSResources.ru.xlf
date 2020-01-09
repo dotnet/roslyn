@@ -522,21 +522,6 @@
         <target state="translated">Показать список завершения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_search_current_solution">
-        <source>Current Solution</source>
-        <target state="new">Current Solution</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_search_known_solution">
-        <source>'{0}' Solution</source>
-        <target state="new">'{0}' Solution</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_search_source_name">
-        <source>Local language service</source>
-        <target state="new">Local language service</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Целевое пространство имен:</target>
