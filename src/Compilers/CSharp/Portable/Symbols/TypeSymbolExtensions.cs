@@ -65,6 +65,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !typeParameter.IsValueType && !(typeParameter.IsReferenceType && typeParameter.IsNotNullable == true);
         }
 
+        public static bool IsTypeParameterWithNotNullConstraint(this TypeSymbol type)
+        {
+            if (type.TypeKind != TypeKind.TypeParameter)
+            {
+                return false;
+            }
+            var typeParameter = (TypeParameterSymbol)type;
+            return typeParameter.HasNotNullConstraint;
+        }
+
         /// <summary>
         /// Assuming that nullable annotations are enabled:
         /// T => true

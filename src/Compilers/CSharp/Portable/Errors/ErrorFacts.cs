@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride));
+            builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial));
             builder.Add(getId(ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation));
@@ -387,7 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullReferenceArgument:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                 case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
                 case ErrorCode.WRN_NullabilityMismatchInTypeOnImplicitImplementation:
@@ -428,6 +431,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
+                case ErrorCode.WRN_DoesNotReturnMismatch:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementationBecauseOfAttributes:
+                case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementationBecauseOfAttributes:
                     return 1;
                 default:
                     return 0;

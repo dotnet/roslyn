@@ -14,6 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    internal delegate void ReportMismatchinReturnType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, TArg arg);
+    internal delegate void ReportMismatchInParameterType<TArg>(DiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool blameAttributes, TArg arg);
+
     internal partial class SourceMemberContainerTypeSymbol
     {
         /// <summary>
@@ -1050,21 +1053,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool checkParameters)
             {
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
-                                                 checkReturnType ?
-                                                    (diagnostics, overriddenMethod, overridingMethod, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, location) :
-                                                    (Action<DiagnosticBag, MethodSymbol, MethodSymbol, Location>)null,
-                                                 checkParameters ?
-                                                     (diagnostics, overriddenMethod, overridingMethod, overridingParameter, location) =>
-                                                     {
-                                                         diagnostics.Add(
-                                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
-                                                             location,
-                                                             new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
-                                                     }
-                :
-                                                     (Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, Location>)null,
+                                                 checkReturnType ? reportBadReturn : (ReportMismatchinReturnType<Location>)null,
+                                                 checkParameters ? reportBadParameter : (ReportMismatchInParameterType<Location>)null,
                                                  overridingMemberLocation);
             }
+
+            static void reportBadReturn(DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool blameAttributes, Location location)
+                => diagnostics.Add(blameAttributes ?
+                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverrideBecauseOfAttributes :
+                    ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride,
+                    location);
+
+            static void reportBadParameter(DiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool blameAttributes, Location location)
+                => diagnostics.Add(
+                    blameAttributes ? ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverrideBecauseOfAttributes : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
+                    location,
+                    new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
         }
 
         internal static void CheckValidNullableMethodOverride<TArg>(
@@ -1072,13 +1076,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol overriddenMethod,
             MethodSymbol overridingMethod,
             DiagnosticBag diagnostics,
-            Action<DiagnosticBag, MethodSymbol, MethodSymbol, TArg> reportMismatchInReturnType,
-            Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, TArg> reportMismatchInParameterType,
+            ReportMismatchinReturnType<TArg> reportMismatchInReturnType,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument)
         {
             if (!PerformValidNullableOverrideCheck(compilation, overriddenMethod, overridingMethod))
             {
                 return;
+            }
+
+            if ((overriddenMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn &&
+                (overridingMethod.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) != FlowAnalysisAnnotations.DoesNotReturn)
+            {
+                diagnostics.Add(ErrorCode.WRN_DoesNotReturnMismatch, overridingMethod.Locations[0], new FormattedSymbol(overridingMethod, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
             var conversions = compilation.Conversions.WithNullability(true);
@@ -1089,7 +1099,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     overridingMethod.ReturnTypeWithAnnotations,
                     overriddenMethod.ReturnTypeWithAnnotations))
             {
-                reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, extraArgument);
+                reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, false, extraArgument);
+                return;
+            }
+
+            if (reportMismatchInReturnType != null &&
+                !areParameterAnnotationsCompatible(
+                    overridingMethod.RefKind == RefKind.Ref ? RefKind.Ref : RefKind.Out,
+                    overriddenMethod.ReturnTypeWithAnnotations,
+                    overriddenMethod.ReturnTypeFlowAnalysisAnnotations,
+                    overridingMethod.ReturnTypeWithAnnotations,
+                    overridingMethod.ReturnTypeFlowAnalysisAnnotations))
+            {
+                reportMismatchInReturnType(diagnostics, overriddenMethod, overridingMethod, true, extraArgument);
                 return;
             }
 
@@ -1104,15 +1126,115 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < overriddenMethod.ParameterCount; i++)
             {
                 var overriddenParameterType = overriddenParameters[i].TypeWithAnnotations;
-                var overridingParameterType = overridingParameters[i].TypeWithAnnotations;
+                var parameter = overridingParameters[i];
+                var overridingParameterType = parameter.TypeWithAnnotations;
                 if (!isValidNullableConversion(
                         conversions,
-                        overridingParameters[i].RefKind,
+                        parameter.RefKind,
                         overriddenParameterType,
                         overridingParameterType))
                 {
-                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, overridingParameters[i], extraArgument);
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, false, extraArgument);
                 }
+
+                if (reportMismatchInParameterType != null &&
+                    !areParameterAnnotationsCompatible(
+                        parameter.RefKind,
+                        overriddenParameterType,
+                        overriddenParameters[i].FlowAnalysisAnnotations,
+                        overridingParameterType,
+                        parameter.FlowAnalysisAnnotations))
+                {
+                    reportMismatchInParameterType(diagnostics, overriddenMethod, overridingMethod, parameter, true, extraArgument);
+                }
+            }
+
+            static bool areParameterAnnotationsCompatible(
+                    RefKind refKind,
+                    TypeWithAnnotations overriddenType,
+                    FlowAnalysisAnnotations overriddenAnnotations,
+                    TypeWithAnnotations overridingType,
+                    FlowAnalysisAnnotations overridingAnnotations,
+                    bool forRef = false)
+            {
+                // We've already checked types and annotations, let's check nullability attributes as well
+                // Return value is treated as an `out` parameter (or `ref` if it is a `ref` return)
+
+                if (refKind == RefKind.Ref)
+                {
+                    // ref variables are invariant
+                    return areParameterAnnotationsCompatible(RefKind.None, overriddenType, overriddenAnnotations, overridingType, overridingAnnotations, forRef: true) &&
+                        areParameterAnnotationsCompatible(RefKind.Out, overriddenType, overriddenAnnotations, overridingType, overridingAnnotations);
+                }
+
+                if (refKind == RefKind.None || refKind == RefKind.In)
+                {
+                    bool overridingHasDisallowNull = (overridingAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
+                    bool overriddenHasDisallowNull = (overriddenAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0;
+                    if (overridingHasDisallowNull && !overriddenHasDisallowNull && overriddenType.GetValueNullableAnnotation() == NullableAnnotation.Annotated)
+                    {
+                        // Can't assign from overriding to overridden
+                        return false;
+                    }
+
+                    bool overridingHasAllowNull = (overridingAnnotations & FlowAnalysisAnnotations.AllowNull) != 0;
+                    bool overriddenHasAllowNull = (overriddenAnnotations & FlowAnalysisAnnotations.AllowNull) != 0;
+                    if (overriddenHasAllowNull && !overridingHasAllowNull && !overridingType.CanBeAssignedNull)
+                    {
+                        // Can't assign from overridden to overriding
+                        return false;
+                    }
+                }
+
+                bool overridingHasNotNull = (overridingAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                bool overriddenHasNotNull = (overriddenAnnotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                if (overriddenHasNotNull && !overridingHasNotNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
+                {
+                    // Overriding doesn't conform to contract of overridden (ie. promise not to return if parameter is null)
+                    return false;
+                }
+
+                bool overridingHasNotNullWhenTrue = (overridingAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                bool overriddenHasNotNullWhenTrue = (overriddenAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                if (overriddenHasNotNullWhenTrue && !overridingHasNotNullWhenTrue && refKind == RefKind.Out && overridingType.GetValueNullableAnnotation() == NullableAnnotation.Annotated)
+                {
+                    // Can't assign value from overriding to overridden in true case
+                    return false;
+                }
+
+                bool overridingHasNotNullWhenFalse = (overridingAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                bool overriddenHasNotNullWhenFalse = (overriddenAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                if (overriddenHasNotNullWhenFalse && !overridingHasNotNullWhenFalse && refKind == RefKind.Out && overridingType.GetValueNullableAnnotation() == NullableAnnotation.Annotated)
+                {
+                    // Can't assign value from overriding to overridden in false case
+                    return false;
+                }
+
+                bool overridingHasMaybeNull = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
+                bool overriddenHasMaybeNull = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNull) == FlowAnalysisAnnotations.MaybeNull;
+                if (overriddenHasMaybeNull && !overridingHasMaybeNull && (refKind == RefKind.None || refKind == RefKind.In) && !forRef)
+                {
+                    // Overriding doesn't conform to contract of overridden (ie. promise to only return if parameter is null)
+                    return false;
+                }
+
+                bool overridingHasMaybeNullWhenTrue = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+                bool overriddenHasMaybeNullWhenTrue = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+                if (overridingHasMaybeNullWhenTrue && !overriddenHasMaybeNullWhenTrue && refKind == RefKind.Out && !overriddenType.CanBeAssignedNull)
+                {
+                    // Can't assign value from overriding to overridden in true case
+                    return false;
+                }
+
+                bool overridingHasMaybeNullWhenFalse = (overridingAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
+                bool overriddenHasMaybeNullWhenFalse = (overriddenAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
+                if (overridingHasMaybeNullWhenFalse && !overriddenHasMaybeNullWhenFalse && refKind == RefKind.Out && !overriddenType.CanBeAssignedNull)
+                {
+                    // Can't assign value from overriding to overridden in false case
+                    return false;
+                }
+
+                return true;
             }
 
             static bool isValidNullableConversion(
