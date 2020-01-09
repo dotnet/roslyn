@@ -8,6 +8,8 @@
 
     <!-- Disabling on assumption -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
+
+    <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
