@@ -324,6 +324,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     verifier.Equal(expected.Message, actual.GetMessage(), $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
                 }
+                else if (expected.MessageArguments?.Length > 0)
+                {
+                    verifier.SequenceEqual(
+                        expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
+                        GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty),
+                        StringComparer.Ordinal,
+                        $"Expected diagnostic message arguments to match\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, actual)}\r\n");
+                }
             }
         }
 
@@ -492,6 +500,13 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 if (expected.Message is null)
                 {
+                    if (expected.MessageArguments?.Length > 0)
+                    {
+                        var actualArguments = GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty);
+                        var expectedArguments = expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty);
+                        return actualArguments.SequenceEqual(expectedArguments);
+                    }
+
                     return true;
                 }
 
@@ -575,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         diagnostics[i].Severity switch
                         {
                             DiagnosticSeverity.Error => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostics[i].Id}\")",
-                            DiagnosticSeverity.Warning => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostics[i].Id}\")",
+                            DiagnosticSeverity.Warning => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerWarning)}(\"{diagnostics[i].Id}\")",
                             var severity => $"new {nameof(DiagnosticResult)}(\"{diagnostics[i].Id}\", {nameof(DiagnosticSeverity)}.{severity})",
                         });
                 }
@@ -595,6 +610,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     var endLinePosition = diagnostics[i].Location.GetLineSpan().EndLinePosition;
 
                     builder.Append($".WithSpan({linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1})");
+                }
+
+                var arguments = GetArguments(diagnostics[i]);
+                if (arguments.Count > 0)
+                {
+                    builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
+                    builder.Append(string.Join(", ", arguments.Select(a => "\"" + a?.ToString() + "\"")));
+                    builder.Append(")");
                 }
 
                 if (i != diagnostics.Length - 1)
