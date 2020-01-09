@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var generator = _document.GetLanguageService<SyntaxGenerator>();
 
                 var parameters = ImmutableArray.Create(
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, LeftName),
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType, RightName));
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType.WithNullableAnnotation(NullableAnnotation.Annotated), LeftName),
+                    CodeGenerationSymbolFactory.CreateParameterSymbol(_containingType.WithNullableAnnotation(NullableAnnotation.Annotated), RightName));
 
                 members.Add(CreateEqualityOperator(compilation, generator, parameters));
                 members.Add(CreateInequalityOperator(compilation, generator, parameters));

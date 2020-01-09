@@ -23,11 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
         private static readonly TestParameters CSharp6 =
             new TestParameters(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
+        private static readonly TestParameters CSharpLatest =
+            new TestParameters(parseOptions: TestOptions.Regular);
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
 
         private TestParameters CSharp6Implicit => CSharp6.WithOptions(this.PreferImplicitTypeWithInfo());
         private TestParameters CSharp6Explicit => CSharp6.WithOptions(this.PreferExplicitTypeWithInfo());
+        private TestParameters CSharpLatestImplicit => CSharpLatest.WithOptions(this.PreferImplicitTypeWithInfo());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField()
@@ -2437,19 +2441,22 @@ class Program
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestFoo()
+        public async Task TestEqualsNullableType()
         {
-            await TestInRegularAndScript1Async(
-@"#nullable enable
+            await TestWithPickMembersDialogAsync(
+@"
+#nullable enable
 using System;
 
-namespace N {
+namespace N
+{
     public class C[||]
     {
         public int X;
     }
 }",
-@"#nullable enable
+@"
+#nullable enable
 using System;
 
 namespace N
@@ -2464,23 +2471,20 @@ namespace N
                    X == c.X;
         }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(X);
-        }
-
-        public static bool operator ==(C left, C right)
+        public static bool operator ==(C? left, C? right)
         {
             return global::System.Collections.Generic.EqualityComparer<global::N.C>.Default.Equals(left, right);
         }
 
-        public static bool operator !=(C left, C right)
+        public static bool operator !=(C? left, C? right)
         {
             return !(left == right);
         }
     }
 }",
-index: 0);
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: CSharpLatestImplicit);
         }
     }
 }
