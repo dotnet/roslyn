@@ -27,3 +27,6 @@ Sr. No. | Rule ID | Title | Category | Enabled | CodeFix | Description |
 24 | RS1024 | Compare symbols correctly | MicrosoftCodeAnalysisCorrectness | True | True | Symbols should be compared for equality, not identity. |
 25 | RS1025 | Configure generated code analysis | MicrosoftCodeAnalysisCorrectness | True | True | Configure generated code analysis |
 26 | RS1026 | Enable concurrent execution | MicrosoftCodeAnalysisCorrectness | True | True | Enable concurrent execution |
+27 | RS1027 | Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer. | MicrosoftCodeAnalysisCorrectness | True | False | Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s). |
+28 | RS1028 | Provide non-null 'customTags' value to diagnostic descriptor constructor. | MicrosoftCodeAnalysisDocumentation | False | False | The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class. |
+29 | RS1029 | Do not use reserved diagnostic IDs. | MicrosoftCodeAnalysisDesign | True | False | DiagnosticId for analyzers should not use reserved IDs. |

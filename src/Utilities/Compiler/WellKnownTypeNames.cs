@@ -452,5 +452,14 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
         public const string SystemIProgress1 = "System.IProgress`1";
         public const string SystemComponentModelDesignerAttribute = "System.ComponentModel.DesignerAttribute";
+        public const string SystemWebHttpRouteAttribute = "System.Web.Http.RouteAttribute";
+        public const string SystemWebMvcHttpHeadAttribute = "System.Web.Mvc.HttpHeadAttribute";
+        public const string SystemWebMvcHttpOptionsAttribute = "System.Web.Mvc.HttpOptionsAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpGetAttribute = "Microsoft.AspNetCore.Mvc.HttpGetAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpHeadAttribute = "Microsoft.AspNetCore.Mvc.HttpHeadAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpOptionsAttribute = "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute";
+        public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
+        public const string SystemWebHttpApplication = "System.Web.HttpApplication";
+        public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
     }
 }

@@ -32,6 +32,11 @@
         <target state="translated">Las partes exportadas deben tener [ImportingConstructor]</target>
         <note />
       </trans-unit>
+      <trans-unit id="FixNumberedComments">
+        <source>Fix numbered comments</source>
+        <target state="new">Fix numbered comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set ObsoleteAttribute.Error to true</source>
         <target state="translated">Establecer ObsoleteAttribute.Error en true</target>

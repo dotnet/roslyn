@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.Analyzers",
-        "version": "2.9.9",
+        "version": "3.0.0",
         "language": "en-US"
       },
       "rules": {
@@ -293,13 +293,67 @@
               "Telemetry"
             ]
           }
+        },
+        "RS1027": {
+          "id": "RS1027",
+          "shortDescription": "Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.",
+          "fullDescription": "Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "ClassIsNotDiagnosticAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1028": {
+          "id": "RS1028",
+          "shortDescription": "Provide non-null 'customTags' value to diagnostic descriptor constructor.",
+          "fullDescription": "The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDocumentation",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1029": {
+          "id": "RS1029",
+          "shortDescription": "Do not use reserved diagnostic IDs.",
+          "fullDescription": "DiagnosticId for analyzers should not use reserved IDs.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
-        "version": "2.9.9",
+        "version": "3.0.0",
         "language": "en-US"
       },
       "rules": {
@@ -479,7 +533,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
-        "version": "2.9.9",
+        "version": "3.0.0",
         "language": "en-US"
       },
       "rules": {
