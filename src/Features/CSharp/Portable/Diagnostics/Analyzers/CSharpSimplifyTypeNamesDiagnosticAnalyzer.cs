@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -12,15 +13,32 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
+    using CompilationTypeNameMap = ConditionalWeakTable<Compilation, HashSet<string>>;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind>
     {
+        private static readonly CompilationTypeNameMap s_compilationToTypeNames = new CompilationTypeNameMap();
+        private static readonly CompilationTypeNameMap.CreateValueCallback s_getCompilationTypeNames = c =>
+        {
+            var result = new HashSet<string>();
+            result.AddAll(c.Assembly.TypeNames);
+            foreach (var reference in c.References)
+            {
+                if (c.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
+                    result.AddAll(assembly.TypeNames);
+            }
+
+            return result;
+        };
+
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
             ImmutableArray.Create(
                 SyntaxKind.QualifiedName,
@@ -40,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         private void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {
-            var compilationTypeNames = new HashSet<string>();
-            compilationTypeNames.AddAll(context.Compilation.Assembly.TypeNames);
+            var compilationTypeNames = s_compilationToTypeNames.GetValue(
+                context.Compilation, s_getCompilationTypeNames);
 
             context.RegisterSemanticModelAction(c => AnalyzeSemanticModel(c, compilationTypeNames));
         }

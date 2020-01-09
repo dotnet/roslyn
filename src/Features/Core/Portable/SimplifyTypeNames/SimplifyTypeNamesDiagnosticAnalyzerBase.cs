@@ -2,7 +2,7 @@
 
 #nullable enable
 
-// #define LOG
+#define LOG
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
