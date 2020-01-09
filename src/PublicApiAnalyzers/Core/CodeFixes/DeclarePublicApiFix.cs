@@ -28,17 +28,15 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return new PublicSurfaceAreaFixAllProvider();
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Project project = context.Document.Project;
-            TextDocument publicSurfaceAreaDocument = GetPublicSurfaceAreaDocument(project);
+            TextDocument publicSurfaceAreaDocument = GetUnshippedDocument(project);
             if (publicSurfaceAreaDocument == null)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            SemanticModel semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
                 string minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
@@ -53,11 +51,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, siblingSymbolNamesToRemove, c)),
                         diagnostic);
             }
+
+            return Task.CompletedTask;
         }
 
-        private static TextDocument GetPublicSurfaceAreaDocument(Project project)
+        internal static TextDocument GetUnshippedDocument(Project project)
         {
             return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.UnshippedFileName, StringComparison.Ordinal));
+        }
+
+        internal static TextDocument? GetShippedDocument(Project project)
+        {
+            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.ShippedFileName, StringComparison.Ordinal));
         }
 
         private static async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return newSourceText;
         }
 
-        private static List<string> GetLinesFromSourceText(SourceText sourceText)
+        internal static List<string> GetLinesFromSourceText(SourceText sourceText)
         {
             var lines = new List<string>();
 
@@ -144,7 +149,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             return lastLine.Span.IsEmpty ? Environment.NewLine : string.Empty;
         }
 
-        private class AdditionalDocumentChangeAction : CodeAction
+        internal class AdditionalDocumentChangeAction : CodeAction
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedAdditionalDocument;
 
@@ -187,7 +192,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     Project project = pair.Key;
                     ImmutableArray<Diagnostic> diagnostics = pair.Value;
 
-                    TextDocument publicSurfaceAreaAdditionalDocument = GetPublicSurfaceAreaDocument(project);
+                    TextDocument publicSurfaceAreaAdditionalDocument = GetUnshippedDocument(project);
 
                     if (publicSurfaceAreaAdditionalDocument == null)
                     {
@@ -218,6 +223,11 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
+                            if (diagnostic.Id == DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule.Id)
+                            {
+                                continue;
+                            }
+
                             string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
 
                             newSymbolNames.Add(publicSurfaceAreaSymbolName);
