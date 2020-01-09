@@ -38,50 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             writer.WriteValue(options.PreprocessorSymbolNames.ToArray());
         }
 
-        public override void WriteTo(OptionSet options, ObjectWriter writer, CancellationToken cancellationToken)
-        {
-            WriteOptionSetTo(options, LanguageNames.CSharp, writer, cancellationToken);
-
-            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
-            {
-                WriteOptionTo(options, option, writer, cancellationToken);
-            }
-
-            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
-            {
-                WriteOptionTo(options, option, writer, cancellationToken);
-            }
-
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferBraces, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, writer, cancellationToken);
-            WriteOptionTo(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, writer, cancellationToken);
-        }
-
-        public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            OptionSet options = new SerializedPartialOptionSet();
-
-            options = ReadOptionSetFrom(options, LanguageNames.CSharp, reader, cancellationToken);
-
-            foreach (var option in CSharpCodeStyleOptions.GetCodeStyleOptions())
-            {
-                options = ReadOptionFrom(options, option, reader, cancellationToken);
-            }
-
-            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
-            {
-                options = ReadOptionFrom(options, option, reader, cancellationToken);
-            }
-
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferBraces, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, reader, cancellationToken);
-            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, reader, cancellationToken);
-
-            return options;
-        }
-
         public override CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             ReadCompilationOptionsFrom(

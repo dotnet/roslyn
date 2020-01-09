@@ -316,13 +316,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NamespaceSymbol ResolveExternAliasTarget(DiagnosticBag diagnostics)
         {
-            NamespaceSymbol target;
+            NamespaceSymbol? target;
             if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
             {
                 diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
             }
 
-            RoslynDebug.Assert((object)target != null);
+            RoslynDebug.Assert(target is object);
 
             return target;
         }
