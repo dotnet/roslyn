@@ -32,6 +32,11 @@
         <target state="translated">Exportované části by měly mít [ImportingConstructor]</target>
         <note />
       </trans-unit>
+      <trans-unit id="FixNumberedComments">
+        <source>Fix numbered comments</source>
+        <target state="new">Fix numbered comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set ObsoleteAttribute.Error to true</source>
         <target state="translated">Nastavte ObsoleteAttribute.Error na true.</target>

@@ -32,6 +32,11 @@
         <target state="translated">导出的部分应具有 [ImportingConstructor]</target>
         <note />
       </trans-unit>
+      <trans-unit id="FixNumberedComments">
+        <source>Fix numbered comments</source>
+        <target state="new">Fix numbered comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set ObsoleteAttribute.Error to true</source>
         <target state="translated">将 ObsoleteAttribute.Error 设置为 true</target>

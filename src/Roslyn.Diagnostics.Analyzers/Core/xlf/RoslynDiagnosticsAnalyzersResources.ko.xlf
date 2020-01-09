@@ -32,6 +32,11 @@
         <target state="translated">내보낸 파트에는 [ImportingConstructor]가 있어야 함</target>
         <note />
       </trans-unit>
+      <trans-unit id="FixNumberedComments">
+        <source>Fix numbered comments</source>
+        <target state="new">Fix numbered comments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ImportingConstructorShouldBeObsoleteCodeFix_ErrorSetToFalse">
         <source>Set ObsoleteAttribute.Error to true</source>
         <target state="translated">ObsoleteAttribute.Error를 true로 설정</target>
