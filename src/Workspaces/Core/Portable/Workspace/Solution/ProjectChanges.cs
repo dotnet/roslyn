@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var id in _newProject.DocumentIds)
             {
-                var newState = _newProject.GetDocumentState(id);
+                var newState = _newProject.GetDocumentState(id)!;
                 var oldState = _oldProject.GetDocumentState(id);
 
                 if (oldState != null)
