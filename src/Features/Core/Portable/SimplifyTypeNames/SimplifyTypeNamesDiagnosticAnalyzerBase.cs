@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         public bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
             var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
 
             return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
                     var optionValue = optionSet.GetOption(option, model.Language);
-                    severity = optionValue.Notification.Severity;
+                    severity = optionValue!.Notification.Severity;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
