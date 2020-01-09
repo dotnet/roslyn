@@ -14,16 +14,6 @@ namespace Roslyn.Utilities
         internal static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
             => items.IndexOf(item, 0, equalityComparer) >= 0;
 
-        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
-        {
-            if (items == null)
-            {
-                return ImmutableArray.Create<T>();
-            }
-
-            return ImmutableArray.Create<T>(items);
-        }
-
         internal static IReadOnlyList<T> ToImmutableReadOnlyListOrEmpty<T>(this IEnumerable<T>? items)
         {
             if (items is ImmutableArray<T> array && !array.IsDefault)

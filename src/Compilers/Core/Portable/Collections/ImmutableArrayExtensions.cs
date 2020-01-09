@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The sequence to convert</param>
         /// <returns>If the array is null, this will return an empty immutable array.</returns>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this T[]? items)
+        public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
         {
             if (items == null)
             {

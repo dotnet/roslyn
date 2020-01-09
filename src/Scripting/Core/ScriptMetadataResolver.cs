@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         public ScriptMetadataResolver WithSearchPaths(params string[] searchPaths)
-            => WithSearchPaths(searchPaths.AsImmutableOrEmpty());
+            => WithSearchPaths(searchPaths.ToImmutableArrayOrEmpty());
 
         public ScriptMetadataResolver WithSearchPaths(IEnumerable<string> searchPaths)
             => WithSearchPaths(searchPaths.ToImmutableArrayOrEmpty());
