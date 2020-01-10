@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 this.InitializeChildren();
             }
 
-            internal WithManyChildrenBase(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children)
+            internal WithManyChildrenBase(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children)
                 : base(diagnostics, annotations)
             {
                 this.children = children;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
             }
 
-            internal WithManyChildren(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations, ArrayElement<GreenNode>[] children)
+            internal WithManyChildren(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations, ArrayElement<GreenNode>[] children)
                 : base(diagnostics, annotations, children)
             {
             }
@@ -142,12 +142,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             {
             }
 
-            internal override GreenNode SetDiagnostics(DiagnosticInfo[] errors)
+            internal override GreenNode SetDiagnostics(DiagnosticInfo[]? errors)
             {
                 return new WithManyChildren(errors, this.GetAnnotations(), children);
             }
 
-            internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
             {
                 return new WithManyChildren(GetDiagnostics(), annotations, children);
             }
