@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // Each assembly must have a unique name.
             var emitOptions = new EmitOptions(outputNameOverride: ExpressionCompilerUtilities.GenerateUniqueName());
 
-            string runtimeMetadataVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            string? runtimeMetadataVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMetadataVersion);
             return new EEAssemblyBuilder(
                 compilation.SourceAssembly,
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             foreach (var reference in compilation.References)
             {
                 updatedReferences.Add(reference);
-                assembliesAndModulesBuilder.Add(compilation.GetAssemblyOrModuleSymbol(reference));
+                assembliesAndModulesBuilder.Add(compilation.GetAssemblyOrModuleSymbol(reference)!);
             }
             Debug.Assert(assembliesAndModulesBuilder.Count == updatedReferences.Count);
 
