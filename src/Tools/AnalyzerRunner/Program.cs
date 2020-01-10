@@ -85,6 +85,14 @@ namespace AnalyzerRunner
                 Solution solution = await workspace.OpenSolutionAsync(options.SolutionPath, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var projectIds = solution.ProjectIds;
 
+                foreach (var workspaceDiagnostic in workspace.Diagnostics)
+                {
+                    if (workspaceDiagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+                    {
+                        Console.WriteLine(workspaceDiagnostic.Message);
+                    }
+                }
+
                 foreach (var projectId in projectIds)
                 {
                     solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
