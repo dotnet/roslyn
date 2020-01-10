@@ -1343,7 +1343,7 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
-            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
+            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in System.ValueTuple<int, int>)", @"
 {
   // Code size       12 (0xc)
   .maxstack  1

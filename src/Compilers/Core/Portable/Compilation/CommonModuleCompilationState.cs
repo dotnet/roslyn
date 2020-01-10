@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps an async/iterator method to the synthesized state machine type that implements the method. 
         /// </summary>
-        private Dictionary<TMethodSymbol, TNamedTypeSymbol> _lazyStateMachineTypes;
+        private Dictionary<TMethodSymbol, TNamedTypeSymbol>? _lazyStateMachineTypes;
 
         internal void SetStateMachineType(TMethodSymbol method, TNamedTypeSymbol stateMachineClass)
         {
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal bool TryGetStateMachineType(TMethodSymbol method, out TNamedTypeSymbol stateMachineType)
+        internal bool TryGetStateMachineType(TMethodSymbol method, [NotNullWhen(true)] out TNamedTypeSymbol? stateMachineType)
         {
             Debug.Assert(Frozen);
 

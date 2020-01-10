@@ -15,9 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As XmlNodeSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overloads Overrides Sub AddHighlights(node As XmlNodeSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim xmlElement = node.GetAncestor(Of XmlElementSyntax)()
             With xmlElement
                 If xmlElement IsNot Nothing AndAlso
@@ -36,8 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 End If
 
             End With
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

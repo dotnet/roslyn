@@ -168,13 +168,10 @@ namespace Microsoft.CodeAnalysis.AddImports
         private static SyntaxNode? GetFirstApplicableContainer(SyntaxNode contextNode)
         {
             var usingDirective = contextNode.GetAncestor<TUsingOrAliasSyntax>();
-            if (usingDirective != null)
-            {
-                contextNode = usingDirective.Parent;
-            }
 
-            return contextNode.GetAncestor<TNamespaceDeclarationSyntax>() ??
-                   (SyntaxNode?)contextNode.GetAncestorOrThis<TCompilationUnitSyntax>();
+            SyntaxNode? node = usingDirective != null ? usingDirective.Parent! : contextNode;
+            return node.GetAncestor<TNamespaceDeclarationSyntax>() ??
+                   (SyntaxNode?)node.GetAncestorOrThis<TCompilationUnitSyntax>();
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,10 +32,10 @@ namespace Microsoft.CodeAnalysis
         public static EmitResult Emit(
             this Compilation compilation,
             string outputPath,
-            string pdbPath = null,
-            string xmlDocPath = null,
-            string win32ResourcesPath = null,
-            IEnumerable<ResourceDescription> manifestResources = null,
+            string? pdbPath = null,
+            string? xmlDocPath = null,
+            string? win32ResourcesPath = null,
+            IEnumerable<ResourceDescription>? manifestResources = null,
             CancellationToken cancellationToken = default)
         {
             if (compilation == null)

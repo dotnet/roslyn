@@ -17,7 +17,6 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
-Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -1583,7 +1582,7 @@ class Program
     }
 }]]></Document>)
 
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("WriteLine()", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1604,7 +1603,7 @@ class Program
     }
 }]]></Document>)
 
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
@@ -2522,7 +2521,7 @@ class Program
 
         <WorkItem(785637, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/785637")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub CommitMovesCaretToWordEnd()
+        Public Async Sub CommitMovesCaretToWordEnd()
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -2534,7 +2533,8 @@ class C
     }
 }
             ]]></Document>)
-                state.SendCommitUniqueCompletionListItem()
+
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
             End Using
         End Sub
@@ -2840,25 +2840,6 @@ class Program
             End Using
         End Function
 
-        <WorkItem(1065600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065600")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitUniqueItemWithBoxSelection() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                <Document><![CDATA[
-class C
-{
-    void goo(int x)
-    {
-       [|$$ |]
-    }
-}]]></Document>)
-                state.SendReturn()
-                state.TextView.Selection.Mode = VisualStudio.Text.Editor.TextSelectionMode.Box
-                state.SendCommitUniqueCompletionListItem()
-                Await state.AssertNoCompletionSession()
-            End Using
-        End Function
-
         <WorkItem(1594, "https://github.com/dotnet/roslyn/issues/1594")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoPreselectionOnSpaceWhenAbuttingWord() As Task
@@ -2957,7 +2938,7 @@ class C
 }]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
 
                 Dim textBufferFactoryService = state.GetExportedValue(Of ITextBufferFactoryService)()
-                Dim contentTypeService = state.GetExportedValue(Of IContentTypeRegistryService)()
+                Dim contentTypeService = state.GetExportedValue(Of VisualStudio.Utilities.IContentTypeRegistryService)()
                 Dim contentType = contentTypeService.GetContentType(ContentTypeNames.CSharpContentType)
                 Dim textViewFactory = state.GetExportedValue(Of ITextEditorFactoryService)()
                 Dim editorOperationsFactory = state.GetExportedValue(Of IEditorOperationsFactoryService)()
@@ -3714,11 +3695,11 @@ class C
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
 
-                ' SendCommitUniqueCompletionListItem is a synchronous operation.
+                ' SendCommitUniqueCompletionListItem is a asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
                 ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
                 ' 1. Hang here.
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
 
                 Assert.NotNull(task1)
                 Assert.NotNull(task2)
@@ -3786,11 +3767,12 @@ class C
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
 
-                ' SendCommitUniqueCompletionListItem is a synchronous operation.
+                ' SendCommitUniqueCompletionListItem is an asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
                 ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
                 ' 1. Hang here.
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
+
                 ' 5. Put insertion of 'a' into the edtior queue. It can be executed in the foreground thread only
                 state.SendTypeChars("a")
 
@@ -4734,7 +4716,7 @@ class C
 }
                               </Document>)
 
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertCompletionItemsContainAll("MemberwiseClone", "Method")
                 Await state.AssertCompletionItemsDoNotContainAny("int", "ToString()", "Microsoft", "Math")
             End Using
@@ -4775,7 +4757,7 @@ class C
     }
 }
                               </Document>)
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4796,7 +4778,7 @@ class C
                               </Document>)
 
                 state.SendTypeChars(".len")
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4824,7 +4806,7 @@ class C
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4850,7 +4832,7 @@ class C
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("AccessViolationException", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4871,7 +4853,7 @@ class C
 }
                               </Document>, {provider})
 
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4894,7 +4876,7 @@ class C
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionItemsContainAll("Length", "★ Length")
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4923,7 +4905,7 @@ class C
 
                 state.SendBackspace()
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Normalize", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4965,7 +4947,7 @@ class C
 }
                               </Document>, {provider})
 
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -4988,7 +4970,7 @@ class C
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionItemsContainAll("Length", "★ Length", "★ Length2")
-                state.SendCommitUniqueCompletionListItem()
+                Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("s.Length", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -5127,7 +5109,7 @@ namespace NS2
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertCompletionItemsDoNotContainAny({"Bar"})
+                Await state.AssertCompletionItemsDoNotContainAny("Bar")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
 
                 ' select expander again
@@ -5853,7 +5835,7 @@ namespace NS2
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ExpandedItemShouldBePreferred_IfIsOnlyCompleteMatch() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
-                  <Document><![CDATA[
+                <Document><![CDATA[
 namespace NS1
 {
     class C

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// is derived from the name of the compilation (<see cref="Compilation.AssemblyName"/>)
         /// by appending a default extension for <see cref="OutputKind"/>.
         /// </remarks>
-        public string ModuleName { get; protected set; }
+        public string? ModuleName { get; protected set; }
 
         /// <summary>
         /// The full name of a global implicit class (script class). This class implicitly encapsulates top-level statements, 
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis
         /// The full name of a type that declares static Main method. Must be a valid non-generic namespace-qualified name.
         /// Null if any static Main method is a candidate for an entry point.
         /// </summary>
-        public string MainTypeName { get; protected set; }
+        public string? MainTypeName { get; protected set; }
 
         // Note that we avoid using default(ImmutableArray<byte>) for unspecified value since 
         // such value is currently not serializable by JSON serializer.
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis
         /// path to key file.
         /// </para>
         /// </remarks>
-        public string CryptoKeyFile { get; protected set; }
+        public string? CryptoKeyFile { get; protected set; }
 
         /// <summary>
         /// The CSP container containing the key with which to sign the output.
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis
         /// a signing tool (Microsoft .NET Framework Strong Name Utility (sn.exe) or equivalent) to sign them.
         /// </para>
         /// </remarks>
-        public string CryptoKeyContainer { get; protected set; }
+        public string? CryptoKeyContainer { get; protected set; }
 
         /// <summary>
         /// Mark the compilation assembly as delay-signed.
@@ -207,25 +209,25 @@ namespace Microsoft.CodeAnalysis
         /// Resolves paths to metadata references specified in source via #r directives.
         /// Null if the compilation can't contain references to metadata other than those explicitly passed to its factory (such as #r directives in sources). 
         /// </summary>
-        public MetadataReferenceResolver MetadataReferenceResolver { get; protected set; }
+        public MetadataReferenceResolver? MetadataReferenceResolver { get; protected set; }
 
         /// <summary>
         /// Gets the resolver for resolving XML document references for the compilation.
         /// Null if the compilation is not allowed to contain XML file references, such as XML doc comment include tags and permission sets stored in an XML file.
         /// </summary>
-        public XmlReferenceResolver XmlReferenceResolver { get; protected set; }
+        public XmlReferenceResolver? XmlReferenceResolver { get; protected set; }
 
         /// <summary>
         /// Gets the resolver for resolving source document references for the compilation.
         /// Null if the compilation is not allowed to contain source file references, such as #line pragmas and #load directives.
         /// </summary>
-        public SourceReferenceResolver SourceReferenceResolver { get; protected set; }
+        public SourceReferenceResolver? SourceReferenceResolver { get; protected set; }
 
         /// <summary>
         /// Provides strong name and signature the source assembly.
         /// Null if assembly signing is not supported.
         /// </summary>
-        public StrongNameProvider StrongNameProvider { get; protected set; }
+        public StrongNameProvider? StrongNameProvider { get; protected set; }
 
         /// <summary>
         /// Used to compare assembly identities. May implement unification and portability policies specific to the target platform.
@@ -264,11 +266,11 @@ namespace Microsoft.CodeAnalysis
         internal CompilationOptions(
             OutputKind outputKind,
             bool reportSuppressedDiagnostics,
-            string moduleName,
-            string mainTypeName,
-            string scriptClassName,
-            string cryptoKeyContainer,
-            string cryptoKeyFile,
+            string? moduleName,
+            string? mainTypeName,
+            string? scriptClassName,
+            string? cryptoKeyContainer,
+            string? cryptoKeyFile,
             ImmutableArray<byte> cryptoPublicKey,
             bool? delaySign,
             bool publicSign,
@@ -282,11 +284,11 @@ namespace Microsoft.CodeAnalysis
             bool deterministic,
             DateTime currentLocalTime,
             bool debugPlusMode,
-            XmlReferenceResolver xmlReferenceResolver,
-            SourceReferenceResolver sourceReferenceResolver,
-            MetadataReferenceResolver metadataReferenceResolver,
+            XmlReferenceResolver? xmlReferenceResolver,
+            SourceReferenceResolver? sourceReferenceResolver,
+            MetadataReferenceResolver? metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
-            StrongNameProvider strongNameProvider,
+            StrongNameProvider? strongNameProvider,
             MetadataImportOptions metadataImportOptions,
             bool referencesSupersedeLowerVersions)
         {
@@ -448,17 +450,17 @@ namespace Microsoft.CodeAnalysis
             return CommonWithOptimizationLevel(value);
         }
 
-        public CompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
+        public CompilationOptions WithXmlReferenceResolver(XmlReferenceResolver? resolver)
         {
             return CommonWithXmlReferenceResolver(resolver);
         }
 
-        public CompilationOptions WithSourceReferenceResolver(SourceReferenceResolver resolver)
+        public CompilationOptions WithSourceReferenceResolver(SourceReferenceResolver? resolver)
         {
             return CommonWithSourceReferenceResolver(resolver);
         }
 
-        public CompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver resolver)
+        public CompilationOptions WithMetadataReferenceResolver(MetadataReferenceResolver? resolver)
         {
             return CommonWithMetadataReferenceResolver(resolver);
         }
@@ -468,17 +470,17 @@ namespace Microsoft.CodeAnalysis
             return CommonWithAssemblyIdentityComparer(comparer);
         }
 
-        public CompilationOptions WithStrongNameProvider(StrongNameProvider provider)
+        public CompilationOptions WithStrongNameProvider(StrongNameProvider? provider)
         {
             return CommonWithStrongNameProvider(provider);
         }
 
-        public CompilationOptions WithModuleName(string moduleName)
+        public CompilationOptions WithModuleName(string? moduleName)
         {
             return CommonWithModuleName(moduleName);
         }
 
-        public CompilationOptions WithMainTypeName(string mainTypeName)
+        public CompilationOptions WithMainTypeName(string? mainTypeName)
         {
             return CommonWithMainTypeName(mainTypeName);
         }
@@ -488,7 +490,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithScriptClassName(scriptClassName);
         }
 
-        public CompilationOptions WithCryptoKeyContainer(string cryptoKeyContainer)
+        public CompilationOptions WithCryptoKeyContainer(string? cryptoKeyContainer)
         {
             return CommonWithCryptoKeyContainer(cryptoKeyContainer);
         }
@@ -521,19 +523,19 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithPublicSign(bool publicSign);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
-        protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver);
-        protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver);
-        protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver);
+        protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver? resolver);
+        protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver? resolver);
+        protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver? resolver);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
-        protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider);
+        protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider? provider);
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
-        protected abstract CompilationOptions CommonWithModuleName(string moduleName);
-        protected abstract CompilationOptions CommonWithMainTypeName(string mainTypeName);
+        protected abstract CompilationOptions CommonWithModuleName(string? moduleName);
+        protected abstract CompilationOptions CommonWithMainTypeName(string? mainTypeName);
         protected abstract CompilationOptions CommonWithScriptClassName(string scriptClassName);
-        protected abstract CompilationOptions CommonWithCryptoKeyContainer(string cryptoKeyContainer);
+        protected abstract CompilationOptions CommonWithCryptoKeyContainer(string? cryptoKeyContainer);
         protected abstract CompilationOptions CommonWithCryptoKeyFile(string cryptoKeyFile);
         protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
         protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
@@ -672,12 +674,12 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.NullableContextOptions, 0)))))))))))))))))))))))))));
         }
 
-        public static bool operator ==(CompilationOptions left, CompilationOptions right)
+        public static bool operator ==(CompilationOptions? left, CompilationOptions? right)
         {
             return object.Equals(left, right);
         }
 
-        public static bool operator !=(CompilationOptions left, CompilationOptions right)
+        public static bool operator !=(CompilationOptions? left, CompilationOptions? right)
         {
             return !object.Equals(left, right);
         }

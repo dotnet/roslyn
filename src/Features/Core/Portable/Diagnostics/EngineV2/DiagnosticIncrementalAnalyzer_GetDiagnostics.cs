@@ -223,12 +223,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return ImmutableArray<DiagnosticData>.Empty;
                     }
 
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var result = await state.GetAnalysisDataAsync(Owner.PersistentStorageService, document, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                     return result.GetDocumentDiagnostics(documentId, kind);
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var nonLocalResult = await state.GetProjectAnalysisDataAsync(project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var nonLocalResult = await state.GetProjectAnalysisDataAsync(Owner.PersistentStorageService, project, avoidLoadingData: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return nonLocalResult.GetOtherDiagnostics();
             }
         }
@@ -266,7 +266,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             protected override async Task AppendDiagnosticsAsync(Project project, IEnumerable<DocumentId> documentIds, bool includeProjectNonLocalResult, CancellationToken cancellationToken)
             {
                 // get analyzers that are not suppressed.
-                // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
                 var stateSets = StateManager.GetOrCreateStateSets(project).Where(s => ShouldIncludeStateSet(project, s)).ToImmutableArrayOrEmpty();
 
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
@@ -295,7 +294,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
-                // REVIEW: this can be expensive. any way to do this cheaper?
                 var diagnosticService = Owner.AnalyzerService;
                 if (diagnosticService.IsAnalyzerSuppressed(stateSet.Analyzer, project))
                 {

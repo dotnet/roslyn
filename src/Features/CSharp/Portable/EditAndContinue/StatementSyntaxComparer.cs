@@ -35,7 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Tree Traversal
 
-        protected internal override bool TryGetParent(SyntaxNode node, out SyntaxNode parent)
+#pragma warning disable 8610 // Making the out parameter nullable
+        protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
         {
             parent = node.Parent;
             while (parent != null && !HasLabel(parent))
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             return parent != null;
         }
+#pragma warning restore 8610
 
         protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
         {
@@ -830,8 +832,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     if (leftCatch.Declaration == null && leftCatch.Filter == null &&
                         rightCatch.Declaration == null && rightCatch.Filter == null)
                     {
-                        var leftTry = (TryStatementSyntax)leftCatch.Parent;
-                        var rightTry = (TryStatementSyntax)rightCatch.Parent;
+                        var leftTry = (TryStatementSyntax)leftCatch.Parent!;
+                        var rightTry = (TryStatementSyntax)rightCatch.Parent!;
 
                         distance = 0.5 * ComputeValueDistance(leftTry.Block, rightTry.Block) +
                                    0.5 * ComputeValueDistance(leftBlock, rightBlock);

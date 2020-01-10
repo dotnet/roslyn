@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
         <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="new">A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</target>
+        <target state="translated">Im Stamm Ihrer Projektmappe wurde eine neue EDITORCONFIG-Datei wurde gefunden. Möchten Sie sie als Projektmappenelement festlegen?</target>
         <note />
       </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
@@ -72,6 +72,11 @@
         <target state="translated">Build + Liveanalyse (NuGet-Paket)</target>
         <note />
       </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Abhängige Objekte werden berechnet...</target>
@@ -99,12 +104,12 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">Enthaltender Member</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">Enthaltender Typ</target>
         <note />
       </trans-unit>
       <trans-unit id="Current_Document">
@@ -166,6 +171,11 @@
         <source>Kind</source>
         <target state="translated">Art</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -349,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">Benennungsregeln</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -539,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">Der Schweregrad wird aktualisiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -1705,7 +1715,7 @@ Zusätzliche Informationen: {1}</target>
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">
         <source>Prefer null propagation</source>
-        <target state="translated">NULL-Verteilung vorziehen</target>
+        <target state="translated">NULL-Weitergabe vorziehen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_explicit_tuple_name">

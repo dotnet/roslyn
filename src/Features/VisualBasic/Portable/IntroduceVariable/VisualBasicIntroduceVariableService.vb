@@ -139,6 +139,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return True
         End Function
 
+        Protected Overrides Function IsExpressionInStaticLocalFunction(expression As ExpressionSyntax) As Boolean
+            ' Local functions don't apply to VB.
+            Return False
+        End Function
+
         Protected Overrides Function RewriteCore(Of TNode As SyntaxNode)(node As TNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As TNode
             Return DirectCast(Rewriter.Visit(node, replacementNode, matches), TNode)
         End Function

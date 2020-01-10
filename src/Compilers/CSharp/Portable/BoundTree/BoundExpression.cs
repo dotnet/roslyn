@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
                     return true;
+                case BoundKind.StackAllocArrayCreation:
+                    // A BoundStackAllocArrayCreation is given a null type when it is in a
+                    // syntactic context where it could be either a pointer or a span, and
+                    // in that case it requires conversion to one or the other.
+                    return this.Type is null;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:
                 case BoundKind.Parameter when !WasConverted:

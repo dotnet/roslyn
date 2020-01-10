@@ -2041,8 +2041,7 @@ class Test
         var t4 = [||](Item1: 1, Item2: 2);
         var t5 = (Item1: 1, Item2: 2);
     }
-}
-";
+}";
             var expected = @"
 class Test
 {

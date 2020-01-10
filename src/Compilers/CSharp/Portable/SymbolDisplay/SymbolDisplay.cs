@@ -194,20 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format,
             bool minimal)
         {
-            return ToDisplayParts(symbol.WithNullableAnnotation(StateToAnnotation(nullableFlowState)), semanticModelOpt, positionOpt, format, minimal);
-        }
-
-        private static CodeAnalysis.NullableAnnotation StateToAnnotation(CodeAnalysis.NullableFlowState nullableFlowState)
-        {
-            switch (nullableFlowState)
-            {
-                case CodeAnalysis.NullableFlowState.MaybeNull:
-                    return CodeAnalysis.NullableAnnotation.Annotated;
-                case CodeAnalysis.NullableFlowState.NotNull:
-                    return CodeAnalysis.NullableAnnotation.NotAnnotated;
-                default:
-                    return CodeAnalysis.NullableAnnotation.None;
-            }
+            return ToDisplayParts(symbol.WithNullableAnnotation(nullableFlowState.ToAnnotation()), semanticModelOpt, positionOpt, format, minimal);
         }
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(

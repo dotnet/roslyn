@@ -5945,9 +5945,9 @@ namespace System
 }
 ";
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
-                // (6,41): error CS0553: 'ValueTuple<T1, T2>.explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
-                //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("System.ValueTuple<T1, T2>.explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
+                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                    //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
+                    Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
 
         [Fact, WorkItem(30668, "https://github.com/dotnet/roslyn/issues/30668")]
@@ -10902,6 +10902,25 @@ class M
                 // (28,68): error CS8095: Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.
                 //                       C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
                 Diagnostic(ErrorCode.ERR_ConstantStringTooLong, "C1").WithLocation(28, 68)
+                );
+        }
+
+        [Fact, WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
+        public void EnsureOperandsConvertedInErrorExpression_01()
+        {
+            string source =
+@"class C
+{
+    static unsafe void M(dynamic d, int* p)
+    {
+        d += p;
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (5,9): error CS0019: Operator '+=' cannot be applied to operands of type 'dynamic' and 'int*'
+                //         d += p;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "d += p").WithArguments("+=", "dynamic", "int*").WithLocation(5, 9)
                 );
         }
     }

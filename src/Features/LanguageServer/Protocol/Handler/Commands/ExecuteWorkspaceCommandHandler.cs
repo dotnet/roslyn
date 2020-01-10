@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// by delegating to a handler for the specific command requested.
         /// </summary>
         public Task<object> HandleRequestAsync(Solution solution, LSP.ExecuteCommandParams request, LSP.ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+            CancellationToken cancellationToken)
         {
             var commandName = request.Command;
             if (string.IsNullOrEmpty(commandName) || !_executeCommandHandlers.TryGetValue(commandName, out var executeCommandHandler))
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 throw new ArgumentException(string.Format("Command name ({0}) is invalid", commandName));
             }
 
-            return executeCommandHandler.Value.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken, keepThreadContext);
+            return executeCommandHandler.Value.HandleRequestAsync(solution, request, clientCapabilities, cancellationToken);
         }
     }
 }

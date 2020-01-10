@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return GetResultOrEmpty(Result, analyzer, ProjectId, Version);
             }
 
-            public static async Task<ProjectAnalysisData> CreateAsync(Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
+            public static async Task<ProjectAnalysisData> CreateAsync(IPersistentStorageService persistentService, Project project, IEnumerable<StateSet> stateSets, bool avoidLoadingData, CancellationToken cancellationToken)
             {
                 VersionStamp? version = null;
 
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var stateSet in stateSets)
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
-                    var result = await state.GetAnalysisDataAsync(project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var result = await state.GetAnalysisDataAsync(persistentService, project, avoidLoadingData, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfFalse(project.Id == result.ProjectId);
 
                     if (!version.HasValue)

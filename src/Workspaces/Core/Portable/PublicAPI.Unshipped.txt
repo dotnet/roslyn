@@ -1,5 +1,6 @@
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.Project.set -> void
 *REMOVED*Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, T value) -> Microsoft.CodeAnalysis.Options.DocumentOptionSet
+Microsoft.CodeAnalysis.Solution.WithOptions(Microsoft.CodeAnalysis.Options.OptionSet options) -> Microsoft.CodeAnalysis.Solution
 static Microsoft.CodeAnalysis.Formatting.Formatter.OrganizeImportsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
 static Microsoft.CodeAnalysis.Simplification.Simplifier.AddImportsAnnotation.get -> Microsoft.CodeAnalysis.SyntaxAnnotation

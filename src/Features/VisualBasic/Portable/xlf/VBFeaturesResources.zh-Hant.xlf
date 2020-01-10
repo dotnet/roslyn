@@ -365,7 +365,7 @@ AddressOf &lt;procedureName&gt;</target>
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_The_Ansi_modifier_specifies_that_Visual_Basic_should_marshal_all_strings_to_ANSI_values_and_should_look_up_the_procedure_without_modifying_its_name_during_the_search_If_no_character_set_is_specified_ANSI_is_the_default">
         <source>Used in a Declare statement. The Ansi modifier specifies that Visual Basic should marshal all strings to ANSI values, and should look up the procedure without modifying its name during the search. If no character set is specified, ANSI is the default.</source>
-        <target state="translated">用在 Declare 陳述式中。Ansi 修飾詞會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
+        <target state="translated">用在 Declare 陳述式中。Ansi 修飾元會指定 Visual Basic 應將所有字串封送處理成 ANSI 值，且在搜尋期間，應查詢程序但不要修改其名稱。若未指定字元集，預設值就是 ANSI。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_a_data_type_in_a_declaration_statement">
@@ -385,7 +385,7 @@ AddressOf &lt;procedureName&gt;</target>
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_The_Auto_modifier_specifies_that_Visual_Basic_should_marshal_strings_according_to_NET_Framework_rules_and_should_determine_the_base_character_set_of_the_run_time_platform_and_possibly_modify_the_external_procedure_name_if_the_initial_search_fails">
         <source>Used in a Declare statement. The Auto modifier specifies that Visual Basic should marshal strings according to .NET Framework rules, and should determine the base character set of the run-time platform and possibly modify the external procedure name if the initial search fails.</source>
-        <target state="translated">用在 Declare 陳述式中。Auto 修飾詞可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
+        <target state="translated">用在 Declare 陳述式中。Auto 修飾元可指定 Visual Basic 應該根據 .NET Framework 規則封送處理字串，且應判斷執行階段平台的基礎字元集，若初始搜尋失敗，還可能修改外部程序名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="Specifies_that_an_argument_is_passed_in_such_a_way_that_the_called_procedure_can_change_the_underlying_value_of_the_argument_in_the_calling_code">
@@ -1509,7 +1509,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">在 '{0}' 中產生擴展轉換</target>
+        <target state="translated">在 '{0}' 中產生放大轉換</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">

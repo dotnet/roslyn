@@ -50,24 +50,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
         public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            return analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
-        }
+            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
-        {
-            return analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
-        }
+            => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
 
-        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
-        {
-            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
-            {
-                return builtInAnalyzer.OpenFileOnly(workspace);
-            }
-
-            return false;
-        }
+        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, OptionSet options)
+            => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
 
         public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
         {
@@ -123,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic != null)
             {
-                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, hostDiagnosticUpdateSource?.Workspace, projectId);
+                hostDiagnosticUpdateSource?.ReportAnalyzerDiagnostic(analyzer, diagnostic, projectId);
             }
         }
 
@@ -275,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution),
                 onAnalyzerException: service.GetOnAnalyzerException(project.Id, logAggregator),
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -534,6 +523,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         break;
                     case LocationKind.SourceFile:
                         {
+                            RoslynDebug.Assert(location.SourceTree != null);
                             if (project.GetDocument(location.SourceTree) == null)
                             {
                                 // Disallow diagnostics with source locations outside this project.
@@ -619,7 +609,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    yield return DiagnosticData.Create(targetDocument, diagnostic);
+                    yield return DiagnosticData.Create(diagnostic, targetDocument);
                 }
             }
 
@@ -640,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
-                    yield return DiagnosticData.Create(document, diagnostic);
+                    yield return DiagnosticData.Create(diagnostic, document);
                 }
             }
         }

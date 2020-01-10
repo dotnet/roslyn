@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -202,7 +201,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 awaitTaskReturn = false;
 
-                var genericTaskType = model.Compilation.TaskOfTType();
                 var taskType = model.Compilation.TaskType();
 
                 if (taskType is object && returnType.Equals(model.Compilation.GetSpecialType(SpecialType.System_Void)))
@@ -213,21 +211,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return;
                 }
 
-                if (SelectionResult.SelectionInExpression)
-                {
-                    returnType = genericTaskType.ConstructWithNullability(returnType);
-                    return;
-                }
-
-                if (ContainsReturnStatementInSelectedCode(model))
+                if (!SelectionResult.SelectionInExpression && ContainsReturnStatementInSelectedCode(model))
                 {
                     // check whether we will use return type as it is or not.
                     awaitTaskReturn = returnType.Equals(taskType);
                     return;
                 }
 
-                // okay, wrap the return type in Task<T>
-                returnType = genericTaskType.ConstructWithNullability(returnType);
+                var genericTaskType = model.Compilation.TaskOfTType();
+
+                if (genericTaskType is object)
+                {
+                    // okay, wrap the return type in Task<T>
+                    returnType = genericTaskType.Construct(returnType);
+                }
             }
 
             private (IList<VariableInfo> parameters, ITypeSymbol returnType, VariableInfo? variableToUseAsReturnValue, bool unsafeAddressTakenUsed)
@@ -489,6 +486,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
+                    // If the variable doesn't have a name, it is invalid.
+                    if (symbol.Name.IsEmpty())
+                    {
+                        continue;
+                    }
+
                     if (!TryGetVariableStyle(
                             bestEffort, symbolMap, symbol, model, type,
                             captured, dataFlowIn, dataFlowOut, alwaysAssigned, variableDeclared,
@@ -637,8 +640,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
             => symbol switch
             {
-                ILocalSymbol local => local.GetTypeWithAnnotatedNullability(),
-                IParameterSymbol parameter => parameter.GetTypeWithAnnotatedNullability(),
+                ILocalSymbol local => local.Type,
+                IParameterSymbol parameter => parameter.Type,
                 IRangeVariableSymbol rangeVariable => GetRangeVariableType(model, rangeVariable),
                 _ => Contract.FailWithReturn<ITypeSymbol>("Shouldn't reach here"),
             };

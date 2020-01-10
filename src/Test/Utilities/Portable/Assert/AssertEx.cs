@@ -179,6 +179,23 @@ namespace Roslyn.Test.Utilities
             Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
         }
 
+        public static void Equal(string expected, string actual)
+        {
+            if (string.Equals(expected, actual, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            var message = new StringBuilder();
+            message.AppendLine();
+            message.AppendLine("Expected:");
+            message.AppendLine(expected);
+            message.AppendLine("Actual:");
+            message.AppendLine(actual);
+
+            Assert.True(false, message.ToString());
+        }
+
         public static void Equal<T>(
             IEnumerable<T> expected,
             IEnumerable<T> actual,

@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -249,7 +252,7 @@ namespace Microsoft.CodeAnalysis
 
         public static SpecialType FromRuntimeTypeOfLiteralValue(object value)
         {
-            Debug.Assert(value != null);
+            RoslynDebug.Assert(value != null);
 
             // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
             // Also the checks are sorted by commonality of the checked types.

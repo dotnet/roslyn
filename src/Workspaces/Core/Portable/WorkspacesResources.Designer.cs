@@ -1286,11 +1286,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Options did not come from Workspace.
+        ///   Looks up a localized string similar to Options did not come from specified Solution.
         /// </summary>
-        internal static string Options_did_not_come_from_Workspace {
+        internal static string Options_did_not_come_from_specified_Solution {
             get {
-                return ResourceManager.GetString("Options_did_not_come_from_Workspace", resourceCulture);
+                return ResourceManager.GetString("Options_did_not_come_from_specified_Solution", resourceCulture);
             }
         }
         
@@ -3742,15 +3742,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unterminated_regex_comment {
             get {
                 return ResourceManager.GetString("Unterminated_regex_comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Usage:.
-        /// </summary>
-        internal static string Usage_colon {
-            get {
-                return ResourceManager.GetString("Usage_colon", resourceCulture);
             }
         }
         

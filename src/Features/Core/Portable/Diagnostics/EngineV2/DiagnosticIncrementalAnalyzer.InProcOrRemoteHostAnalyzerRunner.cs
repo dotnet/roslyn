@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Options;
@@ -101,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 try
                 {
-                    await client.TryRunCodeAnalysisRemoteAsync(
+                    _ = await client.TryRunRemoteAsync(
+                        WellKnownServiceHubServices.CodeAnalysisService,
                         nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
                         new object[]
                         {
@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             // +1 for project itself
                             project.DocumentIds.Count + 1
                         },
+                        solution: null,
+                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
@@ -126,68 +128,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 using var pooledObject = SharedPools.Default<Dictionary<string, DiagnosticAnalyzer>>().GetPooledObject();
                 var analyzerMap = pooledObject.Object;
 
-                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Workspace)));
+                analyzerMap.AppendAnalyzerMap(analyzerDriver.Analyzers.Where(a => forcedAnalysis || !a.IsOpenFileOnly(solution.Options)));
                 if (analyzerMap.Count == 0)
                 {
                     return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
                 }
 
-                var optionAsset = GetOptionsAsset(solution, project.Language, cancellationToken);
-
                 var argument = new DiagnosticArguments(
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
-                    project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
+                    project.Id, analyzerMap.Keys.ToArray());
 
-                using var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false);
+                using var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget: null, cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // session is not available
                     return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
                 }
 
-                session.AddAdditionalAssets(optionAsset);
-
-                var result = await session.InvokeAsync(
+                var result = await session.Connection.InvokeAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     new object[] { argument },
-                    (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
 
                 ReportAnalyzerExceptions(project, result.Exceptions);
 
                 return result;
             }
 
-            private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)
-            {
-                // TODO: we need better way to deal with options. optionSet itself is green node but
-                //       it is not part of snapshot and can't save option to solution since we can't use language
-                //       specific option without loading related language specific dlls
-                var options = solution.Options;
-
-                // we have cached options
-                if (_lastOptionSetPerLanguage.TryGetValue(language, out var value) && value.Item1 == options)
-                {
-                    return value.Item2;
-                }
-
-                // otherwise, we need to build one.
-                var assetBuilder = new CustomAssetBuilder(solution);
-                var asset = assetBuilder.Build(options, language, cancellationToken);
-
-                _lastOptionSetPerLanguage[language] = ValueTuple.Create(options, asset);
-                return asset;
-            }
-
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> GetCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
+            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ReadCompilerAnalysisResultAsync(Stream stream, Dictionary<string, DiagnosticAnalyzer> analyzerMap, Project project, CancellationToken cancellationToken)
             {
                 // handling of cancellation and exception
-                var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
                 using var reader = ObjectReader.TryGetReader(stream);
-                Debug.Assert(reader != null,
-@"We only ge a reader for data transmitted between live processes.
-This data should always be correct as we're never persisting the data between sessions.");
-                return DiagnosticResultSerializer.Deserialize(reader, analyzerMap, project, version, cancellationToken);
+
+                // We only get a reader for data transmitted between live processes.
+                // This data should always be correct as we're never persisting the data between sessions.
+                Contract.ThrowIfNull(reader);
+
+                return DiagnosticResultSerializer.ReadDiagnosticAnalysisResults(reader, analyzerMap, project, version, cancellationToken);
             }
 
             private void ReportAnalyzerExceptions(Project project, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> exceptions)
