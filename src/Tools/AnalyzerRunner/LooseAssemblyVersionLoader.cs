@@ -32,12 +32,12 @@ namespace AnalyzerRunner
                         return assembly;
                     }
 
-                    return TryResolveAssemblyFromPaths(context, assemblyName, searchPath);
+                    return TryResolveAssemblyFromPaths_NoLock(context, assemblyName, searchPath);
                 }
             };
         }
 
-        private static Assembly TryResolveAssemblyFromPaths(AssemblyLoadContext context, AssemblyName assemblyName, string searchPath)
+        private static Assembly TryResolveAssemblyFromPaths_NoLock(AssemblyLoadContext context, AssemblyName assemblyName, string searchPath)
         {
             foreach (var cultureSubfolder in string.IsNullOrEmpty(assemblyName.CultureName)
                 // If no culture is specified, attempt to load directly from
@@ -65,17 +65,14 @@ namespace AnalyzerRunner
                         continue;
                     }
 
-                    return LoadAndCache(context, candidatePath);
+                    return LoadAndCache_NoLock(context, candidatePath);
                 }
             }
 
             return null;
         }
 
-        /// <remarks>
-        /// Assumes we have a lock on _guard.
-        /// </remarks>
-        private static Assembly LoadAndCache(AssemblyLoadContext context, string fullPath)
+        private static Assembly LoadAndCache_NoLock(AssemblyLoadContext context, string fullPath)
         {
             var assembly = context.LoadFromAssemblyPath(fullPath);
             var name = assembly.FullName;
