@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
         public SymbolSearchContext(SymbolSearchSource symbolSource, ISymbolSearchCallback callback, string rootNodeName, CancellationToken cancellationToken)
         {
             this.SymbolSource = symbolSource;
+            this.SymbolSourceProvider = symbolSource.Provider;
             this.CancellationToken = cancellationToken;
             _localOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty, default);
             _metadataOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.Metadata, EditorFeaturesResources.Symbol_search_current_solutions_dependencies, string.Empty, default);

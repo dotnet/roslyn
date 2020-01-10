@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                 result.LineNumber = location.LinePositionSpan.Start.Line;
                 result.CharacterNumber = location.LinePositionSpan.Start.Character;
 
-                result.PersistentSpan = context.SymbolSource.SymbolSourceProvider.PersistentSpanFactory.Create(
+                result.PersistentSpan = context.SymbolSourceProvider.PersistentSpanFactory.Create(
                     documentSpan.Document.FilePath,
                     location.LinePositionSpan.Start.Line,
                     location.LinePositionSpan.Start.Character,
