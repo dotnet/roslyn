@@ -709,13 +709,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (leftDefault && right.Type is TypeParameterSymbol)
                 {
                     Debug.Assert(!right.Type.IsReferenceType);
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Display);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, right.Type);
                     return;
                 }
                 else if (rightDefault && left.Type is TypeParameterSymbol)
                 {
                     Debug.Assert(!left.Type.IsReferenceType);
-                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Display);
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, node, operatorToken.Text, left.Type);
                     return;
                 }
             }

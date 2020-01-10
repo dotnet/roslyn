@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to &apos;default&apos; and operand of type &apos;{1}&apos; because it is a type parameter that is not known to be a reference type (note: this was incorrectly allowed in an earlier version of the compiler as a null reference comparison).
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to &apos;default&apos; and operand of type &apos;{1}&apos; because it is a type parameter that is not known to be a reference type.
         /// </summary>
         internal static string ERR_AmbigBinaryOpsOnUnconstrainedDefault {
             get {
