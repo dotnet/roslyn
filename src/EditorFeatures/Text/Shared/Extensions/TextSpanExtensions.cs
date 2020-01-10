@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
     internal static class TextSpanExtensions
     {
         /// <summary>
-        /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/>.
+        /// Convert a <see cref="TextSpan"/> instance to a <see cref="Span"/>.
         /// </summary>
         public static Span ToSpan(this TextSpan textSpan)
         {

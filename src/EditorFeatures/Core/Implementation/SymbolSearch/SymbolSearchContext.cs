@@ -11,16 +11,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     internal class SymbolSearchContext : FindUsagesContext
     {
+        /// <inheritdoc/>
         public override CancellationToken CancellationToken { get; }
 
-        internal SymbolSearchSource SymbolSource { get; }
+        /// <summary>
+        /// Allows <see cref="RoslynSymbolSearchResult"/> to access the <see cref="ISymbolSource"/>
+        /// </summary>
+        internal readonly SymbolSearchSource SymbolSource;
 
         /// <summary>
-        /// <see cref="RoslynSymbolSearchResult"/>s using this <see cref="LocalOrigin"/> 
+        /// <see cref="RoslynSymbolSearchResult"/>s using this <see cref="SymbolOrigin"/> 
         /// will be considered exact results, and will be sorted above other results, e.g. remote or from metadata
         /// </summary>
-        internal SymbolOrigin LocalOrigin { get; }
+        private readonly SymbolOrigin _localOrigin;
 
+        /// <summary>
+        /// <see cref="RoslynSymbolSearchResult"/>s using this <see cref="SymbolOrigin"/> 
+        /// will be considered metadata results, and will be sorted below remote and exact.
+        /// </summary>
+        private readonly SymbolOrigin _metadataOrigin;
+
+        /// <summary>
+        /// Used to report results back to the Symbol Search engine
+        /// </summary>
         private readonly ISymbolSearchCallback _callback;
 
         /// <summary>
@@ -32,13 +45,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
         /// <summary>
         /// Protects access to <see cref="_definitionResults"/>
         /// </summary>
-        private object _definitionResultsLock = new object();
+        private readonly object _definitionResultsLock = new object();
 
         public SymbolSearchContext(SymbolSearchSource symbolSource, ISymbolSearchCallback callback, string rootNodeName, CancellationToken cancellationToken)
         {
             this.SymbolSource = symbolSource;
             this.CancellationToken = cancellationToken;
-            this.LocalOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty, default);
+            _localOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.LocalCode, rootNodeName, string.Empty, default);
+            _metadataOrigin = new SymbolOrigin(PredefinedSymbolOriginIds.Metadata, EditorFeaturesResources.Symbol_search_current_solutions_dependencies, string.Empty, default);
             _callback = callback;
         }
 
@@ -46,7 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
         {
             if (definition.SourceSpans.Length == 1)
             {
-                var result = await RoslynSymbolSearchResult.MakeAsync(this, definition, definition.SourceSpans[0], CancellationToken)
+                // If we only have a single location, then use the DisplayParts of the
+                // definition as what to show.  That way we show enough information for things
+                // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
+                // the user to see the type the method was created in.
+                var result = await RoslynSymbolSearchResult.MakeAsync(this, _localOrigin, definition, definition.SourceSpans[0], CancellationToken)
                     .ConfigureAwait(false);
                 _callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
 
@@ -55,13 +73,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                     _definitionResults.Add(definition, result);
                 }
             }
-            else if (definition.SourceSpans.Length > 1)
+            else if (definition.SourceSpans.Length == 0)
             {
-                // Create a definition for each of the parts
+                // No source spans means metadata references.
+                // Display it for Go to Base and try to navigate to metadata.
+                var result = await RoslynSymbolSearchResult.MakeAsync(this, _metadataOrigin, definition, default, CancellationToken)
+                    .ConfigureAwait(false);
+                _callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
+            }
+            else
+            {
+                // If we have multiple spans (i.e. for partial types), then create a 
+                // DocumentSpanEntry for each.  That way we can easily see the source
+                // code where each location is to help the user decide which they want
+                // to navigate to.
                 var builder = ImmutableArray.CreateBuilder<SymbolSearchResult>(definition.SourceSpans.Length);
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    var result = await RoslynSymbolSearchResult.MakeAsync(this, definition, sourceSpan, CancellationToken)
+                    var result = await RoslynSymbolSearchResult.MakeAsync(this, _localOrigin, definition, sourceSpan, CancellationToken)
                         .ConfigureAwait(false);
                     builder.Add(result);
                 }
@@ -73,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 
         public override async Task OnReferenceFoundAsync(SourceReferenceItem reference)
         {
-            var result = await RoslynSymbolSearchResult.MakeAsync(this, reference, reference.SourceSpan, CancellationToken)
+            var result = await RoslynSymbolSearchResult.MakeAsync(this, _localOrigin, reference, reference.SourceSpan, CancellationToken)
                 .ConfigureAwait(false);
             _callback.AddRange(ImmutableArray.Create<SymbolSearchResult>(result));
             return;

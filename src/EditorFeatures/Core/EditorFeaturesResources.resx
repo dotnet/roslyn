@@ -941,4 +941,7 @@ Do you want to proceed?</value>
   <data name="Symbol_search_source_name" xml:space="preserve">
     <value>Local language service</value>
   </data>
+  <data name="Symbol_search_current_solutions_dependencies" xml:space="preserve">
+    <value>Current Solution's dependencies</value>
+  </data>
 </root>

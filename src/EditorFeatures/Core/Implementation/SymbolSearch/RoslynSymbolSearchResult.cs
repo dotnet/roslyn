@@ -9,11 +9,12 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense.SymbolSearch;
-using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
@@ -25,30 +26,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
         private SymbolSearchSource SourceInternal { get; }
         private string PlainText { get; set; }
 
-        private RoslynSymbolSearchResult(SymbolSearchContext context, string plainText) : base(context.SymbolSource, context.LocalOrigin, plainText)
+        private RoslynSymbolSearchResult(SymbolSearchContext context, SymbolOrigin origin, string plainText)
+            : base(context.SymbolSource, origin, plainText)
         {
             this.Context = context;
             this.SourceInternal = context.SymbolSource;
         }
 
-        internal static async Task<RoslynSymbolSearchResult> MakeAsync(SymbolSearchContext context, DefinitionItem definition, DocumentSpan documentSpan, CancellationToken token)
+        internal static Task<RoslynSymbolSearchResult> MakeAsync(
+            SymbolSearchContext context, SymbolOrigin origin, DefinitionItem definition,
+            DocumentSpan documentSpan, CancellationToken token)
         {
-            return await MakeResultAsync(context, documentSpan, referenceItem: null, definitionItem: definition, cancellationToken: token).ConfigureAwait(false);
+            return MakeResultAsync(context, origin, documentSpan, referenceItem: null, definitionItem: definition, cancellationToken: token);
         }
 
-        internal static async Task<RoslynSymbolSearchResult> MakeAsync(SymbolSearchContext context, SourceReferenceItem reference, DocumentSpan documentSpan, CancellationToken token)
+        internal static Task<RoslynSymbolSearchResult> MakeAsync(
+            SymbolSearchContext context, SymbolOrigin origin, SourceReferenceItem reference,
+            DocumentSpan documentSpan, CancellationToken token)
         {
-            return await MakeResultAsync(context, documentSpan, referenceItem: reference, definitionItem: reference.Definition, cancellationToken: token).ConfigureAwait(false);
+            return MakeResultAsync(context, origin, documentSpan, referenceItem: reference, definitionItem: reference.Definition, cancellationToken: token);
         }
 
-        private static async Task<RoslynSymbolSearchResult> MakeResultAsync(SymbolSearchContext context, DocumentSpan documentSpan, SourceReferenceItem referenceItem, DefinitionItem definitionItem, CancellationToken cancellationToken)
+        private static async Task<RoslynSymbolSearchResult> MakeResultAsync(
+            SymbolSearchContext context, SymbolOrigin origin, DocumentSpan documentSpan,
+            SourceReferenceItem referenceItem, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
-            var (projectGuid, projectName, sourceText) = await FindUsagesHelpers.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, cancellationToken)
+            var (projectGuid, projectName, sourceText)
+                = await FindUsagesHelpers.GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document, cancellationToken)
                 .ConfigureAwait(false);
 
-            var (excerptResult, lineText) = await FindUsagesHelpers.ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
-            var plainText = excerptResult.Content.ToString();
-            var result = new RoslynSymbolSearchResult(context, plainText);
+            string plainText;
+            ExcerptResult excerptResult = default;
+            if (documentSpan != default)
+            {
+                (excerptResult, _) = await FindUsagesHelpers.ExcerptAsync(sourceText, documentSpan, cancellationToken)
+                    .ConfigureAwait(false);
+                plainText = excerptResult.Content.ToString();
+            }
+            else
+            {
+                if (definitionItem != null)
+                {
+                    plainText = definitionItem.DisplayParts.JoinText();
+                }
+                else
+                {
+                    plainText = string.Empty;
+                }
+            }
+            var result = new RoslynSymbolSearchResult(context, origin, plainText);
 
             result.ProjectGuid = projectGuid.ToString();
             result.ProjectName = projectName;
@@ -59,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await referenceItem.SourceSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 result.ContextText = new ClassifiedTextElement(classifiedSpans.Select(cspan => new ClassifiedTextRun(cspan.ClassificationType, docText.ToString(cspan.TextSpan))));
-                result.ContextHighlightSpan = AsSpan(classifiedSpansAndHighlightSpan.HighlightSpan);
+                result.ContextHighlightSpan = classifiedSpansAndHighlightSpan.HighlightSpan.ToSpan();
 
                 if (referenceItem.AdditionalProperties.TryGetValue(AbstractReferenceFinder.ContainingTypeInfoPropertyName, out var containingTypeInfo))
                 {
@@ -71,17 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                     result.ContainingMemberName = containingMemberInfo;
                 }
 
-                // Get read\written information
-                if (referenceItem.IsWrittenTo)
-                {
-                    result.IsWrittenTo = true;
-                }
-                else
-                {
-                    result.IsReadFrom = true;
-                }
-
-                // Override read\writtern information from SymbolUsageInfo
+                // Read\written information from SymbolUsageInfo takes precedence over SourceReferenceItem.IsWrittenTo
                 if (referenceItem.SymbolUsageInfo.IsWrittenTo() && referenceItem.SymbolUsageInfo.IsReadFrom())
                 {
                     result.IsReadFrom = true;
@@ -96,6 +112,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                 {
                     result.IsReadFrom = true;
                     result.IsWrittenTo = false;
+                }
+                else
+                {
+                    result.IsWrittenTo = referenceItem.IsWrittenTo;
+                    result.IsReadFrom = !referenceItem.IsWrittenTo;
                 }
 
                 var definitionResult = context.GetDefinitionResult(referenceItem.Definition);
@@ -126,12 +147,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 
                 result.Icon = new ImageElement(definitionItem.Tags.GetFirstGlyph().GetImageId());
 
-                // TODO: Use DocumentSpanEntry
-                result.ContextText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
+                if (documentSpan != default)
+                {
+                    // We get excerptResult from documentSpan
+
+                    // TODO: Use DocumentSpanEntry
+                    result.ContextText = new ClassifiedTextElement(excerptResult.ClassifiedSpans.Select(cspan =>
                     new ClassifiedTextRun(cspan.ClassificationType, sourceText.ToString(cspan.TextSpan))));
 
-                result.ContextHighlightSpan = AsSpan(excerptResult.MappedSpan);
-                // TODO: add definition context and its highlight
+                    result.ContextHighlightSpan = excerptResult.MappedSpan.ToSpan();
+                    // TODO: add definition context and its highlight
+                }
             }
 
             // Set location so that Editor can navigate to the result
@@ -144,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
                 result.LineNumber = location.LinePositionSpan.Start.Line;
                 result.CharacterNumber = location.LinePositionSpan.Start.Character;
 
-                result.PersistentSpan = context.SymbolSource.ServiceProvider.PersistentSpanFactory.Create(
+                result.PersistentSpan = context.SymbolSource.SymbolSourceProvider.PersistentSpanFactory.Create(
                     documentSpan.Document.FilePath,
                     location.LinePositionSpan.Start.Line,
                     location.LinePositionSpan.Start.Character,
@@ -154,11 +180,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
             }
 
             return result;
-        }
-
-        private static Span AsSpan(TextSpan sourceSpan)
-        {
-            return new Span(sourceSpan.Start, sourceSpan.Length);
         }
 
         public string RelativePath { get; private set; }

@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceService(typeof(IWorkspaceProjectGuidService), ServiceLayer.Default)]
     [Shared]
-    internal partial class WorkspaceProjectGuidServiceFactory : IWorkspaceServiceFactory
+    internal partial class WorkspaceProjectGuidService : IWorkspaceProjectGuidService
     {
         [ImportingConstructor]
-        public WorkspaceProjectGuidServiceFactory()
+        public WorkspaceProjectGuidService()
         {
         }
 
@@ -22,12 +22,9 @@ namespace Microsoft.CodeAnalysis.Host
             return new WorkspaceProjectGuidService();
         }
 
-        private class WorkspaceProjectGuidService : IWorkspaceProjectGuidService
+        public Guid GetProjectGuid(Project project)
         {
-            public Guid GetProjectGuid(Project project)
-            {
-                return Guid.Empty;
-            }
+            return Guid.Empty;
         }
     }
 }

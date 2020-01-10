@@ -1864,6 +1864,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Solution&apos;s dependencies.
+        /// </summary>
+        internal static string Symbol_search_current_solutions_dependencies {
+            get {
+                return ResourceManager.GetString("Symbol_search_current_solutions_dependencies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; Solution.
         /// </summary>
         internal static string Symbol_search_known_solution {

@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SymbolSearch
 {
     internal class SymbolSearchSource : ISymbolSourceFromLocation
     {
-        internal SymbolSearchSourceProvider ServiceProvider { get; }
+        internal SymbolSearchSourceProvider SymbolSourceProvider { get; }
 
         public SymbolSearchSource(SymbolSearchSourceProvider symbolSourceProvider)
         {
-            ServiceProvider = symbolSourceProvider;
+            SymbolSourceProvider = symbolSourceProvider;
         }
 
         public ImageId Icon => default;
