@@ -11,13 +11,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
             If context.IsAnyExpressionContext Then
-                Return {CreateRecommendedKeywordForIntrinsicOperator(
+                Return SpecializedCollections.SingletonEnumerable(CreateRecommendedKeywordForIntrinsicOperator(
                     SyntaxKind.NameOfKeyword,
                     VBFeaturesResources.NameOf_function,
                     Glyph.MethodPublic,
                     New NameOfExpressionDocumentation(),
                     context.SemanticModel,
-                    context.Position)}
+                    context.Position))
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
