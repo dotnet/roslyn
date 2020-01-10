@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
 
             if (result == null)
             {
-                var green = this.Green.GetSlot(slot);
+                var green = this.Green.GetRequiredSlot(slot);
                 // passing list's parent
                 Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(slot)), null);
                 result = element;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
 
             if (result == null)
             {
-                var green = this.Green.GetSlot(1);
+                var green = this.Green.GetRequiredSlot(1);
                 if (!green.IsToken)
                 {
                     // passing list's parent
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
         // handle a miss
         private SyntaxNode CreateWeakItem(ref WeakReference<SyntaxNode>? slot, int index)
         {
-            var greenChild = this.Green.GetSlot(index);
+            var greenChild = this.Green.GetRequiredSlot(index);
             var newNode = greenChild.CreateRed(this.Parent, GetChildPosition(index));
             var newWeakReference = new WeakReference<SyntaxNode>(newNode);
 
