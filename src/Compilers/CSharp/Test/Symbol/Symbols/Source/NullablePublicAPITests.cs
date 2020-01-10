@@ -2089,7 +2089,7 @@ class C
 
             var declarations = root.DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[0], PublicNullableAnnotation.NotAnnotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
