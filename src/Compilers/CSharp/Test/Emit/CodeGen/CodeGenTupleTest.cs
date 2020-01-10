@@ -25865,14 +25865,14 @@ public class Class1
         public void MissingTypeArgumentInBase_ValueTuple(bool useImageReference)
         {
             var lib_cs = @"
-public class ClassWithTwoTypeParameters<T1, T2>
+public class C2<T1, T2>
 {
 }
 
-public class SelfReferencingClassWithTuple
-    : ClassWithTwoTypeParameters<SelfReferencingClassWithTuple, (string A, int B)>
+public class SelfReferencing
+    : C2<SelfReferencing, (string A, int B)>
 {
-    public SelfReferencingClassWithTuple()
+    public SelfReferencing()
     {
         System.Console.Write(""ran"");
     }
@@ -25883,11 +25883,11 @@ public class SelfReferencingClassWithTuple
             var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
 
             var source_cs = @"
-public class TriggerStackOverflowException
+public class Program
 {
     public static void M()
     {
-        _ = new SelfReferencingClassWithTuple();
+        _ = new SelfReferencing();
     }
 }
 ";
@@ -25899,12 +25899,77 @@ public class C
 {
     public static void Main()
     {
-        TriggerStackOverflowException.M();
+        Program.M();
     }
 }";
 
             var executeComp = CreateCompilationWithMscorlib40(executable_cs,
                 references: new[] { comp.EmitToImageReference(), libRef, SystemRuntimeFacadeRef, ValueTupleRef },
+                options: TestOptions.DebugExe);
+            CompileAndVerify(executeComp, expectedOutput: "ran");
+        }
+
+        [Theory]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(false, false)]
+        [WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")]
+        public void MissingTypeArgumentInBase_ValueTupleInContainer(bool useImageReference, bool missingValueTuple)
+        {
+            var missingContainer_cs = @"
+public class MissingContainer<T>
+{
+}
+";
+            var missingContainer = CreateCompilationWithMscorlib40(missingContainer_cs, references: s_valueTupleRefs);
+            missingContainer.VerifyDiagnostics();
+            var missingContainerRef = useImageReference ? missingContainer.EmitToImageReference() : missingContainer.ToMetadataReference();
+
+            var lib_cs = @"
+public class C2<T1, T2>
+{
+}
+
+public class SelfReferencing
+    : C2<SelfReferencing, MissingContainer<(string A, int B)>>
+{
+    public SelfReferencing()
+    {
+        System.Console.Write(""ran"");
+    }
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: new[] { missingContainerRef, SystemRuntimeFacadeRef, ValueTupleRef });
+            lib.VerifyDiagnostics();
+            var libRef = useImageReference ? lib.EmitToImageReference() : lib.ToMetadataReference();
+
+            var source_cs = @"
+public class Program
+{
+    public static void M()
+    {
+        _ = new SelfReferencing();
+    }
+}
+";
+            // Compile without System.ValueTuple and/or MissingContainer
+            var references = missingValueTuple ? new[] { libRef } : new[] { libRef, SystemRuntimeFacadeRef, ValueTupleRef };
+            var comp = CreateCompilationWithMscorlib40(source_cs, references: references);
+            comp.VerifyEmitDiagnostics();
+
+            // Execute with all the references present
+            var executable_cs = @"
+public class C
+{
+    public static void Main()
+    {
+        Program.M();
+    }
+}";
+
+            var executeComp = CreateCompilationWithMscorlib40(executable_cs,
+                references: new[] { comp.EmitToImageReference(), libRef, SystemRuntimeFacadeRef, ValueTupleRef, missingContainerRef },
                 options: TestOptions.DebugExe);
             CompileAndVerify(executeComp, expectedOutput: "ran");
         }
@@ -25986,12 +26051,12 @@ public class C3
             var missingRef = useImageReference ? missing.EmitToImageReference() : missing.ToMetadataReference();
 
             var lib_cs = @"
-public class ClassWithTwoTypeParameters<T1, T2>
+public class C2<T1, T2>
 {
 }
 
 public class SelfReferencingClassWithMissing
-    : ClassWithTwoTypeParameters<SelfReferencingClassWithMissing, Missing>
+    : C2<SelfReferencingClassWithMissing, Missing>
 {
     public SelfReferencingClassWithMissing()
     {

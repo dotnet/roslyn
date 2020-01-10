@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Select Case type.Kind
                 Case SymbolKind.ErrorType
 
-                    If (type.GetUseSiteErrorInfo() IsNot Nothing) Then
+                    If type.GetUseSiteErrorInfo() IsNot Nothing Then
                         _foundUsableErrorType = True
                     End If
                     Return type
