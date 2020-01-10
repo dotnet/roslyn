@@ -297,6 +297,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var inlineRenameLocations = await findRenameLocationsTask.JoinAsync().ConfigureAwaitRunInline();
 
+                // It's unfortunate that _allRenameLocationsTask has a UI thread dependency (prevents continuations
+                // from running prior to the completion of the UI operation), but the implementation does not currently
+                // follow the originally-intended design.
+                // https://github.com/dotnet/roslyn/issues/40890
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
                 _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
