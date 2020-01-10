@@ -34,9 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
+            // Only analyze the topmost name/member-access/qualified-cref.  We'll handle recursing
+            // into the node ourselves.  That way, in general, we report the largest/highest issue,
+            // and we don't recurse and report another diagnostics for sub-spans of that issue.
             if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => IsCandidate(n)))
             {
-                // Bail out early because we have already simplified an ancestor of this node.
                 return;
             }
 
@@ -45,27 +47,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var semanticModel = context.SemanticModel;
             var node = context.Node;
 
+            // Handle the topmost qualified-cref slightly differently.  Unlike names/member-accesses,
+            // we do want to recurse into these even if we are able to simplify it.
             if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax qualifiedCref))
             {
                 AnalyzeQualifiedCref(context, qualifiedCref);
             }
             else
             {
+                // Otherwise, just recurse into the topmost name/member-access normally.
                 RecurseAndAnalyzeNode(context, context.Node);
             }
         }
 
-        private void AnalyzeQualifiedCref(
-            SyntaxNodeAnalysisContext context, QualifiedCrefSyntax qualifiedCref)
+        private void AnalyzeQualifiedCref(SyntaxNodeAnalysisContext context, QualifiedCrefSyntax qualifiedCref)
         {
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
 
+            // First, just try to simplify the top-most qualified-cref alone. If we're able to do
+            // this, then there's no need to process it's container.  i.e.
+            //
+            // if we have <see cref="A.B.C"/> and we simplify that to <see cref="C"/> there's no
+            // point looking at `A.B`.
             if (TrySimplifyTypeNameExpression(semanticModel, qualifiedCref, options, out var diagnostic, cancellationToken))
             {
-                // found a match on the qualified cref itself. report it and keep processing.
                 context.ReportDiagnostic(diagnostic);
+
+                // found a match on the qualified cref itself. report it and keep processing.
             }
             else
             {
@@ -75,8 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             // unilaterally process the member portion of the qualified cref.  These may have things
-            // like parameters taht could be simplified.  We want to do this even when we've been
-            // able to simplify the cref itself.
+            // like parameters that could be simplified.  i.e. if we have:
+            //
+            //      <see cref="A.B.C(X.Y)"/>
+            //
+            // We can simplify both the qualified portion to just `C` and we can simplify the
+            // parameter to just `Y`.
             RecurseAndAnalyzeNode(context, qualifiedCref.Member);
         }
 
@@ -84,6 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         {
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
+
+            foreach (var candidate in node.DescendantNodesAndSelf(DescendIntoChildren))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            return;
 
             bool DescendIntoChildren(SyntaxNode n)
             {
@@ -97,12 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                 // descend further.
                 return true;
-            }
-
-            // find regular node first - search from top to down. once found one, don't get into its children
-            foreach (var candidate in node.DescendantNodesAndSelf(DescendIntoChildren))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
