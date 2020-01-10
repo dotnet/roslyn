@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.Rename
     /// This annotations is used by <see cref="Workspace.TryApplyChanges(Solution)" /> 
     /// in some cases to notify the workspace host of refactorings.
     /// </summary>
+    /// <remarks>
+    /// This annotation is applied to a symbol that has been renamed. 
+    /// When Workspace.TryApplyChanges happens in Visual Studio, we raise rename events for that symbol.
+    /// </remarks>
     internal static class RenameSymbolAnnotation
     {
         public const string RenameSymbolKind = nameof(RenameSymbolAnnotation);

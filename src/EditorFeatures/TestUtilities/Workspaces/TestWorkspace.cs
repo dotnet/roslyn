@@ -712,13 +712,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IProgressTracker progressTracker)
         {
             var oldSolution = CurrentSolution;
-            var projectChanges = newSolution.GetChanges(oldSolution).GetProjectChanges().ToList();
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).ToList();
-
             if (base.TryApplyChanges(newSolution, progressTracker))
             {
-                // Use newSolution here since it has the correct annotated nodes. TryApplyChanges isn't guaranteed 
-                // to keep node annotations across changes
+                var projectChanges = newSolution.GetChanges(oldSolution).GetProjectChanges().ToList();
+                var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).ToList();
+
                 NotifyRefactorChanges(changedDocs, newSolution, oldSolution);
                 return true;
             }
