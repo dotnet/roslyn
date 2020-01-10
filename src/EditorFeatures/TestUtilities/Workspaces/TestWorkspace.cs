@@ -713,9 +713,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var oldSolution = CurrentSolution;
             var projectChanges = newSolution.GetChanges(oldSolution).GetProjectChanges().ToList();
-
-            // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).Where(CanApplyChange).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true).Concat(pd.GetChangedAdditionalDocuments())).ToList();
 
             if (base.TryApplyChanges(newSolution, progressTracker))
             {
@@ -726,18 +724,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return false;
-
-            bool CanApplyChange(DocumentId documentId)
-            {
-                var document = newSolution.GetDocument(documentId) ?? oldSolution.GetDocument(documentId);
-                if (document == null)
-                {
-                    // we can have null if documentId is for additional files
-                    return true;
-                }
-
-                return document.CanApplyChange();
-            }
         }
 
         private void NotifyRefactorChanges(
