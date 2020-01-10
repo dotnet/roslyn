@@ -163,10 +163,10 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
 
 #if LOG
-            var logLine = tree.FilePath + "\t" + diagnosticId + "\t" + inDeclaration + "\t";
             var sourceText = tree.GetText(cancellationToken);
             sourceText.GetLineAndOffset(issueSpan.Start, out var startLineNumber, out var startOffset);
             sourceText.GetLineAndOffset(issueSpan.End, out var endLineNumber, out var endOffset);
+            var logLine = tree.FilePath + "," + startLineNumber + "\t" + diagnosticId + "\t" + inDeclaration + "\t";
 
             var leading = sourceText.ToString(TextSpan.FromBounds(
                 sourceText.Lines[startLineNumber].Start, issueSpan.Start));
