@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         // Keep track of how many names we've "used" during decoding. Starts at
         // the back of the array and moves forward.
         private int _namesIndex;
-        private bool _foundErrorType;
+        private bool _foundUsableErrorType;
         private bool _decodingFailed;
 
         private TupleTypeDecoder(ImmutableArray<string?> elementNames)
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _elementNames = elementNames;
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
             _decodingFailed = false;
-            _foundErrorType = false;
+            _foundUsableErrorType = false;
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // If not all of the names have been used, the metadata is bad
-            if (decoder._foundErrorType)
+            if (decoder._foundUsableErrorType)
             {
                 return metadataType;
             }
@@ -157,7 +157,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.Kind)
             {
                 case SymbolKind.ErrorType:
-                    _foundErrorType = true;
+                    if (type.HasUseSiteError)
+                    {
+                        _foundUsableErrorType = true;
+                    }
                     return type;
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:

@@ -60,13 +60,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ' the back of the array and moves forward.
         Private _namesIndex As Integer
 
-        Private _foundErrorType As Boolean
+        Private _foundUsableErrorType As Boolean
         Private _decodingFailed As Boolean
 
         Private Sub New(elementNames As ImmutableArray(Of String))
             _elementNames = elementNames
             _namesIndex = If(elementNames.IsDefault, 0, elementNames.Length)
-            _foundErrorType = False
+            _foundUsableErrorType = False
             _decodingFailed = False
         End Sub
 
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' If not all of the names have been used, the metadata is bad
 
-            If decoder._foundErrorType Then
+            If decoder._foundUsableErrorType Then
                 Return metadataType
             End If
 
@@ -125,7 +125,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Select Case type.Kind
                 Case SymbolKind.ErrorType
 
-                    _foundErrorType = True
+                    If (type.GetUseSiteErrorInfo() IsNot Nothing) Then
+                        _foundUsableErrorType = True
+                    End If
                     Return type
 
                 Case SymbolKind.DynamicType,
