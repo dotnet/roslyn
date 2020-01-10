@@ -109,7 +109,7 @@
                 </DataGrid.InputBindings>
                 <DataGrid.CellStyle>
                     <Style TargetType="DataGridCell">
-                        <Setter Property="AutomationProperties.Name" Value="{Binding ParameterAutomationText}" />
+                        <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}" />
                         <Setter Property="BorderThickness" Value="0" />
                         <Setter Property="Padding" Value="2" />
                         <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
@@ -131,7 +131,7 @@
                 </DataGrid.CellStyle>
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
-                        <Setter Property="AutomationProperties.Name" Value="{Binding ParameterAutomationText}" />
+                        <Setter Property="AutomationProperties.Name" Value="{Binding FullAutomationText}" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="{x:Type DataGridRow}">

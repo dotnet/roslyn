@@ -235,6 +235,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Added parameter..
+        /// </summary>
+        internal static string Added_Parameter {
+            get {
+                return ResourceManager.GetString("Added_Parameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Additional changes are needed to complete the refactoring. Review changes below..
         /// </summary>
         internal static string Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below {
@@ -525,7 +534,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Callsite.
+        ///   Looks up a localized string similar to Call site.
         /// </summary>
         internal static string Callsite {
             get {
@@ -534,7 +543,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Callsite Value.
+        ///   Looks up a localized string similar to Call site value:.
         /// </summary>
         internal static string Callsite_Value {
             get {
@@ -602,6 +611,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Change_Signature {
             get {
                 return ResourceManager.GetString("Change_Signature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;new&gt;.
+        /// </summary>
+        internal static string ChangeSignature_NewParameterIndicator {
+            get {
+                return ResourceManager.GetString("ChangeSignature_NewParameterIndicator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;TODO&gt;.
+        /// </summary>
+        internal static string ChangeSignature_NewParameterIntroduceTODOVariable {
+            get {
+                return ResourceManager.GetString("ChangeSignature_NewParameterIntroduceTODOVariable", resourceCulture);
             }
         }
         
@@ -1391,6 +1418,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Inherits_ {
             get {
                 return ResourceManager.GetString("Inherits_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inserting call site value &apos;{0}&apos;.
+        /// </summary>
+        internal static string Inserting_call_site_value_0 {
+            get {
+                return ResourceManager.GetString("Inserting_call_site_value_0", resourceCulture);
             }
         }
         
@@ -2263,7 +2299,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter Name.
+        ///   Looks up a localized string similar to Parameter name:.
         /// </summary>
         internal static string Parameter_Name {
             get {
@@ -3387,7 +3423,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type Name.
+        ///   Looks up a localized string similar to Type name:.
         /// </summary>
         internal static string Type_Name {
             get {

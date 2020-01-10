@@ -27,6 +27,11 @@
         <target state="translated">現在のファイルに追加(_C)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Added_Parameter">
+        <source>Added parameter.</source>
+        <target state="new">Added parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
         <source>Additional changes are needed to complete the refactoring. Review changes below.</source>
         <target state="translated">リファクタリングを完了するには、追加的な変更が必要です。下記の変更内容を確認してください。</target>
@@ -93,14 +98,24 @@
         <note />
       </trans-unit>
       <trans-unit id="Callsite">
-        <source>Callsite</source>
-        <target state="new">Callsite</target>
+        <source>Call site</source>
+        <target state="new">Call site</target>
         <note />
       </trans-unit>
       <trans-unit id="Callsite_Value">
-        <source>Callsite Value</source>
-        <target state="new">Callsite Value</target>
+        <source>Call site value:</source>
+        <target state="new">Call site value:</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIndicator">
+        <source>&lt;new&gt;</source>
+        <target state="new">&lt;new&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
+        <source>&lt;TODO&gt;</source>
+        <target state="new">&lt;TODO&gt;</target>
+        <note>"TODO" is an indication that there is work to be done still</note>
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
@@ -180,6 +195,11 @@
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">その他の演算子内で</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inserting_call_site_value_0">
+        <source>Inserting call site value '{0}'</source>
+        <target state="new">Inserting call site value '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
@@ -413,8 +433,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Name">
-        <source>Parameter Name</source>
-        <target state="new">Parameter Name</target>
+        <source>Parameter name:</source>
+        <target state="new">Parameter name:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -578,8 +598,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
-        <source>Type Name</source>
-        <target state="new">Type Name</target>
+        <source>Type name:</source>
+        <target state="new">Type name:</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">

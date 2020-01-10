@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
                     var members = dialog.GetTestAccessor().Members;
-                    members.SelectedItem = dialog.GetTestAccessor().ViewModel.AllParameters.Single(p => p.ParameterAutomationText == parameterName);
+                    members.SelectedItem = dialog.GetTestAccessor().ViewModel.AllParameters.Single(p => p.ShortAutomationText == parameterName);
                 });
             }
         }
