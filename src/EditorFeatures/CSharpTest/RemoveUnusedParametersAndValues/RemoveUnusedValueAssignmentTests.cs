@@ -1479,6 +1479,35 @@ $@"class C
 }", optionName);
         }
 
+        [WorkItem(40717, "https://github.com/dotnet/roslyn/issues/40717")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task NonRedundantAssignment_AfterUseAsRefArgument(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    static int Example()
+    {
+        int value = 1;
+
+        Span<int> valueSpan = M(ref value);
+
+        [|value = 2;|]
+
+        return valueSpan[0];
+    }
+
+    static Span<int> M(ref int value)
+    {
+        return default;
+    }
+}", optionName);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
