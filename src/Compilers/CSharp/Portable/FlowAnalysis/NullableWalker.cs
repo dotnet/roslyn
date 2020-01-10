@@ -153,17 +153,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static readonly TypeWithState _invalidType = TypeWithState.Create(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
 
+#nullable enable
+
         /// <summary>
         /// Contains the map of expressions to inferred nullabilities and types used by the optional rewriter phase of the
         /// compiler.
         /// </summary>
-        private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)>.Builder _analyzedNullabilityMapOpt;
+        private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)>.Builder? _analyzedNullabilityMapOpt;
 
         /// <summary>
         /// Manages creating snapshots of the walker as appropriate. Null if we're not taking snapshots of
         /// this walker.
         /// </summary>
-        private readonly SnapshotManager.Builder _snapshotBuilderOpt;
+        private readonly SnapshotManager.Builder? _snapshotBuilderOpt;
+
+#nullable disable
 
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
@@ -1379,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            if (!(_symbol is MethodSymbol methodSymbol))
+            if (!(CurrentSymbol is MethodSymbol methodSymbol))
             {
                 return;
             }
@@ -1485,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryGetReturnType(out TypeWithAnnotations type)
         {
-            var method = _symbol as MethodSymbol;
+            var method = CurrentSymbol as MethodSymbol;
             if (method is null)
             {
                 type = default;
@@ -1540,13 +1544,148 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBlock(BoundBlock node)
         {
             DeclareLocals(node.Locals);
-            foreach (var statement in node.Statements)
-            {
-                VisitStatement(statement);
-            }
+            VisitStatementsWithLocalFunctions(node);
 
             return null;
         }
+
+#nullable enable
+
+        private void VisitStatementsWithLocalFunctions(BoundBlock block)
+        {
+            // Since the nullable flow state affects type information, and types can be queried by
+            // the semantic model, there needs to be a single flow state input to a local function
+            // that cannot be path-dependent. To decide the local starting state we Meet the state
+            // of captured variables from all the uses of the local function, computing the
+            // conservative combination of all potential starting states.
+            //
+            // For performance we split the analysis into two phases: the first phase where we
+            // analyze everything except the local functions, hoping to visit all of the uses of the
+            // local function, and then a pass where we visit the local functions. If there's no
+            // recursion or calls between the local functions, the starting state of the local
+            // function should be stable and we don't need a second pass.
+            if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
+            {
+                // First visit everything else
+                foreach (var stmt in block.Statements)
+                {
+                    if (stmt.Kind != BoundKind.LocalFunctionStatement)
+                    {
+                        VisitStatement(stmt);
+                    }
+                }
+
+                // Now visit the local function bodies
+                foreach (var stmt in block.Statements)
+                {
+                    if (stmt is BoundLocalFunctionStatement localFunc)
+                    {
+                        VisitLocalFunctionStatement(localFunc);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var stmt in block.Statements)
+                {
+                    VisitStatement(stmt);
+                }
+            }
+        }
+
+        public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
+        {
+            var oldSymbol = this.CurrentSymbol;
+            var localFuncSymbol = localFunc.Symbol;
+            this.CurrentSymbol = localFuncSymbol;
+
+            var oldPending = SavePending(); // we do not support branches into a lambda
+
+            var savedState = this.State;
+            var localFunctionState = GetOrCreateLocalFuncUsages(localFuncSymbol);
+            // The starting state is the top state, but with captured
+            // variables set according to Joining the state at all the
+            // local function use sites
+            State = TopState().Clone();
+            for (int slot = 1; slot < localFunctionState.StartingState.Capacity; slot++)
+            {
+                var symbol = variableBySlot[RootSlot(slot)].Symbol;
+                if (Symbol.IsCaptured(symbol, localFunc.Symbol))
+                {
+                    State[slot] = localFunctionState.StartingState[slot];
+                }
+            }
+            localFunctionState.Visited = true;
+
+            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
+
+            // State changes to captured variables are recorded, as calls to local functions
+            // transition the state of captured variables if the variables have state changes
+            // across all branches leaving the local function
+
+            var oldPending2 = SavePending();
+
+            // If this is an iterator, there's an implicit branch before the first statement
+            // of the function where the enumerable is returned.
+            if (localFuncSymbol.IsIterator)
+            {
+                PendingBranches.Add(new PendingBranch(null, this.State, null));
+            }
+
+            VisitAlways(localFunc.Body);
+            RestorePending(oldPending2); // process any forward branches within the lambda body
+            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+            RestorePending(oldPending);
+
+            Location? location = null;
+
+            if (!localFuncSymbol.Locations.IsDefaultOrEmpty)
+            {
+                location = localFuncSymbol.Locations[0];
+            }
+
+            LeaveParameters(localFuncSymbol.Parameters, localFunc.Syntax, location);
+
+            // Intersect the state of all branches out of the local function
+            var stateAtReturn = this.State;
+            foreach (PendingBranch pending in pendingReturns)
+            {
+                this.State = pending.State;
+                BoundNode branch = pending.Branch;
+
+                // Pass the local function identifier as a location if the branch
+                // is null or compiler generated.
+                LeaveParameters(localFuncSymbol.Parameters,
+                  branch?.Syntax,
+                  branch?.WasCompilerGenerated == false ? null : location);
+
+                Join(ref stateAtReturn, ref this.State);
+            }
+
+            this.State = savedState;
+            this.CurrentSymbol = oldSymbol;
+
+            SetInvalidResult();
+
+            return null;
+        }
+
+        protected override void VisitLocalFunctionUse(
+            LocalFunctionSymbol symbol,
+            LocalFunctionState localFunctionState,
+            SyntaxNode syntax,
+            bool isCall)
+        {
+            if (Join(ref localFunctionState.StartingState, ref State) &&
+                localFunctionState.Visited)
+            {
+                // If the starting state of the local function has changed and we've already visited
+                // the local function, we need another pass
+                stateChangedAfterUse = true;
+            }
+        }
+
+#nullable restore
 
         public override BoundNode VisitDoStatement(BoundDoStatement node)
         {
@@ -3191,6 +3330,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we analyze even omitted calls
             TypeWithState receiverType = VisitCallReceiver(node);
             ReinferMethodAndVisitArguments(node, receiverType);
+            if (node.Method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+            {
+                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
+            }
             return null;
         }
 
@@ -3212,12 +3355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromEqualsMethod(method, node, receiverType, results);
 
             LearnFromCompareExchangeMethod(method, node, results);
-
-            if (method.MethodKind == MethodKind.LocalFunction)
-            {
-                var localFunc = (LocalFunctionSymbol)method.OriginalDefinition;
-                ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
-            }
 
             var returnState = GetReturnTypeWithState(method);
             if (returnNotNull)
@@ -4428,13 +4565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnosticsBuilder.Free();
         }
 
-        private void ReplayReadsAndWrites(LocalFunctionSymbol localFunc,
-                                  SyntaxNode syntax,
-                                  bool writes)
-        {
-            // https://github.com/dotnet/roslyn/issues/27233 Support field initializers in local functions.
-        }
-
         /// <summary>
         /// Returns the expression without the top-most conversion plus the conversion.
         /// If the expression is not a conversion, returns the original expression plus
@@ -5149,6 +5279,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var method = conversion.Method;
                         if (group != null)
                         {
+                            if (method?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                            {
+                                VisitLocalFunctionUse(localFunc, group.Syntax, isCall: false);
+                            }
                             method = CheckMethodGroupReceiverNullability(group, delegateType, method, conversion.IsExtensionMethod);
                         }
                         if (reportRemainingWarnings)
@@ -5698,11 +5832,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.Type.IsDelegateType());
 
-            if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
             {
-                var syntax = node.Syntax;
-                var localFunc = (LocalFunctionSymbol)node.MethodOpt.OriginalDefinition;
-                ReplayReadsAndWrites(localFunc, syntax, writes: false);
+                VisitLocalFunctionUse(localFunc, node.Syntax, isCall: true);
             }
 
             var delegateType = (NamedTypeSymbol)node.Type;
@@ -5892,36 +6024,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = node.BindForErrorRecovery();
             VisitLambda(lambda, delegateTypeOpt: null, Diagnostics);
             SetNotNullResult(node);
-            return null;
-        }
-
-        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
-        {
-            var body = node.Body;
-            if (body != null)
-            {
-                var analyzedNullabilityMap = _analyzedNullabilityMapOpt;
-                var snapshotBuilder = _snapshotBuilderOpt;
-                if (_disableNullabilityAnalysis)
-                {
-                    analyzedNullabilityMap = null;
-                    snapshotBuilder = null;
-                }
-
-                Analyze(compilation,
-                        node.Symbol,
-                        body,
-                        _binder,
-                        _conversions,
-                        Diagnostics,
-                        useMethodSignatureParameterTypes: false,
-                        delegateInvokeMethodOpt: null,
-                        initialState: GetVariableState(this.TopState()),
-                        analyzedNullabilityMap,
-                        snapshotBuilder,
-                        returnTypesOpt: null);
-            }
-            SetInvalidResult();
             return null;
         }
 
@@ -7827,7 +7929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            var method = _delegateInvokeMethod ?? (MethodSymbol)_symbol;
+            var method = _delegateInvokeMethod ?? (MethodSymbol)CurrentSymbol;
             TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
                 method.ReturnType, errorLocation: null, diagnostics: null);
 
@@ -8075,9 +8177,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
+            /// <summary>
+            /// Defines the starting state used in the local function body to
+            /// produce diagnostics and determine types.
+            /// </summary>
+            public LocalState StartingState;
             public LocalFunctionState(LocalState unreachableState)
                 : base(unreachableState)
             {
+                StartingState = unreachableState;
             }
         }
 

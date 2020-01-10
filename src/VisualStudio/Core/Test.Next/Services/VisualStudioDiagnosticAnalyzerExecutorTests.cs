@@ -190,7 +190,7 @@ End Class";
                 var executor = new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(owner: null, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
                 var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 // no result for open file only analyzer unless forced
                 var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
@@ -243,7 +243,7 @@ End Class";
                 var executor = new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(owner: null, hostDiagnosticUpdateSource: new MyUpdateSource(workspace));
                 var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
@@ -264,7 +264,7 @@ End Class";
 
             var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
             var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
 
@@ -333,11 +333,9 @@ End Class";
             public override Workspace Workspace => _workspace;
         }
 
-        private class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
+        private sealed class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
         {
             private readonly CancellationTokenSource _source;
-
-            public bool Disposed = false;
 
             public InvokeThrowsCancellationConnection(CancellationTokenSource source)
             {
@@ -360,13 +358,6 @@ End Class";
             public override Task<T> InvokeAsync<T>(
                 string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
                 => throw new NotImplementedException();
-
-            protected override void Dispose(bool disposing)
-            {
-                base.Dispose(disposing);
-
-                Disposed = true;
-            }
         }
     }
 }

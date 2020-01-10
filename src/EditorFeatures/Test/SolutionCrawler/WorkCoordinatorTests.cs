@@ -1415,7 +1415,7 @@ End Class";
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
 
-                SetOptions(this);
+                WorkCoordinatorTests.SetOptions(this);
             }
 
             public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true)

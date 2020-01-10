@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             RegisterGlobalOperationNotifications();
         }
 
-        protected override void Dispose(bool disposing)
+        public override void Dispose()
         {
             // cancel all pending async work
             _shutdownCancellationTokenSource.Cancel();
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _connectionManager.Dispose();
 
-            base.Dispose(disposing);
+            base.Dispose();
         }
 
         public HostGroup HostGroup
