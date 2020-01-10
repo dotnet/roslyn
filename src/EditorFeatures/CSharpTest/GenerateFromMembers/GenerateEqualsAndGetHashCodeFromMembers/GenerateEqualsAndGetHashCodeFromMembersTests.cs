@@ -2441,7 +2441,7 @@ class Program
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestEqualsNullableAnnotation()
+        public async Task TestEqualityOperatorsNullableAnnotationWithReferenceType()
         {
             await TestWithPickMembersDialogAsync(
 @"
@@ -2486,5 +2486,100 @@ chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: CSharpLatestImplicit);
         }
+
+        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualityOperatorsNullableAnnotationWithValueType()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+#nullable enable
+using System;
+
+namespace N
+{
+    public struct C[||]
+    {
+        public int X;
     }
-}
+}",
+@"
+#nullable enable
+using System;
+
+namespace N
+{
+    public struct C
+    {
+        public int X;
+
+        public override bool Equals(object? obj)
+        {
+            return obj is C c &&
+                   X == c.X;
+        }
+
+        public static bool operator ==(C left, C right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(C left, C right)
+        {
+            return !(left == right);
+        }
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: CSharpLatestImplicit);
+        }
+
+
+        [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestGenerateOperators5()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+using System;
+
+namespace N
+{
+    public class C[||]
+    {
+        public int X;
+    }
+}",
+@"
+using System;
+
+namespace N
+{
+    public class C
+    {
+        public int X;
+
+        public override bool Equals(object obj)
+        {
+            return obj is C c &&
+                   X == c.X;
+        }
+
+        public static bool operator ==(C left, C right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(C left, C right)
+        {
+            return !(left == right);
+        }
+    }
+}",
+chosenSymbols: null,
+optionsCallback: options => EnableOption(options, GenerateOperatorsId),
+parameters: CSharpLatestImplicit);
+        }
+        }
+    }
