@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -33,68 +34,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => !n.IsKind(SyntaxKind.QualifiedCref) && s_kindsOfInterest.Contains(n.Kind())))
+            if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => IsCandidate(n)))
             {
-                // Bail out early because we have already simplified an ancestor of this node (except in the QualifiedCref case).
-                // We need to keep going in case this node is under a QualifiedCref because it is possible to have multiple simplifications within the same QualifiedCref.
-                // For example, consider <see cref="A.M(Nullable{int})"/>. The 'A.M(Nullable{int})' here is represented by a single QualifiedCref node in the syntax tree.
-                // It is possible to have a simplification to remove the 'A.' qualification for the QualifiedCref itself as well as another simplification to change 'Nullable{int}'
-                // to 'int?' in the GenericName for the 'Nullable{T}' that is nested inside this QualifiedCref. We need to keep going so that the latter simplification can be
-                // made available.
+                // Bail out early because we have already simplified an ancestor of this node.
                 return;
             }
 
-            Diagnostic diagnostic;
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
-            bool descendIntoChildren(SyntaxNode n)
-            {
-                // Don't examine crefs here, we'll process it in the loop below that
-                // descends into trivia.
-                if (IsCrefCandidate(n))
-                    return true;
+            var semanticModel = context.SemanticModel;
+            var node = context.Node;
 
-                if (!IsRegularCandidate(n) ||
-                    !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
+            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax qualifiedCref))
+            {
+                AnalyzeQualifiedCref(context, qualifiedCref);
+            }
+            else
+            {
+                RecurseAndAnalyzeNode(context, context.Node);
+            }
+        }
+
+        private void AnalyzeQualifiedCref(
+            SyntaxNodeAnalysisContext context, QualifiedCrefSyntax qualifiedCref)
+        {
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = context.SemanticModel;
+
+            if (TrySimplifyTypeNameExpression(semanticModel, qualifiedCref, options, out var diagnostic, cancellationToken))
+            {
+                // found a match on the qualified cref itself. report it and keep processing.
+                context.ReportDiagnostic(diagnostic);
+            }
+            else
+            {
+                // couldn't simplify the qualified cref itself.  descend into the container portion
+                // as that might have portions that can be simplified.
+                RecurseAndAnalyzeNode(context, qualifiedCref.Container);
+            }
+
+            // unilaterally process the member portion of the qualified cref.  These may have things
+            // like parameters taht could be simplified.  We want to do this even when we've been
+            // able to simplify the cref itself.
+            RecurseAndAnalyzeNode(context, qualifiedCref.Member);
+        }
+
+        private void RecurseAndAnalyzeNode(SyntaxNodeAnalysisContext context, SyntaxNode node)
+        {
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+
+            bool DescendIntoChildren(SyntaxNode n)
+            {
+                if (IsCandidate(n) &&
+                    TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out var diagnostic, cancellationToken))
                 {
-                    return true;
+                    // found a match. report is and stop processing.
+                    context.ReportDiagnostic(diagnostic);
+                    return false;
                 }
 
-                context.ReportDiagnostic(diagnostic);
-                return false;
+                // descend further.
+                return true;
             }
 
             // find regular node first - search from top to down. once found one, don't get into its children
-            foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren))
+            foreach (var candidate in node.DescendantNodesAndSelf(DescendIntoChildren))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            // now search structure trivia
-            foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren: n => !IsCrefCandidate(n), descendIntoTrivia: true))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (IsCrefCandidate(candidate) &&
-                    TrySimplifyTypeNameExpression(context.SemanticModel, candidate, options, out diagnostic, cancellationToken))
-                {
-                    context.ReportDiagnostic(diagnostic);
-                }
             }
         }
 
         internal override bool IsCandidate(SyntaxNode node)
-            => IsRegularCandidate(node) || IsCrefCandidate(node);
-
-        private static bool IsRegularCandidate(SyntaxNode node)
-        {
-            return node != null && s_kindsOfInterest.Contains(node.Kind());
-        }
-
-        private static bool IsCrefCandidate(SyntaxNode node)
-        {
-            return node is QualifiedCrefSyntax;
-        }
+            => node != null && s_kindsOfInterest.Contains(node.Kind());
 
         protected sealed override bool CanSimplifyTypeNameExpressionCore(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,
