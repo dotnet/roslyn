@@ -1508,6 +1508,38 @@ class C
 }", optionName);
         }
 
+        [WorkItem(40483, "https://github.com/dotnet/roslyn/issues/40483")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task NonRedundantAssignment_AfterUseAsRefArgument_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class P
+{
+    public ref bool f(ref bool z, ref bool q)
+    {
+        z = ref q;
+        return ref z;
+    }
+}
+
+class Q
+{
+    static void F()
+    {
+        bool a = true;
+        bool b = false;
+        ref var r = ref new P().f(ref a, ref b);
+        [|b = true|];
+
+        Console.WriteLine(r);
+    }
+}", optionName);
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
