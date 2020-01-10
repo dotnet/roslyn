@@ -351,8 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     if (inputSlot > 0)
                                     {
                                         MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
-                                        if (t.Syntax is RecursivePatternSyntax { Type: null, Designation: null, PositionalPatternClause: null } syntax &&
-                                            syntax.PropertyPatternClause?.Subpatterns.Count == 0)
+                                        if (t.IsExplicitTest)
                                         {
                                             LearnFromNullTest(inputSlot, inputType, ref this.StateWhenFalse, markDependentSlotsNotNull: false);
                                         }

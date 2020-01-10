@@ -4560,22 +4560,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagNonNullTest : BoundDagTest
     {
-        public BoundDagNonNullTest(SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
+        public BoundDagNonNullTest(SyntaxNode syntax, bool isExplicitTest, BoundDagTemp input, bool hasErrors = false)
             : base(BoundKind.DagNonNullTest, syntax, input, hasErrors || input.HasErrors())
         {
 
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.IsExplicitTest = isExplicitTest;
         }
 
+
+        public bool IsExplicitTest { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagNonNullTest(this);
 
-        public BoundDagNonNullTest Update(BoundDagTemp input)
+        public BoundDagNonNullTest Update(bool isExplicitTest, BoundDagTemp input)
         {
-            if (input != this.Input)
+            if (isExplicitTest != this.IsExplicitTest || input != this.Input)
             {
-                var result = new BoundDagNonNullTest(this.Syntax, input, this.HasErrors);
+                var result = new BoundDagNonNullTest(this.Syntax, isExplicitTest, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9663,7 +9666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagNonNullTest(BoundDagNonNullTest node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(input);
+            return node.Update(node.IsExplicitTest, input);
         }
         public override BoundNode? VisitDagExplicitNullTest(BoundDagExplicitNullTest node)
         {
@@ -13352,6 +13355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitDagNonNullTest(BoundDagNonNullTest node, object? arg) => new TreeDumperNode("dagNonNullTest", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("isExplicitTest", node.IsExplicitTest, null),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
