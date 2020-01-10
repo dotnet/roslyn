@@ -4564,6 +4564,35 @@ class C
 ");
         }
 
+        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyPredefinedTypeInUsingDirective1()
+        {
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
+
+namespace N
+{
+    using Alias1 = [|System|].Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}",
+@"using System;
+
+namespace N
+{
+    using Alias1 = Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
