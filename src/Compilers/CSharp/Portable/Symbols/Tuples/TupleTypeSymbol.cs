@@ -261,7 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(diagnostics is object && syntax is object);
+            RoslynDebug.Assert(diagnostics is object);
+            RoslynDebug.Assert(syntax is object);
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
@@ -922,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal TupleExtraData(NamedTypeSymbol underlyingType)
             {
-                Debug.Assert(underlyingType is object);
+                RoslynDebug.Assert(underlyingType is object);
                 Debug.Assert(underlyingType.IsTupleType);
                 Debug.Assert(underlyingType.TupleElementNames.IsDefault);
 

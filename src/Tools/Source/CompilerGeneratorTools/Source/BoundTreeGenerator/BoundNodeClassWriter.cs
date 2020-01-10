@@ -658,16 +658,16 @@ namespace BoundTreeGenerator
                     {
                         case TargetLanguage.CSharp:
                             if (isROArray)
-                                WriteLine("Debug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert(!{0}.IsDefault, \"Field '{0}' cannot be null (use Null=\\\"allow\\\" in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert({0} is object, \"Field '{0}' cannot be null (make the type nullable in BoundNodes.xml to remove this check)\");", ToCamelCase(field.Name));
                             break;
 
                         case TargetLanguage.VB:
                             if (isROArray)
-                                WriteLine("Debug.Assert(Not ({0}.IsDefault), \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert(Not ({0}.IsDefault), \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
                             else
-                                WriteLine("Debug.Assert({0} IsNot Nothing, \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
+                                WriteLine("RoslynDebug.Assert({0} IsNot Nothing, \"Field '{0}' cannot be null (use Null=\"\"allow\"\" in BoundNodes.xml to remove this check)\")", ToCamelCase(field.Name));
                             break;
                     }
                 }

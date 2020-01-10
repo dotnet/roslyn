@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private UpdatedContainingSymbolAndNullableAnnotationLocal(SourceLocalSymbol underlyingLocal, Symbol updatedContainingSymbol, TypeWithAnnotations updatedType, bool assertContaining)
         {
-            Debug.Assert(underlyingLocal is object);
-            Debug.Assert(updatedContainingSymbol is object);
+            RoslynDebug.Assert(underlyingLocal is object);
+            RoslynDebug.Assert(updatedContainingSymbol is object);
             Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
