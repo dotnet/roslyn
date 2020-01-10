@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol), hasErrors As Boolean)
             MyBase.New(BoundKind.TypeArguments, syntax, Nothing, hasErrors)
 
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
@@ -246,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, arguments As ImmutableArray(Of TypeSymbol))
             MyBase.New(BoundKind.TypeArguments, syntax, Nothing)
 
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
@@ -307,14 +307,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -326,8 +326,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, underlyingLValue As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LValueToRValueWrapper, syntax, type, hasErrors OrElse underlyingLValue.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingLValue IsNot Nothing, "Field 'underlyingLValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingLValue IsNot Nothing, "Field 'underlyingLValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingLValue = underlyingLValue
 
@@ -366,14 +366,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -385,14 +385,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -404,14 +404,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.WithLValueExpressionPlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.WithLValueExpressionPlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -437,14 +437,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.WithRValueExpressionPlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.WithRValueExpressionPlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.RValuePlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -482,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.RValuePlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.LValuePlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.LValuePlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -586,8 +586,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, resultKind As LookupResultKind, symbols As ImmutableArray(Of Symbol), childBoundNodes As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadExpression, syntax, type, hasErrors OrElse childBoundNodes.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (symbols.IsDefault), "Field 'symbols' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (symbols.IsDefault), "Field 'symbols' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResultKind = resultKind
             Me._Symbols = symbols
@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, childBoundNodes As ImmutableArray(Of BoundNode), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadStatement, syntax, hasErrors OrElse childBoundNodes.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (childBoundNodes.IsDefault), "Field 'childBoundNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ChildBoundNodes = childBoundNodes
         End Sub
@@ -676,7 +676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Parenthesized, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
 
@@ -715,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BadVariable, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
             Me._IsLValue = isLValue
@@ -757,9 +757,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, indices As ImmutableArray(Of BoundExpression), isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayAccess, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors() OrElse indices.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
             Me._Indices = indices
@@ -814,8 +814,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayLength, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
         End Sub
@@ -849,8 +849,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, sourceType As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GetType, syntax, type, hasErrors OrElse sourceType.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._SourceType = sourceType
         End Sub
@@ -884,8 +884,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.FieldInfo, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(field IsNot Nothing, "Field 'field' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(field IsNot Nothing, "Field 'field' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Field = field
         End Sub
@@ -893,8 +893,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, field As FieldSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.FieldInfo, syntax, type)
 
-            RoslynDebug.Assert(field IsNot Nothing, "Field 'field' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(field IsNot Nothing, "Field 'field' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Field = field
         End Sub
@@ -928,8 +928,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodInfo, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
         End Sub
@@ -937,8 +937,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodInfo, syntax, type)
 
-            RoslynDebug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
         End Sub
@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TypeExpression, syntax, type, hasErrors OrElse unevaluatedReceiverOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnevaluatedReceiverOpt = unevaluatedReceiverOpt
             Me._AliasOpt = aliasOpt
@@ -1014,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.TypeOrValueExpression, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Data = data
         End Sub
@@ -1022,7 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, data As BoundTypeOrValueData, type As TypeSymbol)
             MyBase.New(BoundKind.TypeOrValueExpression, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Data = data
         End Sub
@@ -1056,7 +1056,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, unevaluatedReceiverOpt As BoundExpression, aliasOpt As AliasSymbol, namespaceSymbol As NamespaceSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NamespaceExpression, syntax, Nothing, hasErrors OrElse unevaluatedReceiverOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(namespaceSymbol IsNot Nothing, "Field 'namespaceSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(namespaceSymbol IsNot Nothing, "Field 'namespaceSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnevaluatedReceiverOpt = unevaluatedReceiverOpt
             Me._AliasOpt = aliasOpt
@@ -1111,8 +1111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MethodDefIndex, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
         End Sub
@@ -1120,8 +1120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.MethodDefIndex, syntax, type)
 
-            RoslynDebug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
         End Sub
@@ -1155,14 +1155,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MaximumMethodDefIndex, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MaximumMethodDefIndex, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -1188,7 +1188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.InstrumentationPayloadRoot, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._AnalysisKind = analysisKind
             Me._IsLValue = isLValue
@@ -1197,7 +1197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, analysisKind As Integer, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.InstrumentationPayloadRoot, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._AnalysisKind = analysisKind
             Me._IsLValue = isLValue
@@ -1239,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ModuleVersionId, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsLValue = isLValue
         End Sub
@@ -1247,7 +1247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ModuleVersionId, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsLValue = isLValue
         End Sub
@@ -1281,14 +1281,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ModuleVersionIdString, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.ModuleVersionIdString, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -1314,8 +1314,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.SourceDocumentIndex, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(document IsNot Nothing, "Field 'document' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(document IsNot Nothing, "Field 'document' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Document = document
         End Sub
@@ -1323,8 +1323,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, document As Cci.DebugSourceDocument, type As TypeSymbol)
             MyBase.New(BoundKind.SourceDocumentIndex, syntax, type)
 
-            RoslynDebug.Assert(document IsNot Nothing, "Field 'document' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(document IsNot Nothing, "Field 'document' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Document = document
         End Sub
@@ -1358,8 +1358,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operatorKind As UnaryOperatorKind, operand As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnaryOperator, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OperatorKind = operatorKind
             Me._Operand = operand
@@ -1422,8 +1422,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operatorKind As UnaryOperatorKind, underlyingExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedUnaryOperator, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OperatorKind = operatorKind
             Me._UnderlyingExpression = underlyingExpression
@@ -1470,8 +1470,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NullableIsTrueOperator, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
 
@@ -1510,9 +1510,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, left As BoundExpression, right As BoundExpression, checked As Boolean, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BinaryOperator, syntax, type, hasErrors OrElse left.NonNullAndHasErrors() OrElse right.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(left IsNot Nothing, "Field 'left' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(right IsNot Nothing, "Field 'right' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(left IsNot Nothing, "Field 'left' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(right IsNot Nothing, "Field 'right' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OperatorKind = operatorKind
             Me._Left = left
@@ -1583,8 +1583,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operatorKind As BinaryOperatorKind, underlyingExpression As BoundExpression, checked As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedBinaryOperator, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OperatorKind = operatorKind
             Me._UnderlyingExpression = underlyingExpression
@@ -1639,8 +1639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, leftOperand As BoundExpression, leftOperandPlaceholder As BoundRValuePlaceholder, leftTest As BoundExpression, bitwiseOperator As BoundUserDefinedBinaryOperator, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedShortCircuitingOperator, syntax, type, hasErrors OrElse leftOperand.NonNullAndHasErrors() OrElse leftOperandPlaceholder.NonNullAndHasErrors() OrElse leftTest.NonNullAndHasErrors() OrElse bitwiseOperator.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(bitwiseOperator IsNot Nothing, "Field 'bitwiseOperator' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(bitwiseOperator IsNot Nothing, "Field 'bitwiseOperator' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LeftOperand = leftOperand
             Me._LeftOperandPlaceholder = leftOperandPlaceholder
@@ -1703,14 +1703,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.CompoundAssignmentTargetPlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.CompoundAssignmentTargetPlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -1736,9 +1736,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, left As BoundExpression, leftOnTheRightOpt As BoundCompoundAssignmentTargetPlaceholder, right As BoundExpression, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AssignmentOperator, syntax, type, hasErrors OrElse left.NonNullAndHasErrors() OrElse leftOnTheRightOpt.NonNullAndHasErrors() OrElse right.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(left IsNot Nothing, "Field 'left' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(right IsNot Nothing, "Field 'right' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(left IsNot Nothing, "Field 'left' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(right IsNot Nothing, "Field 'right' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Left = left
             Me._LeftOnTheRightOpt = leftOnTheRightOpt
@@ -1801,8 +1801,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, byRefLocal As BoundLocal, lValue As BoundExpression, isLValue As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ReferenceAssignment, syntax, type, hasErrors OrElse byRefLocal.NonNullAndHasErrors() OrElse lValue.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(byRefLocal IsNot Nothing, "Field 'byRefLocal' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(byRefLocal IsNot Nothing, "Field 'byRefLocal' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ByRefLocal = byRefLocal
             Me._LValue = lValue
@@ -1857,8 +1857,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder, methodGroup As BoundMethodGroup, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AddressOfOperator, syntax, Nothing, hasErrors OrElse methodGroup.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(methodGroup IsNot Nothing, "Field 'methodGroup' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(methodGroup IsNot Nothing, "Field 'methodGroup' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._MethodGroup = methodGroup
@@ -1900,10 +1900,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, whenTrue As BoundExpression, whenFalse As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TernaryConditionalExpression, syntax, type, hasErrors OrElse condition.NonNullAndHasErrors() OrElse whenTrue.NonNullAndHasErrors() OrElse whenFalse.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(whenTrue IsNot Nothing, "Field 'whenTrue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(whenFalse IsNot Nothing, "Field 'whenFalse' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(whenTrue IsNot Nothing, "Field 'whenTrue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(whenFalse IsNot Nothing, "Field 'whenFalse' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Condition = condition
             Me._WhenTrue = whenTrue
@@ -1966,9 +1966,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, testExpression As BoundExpression, convertedTestExpression As BoundExpression, testExpressionPlaceholder As BoundRValuePlaceholder, elseExpression As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.BinaryConditionalExpression, syntax, type, hasErrors OrElse testExpression.NonNullAndHasErrors() OrElse convertedTestExpression.NonNullAndHasErrors() OrElse testExpressionPlaceholder.NonNullAndHasErrors() OrElse elseExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(testExpression IsNot Nothing, "Field 'testExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(elseExpression IsNot Nothing, "Field 'elseExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(testExpression IsNot Nothing, "Field 'testExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(elseExpression IsNot Nothing, "Field 'elseExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TestExpression = testExpression
             Me._ConvertedTestExpression = convertedTestExpression
@@ -2039,14 +2039,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -2058,8 +2058,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, checked As Boolean, explicitCastInCode As Boolean, constantValueOpt As ConstantValue, extendedInfoOpt As BoundExtendedConversionInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Conversion, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse extendedInfoOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._ConversionKind = conversionKind
@@ -2151,7 +2151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, lambda As BoundLambda, receiverPlaceholderOpt As BoundRValuePlaceholder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RelaxationLambda, syntax, hasErrors OrElse lambda.NonNullAndHasErrors() OrElse receiverPlaceholderOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(lambda IsNot Nothing, "Field 'lambda' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(lambda IsNot Nothing, "Field 'lambda' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Lambda = lambda
             Me._ReceiverPlaceholderOpt = receiverPlaceholderOpt
@@ -2193,8 +2193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, elementPlaceholders As ImmutableArray(Of BoundRValuePlaceholder), convertedElements As ImmutableArray(Of BoundExpression), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConvertedTupleElements, syntax, hasErrors OrElse elementPlaceholders.NonNullAndHasErrors() OrElse convertedElements.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (elementPlaceholders.IsDefault), "Field 'elementPlaceholders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (convertedElements.IsDefault), "Field 'convertedElements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (elementPlaceholders.IsDefault), "Field 'elementPlaceholders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (convertedElements.IsDefault), "Field 'convertedElements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ElementPlaceholders = elementPlaceholders
             Me._ConvertedElements = convertedElements
@@ -2241,8 +2241,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, inOutConversionFlags As Byte, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UserDefinedConversion, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingExpression = underlyingExpression
             Me._InOutConversionFlags = inOutConversionFlags
@@ -2289,8 +2289,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, suppressVirtualCalls As Boolean, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DirectCast, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._ConversionKind = conversionKind
@@ -2361,8 +2361,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, conversionKind As ConversionKind, constantValueOpt As ConstantValue, relaxationLambdaOpt As BoundLambda, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TryCast, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._ConversionKind = conversionKind
@@ -2425,9 +2425,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, isTypeOfIsNotExpression As Boolean, targetType As TypeSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TypeOf, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(targetType IsNot Nothing, "Field 'targetType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(targetType IsNot Nothing, "Field 'targetType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._IsTypeOfIsNotExpression = isTypeOfIsNotExpression
@@ -2521,7 +2521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SequencePointExpression, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
         End Sub
@@ -2655,7 +2655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, typeArgumentsOpt As BoundTypeArguments, methods As ImmutableArray(Of MethodSymbol), pendingExtensionMethodsOpt As ExtensionMethodGroup, resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.MethodGroup, syntax, receiverOpt, qualificationKind, hasErrors OrElse typeArgumentsOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (methods.IsDefault), "Field 'methods' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (methods.IsDefault), "Field 'methods' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TypeArgumentsOpt = typeArgumentsOpt
             Me._Methods = methods
@@ -2713,7 +2713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, properties As ImmutableArray(Of PropertySymbol), resultKind As LookupResultKind, receiverOpt As BoundExpression, qualificationKind As QualificationKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyGroup, syntax, receiverOpt, qualificationKind, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (properties.IsDefault), "Field 'properties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (properties.IsDefault), "Field 'properties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Properties = properties
             Me._ResultKind = resultKind
@@ -2807,7 +2807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.YieldStatement, syntax, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
 
@@ -2877,7 +2877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundRedimClause), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RedimStatement, syntax, hasErrors OrElse clauses.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Clauses = clauses
         End Sub
@@ -2911,8 +2911,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, indices As ImmutableArray(Of BoundExpression), arrayTypeOpt As ArrayTypeSymbol, preserve As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RedimClause, syntax, hasErrors OrElse operand.NonNullAndHasErrors() OrElse indices.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (indices.IsDefault), "Field 'indices' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._Indices = indices
@@ -2975,7 +2975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, clauses As ImmutableArray(Of BoundAssignmentOperator), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.EraseStatement, syntax, hasErrors OrElse clauses.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (clauses.IsDefault), "Field 'clauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Clauses = clauses
         End Sub
@@ -3009,9 +3009,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Call, syntax, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Method = method
             Me._MethodGroupOpt = methodGroupOpt
@@ -3106,9 +3106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, constructor As MethodSymbol, constructorArguments As ImmutableArray(Of BoundExpression), namedArguments As ImmutableArray(Of BoundExpression), resultKind As LookupResultKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Attribute, syntax, type, hasErrors OrElse constructorArguments.NonNullAndHasErrors() OrElse namedArguments.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (constructorArguments.IsDefault), "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (namedArguments.IsDefault), "Field 'namedArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (constructorArguments.IsDefault), "Field 'constructorArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (namedArguments.IsDefault), "Field 'namedArguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Constructor = constructor
             Me._ConstructorArguments = constructorArguments
@@ -3166,7 +3166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, nameOpt As String, containerTypeOpt As TypeSymbol, receiverOpt As BoundExpression, typeArgumentsOpt As BoundTypeArguments, accessKind As LateBoundAccessKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateMemberAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors() OrElse typeArgumentsOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._NameOpt = nameOpt
             Me._ContainerTypeOpt = containerTypeOpt
@@ -3237,8 +3237,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, member As BoundExpression, argumentsOpt As ImmutableArray(Of BoundExpression), argumentNamesOpt As ImmutableArray(Of string), accessKind As LateBoundAccessKind, methodOrPropertyGroupOpt As BoundMethodOrPropertyGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateInvocation, syntax, type, hasErrors OrElse member.NonNullAndHasErrors() OrElse argumentsOpt.NonNullAndHasErrors() OrElse methodOrPropertyGroupOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(member IsNot Nothing, "Field 'member' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(member IsNot Nothing, "Field 'member' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Member = member
             Me._ArgumentsOpt = argumentsOpt
@@ -3309,8 +3309,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder, memberAccess As BoundLateMemberAccess, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateAddressOfOperator, syntax, type, hasErrors OrElse memberAccess.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(memberAccess IsNot Nothing, "Field 'memberAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(memberAccess IsNot Nothing, "Field 'memberAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._MemberAccess = memberAccess
@@ -3352,7 +3352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Arguments = arguments
         End Sub
@@ -3372,7 +3372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, inferredType As TupleTypeSymbol, argumentNamesOpt As ImmutableArray(Of String), inferredNamesOpt As ImmutableArray(Of Boolean), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InferredType = inferredType
             Me._ArgumentNamesOpt = argumentNamesOpt
@@ -3422,8 +3422,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, naturalTypeOpt As TypeSymbol, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConvertedTupleLiteral, syntax, arguments, type, hasErrors OrElse arguments.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._NaturalTypeOpt = naturalTypeOpt
         End Sub
@@ -3457,7 +3457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializerOpt = initializerOpt
 
@@ -3482,8 +3482,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ConstructorOpt = constructorOpt
             Me._MethodGroupOpt = methodGroupOpt
@@ -3546,7 +3546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, guidString As string, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NoPiaObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse initializerOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._GuidString = guidString
         End Sub
@@ -3580,8 +3580,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binderOpt As Binder.AnonymousTypeCreationBinder, declarations As ImmutableArray(Of BoundAnonymousTypePropertyAccess), arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AnonymousTypeCreationExpression, syntax, type, hasErrors OrElse declarations.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (declarations.IsDefault), "Field 'declarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (declarations.IsDefault), "Field 'declarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._BinderOpt = binderOpt
             Me._Declarations = declarations
@@ -3631,7 +3631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.AnonymousTypePropertyAccess, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._PropertyIndex = propertyIndex
@@ -3640,7 +3640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeCreationBinder, propertyIndex As Integer, type As TypeSymbol)
             MyBase.New(BoundKind.AnonymousTypePropertyAccess, syntax, type)
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._PropertyIndex = propertyIndex
@@ -3682,8 +3682,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder.AnonymousTypeFieldInitializerBinder, value As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AnonymousTypeFieldInitializer, syntax, type, hasErrors OrElse value.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._Value = value
@@ -3725,7 +3725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderOpt = placeholderOpt
             Me._Initializers = initializers
@@ -3753,8 +3753,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CreateTemporaryLocalForInitialization = createTemporaryLocalForInitialization
             Me._Binder = binder
@@ -3801,7 +3801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CollectionInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -3832,7 +3832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NewT, syntax, initializerOpt, type, hasErrors OrElse initializerOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -3863,8 +3863,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, method As MethodSymbol, relaxationLambdaOpt As BoundLambda, relaxationReceiverPlaceholderOpt As BoundRValuePlaceholder, methodGroupOpt As BoundMethodGroup, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DelegateCreationExpression, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors() OrElse relaxationLambdaOpt.NonNullAndHasErrors() OrElse relaxationReceiverPlaceholderOpt.NonNullAndHasErrors() OrElse methodGroupOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ReceiverOpt = receiverOpt
             Me._Method = method
@@ -3930,8 +3930,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, isParamArrayArgument As Boolean, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayCreation, syntax, type, hasErrors OrElse bounds.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors() OrElse arrayLiteralOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsParamArrayArgument = isParamArrayArgument
             Me._Bounds = bounds
@@ -4002,10 +4002,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, hasDominantType As Boolean, numberOfCandidates As Integer, inferredType As ArrayTypeSymbol, bounds As ImmutableArray(Of BoundExpression), initializer As BoundArrayInitialization, binder As Binder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayLiteral, syntax, Nothing, hasErrors OrElse bounds.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(inferredType IsNot Nothing, "Field 'inferredType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(inferredType IsNot Nothing, "Field 'inferredType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (bounds.IsDefault), "Field 'bounds' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._HasDominantType = hasDominantType
             Me._NumberOfCandidates = numberOfCandidates
@@ -4079,7 +4079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ArrayInitialization, syntax, type, hasErrors OrElse initializers.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Initializers = initializers
         End Sub
@@ -4113,8 +4113,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, fieldSymbol As FieldSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, constantsInProgressOpt As SymbolsInProgress(Of FieldSymbol), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FieldAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(fieldSymbol IsNot Nothing, "Field 'fieldSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(fieldSymbol IsNot Nothing, "Field 'fieldSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ReceiverOpt = receiverOpt
             Me._FieldSymbol = fieldSymbol
@@ -4185,9 +4185,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyAccess, syntax, type, hasErrors OrElse propertyGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(propertySymbol IsNot Nothing, "Field 'propertySymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(propertySymbol IsNot Nothing, "Field 'propertySymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PropertySymbol = propertySymbol
             Me._PropertyGroupOpt = propertyGroupOpt
@@ -4282,8 +4282,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, receiverOpt As BoundExpression, eventSymbol As EventSymbol, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.EventAccess, syntax, type, hasErrors OrElse receiverOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(eventSymbol IsNot Nothing, "Field 'eventSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(eventSymbol IsNot Nothing, "Field 'eventSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ReceiverOpt = receiverOpt
             Me._EventSymbol = eventSymbol
@@ -4325,8 +4325,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, statementListSyntax As SyntaxList(Of StatementSyntax), locals As ImmutableArray(Of LocalSymbol), statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Block, syntax, hasErrors OrElse statements.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._StatementListSyntax = statementListSyntax
             Me._Locals = locals
@@ -4376,8 +4376,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, fields As ImmutableArray(Of FieldSymbol), statement As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.StateMachineScope, syntax, hasErrors OrElse statement.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (fields.IsDefault), "Field 'fields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(statement IsNot Nothing, "Field 'statement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (fields.IsDefault), "Field 'fields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(statement IsNot Nothing, "Field 'statement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Fields = fields
             Me._Statement = statement
@@ -4432,7 +4432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, declarationInitializerOpt As BoundExpression, identifierInitializerOpt As BoundArrayCreation, initializedByAsNew As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LocalDeclaration, syntax, hasErrors OrElse declarationInitializerOpt.NonNullAndHasErrors() OrElse identifierInitializerOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalSymbol = localSymbol
             Me._DeclarationInitializerOpt = declarationInitializerOpt
@@ -4495,8 +4495,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AsNewLocalDeclarations, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
             Me._Initializer = initializer
@@ -4538,7 +4538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclarationBase), initializerOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DimStatement, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
             Me._InitializerOpt = initializerOpt
@@ -4606,7 +4606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
 
-            RoslynDebug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._MemberAccessExpressionOpt = memberAccessExpressionOpt
             Me._InitialValue = initialValue
@@ -4634,8 +4634,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.FieldInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (initializedFields.IsDefault), "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (initializedFields.IsDefault), "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializedFields = initializedFields
         End Sub
@@ -4669,8 +4669,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (initializedProperties.IsDefault), "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (initializedProperties.IsDefault), "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitializedProperties = initializedProperties
         End Sub
@@ -4704,8 +4704,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, parameter As ParameterSymbol, value As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ParameterEqualsValue, syntax, hasErrors OrElse value.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(parameter IsNot Nothing, "Field 'parameter' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(parameter IsNot Nothing, "Field 'parameter' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Parameter = parameter
             Me._Value = value
@@ -4747,7 +4747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, statement As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GlobalStatementInitializer, syntax, hasErrors OrElse statement.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(statement IsNot Nothing, "Field 'statement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(statement IsNot Nothing, "Field 'statement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Statement = statement
         End Sub
@@ -4781,9 +4781,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), sideEffects As ImmutableArray(Of BoundExpression), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Sequence, syntax, type, hasErrors OrElse sideEffects.NonNullAndHasErrors() OrElse valueOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (sideEffects.IsDefault), "Field 'sideEffects' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (sideEffects.IsDefault), "Field 'sideEffects' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Locals = locals
             Me._SideEffects = sideEffects
@@ -4838,7 +4838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ExpressionStatement, syntax, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
         End Sub
@@ -4872,8 +4872,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, consequence As BoundStatement, alternativeOpt As BoundStatement, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.IfStatement, syntax, hasErrors OrElse condition.NonNullAndHasErrors() OrElse consequence.NonNullAndHasErrors() OrElse alternativeOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(consequence IsNot Nothing, "Field 'consequence' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(consequence IsNot Nothing, "Field 'consequence' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Condition = condition
             Me._Consequence = consequence
@@ -4923,9 +4923,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expressionStatement As BoundExpressionStatement, exprPlaceholderOpt As BoundRValuePlaceholder, caseBlocks As ImmutableArray(Of BoundCaseBlock), recommendSwitchTable As Boolean, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SelectStatement, syntax, hasErrors OrElse expressionStatement.NonNullAndHasErrors() OrElse exprPlaceholderOpt.NonNullAndHasErrors() OrElse caseBlocks.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expressionStatement IsNot Nothing, "Field 'expressionStatement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (caseBlocks.IsDefault), "Field 'caseBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expressionStatement IsNot Nothing, "Field 'expressionStatement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (caseBlocks.IsDefault), "Field 'caseBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ExpressionStatement = expressionStatement
             Me._ExprPlaceholderOpt = exprPlaceholderOpt
@@ -4991,8 +4991,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, caseStatement As BoundCaseStatement, body As BoundBlock, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CaseBlock, syntax, hasErrors OrElse caseStatement.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(caseStatement IsNot Nothing, "Field 'caseStatement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(caseStatement IsNot Nothing, "Field 'caseStatement' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CaseStatement = caseStatement
             Me._Body = body
@@ -5034,7 +5034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, caseClauses As ImmutableArray(Of BoundCaseClause), conditionOpt As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CaseStatement, syntax, hasErrors OrElse caseClauses.NonNullAndHasErrors() OrElse conditionOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (caseClauses.IsDefault), "Field 'caseClauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (caseClauses.IsDefault), "Field 'caseClauses' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CaseClauses = caseClauses
             Me._ConditionOpt = conditionOpt
@@ -5238,8 +5238,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, hasErrors)
 
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ContinueLabel = continueLabel
             Me._ExitLabel = exitLabel
@@ -5248,8 +5248,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, continueLabel As LabelSymbol, exitLabel As LabelSymbol)
             MyBase.New(kind, syntax)
 
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ContinueLabel = continueLabel
             Me._ExitLabel = exitLabel
@@ -5277,9 +5277,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, topConditionOpt As BoundExpression, bottomConditionOpt As BoundExpression, topConditionIsUntil As Boolean, bottomConditionIsUntil As Boolean, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.DoLoopStatement, syntax, continueLabel, exitLabel, hasErrors OrElse topConditionOpt.NonNullAndHasErrors() OrElse bottomConditionOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TopConditionOpt = topConditionOpt
             Me._BottomConditionOpt = bottomConditionOpt
@@ -5345,10 +5345,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, body As BoundStatement, continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.WhileStatement, syntax, continueLabel, exitLabel, hasErrors OrElse condition.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Condition = condition
             Me._Body = body
@@ -5390,10 +5390,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, continueLabel, exitLabel, hasErrors)
 
-            RoslynDebug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._DeclaredOrInferredLocalOpt = declaredOrInferredLocalOpt
             Me._ControlVariable = controlVariable
@@ -5437,12 +5437,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, leftOperandPlaceholder As BoundRValuePlaceholder, rightOperandPlaceholder As BoundRValuePlaceholder, addition As BoundUserDefinedBinaryOperator, subtraction As BoundUserDefinedBinaryOperator, lessThanOrEqual As BoundExpression, greaterThanOrEqual As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ForToUserDefinedOperators, syntax, hasErrors OrElse leftOperandPlaceholder.NonNullAndHasErrors() OrElse rightOperandPlaceholder.NonNullAndHasErrors() OrElse addition.NonNullAndHasErrors() OrElse subtraction.NonNullAndHasErrors() OrElse lessThanOrEqual.NonNullAndHasErrors() OrElse greaterThanOrEqual.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(leftOperandPlaceholder IsNot Nothing, "Field 'leftOperandPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(rightOperandPlaceholder IsNot Nothing, "Field 'rightOperandPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(addition IsNot Nothing, "Field 'addition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(subtraction IsNot Nothing, "Field 'subtraction' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(lessThanOrEqual IsNot Nothing, "Field 'lessThanOrEqual' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(greaterThanOrEqual IsNot Nothing, "Field 'greaterThanOrEqual' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(leftOperandPlaceholder IsNot Nothing, "Field 'leftOperandPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(rightOperandPlaceholder IsNot Nothing, "Field 'rightOperandPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(addition IsNot Nothing, "Field 'addition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(subtraction IsNot Nothing, "Field 'subtraction' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(lessThanOrEqual IsNot Nothing, "Field 'lessThanOrEqual' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(greaterThanOrEqual IsNot Nothing, "Field 'greaterThanOrEqual' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LeftOperandPlaceholder = leftOperandPlaceholder
             Me._RightOperandPlaceholder = rightOperandPlaceholder
@@ -5521,13 +5521,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, initialValue As BoundExpression, limitValue As BoundExpression, stepValue As BoundExpression, checked As Boolean, operatorsOpt As BoundForToUserDefinedOperators, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ForToStatement, syntax, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, hasErrors OrElse initialValue.NonNullAndHasErrors() OrElse limitValue.NonNullAndHasErrors() OrElse stepValue.NonNullAndHasErrors() OrElse operatorsOpt.NonNullAndHasErrors() OrElse controlVariable.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors() OrElse nextVariablesOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(limitValue IsNot Nothing, "Field 'limitValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(stepValue IsNot Nothing, "Field 'stepValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(limitValue IsNot Nothing, "Field 'limitValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(stepValue IsNot Nothing, "Field 'stepValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._InitialValue = initialValue
             Me._LimitValue = limitValue
@@ -5593,12 +5593,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, collection As BoundExpression, enumeratorInfo As ForEachEnumeratorInfo, declaredOrInferredLocalOpt As LocalSymbol, controlVariable As BoundExpression, body As BoundStatement, nextVariablesOpt As ImmutableArray(Of BoundExpression), continueLabel As LabelSymbol, exitLabel As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ForEachStatement, syntax, declaredOrInferredLocalOpt, controlVariable, body, nextVariablesOpt, continueLabel, exitLabel, hasErrors OrElse collection.NonNullAndHasErrors() OrElse controlVariable.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors() OrElse nextVariablesOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(collection IsNot Nothing, "Field 'collection' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(enumeratorInfo IsNot Nothing, "Field 'enumeratorInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(collection IsNot Nothing, "Field 'collection' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(enumeratorInfo IsNot Nothing, "Field 'enumeratorInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(controlVariable IsNot Nothing, "Field 'controlVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(continueLabel IsNot Nothing, "Field 'continueLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(exitLabel IsNot Nothing, "Field 'exitLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Collection = collection
             Me._EnumeratorInfo = enumeratorInfo
@@ -5640,7 +5640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ExitStatement, syntax, hasErrors)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -5648,7 +5648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.ExitStatement, syntax)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -5682,7 +5682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ContinueStatement, syntax, hasErrors)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -5690,7 +5690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.ContinueStatement, syntax)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -5724,8 +5724,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, tryBlock As BoundBlock, catchBlocks As ImmutableArray(Of BoundCatchBlock), finallyBlockOpt As BoundBlock, exitLabelOpt As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TryStatement, syntax, hasErrors OrElse tryBlock.NonNullAndHasErrors() OrElse catchBlocks.NonNullAndHasErrors() OrElse finallyBlockOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(tryBlock IsNot Nothing, "Field 'tryBlock' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (catchBlocks.IsDefault), "Field 'catchBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(tryBlock IsNot Nothing, "Field 'tryBlock' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (catchBlocks.IsDefault), "Field 'catchBlocks' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._TryBlock = tryBlock
             Me._CatchBlocks = catchBlocks
@@ -5783,7 +5783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localOpt As LocalSymbol, exceptionSourceOpt As BoundExpression, errorLineNumberOpt As BoundExpression, exceptionFilterOpt As BoundExpression, body As BoundBlock, isSynthesizedAsyncCatchAll As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.CatchBlock, syntax, hasErrors OrElse exceptionSourceOpt.NonNullAndHasErrors() OrElse errorLineNumberOpt.NonNullAndHasErrors() OrElse exceptionFilterOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalOpt = localOpt
             Me._ExceptionSourceOpt = exceptionSourceOpt
@@ -5857,7 +5857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Literal, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
 
@@ -5870,7 +5870,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, value As ConstantValue, type As TypeSymbol)
             MyBase.New(BoundKind.Literal, syntax, type)
 
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
 
@@ -5906,14 +5906,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MeReference, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MeReference, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -5939,7 +5939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ValueTypeMeReference, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -5951,7 +5951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.ValueTypeMeReference, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
 
             Validate()
@@ -5979,14 +5979,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MyBaseReference, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MyBaseReference, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -6012,14 +6012,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.MyClassReference, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.MyClassReference, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -6045,8 +6045,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.PreviousSubmissionReference, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._SourceType = sourceType
         End Sub
@@ -6054,8 +6054,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, sourceType As NamedTypeSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.PreviousSubmissionReference, syntax, type)
 
-            RoslynDebug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(sourceType IsNot Nothing, "Field 'sourceType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._SourceType = sourceType
         End Sub
@@ -6089,14 +6089,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.HostObjectMemberReference, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Public Sub New(syntax As SyntaxNode, type As TypeSymbol)
             MyBase.New(BoundKind.HostObjectMemberReference, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -6122,8 +6122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Local, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
@@ -6137,8 +6137,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Local, syntax, type)
 
-            RoslynDebug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
@@ -6182,9 +6182,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.PseudoVariable, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(emitExpressions IsNot Nothing, "Field 'emitExpressions' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(emitExpressions IsNot Nothing, "Field 'emitExpressions' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
@@ -6194,9 +6194,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, isLValue As Boolean, emitExpressions As PseudoVariableExpressions, type As TypeSymbol)
             MyBase.New(BoundKind.PseudoVariable, syntax, type)
 
-            RoslynDebug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(emitExpressions IsNot Nothing, "Field 'emitExpressions' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(emitExpressions IsNot Nothing, "Field 'emitExpressions' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalSymbol = localSymbol
             Me._IsLValue = isLValue
@@ -6246,8 +6246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Parameter, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(parameterSymbol IsNot Nothing, "Field 'parameterSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(parameterSymbol IsNot Nothing, "Field 'parameterSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ParameterSymbol = parameterSymbol
             Me._IsLValue = isLValue
@@ -6257,8 +6257,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, parameterSymbol As ParameterSymbol, isLValue As Boolean, suppressVirtualCalls As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.Parameter, syntax, type)
 
-            RoslynDebug.Assert(parameterSymbol IsNot Nothing, "Field 'parameterSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(parameterSymbol IsNot Nothing, "Field 'parameterSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ParameterSymbol = parameterSymbol
             Me._IsLValue = isLValue
@@ -6308,7 +6308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ByRefArgumentPlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsOut = isOut
         End Sub
@@ -6316,7 +6316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, isOut As Boolean, type As TypeSymbol)
             MyBase.New(BoundKind.ByRefArgumentPlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._IsOut = isOut
         End Sub
@@ -6350,11 +6350,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, originalArgument As BoundExpression, inConversion As BoundExpression, inPlaceholder As BoundByRefArgumentPlaceholder, outConversion As BoundExpression, outPlaceholder As BoundRValuePlaceholder, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ByRefArgumentWithCopyBack, syntax, type, hasErrors OrElse originalArgument.NonNullAndHasErrors() OrElse inConversion.NonNullAndHasErrors() OrElse inPlaceholder.NonNullAndHasErrors() OrElse outConversion.NonNullAndHasErrors() OrElse outPlaceholder.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(originalArgument IsNot Nothing, "Field 'originalArgument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(inConversion IsNot Nothing, "Field 'inConversion' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(inPlaceholder IsNot Nothing, "Field 'inPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(outConversion IsNot Nothing, "Field 'outConversion' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(outPlaceholder IsNot Nothing, "Field 'outPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(originalArgument IsNot Nothing, "Field 'originalArgument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(inConversion IsNot Nothing, "Field 'inConversion' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(inPlaceholder IsNot Nothing, "Field 'inPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(outConversion IsNot Nothing, "Field 'outConversion' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(outPlaceholder IsNot Nothing, "Field 'outPlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OriginalArgument = originalArgument
             Me._InConversion = inConversion
@@ -6425,8 +6425,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, originalArgument As BoundExpression, localSymbol As SynthesizedLocal, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LateBoundArgumentSupportingAssignmentWithCapture, syntax, type, hasErrors OrElse originalArgument.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(originalArgument IsNot Nothing, "Field 'originalArgument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(originalArgument IsNot Nothing, "Field 'originalArgument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localSymbol IsNot Nothing, "Field 'localSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OriginalArgument = originalArgument
             Me._LocalSymbol = localSymbol
@@ -6473,7 +6473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.LabelStatement, syntax, hasErrors)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -6481,7 +6481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol)
             MyBase.New(BoundKind.LabelStatement, syntax)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -6515,7 +6515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.Label, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -6523,7 +6523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.Label, syntax, type)
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
         End Sub
@@ -6557,7 +6557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, label As LabelSymbol, labelExpressionOpt As BoundLabel, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GotoStatement, syntax, hasErrors OrElse labelExpressionOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Label = label
             Me._LabelExpressionOpt = labelExpressionOpt
@@ -6599,7 +6599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, statements As ImmutableArray(Of BoundStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.StatementList, syntax, hasErrors OrElse statements.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Statements = statements
         End Sub
@@ -6633,8 +6633,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, condition As BoundExpression, jumpIfTrue As Boolean, label As LabelSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConditionalGoto, syntax, hasErrors OrElse condition.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(condition IsNot Nothing, "Field 'condition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(label IsNot Nothing, "Field 'label' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Condition = condition
             Me._JumpIfTrue = jumpIfTrue
@@ -6684,9 +6684,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, originalExpression As BoundExpression, body As BoundBlock, binder As WithBlockBinder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.WithStatement, syntax, hasErrors OrElse originalExpression.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(originalExpression IsNot Nothing, "Field 'originalExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(originalExpression IsNot Nothing, "Field 'originalExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._OriginalExpression = originalExpression
             Me._Body = body
@@ -6736,9 +6736,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache, hasErrors As Boolean)
             MyBase.New(BoundKind.UnboundLambda, syntax, Nothing, hasErrors)
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._Flags = flags
@@ -6755,9 +6755,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder, flags As SourceMemberFlags, parameters As ImmutableArray(Of ParameterSymbol), returnType As TypeSymbol, bindingCache As UnboundLambda.UnboundLambdaBindingCache)
             MyBase.New(BoundKind.UnboundLambda, syntax, Nothing)
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(bindingCache IsNot Nothing, "Field 'bindingCache' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._Flags = flags
@@ -6825,9 +6825,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, lambdaSymbol As LambdaSymbol, body As BoundBlock, diagnostics As ImmutableArray(Of Microsoft.CodeAnalysis.Diagnostic), lambdaBinderOpt As LambdaBodyBinder, delegateRelaxation As ConversionKind, methodConversionKind As MethodConversionKind, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Lambda, syntax, Nothing, hasErrors OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (diagnostics.IsDefault), "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (diagnostics.IsDefault), "Field 'diagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
             Me._Body = body
@@ -6906,8 +6906,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, lastOperator As BoundQueryClauseBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryExpression, syntax, type, hasErrors OrElse lastOperator.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(lastOperator IsNot Nothing, "Field 'lastOperator' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(lastOperator IsNot Nothing, "Field 'lastOperator' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LastOperator = lastOperator
         End Sub
@@ -6941,14 +6941,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -6960,8 +6960,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QuerySource, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
         End Sub
@@ -6995,8 +6995,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, conversionCall As BoundCall, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ToQueryableCollectionConversion, syntax, type, hasErrors OrElse conversionCall.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(conversionCall IsNot Nothing, "Field 'conversionCall' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(conversionCall IsNot Nothing, "Field 'conversionCall' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ConversionCall = conversionCall
         End Sub
@@ -7030,10 +7030,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(kind, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariables = rangeVariables
             Me._CompoundVariableType = compoundVariableType
@@ -7043,10 +7043,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol)
             MyBase.New(kind, syntax, type)
 
-            RoslynDebug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariables = rangeVariables
             Me._CompoundVariableType = compoundVariableType
@@ -7082,11 +7082,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, source As BoundQueryPart, rangeVariableOpt As RangeVariableSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryableSource, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse source.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(source IsNot Nothing, "Field 'source' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(source IsNot Nothing, "Field 'source' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Source = source
             Me._RangeVariableOpt = rangeVariableOpt
@@ -7133,11 +7133,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryClause, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingExpression = underlyingExpression
         End Sub
@@ -7171,8 +7171,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, underlyingExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Ordering, syntax, type, hasErrors OrElse underlyingExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._UnderlyingExpression = underlyingExpression
         End Sub
@@ -7206,9 +7206,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, lambdaSymbol As SynthesizedLambdaSymbol, rangeVariables As ImmutableArray(Of RangeVariableSymbol), expression As BoundExpression, exprIsOperandOfConditionalBranch As Boolean, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.QueryLambda, syntax, Nothing, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(lambdaSymbol IsNot Nothing, "Field 'lambdaSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LambdaSymbol = lambdaSymbol
             Me._RangeVariables = rangeVariables
@@ -7266,9 +7266,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, value As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RangeVariableAssignment, syntax, type, hasErrors OrElse value.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariable = rangeVariable
             Me._Value = value
@@ -7310,9 +7310,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation, hasErrors As Boolean)
             MyBase.New(BoundKind.GroupTypeInferenceLambda, syntax, Nothing, hasErrors)
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._Parameters = parameters
@@ -7322,9 +7322,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, binder As Binder, parameters As ImmutableArray(Of ParameterSymbol), compilation As VisualBasicCompilation)
             MyBase.New(BoundKind.GroupTypeInferenceLambda, syntax, Nothing)
 
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (parameters.IsDefault), "Field 'parameters' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compilation IsNot Nothing, "Field 'compilation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Binder = binder
             Me._Parameters = parameters
@@ -7374,11 +7374,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, capturedGroupOpt As BoundQueryClauseBase, groupPlaceholderOpt As BoundRValuePlaceholder, underlyingExpression As BoundExpression, rangeVariables As ImmutableArray(Of RangeVariableSymbol), compoundVariableType As TypeSymbol, binders As ImmutableArray(Of Binder), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AggregateClause, syntax, rangeVariables, compoundVariableType, binders, type, hasErrors OrElse capturedGroupOpt.NonNullAndHasErrors() OrElse groupPlaceholderOpt.NonNullAndHasErrors() OrElse underlyingExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(underlyingExpression IsNot Nothing, "Field 'underlyingExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (rangeVariables.IsDefault), "Field 'rangeVariables' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(compoundVariableType IsNot Nothing, "Field 'compoundVariableType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (binders.IsDefault), "Field 'binders' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CapturedGroupOpt = capturedGroupOpt
             Me._GroupPlaceholderOpt = groupPlaceholderOpt
@@ -7428,8 +7428,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, group As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.GroupAggregation, syntax, type, hasErrors OrElse group.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(group IsNot Nothing, "Field 'group' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(group IsNot Nothing, "Field 'group' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Group = group
         End Sub
@@ -7463,8 +7463,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.RangeVariable, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariable = rangeVariable
         End Sub
@@ -7472,8 +7472,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, rangeVariable As RangeVariableSymbol, type As TypeSymbol)
             MyBase.New(BoundKind.RangeVariable, syntax, type)
 
-            RoslynDebug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(rangeVariable IsNot Nothing, "Field 'rangeVariable' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._RangeVariable = rangeVariable
         End Sub
@@ -7507,8 +7507,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(kind As BoundKind, syntax as SyntaxNode, eventAccess As BoundExpression, handler As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
 
-            RoslynDebug.Assert(eventAccess IsNot Nothing, "Field 'eventAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(handler IsNot Nothing, "Field 'handler' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(eventAccess IsNot Nothing, "Field 'eventAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(handler IsNot Nothing, "Field 'handler' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._EventAccess = eventAccess
             Me._Handler = handler
@@ -7536,8 +7536,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, eventAccess As BoundExpression, handler As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AddHandlerStatement, syntax, eventAccess, handler, hasErrors OrElse eventAccess.NonNullAndHasErrors() OrElse handler.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(eventAccess IsNot Nothing, "Field 'eventAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(handler IsNot Nothing, "Field 'handler' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(eventAccess IsNot Nothing, "Field 'eventAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(handler IsNot Nothing, "Field 'handler' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -7563,8 +7563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, eventAccess As BoundExpression, handler As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RemoveHandlerStatement, syntax, eventAccess, handler, hasErrors OrElse eventAccess.NonNullAndHasErrors() OrElse handler.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(eventAccess IsNot Nothing, "Field 'eventAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(handler IsNot Nothing, "Field 'handler' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(eventAccess IsNot Nothing, "Field 'eventAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(handler IsNot Nothing, "Field 'handler' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
         End Sub
 
@@ -7590,8 +7590,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, eventSymbol As EventSymbol, eventInvocation As BoundExpression, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.RaiseEventStatement, syntax, hasErrors OrElse eventInvocation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(eventSymbol IsNot Nothing, "Field 'eventSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(eventInvocation IsNot Nothing, "Field 'eventInvocation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(eventSymbol IsNot Nothing, "Field 'eventSymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(eventInvocation IsNot Nothing, "Field 'eventInvocation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._EventSymbol = eventSymbol
             Me._EventInvocation = eventInvocation
@@ -7633,9 +7633,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo, locals As ImmutableArray(Of LocalSymbol), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UsingStatement, syntax, hasErrors OrElse resourceList.NonNullAndHasErrors() OrElse resourceExpressionOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(usingInfo IsNot Nothing, "Field 'usingInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(usingInfo IsNot Nothing, "Field 'usingInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResourceList = resourceList
             Me._ResourceExpressionOpt = resourceExpressionOpt
@@ -7701,8 +7701,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, lockExpression As BoundExpression, body As BoundBlock, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SyncLockStatement, syntax, hasErrors OrElse lockExpression.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(lockExpression IsNot Nothing, "Field 'lockExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(lockExpression IsNot Nothing, "Field 'lockExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LockExpression = lockExpression
             Me._Body = body
@@ -7744,10 +7744,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, xmlNamespace As BoundExpression, localName As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlName, syntax, type, hasErrors OrElse xmlNamespace.NonNullAndHasErrors() OrElse localName.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(xmlNamespace IsNot Nothing, "Field 'xmlNamespace' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(localName IsNot Nothing, "Field 'localName' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(xmlNamespace IsNot Nothing, "Field 'xmlNamespace' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(localName IsNot Nothing, "Field 'localName' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._XmlNamespace = xmlNamespace
             Me._LocalName = localName
@@ -7797,9 +7797,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, xmlNamespace As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlNamespace, syntax, type, hasErrors OrElse xmlNamespace.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(xmlNamespace IsNot Nothing, "Field 'xmlNamespace' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(xmlNamespace IsNot Nothing, "Field 'xmlNamespace' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._XmlNamespace = xmlNamespace
             Me._ObjectCreation = objectCreation
@@ -7841,10 +7841,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, declaration As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlDocument, syntax, type, hasErrors OrElse declaration.NonNullAndHasErrors() OrElse childNodes.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(declaration IsNot Nothing, "Field 'declaration' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(declaration IsNot Nothing, "Field 'declaration' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Declaration = declaration
             Me._ChildNodes = childNodes
@@ -7894,8 +7894,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, version As BoundExpression, encoding As BoundExpression, standalone As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlDeclaration, syntax, type, hasErrors OrElse version.NonNullAndHasErrors() OrElse encoding.NonNullAndHasErrors() OrElse standalone.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Version = version
             Me._Encoding = encoding
@@ -7953,10 +7953,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, target As BoundExpression, data As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlProcessingInstruction, syntax, type, hasErrors OrElse target.NonNullAndHasErrors() OrElse data.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(target IsNot Nothing, "Field 'target' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(data IsNot Nothing, "Field 'data' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(target IsNot Nothing, "Field 'target' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(data IsNot Nothing, "Field 'data' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Target = target
             Me._Data = data
@@ -8006,9 +8006,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, value As BoundExpression, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlComment, syntax, type, hasErrors OrElse value.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
             Me._ObjectCreation = objectCreation
@@ -8050,10 +8050,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, name As BoundExpression, value As BoundExpression, matchesImport As Boolean, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlAttribute, syntax, type, hasErrors OrElse name.NonNullAndHasErrors() OrElse value.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(name IsNot Nothing, "Field 'name' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(name IsNot Nothing, "Field 'name' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Name = name
             Me._Value = value
@@ -8116,10 +8116,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, argument As BoundExpression, childNodes As ImmutableArray(Of BoundExpression), rewriterInfo As BoundXmlContainerRewriterInfo, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlElement, syntax, type, hasErrors OrElse argument.NonNullAndHasErrors() OrElse childNodes.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(argument IsNot Nothing, "Field 'argument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(argument IsNot Nothing, "Field 'argument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (childNodes.IsDefault), "Field 'childNodes' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(rewriterInfo IsNot Nothing, "Field 'rewriterInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Argument = argument
             Me._ChildNodes = childNodes
@@ -8169,8 +8169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, memberAccess As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlMemberAccess, syntax, type, hasErrors OrElse memberAccess.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(memberAccess IsNot Nothing, "Field 'memberAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(memberAccess IsNot Nothing, "Field 'memberAccess' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._MemberAccess = memberAccess
         End Sub
@@ -8204,8 +8204,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlEmbeddedExpression, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
         End Sub
@@ -8239,9 +8239,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, value As BoundLiteral, objectCreation As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.XmlCData, syntax, type, hasErrors OrElse value.NonNullAndHasErrors() OrElse objectCreation.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(objectCreation IsNot Nothing, "Field 'objectCreation' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
             Me._ObjectCreation = objectCreation
@@ -8387,7 +8387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, containsOnError As Boolean, containsResume As Boolean, resumeWithoutLabelOpt As StatementSyntax, trackLineNumber As Boolean, body As BoundBlock, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionHandlingStatement, syntax, hasErrors OrElse body.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ContainsOnError = containsOnError
             Me._ContainsResume = containsResume
@@ -8458,9 +8458,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, activeHandlerLocal As BoundLocal, resumeTargetLocal As BoundLocal, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionHandlingCatchFilter, syntax, type, hasErrors OrElse activeHandlerLocal.NonNullAndHasErrors() OrElse resumeTargetLocal.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(activeHandlerLocal IsNot Nothing, "Field 'activeHandlerLocal' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(resumeTargetLocal IsNot Nothing, "Field 'resumeTargetLocal' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(activeHandlerLocal IsNot Nothing, "Field 'activeHandlerLocal' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(resumeTargetLocal IsNot Nothing, "Field 'resumeTargetLocal' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ActiveHandlerLocal = activeHandlerLocal
             Me._ResumeTargetLocal = resumeTargetLocal
@@ -8507,8 +8507,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, value As BoundExpression, jumps As ImmutableArray(Of BoundGotoStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionOnErrorSwitch, syntax, hasErrors OrElse value.NonNullAndHasErrors() OrElse jumps.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(value IsNot Nothing, "Field 'value' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Value = value
             Me._Jumps = jumps
@@ -8555,10 +8555,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, resumeTargetTemporary As BoundLocal, resumeLabel As BoundLabelStatement, resumeNextLabel As BoundLabelStatement, jumps As ImmutableArray(Of BoundGotoStatement), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UnstructuredExceptionResumeSwitch, syntax, hasErrors OrElse resumeTargetTemporary.NonNullAndHasErrors() OrElse resumeLabel.NonNullAndHasErrors() OrElse resumeNextLabel.NonNullAndHasErrors() OrElse jumps.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(resumeTargetTemporary IsNot Nothing, "Field 'resumeTargetTemporary' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(resumeLabel IsNot Nothing, "Field 'resumeLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(resumeNextLabel IsNot Nothing, "Field 'resumeNextLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(resumeTargetTemporary IsNot Nothing, "Field 'resumeTargetTemporary' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(resumeLabel IsNot Nothing, "Field 'resumeLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(resumeNextLabel IsNot Nothing, "Field 'resumeNextLabel' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (jumps.IsDefault), "Field 'jumps' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResumeTargetTemporary = resumeTargetTemporary
             Me._ResumeLabel = resumeLabel
@@ -8621,13 +8621,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, operand As BoundExpression, awaitableInstancePlaceholder As BoundRValuePlaceholder, getAwaiter As BoundExpression, awaiterInstancePlaceholder As BoundLValuePlaceholder, isCompleted As BoundExpression, getResult As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AwaitOperator, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors() OrElse awaitableInstancePlaceholder.NonNullAndHasErrors() OrElse getAwaiter.NonNullAndHasErrors() OrElse awaiterInstancePlaceholder.NonNullAndHasErrors() OrElse isCompleted.NonNullAndHasErrors() OrElse getResult.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(awaitableInstancePlaceholder IsNot Nothing, "Field 'awaitableInstancePlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(getAwaiter IsNot Nothing, "Field 'getAwaiter' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(awaiterInstancePlaceholder IsNot Nothing, "Field 'awaiterInstancePlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(isCompleted IsNot Nothing, "Field 'isCompleted' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(getResult IsNot Nothing, "Field 'getResult' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(awaitableInstancePlaceholder IsNot Nothing, "Field 'awaitableInstancePlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getAwaiter IsNot Nothing, "Field 'getAwaiter' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(awaiterInstancePlaceholder IsNot Nothing, "Field 'awaiterInstancePlaceholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(isCompleted IsNot Nothing, "Field 'isCompleted' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(getResult IsNot Nothing, "Field 'getResult' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._AwaitableInstancePlaceholder = awaitableInstancePlaceholder
@@ -8706,9 +8706,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, locals As ImmutableArray(Of LocalSymbol), spillFields As ImmutableArray(Of FieldSymbol), statements As ImmutableArray(Of BoundStatement), valueOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.SpillSequence, syntax, type, hasErrors OrElse statements.NonNullAndHasErrors() OrElse valueOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (spillFields.IsDefault), "Field 'spillFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (spillFields.IsDefault), "Field 'spillFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (statements.IsDefault), "Field 'statements' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Locals = locals
             Me._SpillFields = spillFields
@@ -8807,10 +8807,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, original As BoundExpression, start As BoundExpression, lengthOpt As BoundExpression, source As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.MidResult, syntax, type, hasErrors OrElse original.NonNullAndHasErrors() OrElse start.NonNullAndHasErrors() OrElse lengthOpt.NonNullAndHasErrors() OrElse source.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(original IsNot Nothing, "Field 'original' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(start IsNot Nothing, "Field 'start' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(source IsNot Nothing, "Field 'source' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(original IsNot Nothing, "Field 'original' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(start IsNot Nothing, "Field 'start' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(source IsNot Nothing, "Field 'source' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Original = original
             Me._Start = start
@@ -8873,9 +8873,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, receiver As BoundExpression, placeholder As BoundRValuePlaceholder, accessExpression As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ConditionalAccess, syntax, type, hasErrors OrElse receiver.NonNullAndHasErrors() OrElse placeholder.NonNullAndHasErrors() OrElse accessExpression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(receiver IsNot Nothing, "Field 'receiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(placeholder IsNot Nothing, "Field 'placeholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(accessExpression IsNot Nothing, "Field 'accessExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(receiver IsNot Nothing, "Field 'receiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(placeholder IsNot Nothing, "Field 'placeholder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(accessExpression IsNot Nothing, "Field 'accessExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Receiver = receiver
             Me._Placeholder = placeholder
@@ -8925,7 +8925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol, hasErrors As Boolean)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type, hasErrors)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderId = placeholderId
 
@@ -8938,7 +8938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, placeholderId As Integer, type As TypeSymbol)
             MyBase.New(BoundKind.ConditionalAccessReceiverPlaceholder, syntax, type)
 
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._PlaceholderId = placeholderId
 
@@ -8974,9 +8974,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors OrElse receiverOrCondition.NonNullAndHasErrors() OrElse whenNotNull.NonNullAndHasErrors() OrElse whenNullOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(receiverOrCondition IsNot Nothing, "Field 'receiverOrCondition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(whenNotNull IsNot Nothing, "Field 'whenNotNull' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(receiverOrCondition IsNot Nothing, "Field 'receiverOrCondition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(whenNotNull IsNot Nothing, "Field 'whenNotNull' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ReceiverOrCondition = receiverOrCondition
             Me._CaptureReceiver = captureReceiver
@@ -9047,9 +9047,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, valueTypeReceiver As BoundExpression, referenceTypeReceiver As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ComplexConditionalAccessReceiver, syntax, type, hasErrors OrElse valueTypeReceiver.NonNullAndHasErrors() OrElse referenceTypeReceiver.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(valueTypeReceiver IsNot Nothing, "Field 'valueTypeReceiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(referenceTypeReceiver IsNot Nothing, "Field 'referenceTypeReceiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(valueTypeReceiver IsNot Nothing, "Field 'valueTypeReceiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(referenceTypeReceiver IsNot Nothing, "Field 'referenceTypeReceiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ValueTypeReceiver = valueTypeReceiver
             Me._ReferenceTypeReceiver = referenceTypeReceiver
@@ -9096,8 +9096,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, argument As BoundExpression, constantValueOpt As ConstantValue, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.NameOfOperator, syntax, type, hasErrors OrElse argument.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(argument IsNot Nothing, "Field 'argument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(argument IsNot Nothing, "Field 'argument' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Argument = argument
             Me._ConstantValueOpt = constantValueOpt
@@ -9144,8 +9144,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundTypeExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.TypeAsValueExpression, syntax, type, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
 
@@ -9184,9 +9184,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            RoslynDebug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Contents = contents
             Me._Binder = binder
@@ -9233,7 +9233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Sub New(syntax As SyntaxNode, expression As BoundExpression, alignmentOpt As BoundExpression, formatStringOpt As BoundLiteral, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Interpolation, syntax, hasErrors OrElse expression.NonNullAndHasErrors() OrElse alignmentOpt.NonNullAndHasErrors() OrElse formatStringOpt.NonNullAndHasErrors())
 
-            RoslynDebug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
             Me._AlignmentOpt = alignmentOpt
