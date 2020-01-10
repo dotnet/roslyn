@@ -1,15 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefactoring
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Composition
-Imports System.IO
-Imports System.Xml
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.DocumentRefactoring
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DocumentRefactoring
     <UseExportProvider>

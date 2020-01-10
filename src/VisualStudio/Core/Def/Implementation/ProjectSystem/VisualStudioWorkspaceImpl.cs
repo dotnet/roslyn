@@ -418,11 +418,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var changedSymbols = RenameSymbolAnnotation.GatherChangedSymbolsInDocumentsAsync(changedDocumentIds, CurrentSolution, oldSolution, cancellationToken).WaitAndGetResult(cancellationToken);
-            foreach (var changedSymbolPair in changedSymbols)
+            foreach (var (oldSymbol, newSymbol) in changedSymbols)
             {
-                var oldSymbol = changedSymbolPair.Key;
-                var newSymbol = changedSymbolPair.Value;
-
                 foreach (var refactorNotifyService in _refactorNotifyServices)
                 {
                     if (refactorNotifyService.Value.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false))

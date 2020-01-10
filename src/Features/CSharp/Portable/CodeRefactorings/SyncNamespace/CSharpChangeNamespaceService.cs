@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         ///     - if target namespace is "", then we try to move all members in declared 
         ///     namespace to global namespace (i.e. remove the namespace declaration).    
         /// </summary>
-        protected override async Task<CompilationUnitSyntax> ChangeNamespaceDeclaration(
+        protected override async Task<CompilationUnitSyntax> ChangeNamespaceDeclarationAsync(
             Document document,
             ImmutableArray<string> declaredNamespaceParts,
             ImmutableArray<string> targetNamespaceParts,
@@ -318,12 +318,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 eofToken);
         }
 
-        private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts, SemanticModel? semanticModel)
+        private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(
+            CompilationUnitSyntax compilationUnit,
+            ImmutableArray<string> targetNamespaceParts,
+            SemanticModel semanticModel)
         {
             Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
             compilationUnit = compilationUnit.ReplaceNodes(
                 compilationUnit.Members,
-                (original, current) => semanticModel?.GetDeclaredSymbol(current) is null ? current : current.WithRenameSymbolAnnotation(semanticModel));
+                (original, current) => semanticModel.GetDeclaredSymbol(current) is null ? current : current.WithRenameSymbolAnnotation(semanticModel));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                 name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)

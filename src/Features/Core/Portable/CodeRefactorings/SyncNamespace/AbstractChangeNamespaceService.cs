@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             = CodeActions.WarningAnnotation.Create(
                 FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
 
-        protected abstract Task<TCompilationUnitSyntax> ChangeNamespaceDeclaration(
+        protected abstract Task<TCompilationUnitSyntax> ChangeNamespaceDeclarationAsync(
             Document document, ImmutableArray<string> declaredNamespaceParts, ImmutableArray<string> targetNamespaceParts, CancellationToken cancellationToken);
 
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     cancellationToken).ConfigureAwait(false);
 
             var documentWithRenameAnnotations = await GetRenameSymbolAnnotatedRootAsync(documentWithAddedImports, cancellationToken).ConfigureAwait(false);
-            var compilationUnit = await ChangeNamespaceDeclaration(documentWithRenameAnnotations, oldNamespaceParts, newNamespaceParts, cancellationToken).ConfigureAwait(false);
+            var compilationUnit = await ChangeNamespaceDeclarationAsync(documentWithRenameAnnotations, oldNamespaceParts, newNamespaceParts, cancellationToken).ConfigureAwait(false);
             SyntaxNode root = compilationUnit.WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.

@@ -78,9 +78,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        solution,
-                        symbol,
-                        fixedName,
                         string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
@@ -97,46 +94,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private class FixNameCodeAction : CodeAction
+        private class FixNameCodeAction : CodeAction.SolutionChangeAction
         {
-            private readonly Solution _startingSolution;
-            private readonly ISymbol _symbol;
-            private readonly string _newName;
-            private readonly string _title;
-            private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
-            private readonly string _equivalenceKey;
-
             public FixNameCodeAction(
-                Solution startingSolution,
-                ISymbol symbol,
-                string newName,
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
                 string equivalenceKey)
+                : base(title, createChangedSolutionAsync, equivalenceKey)
             {
-                _startingSolution = startingSolution;
-                _symbol = symbol;
-                _newName = newName;
-                _title = title;
-                _createChangedSolutionAsync = createChangedSolutionAsync;
-                _equivalenceKey = equivalenceKey;
             }
-
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-            {
-                return SpecializedCollections.SingletonEnumerable(
-                    new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
-            }
-
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
-            {
-                return SpecializedCollections.SingletonEnumerable(
-                    new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
-            }
-
-            public override string Title => _title;
-
-            public override string EquivalenceKey => _equivalenceKey;
         }
     }
 }

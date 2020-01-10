@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor;
@@ -7,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Workspaces
 {
     [Export(typeof(IRefactorNotifyService)), Shared]
     [PartNotDiscoverable]
-    class TestRefactorNotify : IRefactorNotifyService
+    internal class TestRefactorNotify : IRefactorNotifyService
     {
         public delegate void SymbolRenamedEventHandler(SymbolRenameEventArgs args);
         public event SymbolRenamedEventHandler OnAfterRename;
@@ -24,21 +25,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Workspaces
             OnBeforeRename?.Invoke(new SymbolRenameEventArgs(workspace, changedDocumentIDs, symbol, newName));
             return true;
         }
-    }
-
-    class SymbolRenameEventArgs
-    {
-        public SymbolRenameEventArgs(Workspace workspace, IEnumerable<DocumentId> documentIds, ISymbol symbol, string newName)
-        {
-            Workspace = workspace;
-            DocumentIds = documentIds;
-            Symbol = symbol;
-            NewName = newName;
-        }
-
-        public Workspace Workspace { get; }
-        public IEnumerable<DocumentId> DocumentIds { get; }
-        public ISymbol Symbol { get; }
-        public string NewName { get; }
     }
 }

@@ -707,6 +707,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 return textBuffer;
             });
         }
+
         internal override bool TryApplyChanges(
             Solution newSolution,
             IProgressTracker progressTracker)
@@ -740,11 +741,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 .GatherChangedSymbolsInDocumentsAsync(changedDocumentIds, newSolution, oldSolution, cancellationToken)
                 .WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
-            foreach (var changedSymbolPair in changedSymbols)
+            foreach (var (oldSymbol, newSymbol) in changedSymbols)
             {
-                var oldSymbol = changedSymbolPair.Key;
-                var newSymbol = changedSymbolPair.Value;
-
                 foreach (var refactorNotifyService in _refactorNotifyServices)
                 {
                     if (refactorNotifyService.TryOnBeforeGlobalSymbolRenamed(this, changedDocumentIds, oldSymbol, newSymbol.ToDisplayString(), throwOnFailure: false))

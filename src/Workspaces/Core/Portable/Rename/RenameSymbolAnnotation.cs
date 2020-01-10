@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -29,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Rename
 
         public static SyntaxAnnotation Create(ISymbol oldSymbol)
         {
-            return ShouldAnnotateSymbol(oldSymbol) ?
-                new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol)) :
-                null;
+            return ShouldAnnotateSymbol(oldSymbol)
+                ? new SyntaxAnnotation(RenameSymbolKind, SerializeData(oldSymbol))
+                : null;
         }
 
         public static TNode WithRenameSymbolAnnotation<TNode>(this TNode node, SemanticModel semanticModel)
@@ -50,12 +51,12 @@ namespace Microsoft.CodeAnalysis.Rename
                 var newDocument = newSolution.GetDocument(changedDocId);
 
                 // Documents without syntax tree won't have the annotations attached
-                if (newDocument is null || !(newDocument.SupportsSyntaxTree && newDocument.SupportsSemanticModel))
+                if (newDocument is null || !(newDocument.SupportsSyntaxTree))
                 {
                     continue;
                 }
 
-                var syntaxRoot = newDocument.GetSyntaxRootSynchronously(cancellationToken);
+                var syntaxRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var symbolRenameNodes = syntaxRoot.GetAnnotatedNodes(RenameSymbolKind);
 
                 foreach (var node in symbolRenameNodes)
@@ -100,9 +101,6 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         private static string SerializeData(ISymbol symbol)
-        {
-            symbol = symbol ?? throw new ArgumentNullException(nameof(symbol));
-            return symbol.GetSymbolKey().ToString();
-        }
+            => symbol.GetSymbolKey().ToString();
     }
 }

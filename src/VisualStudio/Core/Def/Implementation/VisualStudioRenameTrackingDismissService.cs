@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -10,10 +12,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// Handles dismissing the rename tracker when a symbol has changed
     /// </summary>
     [Export(typeof(IRefactorNotifyService)), Shared]
-    class VisualStudioRenameTrackingDismissService : IRefactorNotifyService
+    internal class VisualStudioRenameTrackingDismissService : IRefactorNotifyService
     {
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
-        => true;
+            => true;
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
