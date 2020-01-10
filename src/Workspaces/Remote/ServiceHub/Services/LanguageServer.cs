@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
-using Roslyn.Utilities;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -41,17 +40,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace, CancellationToken cancellationToken)
+        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
-            // our LSP server only supports WorkspaceStreamingSymbolProvider capability
-            // for now
-            return new InitializeResult()
+            return Task.FromResult(new InitializeResult()
             {
                 Capabilities = new VSServerCapabilities()
                 {
                     WorkspaceStreamingSymbolProvider = true
                 }
-            };
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
