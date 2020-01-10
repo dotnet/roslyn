@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         variableSymbol = localSymbol;
                         variableAccess = new BoundLocal(
-                            syntax: designation, localSymbol: localSymbol, constantValueOpt: null, type: declType.Type);
+                            syntax: designation, localSymbol: localSymbol, localSymbol.IsVar ? BoundLocalDeclarationKind.WithInferredType : BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
                         return;
                     }
                     else

@@ -402,17 +402,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
                             var (tempSlot, tempType) = tempSlotAndType;
                             var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local } boundLocal)
                             {
                                 var value = TypeWithState.Create(tempType, tempState);
+                                var type = boundLocal.DeclarationKind == BoundLocalDeclarationKind.WithInferredType ? value.ToAnnotatedTypeWithAnnotations() : value.ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(value.ToTypeWithAnnotations().NullableAnnotation));
+                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(type.NullableAnnotation));
                                 }
                                 else
                                 {
-                                    _variableTypes[local] = value.ToAnnotatedTypeWithAnnotations();
+                                    _variableTypes[local] = type;
                                 }
 
                                 int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);

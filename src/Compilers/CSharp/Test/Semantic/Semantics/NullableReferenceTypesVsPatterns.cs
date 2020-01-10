@@ -16,6 +16,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         [Fact]
+        public void VarPatternInfersNullableType()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+public class C
+{
+    public string Field = null!;
+    void M1()
+    {
+        if (this is { Field: var s })
+        {
+            s.ToString();
+            s = null;
+        }
+    }
+
+    void M2()
+    {
+        if (this is (var s) _)
+        {
+            s.ToString();
+            s = null;
+        }
+    }
+    void Deconstruct(out string s) => throw null!;
+}
+");
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ConditionalBranching_IsConstantPattern_Null()
         {
             CSharpCompilation c = CreateNullableCompilation(@"
@@ -1413,7 +1444,11 @@ class Test
     }
 }";
             var comp = CreateNullableCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13)
+                );
         }
 
         [Fact]
