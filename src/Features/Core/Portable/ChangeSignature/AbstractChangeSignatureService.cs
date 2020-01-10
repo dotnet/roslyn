@@ -394,7 +394,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             bool isReducedExtensionMethod = false)
         {
             // 1. Determine which parameters are permutable
-
             var declarationParameters = declarationSymbol.GetParameters().ToList();
             var declarationParametersToPermute = GetParametersToPermute(arguments, declarationParameters, isReducedExtensionMethod);
             var argumentsToPermute = arguments.Take(declarationParametersToPermute.Count).ToList();
@@ -418,14 +417,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             // 3. Sort the arguments that need to be reordered
-
             argumentsToPermute.Sort((a1, a2) => { return parameterToIndexMap[argumentToParameterMap[a1]].CompareTo(parameterToIndexMap[argumentToParameterMap[a2]]); });
 
             // 4. Add names to arguments where necessary.
-
             var newArguments = new List<IUnifiedArgumentSyntax>();
             var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
             var seenNamedArgument = false;
+            IUnifiedArgumentSyntax paramsArrayArgument = default;
 
             foreach (var argument in argumentsToPermute)
             {
@@ -437,24 +435,54 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     continue;
                 }
 
-                if ((seenNamedArgument || actualIndex != expectedIndex) && !argument.IsNamed)
+                if (!param.IsParams)
                 {
-                    newArguments.Add(argument.WithName(param.Name).WithAdditionalAnnotations(Formatter.Annotation));
-                    seenNamedArgument = true;
+                    if ((seenNamedArgument || actualIndex != expectedIndex) && !argument.IsNamed)
+                    {
+
+                        newArguments.Add(argument.WithName(param.Name).WithAdditionalAnnotations(Formatter.Annotation));
+                        seenNamedArgument = true;
+                    }
+                    else
+                    {
+                        newArguments.Add(argument);
+                    }
                 }
                 else
                 {
-                    newArguments.Add(argument);
+                    paramsArrayArgument = argument;
                 }
 
                 seenNamedArgument |= argument.IsNamed;
                 expectedIndex++;
             }
 
-            // 5. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
+            // 5. Add added arguments (only at end for the moment)
+            var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().Where(p => p is AddedParameter).Cast<AddedParameter>();
 
+            foreach (var brandNewParameter in brandNewParameters)
+            {
+                newArguments.Add(CreateRegularArgumentSyntax<T>(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
+            }
+
+            // 6. Add the params argument with the first value:
+            if (paramsArrayArgument != default)
+            {
+                var param = argumentToParameterMap[paramsArrayArgument];
+                var actualIndex = updatedSignature.GetUpdatedIndex(declarationParameters.IndexOf(param));
+                if (seenNamedArgument && !paramsArrayArgument.IsNamed)
+                {
+                    newArguments.Add(paramsArrayArgument.WithName(param.Name).WithAdditionalAnnotations(Formatter.Annotation));
+                    seenNamedArgument = true;
+                }
+                else
+                {
+                    newArguments.Add(paramsArrayArgument);
+                }
+            }
+
+            // 7. Add the remaining arguments. These will already have names or be params arguments, but may have been removed.
             var removedParams = updatedSignature.OriginalConfiguration.ParamsParameter != null && updatedSignature.UpdatedConfiguration.ParamsParameter == null;
-
             for (var i = declarationParametersToPermute.Count; i < arguments.Count; i++)
             {
                 if (!arguments[i].IsNamed && removedParams && i >= updatedSignature.UpdatedConfiguration.ToListOfParameters().Count)
@@ -466,14 +494,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     newArguments.Add(arguments[i]);
                 }
-            }
-
-            // 6. Add added arguments (only at end for the moment)
-            var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().Where(p => p is AddedParameter).Cast<AddedParameter>();
-
-            foreach (var brandNewParameter in brandNewParameters)
-            {
-                newArguments.Add(CreateRegularArgumentSyntax<T>(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
             }
 
             return newArguments;
@@ -578,5 +598,26 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return parameters.Count - 1;
         }
+
+        protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
+        {
+            var separators = new List<SyntaxToken>();
+
+            for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+            {
+                if (i >= arguments.SeparatorCount)
+                {
+                    separators.Add(CreateSeparatorSyntaxToken());
+                }
+                else
+                {
+                    separators.Add(arguments.GetSeparator(i));
+                }
+            }
+
+            return separators;
+        }
+
+        protected abstract SyntaxToken CreateSeparatorSyntaxToken();
     }
 }

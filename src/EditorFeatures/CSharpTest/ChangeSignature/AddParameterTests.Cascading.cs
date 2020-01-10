@@ -319,7 +319,7 @@ class C : I3 { public void M(string y, int newIntegerParameter, int x) { } }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Cascade_ToMethods_WithDifferentParameterNames()
         {
             var markup = @"
@@ -380,6 +380,7 @@ public class B
 public class D : B
 {
     /// <param name=""b""></param>
+    /// <param name=""newIntegerParameter""></param>
     /// <param name=""a""></param>
     public override int M(string b, int newIntegerParameter, int a)
     {
@@ -390,6 +391,7 @@ public class D : B
 public class D2 : D
 {
     /// <param name=""x""></param>
+    /// <param name=""newIntegerParameter""></param>
     /// <param name=""y""></param>
     public override int M(string x, int newIntegerParameter, int y)
     {
@@ -397,9 +399,9 @@ public class D2 : D
         ((D)this).M(""Two"", 12345, 1);
         ((B)this).M(""Two"", 12345, 1);
 
-        M(x: ""Two"", 12345, y: 1);
-        ((D)this).M(b: ""Two"", a: 1, newIntegerParameter: 12345);
-        ((B)this).M(y: ""Two"", x: 1, newIntegerParameter: 12345);
+        M(x: ""Two"", newIntegerParameter: 12345, y: 1);
+        ((D)this).M(b: ""Two"", newIntegerParameter: 12345, a: 1);
+        ((B)this).M(y: ""Two"", newIntegerParameter: 12345, x: 1);
 
         return 1;
     }

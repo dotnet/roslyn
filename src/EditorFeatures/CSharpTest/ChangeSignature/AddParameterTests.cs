@@ -590,7 +590,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_OnIndividualLines()
         {
             var markup = @"
@@ -616,7 +616,7 @@ public class C
     /// <param name=""b""></param>
     /// <param name=""bb""></param>
     /// <param name=""a""></param>
-    void Goo(int c, int b, byte b, int a)
+    void Goo(int c, int b, byte bb, int a)
     {
 
     }
@@ -625,7 +625,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_OnSameLine()
         {
             var markup = @"
@@ -646,7 +646,7 @@ public class C
 public class C
 {
     /// <param name=""c"">c is fun</param><param name=""b"">b is fun</param><param name=""bb""></param>
-    /// </param><param name=""a"">a is fun</param>
+    /// <param name=""a"">a is fun</param>
     void Goo(int c, int b, byte bb, int a)
     {
 
@@ -656,7 +656,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_MixedLineDistribution()
         {
             var markup = @"
@@ -700,7 +700,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_SingleLineDocComments_MixedWithRegularComments()
         {
             var markup = @"
@@ -726,7 +726,8 @@ public class C
 {
     /// <param name=""e""></param><param name=""d""></param>
     // Why is there a regular comment here?
-    /// <param name=""c""></param><param name=""b""></param><param name=""b""></param><param name=""a""></param>
+    /// <param name=""c""></param><param name=""b""></param><param name=""b""></param>
+    /// <param name=""a""></param>
     void Goo(int e, int d, int c, byte b, int b, int a)
     {
 
@@ -736,7 +737,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_MultiLineDocComments_OnSeparateLines1()
         {
             var markup = @"
@@ -763,9 +764,9 @@ class Program
      * <param name=""z"">z!</param>
      * <param name=""b""></param>
      * <param name=""y"">y!</param>
-     * <param name=""x"">x!</param>
      */
-    static void M(int z, int y, byte b, int x)
+    /// <param name=""x"">x!</param>
+    static void M(int z, byte b, int y, int x)
     {
     }
 }";
@@ -773,7 +774,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_MultiLineDocComments_OnSingleLine()
         {
             var markup = @"
@@ -793,8 +794,8 @@ class Program
 class Program
 {
     /** <param name=""z"">z!</param><param name=""b""></param><param name=""y"">y!</param> */
-    /** <param name=""x"">x!</param> */
-    static void M(int z, int y, byte b, int x)
+    /// <param name=""x"">x!</param>
+    static void M(int z, byte b, int y, int x)
     {
     }
 }";
@@ -934,7 +935,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_OnConstructors()
         {
             var markup = @"
@@ -960,7 +961,7 @@ public class C
     /// <param name=""bb""></param>
     /// <param name=""b""></param>
     /// <param name=""a""></param>
-    public C(int c, byte b, int b, int a)
+    public C(int c, byte bb, int b, int a)
     {
 
     }
@@ -968,7 +969,7 @@ public class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact(Skip = "TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderParamTagsInDocComments_OnIndexers()
         {
             var markup = @"
