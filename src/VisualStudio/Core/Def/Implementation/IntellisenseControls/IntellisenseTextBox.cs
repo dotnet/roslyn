@@ -47,11 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         private const string appearanceCategory = "IntellisenseTextblock";
 
         /// <summary>
+        /// Name of 
+        /// </summary>
+        public readonly string ContainerName;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="IntellisenseTextBox"/> class.
         /// </summary>
         public IntellisenseTextBox(IntellisenseTextBoxViewModel viewModel, ContentControl container)
         {
             this.InitializeEditorControl(viewModel, container);
+            ContainerName = container.Name;
         }
 
         /// <summary>
