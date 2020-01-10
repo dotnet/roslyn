@@ -19,6 +19,7 @@ namespace AnalyzerRunner
         public readonly bool ReportSuppressedDiagnostics;
         public readonly bool ApplyChanges;
         public readonly bool ShowStats;
+        public readonly bool ShowCompilerDiagnostics;
         public readonly bool UseAll;
         public readonly int Iterations;
         public readonly bool TestDocuments;
@@ -41,6 +42,7 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics,
             bool applyChanges,
             bool showStats,
+            bool showCompilerDiagnostics,
             bool useAll,
             int iterations,
             bool testDocuments,
@@ -60,6 +62,7 @@ namespace AnalyzerRunner
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             ApplyChanges = applyChanges;
             ShowStats = showStats;
+            ShowCompilerDiagnostics = showCompilerDiagnostics;
             UseAll = useAll;
             Iterations = iterations;
             TestDocuments = testDocuments;
@@ -82,6 +85,7 @@ namespace AnalyzerRunner
             bool reportSuppressedDiagnostics = false;
             bool applyChanges = false;
             bool showStats = false;
+            bool showCompilerDiagnostics = false;
             bool useAll = false;
             int iterations = 1;
             bool testDocuments = false;
@@ -106,6 +110,9 @@ namespace AnalyzerRunner
                         break;
                     case "/stats":
                         showStats = true;
+                        break;
+                    case "/compilerStats":
+                        showCompilerDiagnostics = true;
                         break;
                     case "/concurrent":
                         runConcurrent = true;
@@ -189,6 +196,7 @@ namespace AnalyzerRunner
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
                 applyChanges: applyChanges,
                 showStats: showStats,
+                showCompilerDiagnostics: showCompilerDiagnostics,
                 useAll: useAll,
                 iterations: iterations,
                 testDocuments: testDocuments,

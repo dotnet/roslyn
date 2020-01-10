@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// return that as the "containing" symbol, even though the alias isn't a member of the
         /// namespace as such.
         /// </summary>
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {

@@ -45,7 +45,10 @@ namespace AnalyzerRunner
                     cts.Cancel();
                 };
 
-            MSBuildLocator.RegisterDefaults();
+            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
+            // installations on .NET Core. We use the one with the most recent version.
+            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
+            MSBuildLocator.RegisterInstance(msBuildInstance);
 
             var incrementalAnalyzerRunner = new IncrementalAnalyzerRunner(options);
             var diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(options);
@@ -101,6 +104,37 @@ namespace AnalyzerRunner
                     Console.WriteLine("Number of syntax nodes:\t\t" + statistics.NumberofNodes);
                     Console.WriteLine("Number of syntax tokens:\t" + statistics.NumberOfTokens);
                     Console.WriteLine("Number of syntax trivia:\t" + statistics.NumberOfTrivia);
+                }
+
+                if (options.ShowCompilerDiagnostics)
+                {
+                    var projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
+
+                    var diagnosticStatistics = new Dictionary<string, (string description, DiagnosticSeverity severity, int count)>();
+                    foreach (var project in projects)
+                    {
+                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        foreach (var diagnostic in compilation.GetDiagnostics(cancellationToken))
+                        {
+                            diagnosticStatistics.TryGetValue(diagnostic.Id, out var existing);
+                            var description = existing.description;
+                            if (string.IsNullOrEmpty(description))
+                            {
+                                description = diagnostic.Descriptor?.Title.ToString();
+                                if (string.IsNullOrEmpty(description))
+                                {
+                                    description = diagnostic.Descriptor?.MessageFormat.ToString();
+                                }
+                            }
+
+                            diagnosticStatistics[diagnostic.Id] = (description, diagnostic.Descriptor.DefaultSeverity, existing.count + 1);
+                        }
+                    }
+
+                    foreach (var pair in diagnosticStatistics)
+                    {
+                        Console.WriteLine($"  {pair.Value.severity} {pair.Key}: {pair.Value.count} instances ({pair.Value.description})");
+                    }
                 }
 
                 Console.WriteLine("Pausing 5 seconds before starting analysis...");
