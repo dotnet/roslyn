@@ -7493,11 +7493,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
         {
-            var source =
-@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
+            var source = @"
 class C
 {
     C M(C x)
@@ -7507,39 +7503,24 @@ class C
 
     C M2() => new C();
 }
-        </Document>
-    </Project>
-</Workspace>
 ";
 
-            using var testWorkspace = TestWorkspace.Create(source);
-            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
-            Assert.Equal(FeaturesResources.Remove_redundant_assignment, action.Title);
+            await TestExactActionSetOfferedAsync(source, new[] { FeaturesResources.Remove_redundant_assignment });
         }
 
         [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
         {
-            var source =
-@"
-<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document>
+            var source = @"
 class C
 {
     C M(C x) => [|x ??= M2()|];
 
     C M2() => new C();
 }
-        </Document>
-    </Project>
-</Workspace>
 ";
-
-            using var testWorkspace = TestWorkspace.Create(source);
-            var (_, action) = await GetCodeActionsAsync(testWorkspace, parameters: default);
-            Assert.Equal(FeaturesResources.Remove_redundant_assignment, action.Title);
+            await TestExactActionSetOfferedAsync(source, new[] { FeaturesResources.Remove_redundant_assignment });
         }
     }
 }

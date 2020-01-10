@@ -140,8 +140,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         var syntaxFacts = context.Document.GetLanguageService<ISyntaxFactsService>();
                         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                         var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
-                        if (syntaxFacts.IsLeftSideOfAnyAssignment(node) &&
-                            !syntaxFacts.IsLeftSideOfAssignment(node) &&
+                        if (syntaxFacts.IsLeftSideOfCompoundAssignment(node) &&
                             !syntaxFacts.IsExpressionStatement(node.Parent))
                         {
                             title = FeaturesResources.Remove_redundant_assignment;
