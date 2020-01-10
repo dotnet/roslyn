@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         private const string appearanceCategory = "IntellisenseTextblock";
 
         /// <summary>
-        /// Name of 
+        /// Name of container.
         /// </summary>
         public readonly string ContainerName;
 
