@@ -94,6 +94,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
+                    else if (typeNameTextBox.ContainerName.Equals("NameContentControl") && e.Key == Key.Space)
+                    {
+                        // Do nothing. We disallow spaces in the name field for both C# and VB.
+                        e.Handled = true;
+                    }
                     else
                     {
                         // Let the editor control handle the keystrokes
