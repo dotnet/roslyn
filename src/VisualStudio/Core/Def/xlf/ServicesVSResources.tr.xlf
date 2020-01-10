@@ -98,13 +98,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Callsite">
-        <source>Callsite</source>
-        <target state="new">Callsite</target>
+        <source>Call site</source>
+        <target state="new">Call site</target>
         <note />
       </trans-unit>
       <trans-unit id="Callsite_Value">
-        <source>Callsite Value</source>
-        <target state="new">Callsite Value</target>
+        <source>Call site value:</source>
+        <target state="new">Call site value:</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIndicator">
@@ -433,8 +433,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Name">
-        <source>Parameter Name</source>
-        <target state="new">Parameter Name</target>
+        <source>Parameter name:</source>
+        <target state="new">Parameter name:</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -598,8 +598,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
-        <source>Type Name</source>
-        <target state="new">Type Name</target>
+        <source>Type name:</source>
+        <target state="new">Type name:</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">

@@ -534,7 +534,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Callsite.
+        ///   Looks up a localized string similar to Call site.
         /// </summary>
         internal static string Callsite {
             get {
@@ -543,7 +543,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Callsite Value.
+        ///   Looks up a localized string similar to Call site value:.
         /// </summary>
         internal static string Callsite_Value {
             get {
@@ -2299,7 +2299,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter Name.
+        ///   Looks up a localized string similar to Parameter name:.
         /// </summary>
         internal static string Parameter_Name {
             get {
@@ -3423,7 +3423,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type Name.
+        ///   Looks up a localized string similar to Type name:.
         /// </summary>
         internal static string Type_Name {
             get {
