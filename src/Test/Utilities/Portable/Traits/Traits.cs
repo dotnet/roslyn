@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseExplicitTypeForConst = "CodeActions.UseExplicitTypeForConst";
             public const string CodeActionsUseExpressionBody = "CodeActions.UseExpressionBody";
             public const string CodeActionsPossiblyDeclareAsNullable = "CodeActions.PossiblyDeclareAsNullable";
-            public const string CodeActionsUseExplicitTupleName = "CodeActions.UseExplicitTupleName";
             public const string CodeActionsUseFrameworkType = "CodeActions.UseFrameworkType";
             public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
             public const string CodeActionsUseIndexOperator = "CodeActions.UseIndexOperator";
