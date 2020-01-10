@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
             Debug.Assert(originalInputSlot > 0);
+            Debug.Assert(isDerivedType(NominalSlotType(originalInputSlot), expressionType.Type));
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
 
             var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (LocalState state, bool believedReachable)>.GetInstance();
@@ -268,8 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         {
                                             case ConversionKind.Identity:
                                             case ConversionKind.ImplicitReference:
-                                            case ConversionKind.NoConversion:
-                                            case ConversionKind.ExplicitReference:
                                                 outputSlot = inputSlot;
                                                 break;
                                             case ConversionKind.ExplicitNullable when AreNullableAndUnderlyingTypes(inputType, e.Type, out _):
@@ -451,12 +450,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // The dag temp has already been allocated on another branch of the dag
                     Debug.Assert(outputSlotAndType.slot == slot);
-                    Debug.Assert(outputSlotAndType.type.Equals(type, TypeCompareKind.AllIgnoreOptions));
+                    Debug.Assert(isDerivedType(outputSlotAndType.type, type));
                 }
                 else
                 {
+                    var slotType = NominalSlotType(slot);
+                    Debug.Assert(slotType.IsErrorType() || isDerivedType(slotType, type));
                     tempMap.Add(output, (slot, type));
                 }
+            }
+
+            bool isDerivedType(TypeSymbol derivedType, TypeSymbol baseType)
+            {
+                HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                return _conversions.WithNullability(false).ClassifyConversionFromType(derivedType, baseType, ref discardedDiagnostics).Kind switch
+                {
+                    ConversionKind.Identity => true,
+                    ConversionKind.ImplicitReference => true,
+                    ConversionKind.Boxing => true,
+                    _ => false,
+                };
             }
 
             void gotoNode(BoundDecisionDagNode node, LocalState state, bool believedReachable)
