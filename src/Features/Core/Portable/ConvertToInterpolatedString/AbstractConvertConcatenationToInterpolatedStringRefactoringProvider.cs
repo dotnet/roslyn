@@ -43,11 +43,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            // if there is a const keyword, the refactoring shouldn't show as interpolated string is not const string
-            var declaration = top.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember);
-            if (declaration != null && IsConstMemberDeclaration(declaration, syntaxFacts))
+            // if there is a const keyword, the refactoring shouldn't show because interpolated string is not const string
+            var declarator = top.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
+            if (declarator != null)
             {
-                return;
+                var generator = SyntaxGenerator.GetGenerator(document);
+                if (generator.GetModifiers(declarator).IsConst)
+                {
+                    return;
+                }
             }
 
             // Currently we can concatenate only full subtrees. Therefore we can't support arbitrary selection. We could
