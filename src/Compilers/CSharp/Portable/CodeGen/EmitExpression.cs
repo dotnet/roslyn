@@ -436,10 +436,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        // we are calling the expression on a copy of the target anyway, 
+                        // We are calling the expression on a copy of the target anyway, 
                         // so even if T is a struct, we don't need to make sure we call the expression on the original target.
 
-                        _builder.EmitLocalLoad(receiverTemp);
+                        // We currently have an adress on the stack. Duplicate it, and load the value of the address.
+                        _builder.EmitOpCode(ILOpCode.Dup);
+                        EmitLoadIndirect(receiverType, receiver.Syntax);
                         EmitBox(receiverType, receiver.Syntax);
                     }
                 }

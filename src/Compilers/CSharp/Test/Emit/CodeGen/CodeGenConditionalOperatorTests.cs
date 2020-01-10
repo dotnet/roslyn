@@ -2891,27 +2891,28 @@ hello");
 
             verify.VerifyIL("C<T>.Print()", @"
 {
-  // Code size       54 (0x36)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T C<T>.t""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0015
-  IL_0011:  pop
-  IL_0012:  ldnull
-  IL_0013:  br.s       IL_0020
-  IL_0015:  constrained. ""T""
-  IL_001b:  callvirt   ""string object.ToString()""
-  IL_0020:  call       ""void System.Console.WriteLine(string)""
-  IL_0025:  ldarg.0
-  IL_0026:  ldfld      ""T C<T>.t""
-  IL_002b:  box        ""T""
-  IL_0030:  call       ""void System.Console.WriteLine(object)""
-  IL_0035:  ret
+  IL_0009:  dup
+  IL_000a:  ldobj      ""T""
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_001a
+  IL_0016:  pop
+  IL_0017:  ldnull
+  IL_0018:  br.s       IL_0025
+  IL_001a:  constrained. ""T""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ldarg.0
+  IL_002b:  ldfld      ""T C<T>.t""
+  IL_0030:  box        ""T""
+  IL_0035:  call       ""void System.Console.WriteLine(object)""
+  IL_003a:  ret
 }");
 
         }
@@ -3025,25 +3026,153 @@ hello
 
             verify.VerifyIL("C<T>.Print()", @"
 {
-  // Code size       38 (0x26)
+  // Code size       43 (0x2b)
   .maxstack  2
   .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T C<T>.M()""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0015
-  IL_0011:  pop
-  IL_0012:  ldnull
-  IL_0013:  br.s       IL_0020
-  IL_0015:  constrained. ""T""
-  IL_001b:  callvirt   ""string object.ToString()""
-  IL_0020:  call       ""void System.Console.WriteLine(string)""
-  IL_0025:  ret
+  IL_0009:  dup
+  IL_000a:  ldobj      ""T""
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_001a
+  IL_0016:  pop
+  IL_0017:  ldnull
+  IL_0018:  br.s       IL_0025
+  IL_001a:  constrained. ""T""
+  IL_0020:  callvirt   ""string object.ToString()""
+  IL_0025:  call       ""void System.Console.WriteLine(string)""
+  IL_002a:  ret
 }");
 
+        }
+
+        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        public void ConditionalAccess_GenericExtension_ValueTuple()
+        {
+            var source = @"
+using System;
+
+public static class Extension
+{
+    public static string GetValue(this object value) => value?.ToString();
+}
+public class Class<T>
+{
+    public (long, T) Data { get; }
+    public Class((long, T) data)
+    {
+        Data = data;
+    }
+    internal string Value
+    {
+        get
+        {
+            var q2 = Data.Item2?.GetValue();
+            return q2;
+        }
+    }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new Class<string>((0, ""abc"")).Value);
+        Console.WriteLine(new Class<string>((0, null)).Value);
+        Console.WriteLine(new Class<int>((0, 0)).Value);
+        Console.WriteLine(new Class<int?>((0, 0)).Value);
+        Console.WriteLine(new Class<int?>((0, null)).Value);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: @"abc
+
+0
+0
+");
+            verifier.VerifyIL("Class<T>.Value.get", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (System.ValueTuple<long, T> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.ValueTuple<long, T> Class<T>.Data.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldflda     ""T System.ValueTuple<long, T>.Item2""
+  IL_000e:  dup
+  IL_000f:  ldobj      ""T""
+  IL_0014:  box        ""T""
+  IL_0019:  brtrue.s   IL_001e
+  IL_001b:  pop
+  IL_001c:  ldnull
+  IL_001d:  ret
+  IL_001e:  ldobj      ""T""
+  IL_0023:  box        ""T""
+  IL_0028:  call       ""string Extension.GetValue(object)""
+  IL_002d:  ret
+}");
+        }
+
+        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        public void ConditionalAccess_InstanceMethod_ValueTuple()
+        {
+            var source = @"
+using System;
+
+public class Class<T>
+{
+    public (long, T) Data { get; }
+    public Class((long, T) data)
+    {
+        Data = data;
+    }
+    internal string Value
+    {
+        get
+        {
+            var q2 = Data.Item2?.ToString();
+            return q2;
+        }
+    }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new Class<string>((0, ""abc"")).Value);
+        Console.WriteLine(new Class<string>((0, null)).Value);
+        Console.WriteLine(new Class<int>((0, 0)).Value);
+        Console.WriteLine(new Class<int?>((0, 0)).Value);
+        Console.WriteLine(new Class<int?>((0, null)).Value);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: @"abc
+
+0
+0
+");
+            verifier.VerifyIL("Class<T>.Value.get", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (System.ValueTuple<long, T> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.ValueTuple<long, T> Class<T>.Data.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldflda     ""T System.ValueTuple<long, T>.Item2""
+  IL_000e:  dup
+  IL_000f:  ldobj      ""T""
+  IL_0014:  box        ""T""
+  IL_0019:  brtrue.s   IL_001e
+  IL_001b:  pop
+  IL_001c:  ldnull
+  IL_001d:  ret
+  IL_001e:  constrained. ""T""
+  IL_0024:  callvirt   ""string object.ToString()""
+  IL_0029:  ret
+}");
         }
     }
 }
