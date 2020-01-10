@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.DelegateDeclaration))
             {
-                var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(updatedNode, declarationSymbol, signaturePermutation);
+                var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
                 if (updatedLeadingTrivia != null)
                 {
                     updatedNode = updatedNode.WithLeadingTrivia(updatedLeadingTrivia);
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return result;
         }
 
-        private List<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private List<SyntaxTrivia> UpdateParamTagsInLeadingTrivia(Document document, CSharpSyntaxNode node, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             if (!node.HasLeadingTrivia)
             {
@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return null;
             }
 
-            return GetPermutedTrivia(node, permutedParamNodes);
+            return GetPermutedTrivia(document, node, permutedParamNodes);
         }
 
         private List<XmlElementSyntax> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
@@ -744,15 +744,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return permutedParams;
         }
 
-        private List<SyntaxTrivia> GetPermutedTrivia(CSharpSyntaxNode node, List<XmlElementSyntax> permutedParamNodes)
+        private List<SyntaxTrivia> GetPermutedTrivia(Document document, CSharpSyntaxNode node, List<XmlElementSyntax> permutedParamNodes)
         {
             var updatedLeadingTrivia = new List<SyntaxTrivia>();
             var index = 0;
+            SyntaxTrivia lastWhiteSpaceTrivia = default;
+
+            var lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia()
+                .LastOrDefault(t => t.HasStructure && t.GetStructure() is DocumentationCommentTriviaSyntax);
+            DocumentationCommentTriviaSyntax documentationCommeStructuredTrivia = lastDocumentationCommentTriviaSyntax.GetStructure() as DocumentationCommentTriviaSyntax;
 
             foreach (var trivia in node.GetLeadingTrivia())
             {
                 if (!trivia.HasStructure)
                 {
+                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                    {
+                        lastWhiteSpaceTrivia = trivia;
+                    }
+
                     updatedLeadingTrivia.Add(trivia);
                     continue;
                 }
@@ -793,8 +803,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     }
                 }
 
-                var newDocComments = SyntaxFactory.DocumentationCommentTrivia(structuredTrivia.Kind(), SyntaxFactory.List(updatedNodeList.AsEnumerable()));
-                newDocComments = newDocComments.WithEndOfComment(structuredTrivia.EndOfComment);
+                var newDocComments = SyntaxFactory.DocumentationCommentTrivia(
+                    structuredTrivia.Kind(),
+                    SyntaxFactory.List(updatedNodeList.AsEnumerable()),
+                    structuredTrivia.EndOfComment);
                 newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia());
                 var newTrivia = SyntaxFactory.Trivia(newDocComments);
 
@@ -810,34 +822,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             if (extraNodeList.Any())
             {
-                var extraDocComments = SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.MultiLineDocumentationCommentTrivia, SyntaxFactory.List(extraNodeList.AsEnumerable()));
-                extraDocComments = extraDocComments.WithEndOfComment(SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
-                extraDocComments = extraDocComments.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+                var extraDocComments = SyntaxFactory.DocumentationCommentTrivia(
+                    SyntaxKind.MultiLineDocumentationCommentTrivia,
+                    SyntaxFactory.List(extraNodeList.AsEnumerable()),
+                    SyntaxFactory.Token(SyntaxKind.EndOfDocumentationCommentToken));
+                extraDocComments = extraDocComments
+                    .WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
+                    .WithTrailingTrivia(node.GetTrailingTrivia())
+                    .WithTrailingTrivia(
+                    SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp)),
+                    lastWhiteSpaceTrivia);
+
                 var newTrivia = SyntaxFactory.Trivia(extraDocComments);
 
                 updatedLeadingTrivia.Add(newTrivia);
             }
 
             return updatedLeadingTrivia;
-        }
-
-        private static List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
-        {
-            var separators = new List<SyntaxToken>();
-
-            for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
-            {
-                if (i >= arguments.SeparatorCount)
-                {
-                    separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-                }
-                else
-                {
-                    separators.Add(arguments.GetSeparator(i));
-                }
-            }
-
-            return separators;
         }
 
         public override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
@@ -899,5 +900,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             return default;
         }
+
+        protected override SyntaxToken CreateSeparatorSyntaxToken()
+            => SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace);
     }
 }
