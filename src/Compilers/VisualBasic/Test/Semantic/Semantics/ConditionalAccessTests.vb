@@ -10213,5 +10213,89 @@ False
             CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, expectedOutput:=expectedOutput)
         End Sub
 
+
+        <Fact()>
+        <WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")>
+        Public Sub ConditionalAccess_GenericExtension_ValueTuple
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Module Extensions
+    &lt;Extension&gt;
+    Public Function GetValue(obj As Object) As String
+        Return obj?.ToString()
+    End Function
+End Module
+
+Public Class BGen(Of __T__)
+    Public ReadOnly Property Data As (Integer, __T__)
+
+    Public Sub New(data As (Integer, __T__))
+        Me.Data = data
+    End Sub
+
+    Public ReadOnly Property Value As String
+        Get
+            Return Data.Item2?.GetValue()
+        End Get
+    End Property
+End Class
+
+Public Class Main
+    Public Shared Sub Main()
+        Dim i = New BGen(Of String)((0, "abc"))
+        Dim r = i.Value
+        Console.Write(r)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim valueTupleRefs As MetadataReference() = New MetadataReference() {ValueTupleRef, SystemRuntimeFacadeRef}
+            Dim expectedOutput = "abc"
+            Dim verifier = CompileAndVerify(
+                CreateCompilationWithMscorlib45AndVBRuntime(compilationDef, options:=TestOptions.DebugExe, references:=valueTupleRefs),
+                expectedOutput:=expectedOutput)
+
+            verifier.VerifyIL("BGen(Of __T__).get_Value()", "
+{
+  // Code size       71 (0x47)
+  .maxstack  2
+  .locals init (String V_0, //Value
+                System.ValueTuple(Of Integer, __T__) V_1,
+                __T__ V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""Function BGen(Of __T__).get_Data() As (Integer, __T__)""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldflda     ""System.ValueTuple(Of Integer, __T__).Item2 As __T__""
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  initobj    ""__T__""
+  IL_0017:  ldloc.2
+  IL_0018:  box        ""__T__""
+  IL_001d:  brtrue.s   IL_0033
+  IL_001f:  ldobj      ""__T__""
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  ldloc.2
+  IL_0028:  box        ""__T__""
+  IL_002d:  brtrue.s   IL_0033
+  IL_002f:  pop
+  IL_0030:  ldnull
+  IL_0031:  br.s       IL_0042
+  IL_0033:  ldobj      ""__T__""
+  IL_0038:  box        ""__T__""
+  IL_003d:  call       ""Function Extensions.GetValue(Object) As String""
+  IL_0042:  stloc.0
+  IL_0043:  br.s       IL_0045
+  IL_0045:  ldloc.0
+  IL_0046:  ret
+}")
+        End Sub
+
     End Class
 End Namespace

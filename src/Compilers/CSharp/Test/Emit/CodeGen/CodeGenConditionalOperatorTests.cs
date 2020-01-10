@@ -3107,15 +3107,15 @@ namespace bug
     {
         static void Main(string[] args)
         {
-            var i = new BGen<string>((0, ""foo""));
+            var i = new BGen<string>((0, ""abc""));
             var r = i.Value;
 
-            Console.WriteLine($""Hello World: {{string.Join(',', r)}}"");
+            Console.Write(r);
         }
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, expectedOutput: "abc");
             verifier.VerifyIL("bug.BGen<__T__>.Value.get", @"
 {
   // Code size       65 (0x41)
