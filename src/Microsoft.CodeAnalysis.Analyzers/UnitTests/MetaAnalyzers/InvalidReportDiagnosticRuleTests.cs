@@ -284,7 +284,7 @@ End Class
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string unsupportedDescriptorName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.InvalidReportDiagnosticRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.InvalidReportDiagnosticRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage)
                 .WithArguments(unsupportedDescriptorName);

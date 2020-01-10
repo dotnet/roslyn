@@ -27,8 +27,8 @@ namespace Roslyn.Diagnostics.Analyzers
             s_localizableTitleUseEmptyEnumerable,
             s_localizableMessageUseEmptyEnumerable,
             DiagnosticCategory.RoslyDiagnosticsPerformance,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static readonly LocalizableString s_localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.UseSpecializedCollectionsSingletonEnumerableTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
@@ -39,8 +39,8 @@ namespace Roslyn.Diagnostics.Analyzers
             s_localizableTitleUseSingletonEnumerable,
             s_localizableMessageUseSingletonEnumerable,
             DiagnosticCategory.RoslyDiagnosticsPerformance,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);

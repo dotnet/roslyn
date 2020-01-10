@@ -160,7 +160,7 @@ End Class
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
                 .WithArguments(typeName);
@@ -168,7 +168,7 @@ End Class
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
                 .WithArguments(typeName);

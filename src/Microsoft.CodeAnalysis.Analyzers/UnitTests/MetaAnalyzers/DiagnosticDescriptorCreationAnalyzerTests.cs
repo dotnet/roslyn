@@ -840,7 +840,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1007ExpectedDiagnostic(string language, int line, int column)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.UseLocalizableStringsInDescriptorRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.UseLocalizableStringsInDescriptorRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage)
                 .WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
@@ -849,7 +849,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1015ExpectedDiagnostic(string language, int line, int column)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.ProvideHelpUriInDescriptorRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.ProvideHelpUriInDescriptorRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorMessage);
         }
@@ -857,7 +857,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1017ExpectedDiagnostic(string language, int line, int column, string descriptorName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.DiagnosticIdMustBeAConstantRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.DiagnosticIdMustBeAConstantRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantMessage)
                 .WithArguments(descriptorName);
@@ -866,7 +866,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1018ExpectedDiagnostic(string language, int line, int column, string diagnosticId, string category, string format, string additionalFile)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.DiagnosticIdMustBeInSpecifiedFormatRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeInSpecifiedFormatMessage)
                 .WithArguments(diagnosticId, category, format, additionalFile);
@@ -875,7 +875,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1019ExpectedDiagnostic(string language, int line, int column, string duplicateId, string otherAnalyzerName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.UseUniqueDiagnosticIdRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.UseUniqueDiagnosticIdRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdMessage)
                 .WithArguments(duplicateId, otherAnalyzerName);
@@ -884,7 +884,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
         private static DiagnosticResult GetRS1020ExpectedDiagnostic(string language, int line, int column, string category, string additionalFile)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.UseCategoriesFromSpecifiedRangeRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.UseCategoriesFromSpecifiedRangeMessage)
                 .WithArguments(category, additionalFile);
@@ -892,7 +892,7 @@ CategoryWithBadId5: Prefix000-DifferentPrefix099
 
         private static DiagnosticResult GetRS1021ExpectedDiagnostic(int line, int column, string invalidEntry, string additionalFile)
         {
-            return new DiagnosticResult(DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.AnalyzerCategoryAndIdRangeFileInvalidRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(AdditionalFileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.AnalyzerCategoryAndIdRangeFileInvalidMessage)
                 .WithArguments(invalidEntry, additionalFile);

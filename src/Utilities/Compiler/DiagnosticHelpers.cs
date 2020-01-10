@@ -6,31 +6,8 @@ using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities
 {
-    internal static class DiagnosticHelpers
+    internal static partial class DiagnosticHelpers
     {
-        public const DiagnosticSeverity DefaultDiagnosticSeverity =
-#if BUILDING_VSIX
-            DiagnosticSeverity.Info;
-#else
-            DiagnosticSeverity.Warning;
-#endif
-
-        public const bool EnabledByDefaultIfNotBuildingVSIX =
-#if BUILDING_VSIX
-            false;
-#else
-            true;
-#endif
-
-        public const bool EnabledByDefaultOnlyIfBuildingVSIX =
-#if BUILDING_VSIX
-            true;
-#else
-            false;
-#endif
-
-        public const bool EnabledByDefaultForVsixAndNuget = true;
-
         public static bool TryConvertToUInt64(object value, SpecialType specialType, out ulong convertedValue)
         {
             bool success = false;

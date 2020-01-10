@@ -573,7 +573,7 @@ End Class
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);
@@ -581,7 +581,7 @@ End Class
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);

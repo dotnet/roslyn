@@ -110,7 +110,7 @@ namespace ConsoleApplication1
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string objectName, string methodName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage)
                 .WithArguments(objectName, methodName);

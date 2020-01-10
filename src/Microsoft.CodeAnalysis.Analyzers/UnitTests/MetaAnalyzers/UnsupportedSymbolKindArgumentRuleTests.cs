@@ -268,7 +268,7 @@ End Class
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, SymbolKind unsupportedSymbolKind)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.UnsupportedSymbolKindArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.UnsupportedSymbolKindArgumentRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage)
                 .WithArguments(unsupportedSymbolKind.ToString());
