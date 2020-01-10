@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public void Dispose()
             {
-                DisposeAllocatedBasicBlockAnalysisData();
+                DisposeAllocatedPrivateData();
                 DisposeCoreData();
             }
 
@@ -257,11 +257,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 SymbolsWriteBuilder.Free();
                 SymbolsReadBuilder.Free();
-                _referenceTakenSymbolsBuilder.Free();
                 LambdaOrLocalFunctionsBeingAnalyzed.Free();
             }
 
-            protected void DisposeAllocatedBasicBlockAnalysisData()
+            private void DisposeAllocatedPrivateData()
             {
                 foreach (var instance in _allocatedBasicBlockAnalysisDatas)
                 {
@@ -269,6 +268,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 _allocatedBasicBlockAnalysisDatas.Free();
+                _referenceTakenSymbolsBuilder.Free();
             }
         }
     }
