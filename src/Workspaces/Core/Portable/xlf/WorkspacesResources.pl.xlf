@@ -92,6 +92,11 @@
         <target state="translated">Preferencje nowego wiersza</target>
         <note />
       </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Organize_usings">
         <source>Organize usings</source>
         <target state="translated">Organizuj użycia</target>
@@ -1845,11 +1850,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Dodaj nawiasy klamrowe do instrukcji „{0}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Opcje nie pochodziły z obszaru roboczego</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

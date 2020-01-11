@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.Win32
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     <[UseExportProvider]>
@@ -22,7 +23,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Dim mscorlib As AssemblyIdentity = Nothing
             AssemblyIdentity.TryParseDisplayName(s_mscorlibDisplayName, mscorlib)
 
-            Return {New IgnorableAssemblyIdentityList({mscorlib})}
+            Return SpecializedCollections.SingletonEnumerable(
+                New IgnorableAssemblyIdentityList(SpecializedCollections.SingletonEnumerable(mscorlib)))
         End Function
 
         <Fact>

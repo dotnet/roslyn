@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected virtual bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
         {
-            return _next.IsUnboundTypeAllowed(syntax);
+            return Next.IsUnboundTypeAllowed(syntax);
         }
 
         /// <summary>
@@ -299,6 +299,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CreateErrorType(),
                             hasErrors: true).WithSuppression(defaultExpr.IsSuppressed);
                     }
+                    break;
+                case BoundStackAllocArrayCreation { Type: null } boundStackAlloc:
+                    // This is a context in which the stackalloc could be either a pointer
+                    // or a span.  For backward compatibility we treat it as a pointer.
+                    var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
+                    result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
                     break;
                 default:
                     result = expression;
@@ -3516,26 +3522,56 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var inLegalPosition = ReportBadStackAllocPosition(node, diagnostics);
             hasErrors = !inLegalPosition;
-            if (inLegalPosition && !node.IsLocalVariableDeclarationInitializationForPointerStackalloc())
+            if (inLegalPosition && !isStackallocTargetTyped(node))
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
-                if (!spanType.IsErrorType())
-                {
-                    return ConstructNamedType(
-                        type: spanType,
-                        typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
-                            ? ((StackAllocArrayCreationExpressionSyntax)node).Type
-                            : node,
-                        typeArgumentsSyntax: default,
-                        typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
-                        basesBeingResolved: null,
-                        diagnostics: diagnostics);
-                }
+                return ConstructNamedType(
+                    type: spanType,
+                    typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
+                        ? ((StackAllocArrayCreationExpressionSyntax)node).Type
+                        : node,
+                    typeArgumentsSyntax: default,
+                    typeArguments: ImmutableArray.Create(elementTypeWithAnnotations),
+                    basesBeingResolved: null,
+                    diagnostics: diagnostics);
             }
 
+            // We treat the stackalloc as target-typed, so we give it a null type for now.
             return null;
+
+            // Is this a context in which a stackalloc expression could be converted to the corresponding pointer
+            // type? The only context that permits it is the initialization of a local variable declaration (when
+            // the declaration appears as a statement or as the first part of a for loop).
+            static bool isStackallocTargetTyped(SyntaxNode node)
+            {
+                Debug.Assert(node != null);
+
+                SyntaxNode equalsValueClause = node.Parent;
+
+                if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclarator = equalsValueClause.Parent;
+
+                if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
+                {
+                    return false;
+                }
+
+                SyntaxNode variableDeclaration = variableDeclarator.Parent;
+                if (!variableDeclaration.IsKind(SyntaxKind.VariableDeclaration))
+                {
+                    return false;
+                }
+
+                return
+                    variableDeclaration.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) ||
+                    variableDeclaration.Parent.IsKind(SyntaxKind.ForStatement);
+            }
         }
 
         private BoundExpression BindStackAllocWithInitializer(
@@ -3548,6 +3584,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             ImmutableArray<BoundExpression> boundInitExprOpt = default)
         {
+            Debug.Assert(node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression) || node.IsKind(SyntaxKind.StackAllocArrayCreationExpression));
+
             if (boundInitExprOpt.IsDefault)
             {
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
