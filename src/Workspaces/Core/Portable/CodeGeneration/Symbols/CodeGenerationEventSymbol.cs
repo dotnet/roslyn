@@ -55,11 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         [return: MaybeNull]
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitEvent(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-        }
+            => visitor.VisitEvent(this);
 
         public new IEventSymbol OriginalDefinition => this;
 

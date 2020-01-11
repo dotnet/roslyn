@@ -164,9 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol accessingTypeOpt)
+        internal EventSymbol GetLeastOverriddenEvent(NamedTypeSymbol? accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
+            var accessingType = ((object?)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
 
             EventSymbol e = this;
             while (e.IsOverride && !e.HidesBaseEventsByName)
