@@ -42,10 +42,14 @@ namespace Microsoft.CodeAnalysis.Execution
         private static Checksum CreateChecksumFromStreamWriter(WellKnownSynchronizationKind kind, Action<ObjectWriter, CancellationToken> writer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
-            using var objectWriter = new ObjectWriter(stream);
 
-            objectWriter.WriteInt32((int)kind);
-            writer(objectWriter, CancellationToken.None);
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            {
+                objectWriter.WriteInt32((int)kind);
+                writer(objectWriter, CancellationToken.None);
+            }
+
+            stream.Position = 0;
             return Checksum.Create(stream);
         }
     }
