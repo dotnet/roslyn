@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
-                                    _variableTypes[local] = TypeWithAnnotations.Create(existingType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
+                                    _variableTypes[local] = TypeWithAnnotations.Create(inferredType.Type, existingType.NullableAnnotation.Join(inferredType.NullableAnnotation));
                                 }
                                 else
                                 {

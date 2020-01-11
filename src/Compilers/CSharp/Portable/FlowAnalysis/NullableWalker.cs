@@ -7163,7 +7163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
                             }
                         }
-                        else if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
+                        else if (iterationVariable is SourceLocalSymbol { IsVar: true })
                         {
                             // foreach (var variable in collection)
                             _variableTypes[iterationVariable] = sourceState.ToTypeWithAnnotations();
