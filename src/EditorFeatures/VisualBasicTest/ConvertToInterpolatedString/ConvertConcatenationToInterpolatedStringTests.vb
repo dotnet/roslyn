@@ -584,7 +584,7 @@ Public Class C
         Const World As String = ""World""
         Console.WriteLine($""{Hello} {World}"")
     End Sub
-End Class"
+End Class")
 )
         End Function
     End Class
