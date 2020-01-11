@@ -2,7 +2,7 @@
   "profiles": {
     "IDE Analyzers": {
       "commandName": "Project",
-      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /concurrent /stats"
+      "commandLineArgs": "$(OutDir) $(SolutionDir)Roslyn.sln /concurrent /stats /compilerStats"
     },
     "CSharpEditorFeatures Analyzers": {
       "commandName": "Project",

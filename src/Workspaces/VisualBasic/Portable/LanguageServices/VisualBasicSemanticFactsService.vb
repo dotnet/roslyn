@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Select(Function(n) semanticModel.GetDeclaredSymbol(n, cancellationToken))
             End If
 
-            Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
+            Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
         Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFactsService.FindParameterForArgument
