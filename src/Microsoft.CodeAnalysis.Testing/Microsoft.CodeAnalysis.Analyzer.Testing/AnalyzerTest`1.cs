@@ -457,8 +457,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 if (currentBest > unmatchedActualResults)
                 {
                     // We might be able to improve the results by leaving the current actual diagnostic unmatched
-                    var bestResultWithCurrentUnmatched = RecursiveMatch(firstActualIndex + 1, firstExpectedIndex, unmatchedActualResults + 1, usedExpected);
-                    return Math.Min(bestResultWithCurrentUnmatched, currentBest);
+                    try
+                    {
+                        builder.Add((actualResults[firstActualIndex], null));
+                        var bestResultWithCurrentUnmatched = RecursiveMatch(firstActualIndex + 1, firstExpectedIndex, unmatchedActualResults + 1, usedExpected);
+                        return Math.Min(bestResultWithCurrentUnmatched, currentBest);
+                    }
+                    finally
+                    {
+                        builder.RemoveAt(builder.Count - 1);
+                    }
                 }
 
                 Debug.Assert(currentBest == unmatchedActualResults, $"Assertion failure: {currentBest} == {unmatchedActualResults}");
