@@ -219,9 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// However, the real definition is in this class so that it can access the private field 
         /// nonErrorGuessType.
         /// </remarks>
-        internal static TypeSymbol? ExtractNonErrorType(TypeSymbol oldSymbol)
+        internal static TypeSymbol? ExtractNonErrorType(TypeSymbol? oldSymbol)
         {
-            if ((object)oldSymbol == null || oldSymbol.TypeKind != TypeKind.Error)
+            if ((object?)oldSymbol == null || oldSymbol.TypeKind != TypeKind.Error)
             {
                 return oldSymbol;
             }
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return commonTypeKind;
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
             if (ReferenceEquals(this, t2))
             {
