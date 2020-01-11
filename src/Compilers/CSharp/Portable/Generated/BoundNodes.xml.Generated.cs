@@ -7034,7 +7034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRecursivePattern : BoundPattern
     {
-        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression? declaredType, MethodSymbol? deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, bool hasErrors = false)
+        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression? declaredType, MethodSymbol? deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol? variable, BoundExpression? variableAccess, bool isExplicitNotNullTest, TypeSymbol inputType, bool hasErrors = false)
             : base(BoundKind.RecursivePattern, syntax, inputType, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || properties.HasErrors() || variableAccess.HasErrors())
         {
 
@@ -7046,6 +7046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Properties = properties;
             this.Variable = variable;
             this.VariableAccess = variableAccess;
+            this.IsExplicitNotNullTest = isExplicitNotNullTest;
         }
 
 
@@ -7060,14 +7061,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Symbol? Variable { get; }
 
         public BoundExpression? VariableAccess { get; }
+
+        public bool IsExplicitNotNullTest { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitRecursivePattern(this);
 
-        public BoundRecursivePattern Update(BoundTypeExpression? declaredType, MethodSymbol? deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType)
+        public BoundRecursivePattern Update(BoundTypeExpression? declaredType, MethodSymbol? deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol? variable, BoundExpression? variableAccess, bool isExplicitNotNullTest, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || deconstruction != this.Deconstruction || properties != this.Properties || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
+            if (declaredType != this.DeclaredType || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || deconstruction != this.Deconstruction || properties != this.Properties || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || isExplicitNotNullTest != this.IsExplicitNotNullTest || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, inputType, this.HasErrors);
+                var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, isExplicitNotNullTest, inputType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10064,7 +10067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSubpattern> properties = this.VisitList(node.Properties);
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(declaredType, node.DeconstructMethod, deconstruction, properties, node.Variable, variableAccess, inputType);
+            return node.Update(declaredType, node.DeconstructMethod, deconstruction, properties, node.Variable, variableAccess, node.IsExplicitNotNullTest, inputType);
         }
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
         {
@@ -12232,7 +12235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSubpattern> deconstruction = this.VisitList(node.Deconstruction);
             ImmutableArray<BoundSubpattern> properties = this.VisitList(node.Properties);
             BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
-            return node.Update(declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, inputType);
+            return node.Update(declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, node.IsExplicitNotNullTest, inputType);
         }
 
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
@@ -13986,6 +13989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("properties", null, node.Properties.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Properties select Visit(x, null)),
             new TreeDumperNode("variable", node.Variable, null),
             new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
+            new TreeDumperNode("isExplicitNotNullTest", node.IsExplicitNotNullTest, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

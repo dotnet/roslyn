@@ -1985,6 +1985,7 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">

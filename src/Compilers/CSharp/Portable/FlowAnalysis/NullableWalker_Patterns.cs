@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break; // nothing to learn
                 case BoundRecursivePattern rp:
                     {
+                        if (rp.IsExplicitNotNullTest)
+                        {
+                            LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                        }
+
                         // for positional part: we only learn from tuples (not Deconstruct)
                         if (rp.DeconstructMethod is null && !rp.Deconstruction.IsDefault)
                         {

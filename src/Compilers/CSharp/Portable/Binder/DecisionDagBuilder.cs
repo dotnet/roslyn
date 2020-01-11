@@ -442,10 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
 
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
-            bool isExplicitTest = recursive.DeclaredType is null &&
-                recursive.Properties.IsDefaultOrEmpty &&
-                recursive.Syntax is RecursivePatternSyntax { Designation: null, PositionalPatternClause: null };
-            input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest, tests);
+            input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {
