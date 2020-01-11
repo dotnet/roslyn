@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -7486,6 +7487,40 @@ class C
         }
     }
 }", options: PreferDiscard);
+        }
+
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
+        {
+            var source = @"
+class C
+{
+    C M(C x)
+    {
+        return [|x ??= M2()|];
+    }
+
+    C M2() => new C();
+}
+";
+
+            await TestExactActionSetOfferedAsync(source, new[] { FeaturesResources.Remove_redundant_assignment });
+        }
+
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
+        {
+            var source = @"
+class C
+{
+    C M(C x) => [|x ??= M2()|];
+
+    C M2() => new C();
+}
+";
+            await TestExactActionSetOfferedAsync(source, new[] { FeaturesResources.Remove_redundant_assignment });
         }
     }
 }
