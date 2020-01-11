@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             StartService();
         }
 
-        public string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken)
+        public string Connect(string host, int uiCultureLCID, int cultureLCID, string? serializedSession, CancellationToken cancellationToken)
         {
             return RunService(() =>
             {
@@ -74,17 +74,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var existing = Interlocked.CompareExchange(ref _host, host, null);
 
-                SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
+                // serializedSession may be null for testing
+                if (serializedSession != null)
+                {
+                    SetGlobalContext(uiCultureLCID, cultureLCID, serializedSession);
+                }
 
                 if (existing != null && existing != host)
                 {
-                    LogError($"{host} is given for {existing}");
+                    Log(TraceEventType.Error, $"{host} is given for {existing}");
                 }
 
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(SetSessionInfo));
 
-                // serializedSession will be null for testing
                 if (serializedSession != null)
                 {
                     // Set this process's priority BelowNormal.
@@ -169,14 +172,10 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string? serializedSession)
+        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
-            // set global telemetry session
-            var session = GetTelemetrySession(serializedSession);
-            if (session == null)
-            {
-                return;
-            }
+            var session = new TelemetrySession(serializedSession);
+            session.Start();
 
             EnsureCulture(uiCultureLCID, cultureLCID);
 
@@ -221,16 +220,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // ignore expected exception
             return ex is ArgumentOutOfRangeException || ex is CultureNotFoundException;
-        }
-
-        private static TelemetrySession? GetTelemetrySession(string? serializedSession)
-        {
-            var session = serializedSession != null ? new TelemetrySession(serializedSession) : null;
-
-            // actually starting the session
-            session?.Start();
-
-            return session;
         }
 
         private RemoteGlobalOperationNotificationService? GetGlobalOperationNotificationService()

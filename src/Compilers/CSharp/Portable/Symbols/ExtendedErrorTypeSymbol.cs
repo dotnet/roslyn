@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol containingSymbol, Symbol guessSymbol, LookupResultKind resultKind, DiagnosticInfo errorInfo, bool unreported = false)
+        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol? containingSymbol, Symbol guessSymbol, LookupResultKind resultKind, DiagnosticInfo errorInfo, bool unreported = false)
             : this(containingSymbol, ImmutableArray.Create<Symbol>(guessSymbol), resultKind, errorInfo, GetArity(guessSymbol), unreported)
         {
         }
 
-        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol containingSymbol, ImmutableArray<Symbol> candidateSymbols, LookupResultKind resultKind, DiagnosticInfo errorInfo, int arity, bool unreported = false)
+        internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol? containingSymbol, ImmutableArray<Symbol> candidateSymbols, LookupResultKind resultKind, DiagnosticInfo errorInfo, int arity, bool unreported = false)
             : this(containingSymbol, candidateSymbols[0].Name, arity, errorInfo, unreported)
         {
             _candidateSymbols = UnwrapErrorCandidates(candidateSymbols);

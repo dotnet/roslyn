@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             };
 
             private readonly ReferenceCodeLensProvider _owner;
-            private readonly JsonRpc _roslynRpc;
+            private readonly RemoteEndPoint _endPoint;
             private readonly ICodeLensCallbackService _callbackService;
 
             public DataPoint(
@@ -131,12 +131,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
 
                 Descriptor = descriptor;
 
-                _roslynRpc = stream.CreateStreamJsonRpc(
-                    target: new RoslynCallbackTarget(Invalidate),
-                    owner._client.Logger,
-                    SpecializedCollections.SingletonEnumerable(AggregateJsonConverter.Instance));
+                _endPoint = new RemoteEndPoint(stream, owner._client.Logger, new RoslynCallbackTarget(Invalidate));
+                _endPoint.StartListening();
+            }
 
-                _roslynRpc.StartListening();
+            public void Dispose()
+            {
+                _endPoint.Dispose();
             }
 
             public event AsyncEventHandler InvalidatedAsync;
@@ -273,17 +274,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 // this asks Roslyn OOP to start track workspace changes and call back Invalidate on this type when there is one.
                 // each data point owns 1 connection which is alive while data point is alive. and all communication is done through
                 // that connection
-                await _roslynRpc.InvokeWithCancellationAsync(
-                    nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync), new object[] { documentId }, cancellationToken).ConfigureAwait(false);
-            }
-
-            public void Dispose()
-            {
-                // done. let connection go
-                _roslynRpc.Dispose();
-
-                // vsCallbackRpc is shared and we don't own. it is owned by the code lens engine
-                // don't dispose it
+                await _endPoint.InvokeAsync(
+                    nameof(IRemoteCodeLensReferencesService.TrackCodeLensAsync),
+                    new object[] { documentId },
+                    cancellationToken).ConfigureAwait(false);
             }
 
             private class RoslynCallbackTarget : IRemoteCodeLensDataPoint

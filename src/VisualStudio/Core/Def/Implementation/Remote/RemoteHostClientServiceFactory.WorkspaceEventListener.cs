@@ -18,14 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var service = (RemoteHostClientService)workspace.Services.GetService<IRemoteHostClientService>();
                 service.Enable();
             }
-
-            public void Stop(Workspace workspace)
-            {
-                // we do this so that we can stop OOP process sooner and stop pushing data to OOP while
-                // VS is shutting down
-                var service = (RemoteHostClientService)workspace.Services.GetService<IRemoteHostClientService>();
-                service.Disable();
-            }
         }
     }
 }

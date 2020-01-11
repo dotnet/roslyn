@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // For a standard tagger, the spans to tag is the span of the entire snapshot.
-            return new[] { subjectBuffer.CurrentSnapshot.GetFullSpan() };
+            return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
         }
 
         /// <summary>

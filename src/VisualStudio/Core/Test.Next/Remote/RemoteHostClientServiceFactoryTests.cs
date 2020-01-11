@@ -210,10 +210,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var completionTask = new TaskCompletionSource<bool>();
 
             var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            client1.StatusChanged += (s, connected) =>
+            client1.StatusChanged += (_, started) =>
             {
                 // mark done
-                completionTask.SetResult(connected);
+                completionTask.SetResult(started);
             };
 
             await service.RequestNewRemoteHostAsync(CancellationToken.None);

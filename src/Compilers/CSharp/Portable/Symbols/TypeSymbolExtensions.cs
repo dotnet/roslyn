@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
                     if (attr != null)
                     {
                         builder.Add(attr);
@@ -1637,14 +1637,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
-
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }
