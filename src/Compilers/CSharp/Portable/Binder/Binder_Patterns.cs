@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Designation, declTypeWithAnnotations, inputValEscape, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             bool isExplicitNotNullTest =
-                node.Designation is null && 
+                node.Designation is null &&
                 boundDeclType is null &&
                 properties.IsDefaultOrEmpty &&
                 deconstructMethod is null &&
