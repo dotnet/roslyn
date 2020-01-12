@@ -301,20 +301,40 @@ End Class
 
         <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_DontRemoveEmptyArgumentListParenthesesWhenNotInferrable() As Task
+        Public Async Function TestVisualBasic_OnlyRemoveEmptyArgumentLisForMethodGroup() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
 Public Class TestClass
-    Private Shared prop As String
+    Shared Function GetFour() As Integer
+        Return 4
+    End Function
+    
     Public Shared Sub Main()
-        Dim inferred = If(prop, {|SimplifyExtension:Function() As Integer
-                    Return 5
-                End Function()|})
-        System.Console.WriteLine(inferred)
-        System.Console.WriteLine({|SimplifyExtension:inferred.ToString()|})
+        Dim inferredMethodGroup = MyIf({|SimplifyExtension:TestClass.GetFour()|})
+        System.Console.WriteLine(inferredMethodGroup)
+            
+        Dim inferredInlineFunction = MyIf({|SimplifyExtension:Function()
+                Return 5
+            End Function()|})
+        System.Console.WriteLine(inferredInlineFunction)
+        
+        Dim localDelegate = Function() As Integer
+                Return 6
+            End Function
+
+        Dim inferredLocalDelegate = MyIf({|SimplifyExtension:localDelegate()|})
+        System.Console.WriteLine(inferredLocalDelegate)
     End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
 End Class
         </Document>
     </Project>
@@ -323,14 +343,34 @@ End Class
             Dim expected =
 <code>
 Public Class TestClass
-    Private Shared prop As String
+    Shared Function GetFour() As Integer
+        Return 4
+    End Function
+    
     Public Shared Sub Main()
-        Dim inferred = If(prop, Function() As Integer
-                    Return 5
-                End Function())
-        System.Console.WriteLine(inferred)
-        System.Console.WriteLine(inferred.ToString())
+        Dim inferredMethodGroup = MyIf(TestClass.GetFour)
+        System.Console.WriteLine(inferredMethodGroup)
+            
+        Dim inferredInlineFunction = MyIf(Function()
+                Return 5
+            End Function())
+        System.Console.WriteLine(inferredInlineFunction)
+        
+        Dim localDelegate = Function() As Integer
+                Return 6
+            End Function
+
+        Dim inferredLocalDelegate = MyIf(localDelegate())
+        System.Console.WriteLine(inferredLocalDelegate)
     End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
 End Class
 </code>
 

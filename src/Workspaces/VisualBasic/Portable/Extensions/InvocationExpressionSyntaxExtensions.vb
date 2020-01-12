@@ -47,19 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            Dim ancestor = invocationExpression.GetAncestor(Of ExecutableStatementSyntax)
-            If ancestor Is Nothing Then Return True ' TODO: Cover cases other than executable statement
-
-            ' Drawbacks:
-            ' * Only covers cases where the invocation is nested within an executable statement
-            ' * Performs abysmally due to creating a whole speculative semantic model for the vast majority of invocations, and additionally using GetOperation which is quite slow in general
-            ' 
-            ' At some point amongst all the code that runs there is presumably a crucial function which has the rules for binding a name-type syntax into an invocation.
-            ' Ideally we'd find a way to call just that function here on invocationExpression.Expression
-            Dim expressionWithoutArgList = ancestor.ReplaceNode(invocationExpression, invocationExpression.Expression)
-            Dim speculativeSemanticModel As SemanticModel = Nothing
-            Return semanticModel.TryGetSpeculativeSemanticModel(invocationExpression.SpanStart, expressionWithoutArgList, speculativeSemanticModel) AndAlso _
-                speculativeSemanticModel.GetOperation(expressionWithoutArgList).Kind = operationkind.Invocation
+            Dim isOrdinaryMethod = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol?.IsOrdinaryMethod
+            Return isOrdinaryMethod.HasValue AndAlso isOrdinaryMethod.Value
         End Function
 
         <Extension>
