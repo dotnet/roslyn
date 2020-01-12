@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _intellisenseTextBoxViewModelFactory,
                 cancellationToken).ConfigureAwait(false);
 
-            return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>());
+            return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
         }
     }
 }

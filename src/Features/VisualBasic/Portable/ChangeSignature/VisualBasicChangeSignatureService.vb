@@ -432,11 +432,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Private Function PermuteDeclaration(Of T As SyntaxNode)(
-                                                               list As SeparatedSyntaxList(Of T),
+                                                               parameterList As SeparatedSyntaxList(Of T),
                                                                updatedSignature As SignatureChange,
                                                                createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
             Dim originalParameterSymbols = updatedSignature.OriginalConfiguration.ToListOfParameters().Select(Function(p) p.Symbol).ToArray()
             Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
+            Dim numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count
+
+            ' The parameter list could be empty if dealing with delegates.
+            If parameterList.IsEmpty() Then
+                Return SyntaxFactory.SeparatedList(parameterList, GetSeparators(parameterList, numSeparatorsToSkip))
+            End If
+
             Dim numAddedParameters = 0
 
             Dim newParameters = New List(Of T)
@@ -444,18 +451,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Dim existingParam = TryCast(newParam, ExistingParameter)
                 If existingParam IsNot Nothing Then
                     Dim pos = originalParameterSymbols.IndexOf(existingParam.Symbol)
-                    Dim param = list(pos)
+                    Dim param = parameterList(pos)
                     newParameters.Add(param)
                 Else
                     ' Added parameter
-                    numAddedParameters = numAddedParameters + 1
+                    numAddedParameters += 1
                     Dim newParameter = createNewParameterMethod(DirectCast(newParam, AddedParameter))
                     newParameters.Add(newParameter)
                 End If
             Next
 
-            Dim numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count
-            Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip))
+            Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(parameterList, numSeparatorsToSkip))
         End Function
 
         Private Shared Function CreateNewArgumentSyntax(addedParameter As AddedParameter) As ArgumentSyntax

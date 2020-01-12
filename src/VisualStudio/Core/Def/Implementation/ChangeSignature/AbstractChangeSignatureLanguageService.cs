@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -22,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             CancellationToken cancellationToken);
         public abstract void GeneratePreviewGrammar(ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
         public abstract IContentType GetContentType(IContentTypeRegistryService contentTypeRegistryService);
+        public abstract bool IsTypeNameValid(string typeName);
 
         protected ITrackingSpan[] CreateTrackingSpansHelper(IProjectionSnapshot snapshot, int contextPoint, int spaceBetweenTypeAndName)
         {

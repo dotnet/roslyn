@@ -848,5 +848,52 @@ public class D2
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestAddParameter_Delegates_Relaxation_ParameterlessFunctionToFunction()
+        {
+            var markup = @"
+class C0
+{
+    delegate int $$MyFunc(int x, string y, bool z);
+
+    class C
+    {
+        public void M()
+        {
+            MyFunc f = Test();
+        }
+
+        private MyFunc Test()
+        {
+            return null;
+        }
+    }
+}";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345")),
+                new AddedParameterOrExistingIndex(1)
+            };
+            var expectedUpdatedCode = @"
+class C0
+{
+    delegate int MyFunc(bool z, int newIntegerParameter, string y);
+
+    class C
+    {
+        public void M()
+        {
+            MyFunc f = Test();
+        }
+
+        private MyFunc Test()
+        {
+            return null;
+        }
+    }
+}";
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
+        }
     }
 }

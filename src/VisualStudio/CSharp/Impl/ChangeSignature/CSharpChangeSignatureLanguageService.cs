@@ -3,6 +3,8 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
@@ -14,9 +16,9 @@ using static Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignat
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
 {
     [ExportLanguageService(typeof(IChangeSignatureLanguageService), LanguageNames.CSharp), Shared]
-    internal class CSharpChangeSignatureLanguageService : ChangeSignatureLanguageService, IChangeSignatureLanguageService
+    internal class CSharpChangeSignatureLanguageService : ChangeSignatureLanguageService
     {
-        public async Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(
+        public override async Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(
             string[] rolesCollectionType,
             string[] rolesCollectionName,
             int insertPosition,
@@ -42,11 +44,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
             }
         }
 
-        public void GeneratePreviewGrammar(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts)
+        public override void GeneratePreviewGrammar(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts)
         {
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type));
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, addedParameterViewModel.Parameter)); ;
         }
+
+        public override bool IsTypeNameValid(string typeName) => !SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics;
     }
 }

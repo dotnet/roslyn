@@ -1064,8 +1064,14 @@ I agree to all of the foregoing:</value>
   <data name="Avoid_unused_value_assignments" xml:space="preserve">
     <value>Avoid unused value assignments</value>
   </data>
+  <data name="Parameter_name_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter name contains invalid character(s).</value>
+  </data>
   <data name="Parameter_preferences_colon" xml:space="preserve">
     <value>Parameter preferences:</value>
+  </data>
+  <data name="Parameter_type_contains_invalid_characters" xml:space="preserve">
+    <value>Parameter type contains invalid character(s).</value>
   </data>
   <data name="Non_public_methods" xml:space="preserve">
     <value>Non-public methods</value>
@@ -1177,6 +1183,9 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="A_new_namespace_will_be_created" xml:space="preserve">
     <value>A new namespace will be created</value>
+  </data>
+  <data name="A_type_and_name_must_be_provided" xml:space="preserve">
+    <value>A type and name must be provided.</value>
   </data>
   <data name="Rename_0_to_1" xml:space="preserve">
     <value>Rename {0} to {1}</value>
