@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -49,6 +50,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public static AssetService CreateAssetProvider(PinnedSolutionInfo solutionInfo, AssetStorage assetStorage)
+        {
+            var serializerService = PrimaryWorkspace.Services.GetRequiredService<ISerializerService>();
+            return new AssetService(solutionInfo.ScopeId, assetStorage, serializerService);
+        }
+
         public Task<(SolutionInfo, SerializableOptionSet)> GetSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             return SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, solutionChecksum, cancellationToken);
@@ -60,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // so we will be conservative and assume it is not. meaning it won't update any internal caches but only consume cache if possible.
             return GetSolutionInternalAsync(solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, cancellationToken: cancellationToken);
         }
+
+        public Task<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+            => GetSolutionInternalAsync(solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
 
         private async Task<Solution> GetSolutionInternalAsync(
             Checksum solutionChecksum,

@@ -1,6 +1,10 @@
-﻿namespace Microsoft.CodeAnalysis.Completion.Providers
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+#nullable enable
+
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal class SymbolMatchPriority
+    internal static class SymbolMatchPriority
     {
         internal static int Keyword = 100;
         internal static int PreferType = 200;
