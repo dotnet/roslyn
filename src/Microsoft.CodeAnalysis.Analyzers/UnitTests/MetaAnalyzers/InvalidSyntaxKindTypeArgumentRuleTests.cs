@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class InvalidSyntaxKindTypeArgumentRuleTests : DiagnosticAnalyzerTestBase
+    public class InvalidSyntaxKindTypeArgumentRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnostic()
         {
             var source = @"
 using System;
@@ -57,11 +56,11 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
             };
 
-            VerifyCSharp(source, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnostic()
         {
             var source = @"
 Imports System
@@ -99,11 +98,11 @@ End Class
                 GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
             };
 
-            VerifyBasic(source, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -129,8 +128,8 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        context.RegisterSyntaxNodeAction(AnalyzeSyntax, null);              // Overload resolution failure
-        context.RegisterSyntaxNodeAction<ErrorType>(AnalyzeSyntax, null);   // Error type argument
+        context.{|CS0411:RegisterSyntaxNodeAction|}(AnalyzeSyntax, null);              // Overload resolution failure
+        context.RegisterSyntaxNodeAction<{|CS0246:ErrorType|}>(AnalyzeSyntax, null);   // Error type argument
         context.RegisterCodeBlockStartAction<T>(AnalyzeCodeBlockStart);     // NYI: Type param as a type argument
     }
 
@@ -143,11 +142,11 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -169,8 +168,8 @@ Class MyAnalyzer(Of T As Structure)
     End Property
 
     Public Overrides Sub Initialize(context As AnalysisContext)
-        context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, Nothing)                  ' Overload resolution failure
-        context.RegisterSyntaxNodeAction(Of ErrorType)(AddressOf AnalyzeSyntax, Nothing)    ' Error type argument
+        context.{|BC30518:RegisterSyntaxNodeAction|}(AddressOf AnalyzeSyntax, Nothing)                  ' Overload resolution failure
+        context.{|BC30521:RegisterSyntaxNodeAction(Of {|BC30002:ErrorType|})|}(AddressOf AnalyzeSyntax, Nothing)    ' Error type argument
         context.RegisterCodeBlockStartAction(Of T)(AddressOf AnalyzeCodeBlockStart)         ' NYI: Type param as a type argument
     End Sub
 
@@ -182,17 +181,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpRegisterActionAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicRegisterActionAnalyzer();
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)

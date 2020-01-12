@@ -1,18 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Analyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
-    public class UseReturnValueFromImmutableObjectMethodTests : DiagnosticAnalyzerTestBase
+    public class UseReturnValueFromImmutableObjectMethodTests
     {
         [Fact]
-        public void CSharpVerifyDiagnostics()
+        public async Task CSharpVerifyDiagnostics()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -41,11 +40,11 @@ class TestSimple
             DiagnosticResult solutionExpected = GetCSharpExpectedDiagnostic(16, 9, "Solution", "AddProject");
             DiagnosticResult compilationExpected = GetCSharpExpectedDiagnostic(19, 9, "Compilation", "RemoveAllSyntaxTrees");
 
-            VerifyCSharp(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
+            await VerifyCS.VerifyAnalyzerAsync(source, documentExpected, projectExpected, solutionExpected, compilationExpected);
         }
 
         [Fact]
-        public void CSharp_VerifyDiagnosticOnExtensionMethod()
+        public async Task CSharp_VerifyDiagnosticOnExtensionMethod()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -60,11 +59,11 @@ class TestExtensionMethodTrivia
     }
 }";
             DiagnosticResult expected = GetCSharpExpectedDiagnostic(10, 9, "SyntaxNode", "WithLeadingTrivia");
-            VerifyCSharp(source, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_VerifyNoDiagnostic()
+        public async Task CSharp_VerifyNoDiagnostic()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -89,29 +88,18 @@ namespace ConsoleApplication1
         }
     }
 }";
-            VerifyCSharp(source);
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return null;
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpImmutableObjectMethodAnalyzer();
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, objectName, methodName);
+            return GetExpectedDiagnostic(line, column, objectName, methodName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string objectName, string methodName)
+        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string objectName, string methodName)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
             return new DiagnosticResult(DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(fileName, line, column)
+                .WithLocation(line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage)
                 .WithArguments(objectName, methodName);
         }
