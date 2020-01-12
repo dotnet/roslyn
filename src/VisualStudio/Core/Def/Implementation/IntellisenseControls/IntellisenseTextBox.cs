@@ -4,7 +4,9 @@ using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -293,6 +295,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             // Get the host control to render the view
             IVsEditorAdaptersFactoryService editorAdapterFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this._textViewHost = editorAdapterFactory.GetWpfTextViewHost(viewModel.VsTextView);
+
+            BindingOperations.SetBinding(_textViewHost.HostControl, AutomationProperties.NameProperty, new Binding { Source = container, Path = new PropertyPath(AutomationProperties.NameProperty) });
+            BindingOperations.SetBinding(_textViewHost.HostControl, AutomationProperties.LabeledByProperty, new Binding { Source = container, Path = new PropertyPath(AutomationProperties.LabeledByProperty) });
 
             // For non-blurry text
             TextOptions.SetTextFormattingMode(this._textViewHost.HostControl, TextFormattingMode.Display);
