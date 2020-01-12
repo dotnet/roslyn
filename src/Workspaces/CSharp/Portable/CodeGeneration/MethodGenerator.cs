@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var returnNullableAnnotation = method.ReturnNullableAnnotation;
 
             (returnTypeAttributes, returnNullableAnnotation) = AdjustNullableAnnotationByAttributes(
-                method.ReturnType, returnTypeAttributes, returnNullableAnnotation, isParameter: false);
+                method.ReturnType, method.RefKind, returnTypeAttributes, returnNullableAnnotation, isParameter: false);
 
             using var _ = ArrayBuilder<AttributeListSyntax>.GetInstance(out var attributes);
 

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <see cref="MaybeNullWhenAttribute"/>.
         /// </summary>
         public static bool IsAllowNullOrMaybeNullAttribute(AttributeData attribute)
-            => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+            => IsCodeAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                IsAllowNullOrMaybeNullAttributeName(attribute.AttributeClass.Name);
 
         private static bool IsAllowNullOrMaybeNullAttributeName(string name) => name switch
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <see cref="NotNullIfNotNullAttribute"/>.
         /// </summary>
         public static bool IsDisallowNullOrNotNullAttribute(AttributeData attribute)
-            => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+            => IsCodeAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                IsDisallowNullOrNotNullAttributeName(attribute.AttributeClass.Name);
 
         private static bool IsDisallowNullOrNotNullAttributeName(string name) => name switch
@@ -142,11 +142,34 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         };
 
         public static bool IsNullableFlowAnalysisAttribute(AttributeData attribute)
-            => IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+            => IsCodeAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                (IsAllowNullOrMaybeNullAttributeName(attribute.AttributeClass.Name) ||
                 IsDisallowNullOrNotNullAttributeName(attribute.AttributeClass.Name));
 
-        private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol)
+        /// <summary>
+        /// Indicates whether the specified attribute is
+        /// <see cref="MaybeNullAttribute"/>,
+        /// <see cref="MaybeNullWhenAttribute"/>,
+        /// <see cref="NotNullAttribute"/>,
+        /// <see cref="NotNullWhenAttribute"/> or
+        /// <see cref="NotNullIfNotNullAttribute"/>.
+        /// </summary>
+        public static bool IsOutputNullableFlowAnalysisAttribute(AttributeData attribute)
+            => IsCodeAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+               attribute.AttributeClass.Name switch
+               {
+                   nameof(MaybeNullAttribute) => true,
+                   nameof(MaybeNullWhenAttribute) => true,
+                   nameof(NotNullAttribute) => true,
+                   nameof(NotNullWhenAttribute) => true,
+                   nameof(NotNullIfNotNullAttribute) => true,
+                   _ => false
+               };
+
+        public static bool IsCodeAnalysisAttribute(AttributeData attribute)
+            => IsCodeAnalysisNamespace(attribute.AttributeClass.ContainingNamespace);
+
+        private static bool IsCodeAnalysisNamespace(INamespaceSymbol namespaceSymbol)
             => namespaceSymbol.Name == nameof(System.Diagnostics.CodeAnalysis) &&
                namespaceSymbol.ContainingNamespace?.Name == nameof(System.Diagnostics) &&
                namespaceSymbol.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&

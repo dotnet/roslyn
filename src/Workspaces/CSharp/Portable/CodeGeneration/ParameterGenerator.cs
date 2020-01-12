@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var nullableAnnotation = parameter.NullableAnnotation;
 
             (attributes, nullableAnnotation) = AdjustNullableAnnotationByAttributes(
-                parameter.Type, attributes, nullableAnnotation, isParameter: true);
+                parameter.Type, parameter.RefKind, attributes, nullableAnnotation, isParameter: true);
 
             if (attributes.Length == 0)
             {

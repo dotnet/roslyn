@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class CSharpCodeGenerationHelpers
     {
-        public static (ImmutableArray<AttributeData>, NullableAnnotation) AdjustNullableAnnotationByAttributes(ITypeSymbol type, ImmutableArray<AttributeData> attributes, NullableAnnotation nullableAnnotation, bool isParameter)
+        public static (ImmutableArray<AttributeData>, NullableAnnotation) AdjustNullableAnnotationByAttributes(ITypeSymbol type, RefKind refKind, ImmutableArray<AttributeData> attributes, NullableAnnotation nullableAnnotation, bool isParameter)
         {
             if (type.IsReferenceType)
             {
@@ -30,52 +31,120 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (!(type is ITypeParameterSymbol typeParameter) ||
                     typeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
                 {
-                    // For [AllowNull]/[MaybeNull], add the nullable annotation.
-                    //
-                    // before                -> after
-                    // ---------------------    --------------------
-                    // ([AllowNull] string?) -> (string?)
-                    // ([AllowNull] string)  -> (string?)
-                    // ([AllowNull] T)       -> (T?) where T : class
-                    var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
-                    if (newAttributes.Length != attributes.Length)
+                    if (refKind == RefKind.Ref)
                     {
-                        attributes = newAttributes;
-                        if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                        if (isParameter)
                         {
-                            nullableAnnotation = NullableAnnotation.Annotated;
-                        }
-                    }
+                            // For "ref" parameters with both [AllowNull] and [MaybeNull], add the nullable annotation.
+                            //
+                            // before                               -> after
+                            // ------------------------------------    -------------
+                            // ([AllowNull][MaybeNull] ref string?) -> (ref string?)
+                            // ([AllowNull][MaybeNull] ref string)  -> (ref string?)
+                            if (attributes.Contains(IsAllowNull) && attributes.Contains(IsMaybeNull))
+                            {
+                                attributes = attributes.RemoveAll(attr => IsAllowNull(attr) || IsMaybeNull(attr));
+                                if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                                {
+                                    nullableAnnotation = NullableAnnotation.Annotated;
+                                }
+                            }
 
-                    if (isParameter)
-                    {
-                        // The compiler does not currently allow parameter nullabilities to differ.
-                        //
-                        //           before                   -> after
-                        //           ------------------------    ------------------------
-                        // -desired: ([DisallowNull] string?) -> (string)
-                        // +current: ([DisallowNull] string?) -> ([DisallowNull] string?)
-                        //           ([DisallowNull] string)  -> (string)
-                        if (nullableAnnotation == NullableAnnotation.NotAnnotated)
-                        {
-                            attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                            // For not annotated "ref" parameters with both [DisallowNull] and [NotNull], remove the nullable annotation.
+                            // The compiler does not currently allow parameter nullabilities to differ.
+                            //
+                            //           before                                -> after
+                            //           -------------------------------------    -------------------------------------
+                            // -desired: ([DisallowNull][NotNull] ref string?) -> (ref string)
+                            // +current: ([DisallowNull][NotNull] ref string?) -> (ref [DisallowNull][NotNull] string?)
+                            //           ([DisallowNull][NotNull] ref string)  -> (ref string)
+                            if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                            {
+                                if (attributes.Contains(IsDisallowNull) && attributes.Contains(IsNotNull))
+                                {
+                                    attributes = attributes.RemoveAll(attr => IsDisallowNull(attr) || IsNotNull(attr));
+                                }
+                            }
+
+                            static bool IsAllowNull(AttributeData attribute)
+                                => IsCodeAnalysisAttribute(attribute) &&
+                                   attribute.AttributeClass.Name == nameof(AllowNullAttribute);
+
+                            static bool IsDisallowNull(AttributeData attribute)
+                                => IsCodeAnalysisAttribute(attribute) &&
+                                   attribute.AttributeClass.Name == nameof(DisallowNullAttribute);
+
+                            static bool IsMaybeNull(AttributeData attribute)
+                                => IsCodeAnalysisAttribute(attribute) &&
+                                   attribute.AttributeClass.Name == nameof(MaybeNullAttribute);
+
+                            static bool IsNotNull(AttributeData attribute)
+                                => IsCodeAnalysisAttribute(attribute) &&
+                                   attribute.AttributeClass.Name == nameof(NotNullAttribute);
                         }
+
+                        // For "ref readonly" return types, nothing to do.
                     }
                     else
                     {
-                        // For [DisallowNull]/[NotNull], remove the nullable annotation.
+                        if (refKind == RefKind.In && isParameter)
+                        {
+                            // For "in" parameters, ignore output attributes.
+                            //
+                            // before                     -> after
+                            // --------------------------    --------------
+                            // ([MaybeNull] ref readonly) -> (ref readonly)
+                            // ([NotNull] ref readonly)   -> (ref readonly)
+                            attributes = attributes.RemoveAll(IsOutputNullableFlowAnalysisAttribute);
+                        }
+
+                        // For [AllowNull]/[MaybeNull], add the nullable annotation.
                         //
-                        // before                   -> after
-                        // ------------------------    --------
-                        // ([DisallowNull] string?) -> (string)
-                        // ([DisallowNull] string)  -> (string)
-                        newAttributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                        // before                -> after
+                        // ---------------------    --------------------
+                        // ([AllowNull] string?) -> (string?)
+                        // ([AllowNull] string)  -> (string?)
+                        // ([AllowNull] T)       -> (T?) where T : class
+                        var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
                         if (newAttributes.Length != attributes.Length)
                         {
                             attributes = newAttributes;
-                            if (nullableAnnotation == NullableAnnotation.Annotated)
+                            if (nullableAnnotation == NullableAnnotation.NotAnnotated)
                             {
-                                nullableAnnotation = NullableAnnotation.NotAnnotated;
+                                nullableAnnotation = NullableAnnotation.Annotated;
+                            }
+                        }
+
+                        if (isParameter)
+                        {
+                            // The compiler does not currently allow parameter nullabilities to differ.
+                            //
+                            //           before                   -> after
+                            //           ------------------------    ------------------------
+                            // -desired: ([DisallowNull] string?) -> (string)
+                            // +current: ([DisallowNull] string?) -> ([DisallowNull] string?)
+                            //           ([DisallowNull] string)  -> (string)
+                            if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                            {
+                                attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                            }
+                        }
+                        else
+                        {
+                            // For [DisallowNull]/[NotNull], remove the nullable annotation.
+                            //
+                            // before                   -> after
+                            // ------------------------    --------
+                            // ([DisallowNull] string?) -> (string)
+                            // ([DisallowNull] string)  -> (string)
+                            newAttributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                            if (newAttributes.Length != attributes.Length)
+                            {
+                                attributes = newAttributes;
+                                if (nullableAnnotation == NullableAnnotation.Annotated)
+                                {
+                                    nullableAnnotation = NullableAnnotation.NotAnnotated;
+                                }
                             }
                         }
                     }

@@ -8725,6 +8725,14 @@ using System.Diagnostics.CodeAnalysis;
 
 interface IInterface<T>
 {{
+    void MethodAllowNull([AllowNull] ref T value);
+
+    void MethodAllowNullMaybeNull([AllowNull, MaybeNull] ref T value);
+
+    void MethodDisallowNull([DisallowNull] ref T value);
+
+    void MethodDisallowNullNotNull([DisallowNull, NotNull] ref T value);
+
     [return: MaybeNull]
     ref T MethodMaybeNull([MaybeNull] ref T value);
 
@@ -8743,6 +8751,14 @@ using System.Diagnostics.CodeAnalysis;
 
 interface IInterface<T>
 {{
+    void MethodAllowNull([AllowNull] ref T value);
+
+    void MethodAllowNullMaybeNull([AllowNull, MaybeNull] ref T value);
+
+    void MethodDisallowNull([DisallowNull] ref T value);
+
+    void MethodDisallowNullNotNull([DisallowNull, NotNull] ref T value);
+
     [return: MaybeNull]
     ref T MethodMaybeNull([MaybeNull] ref T value);
 
@@ -8752,12 +8768,104 @@ interface IInterface<T>
 
 class Class : IInterface<string>
 {{
-    public ref string? MethodMaybeNull(ref string? value)
+    public void MethodAllowNull([AllowNull] ref string value)
     {{
         throw new System.NotImplementedException();
     }}
 
-    public ref string MethodNotNull(ref string value)
+    public void MethodAllowNullMaybeNull(ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public void MethodDisallowNull([DisallowNull] ref string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public void MethodDisallowNullNotNull(ref string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: MaybeNull]
+    public ref string MethodMaybeNull([MaybeNull] ref string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: NotNull]
+    public ref string MethodNotNull([NotNull] ref string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFlowAnalysisAttributeOnNonNullableReferenceTypeByRefReadOnly()
+        {
+            await TestInRegularAndScript1Async(
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    void MethodAllowNull([AllowNull] in T value);
+
+    void MethodDisallowNull([DisallowNull] in T value);
+
+    [return: MaybeNull]
+    ref readonly T MethodMaybeNull([MaybeNull] in T value);
+
+    [return: NotNull]
+    ref readonly T MethodNotNull([NotNull] in T value);
+}}
+
+class Class : [|IInterface<string>|]
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    void MethodAllowNull([AllowNull] in T value);
+
+    void MethodDisallowNull([DisallowNull] in T value);
+
+    [return: MaybeNull]
+    ref readonly T MethodMaybeNull([MaybeNull] in T value);
+
+    [return: NotNull]
+    ref readonly T MethodNotNull([NotNull] in T value);
+}}
+
+class Class : IInterface<string>
+{{
+    public void MethodAllowNull(in string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public void MethodDisallowNull(in string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public ref readonly string? MethodMaybeNull(in string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public ref readonly string MethodNotNull(in string value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8777,6 +8885,14 @@ using System.Diagnostics.CodeAnalysis;
 
 interface IInterface<T>
 {{
+    void MethodAllowNull([AllowNull] ref T value);
+
+    void MethodAllowNullMaybeNull([AllowNull, MaybeNull] ref T value);
+
+    void MethodDisallowNull([DisallowNull] ref T value);
+
+    void MethodDisallowNullNotNull([DisallowNull, NotNull] ref T value);
+
     [return: MaybeNull]
     ref T MethodMaybeNull([MaybeNull] ref T value);
 
@@ -8795,6 +8911,14 @@ using System.Diagnostics.CodeAnalysis;
 
 interface IInterface<T>
 {{
+    void MethodAllowNull([AllowNull] ref T value);
+
+    void MethodAllowNullMaybeNull([AllowNull, MaybeNull] ref T value);
+
+    void MethodDisallowNull([DisallowNull] ref T value);
+
+    void MethodDisallowNullNotNull([DisallowNull, NotNull] ref T value);
+
     [return: MaybeNull]
     ref T MethodMaybeNull([MaybeNull] ref T value);
 
@@ -8804,12 +8928,104 @@ interface IInterface<T>
 
 class Class : IInterface<string?>
 {{
-    public ref string? MethodMaybeNull(ref string? value)
+    public void MethodAllowNull([AllowNull] ref string? value)
     {{
         throw new System.NotImplementedException();
     }}
 
-    public ref string MethodNotNull([NotNull] ref string? value)
+    public void MethodAllowNullMaybeNull(ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public void MethodDisallowNull([DisallowNull] ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public void MethodDisallowNullNotNull([DisallowNull, NotNull] ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: MaybeNull]
+    public ref string? MethodMaybeNull([MaybeNull] ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: NotNull]
+    public ref string? MethodNotNull([NotNull] ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        [WorkItem(39256, "https://github.com/dotnet/roslyn/issues/39256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFlowAnalysisAttributeOnNullableReferenceTypeByRefReadOnly()
+        {
+            await TestInRegularAndScript1Async(
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    void MethodAllowNull([AllowNull] in T value);
+
+    void MethodDisallowNull([DisallowNull] in T value);
+
+    [return: MaybeNull]
+    ref readonly T MethodMaybeNull([MaybeNull] in T value);
+
+    [return: NotNull]
+    ref readonly T MethodNotNull([NotNull] in T value);
+}}
+
+class Class : [|IInterface<string?>|]
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    void MethodAllowNull([AllowNull] in T value);
+
+    void MethodDisallowNull([DisallowNull] in T value);
+
+    [return: MaybeNull]
+    ref readonly T MethodMaybeNull([MaybeNull] in T value);
+
+    [return: NotNull]
+    ref readonly T MethodNotNull([NotNull] in T value);
+}}
+
+class Class : IInterface<string?>
+{{
+    public void MethodAllowNull(in string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public void MethodDisallowNull([DisallowNull] in string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public ref readonly string? MethodMaybeNull(in string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public ref readonly string MethodNotNull(in string? value)
     {{
         throw new System.NotImplementedException();
     }}
