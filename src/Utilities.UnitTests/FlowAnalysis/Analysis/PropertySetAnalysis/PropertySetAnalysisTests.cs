@@ -72,9 +72,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             Debug.Assert(success);
             Debug.Assert(cfg != null);
 
-#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
-#pragma warning restore CA1508 // Avoid dead conditional code
             {
                 DiagnosticDescriptor dummy = new DiagnosticDescriptor("fakeId", null, null, "fakeagory", DiagnosticSeverity.Info, true);
                 PropertySetAnalysisResult result =
@@ -1266,23 +1264,11 @@ class TestClass
                 TestTypeToTrack_HazardousIfStringObjectIsNonNull);
         }
 
-        #region Infrastructure
         private ITestOutputHelper TestOutput { get; }
 
         public PropertySetAnalysisTests(ITestOutputHelper output)
         {
             this.TestOutput = output;
         }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return null;
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return null;
-        }
-        #endregion Infrastructure
     }
 }
