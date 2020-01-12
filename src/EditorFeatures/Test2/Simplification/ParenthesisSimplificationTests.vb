@@ -301,7 +301,7 @@ End Class
 
         <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnLambda() As Task
+        Public Async Function TestVisualBasic_RemoveEmptyArgumentListOnMethodGroup() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -314,18 +314,6 @@ Public Class TestClass
     Public Shared Sub Main()
         Dim inferredMethodGroup = MyIf({|SimplifyExtension:TestClass.GetFour()|})
         System.Console.WriteLine(inferredMethodGroup)
-            
-        Dim inferredInlineFunction = MyIf({|SimplifyExtension:Function()
-                Return 5
-            End Function()|})
-        System.Console.WriteLine(inferredInlineFunction)
-        
-        Dim localDelegate = Function() As Integer
-                Return 6
-            End Function
-
-        Dim inferredLocalDelegate = MyIf({|SimplifyExtension:localDelegate()|})
-        System.Console.WriteLine(inferredLocalDelegate)
     End Sub
     
     Public Shared Function MyIf(y As Integer)
@@ -350,12 +338,104 @@ Public Class TestClass
     Public Shared Sub Main()
         Dim inferredMethodGroup = MyIf(TestClass.GetFour)
         System.Console.WriteLine(inferredMethodGroup)
-            
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnInlineLambda() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class TestClass
+    Public Shared Sub Main()
+        Dim inferredInlineFunction = MyIf({|SimplifyExtension:Function()
+                Return 5
+            End Function()|})
+        System.Console.WriteLine(inferredInlineFunction)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Public Class TestClass
+    Public Shared Sub Main()
         Dim inferredInlineFunction = MyIf(Function()
                 Return 5
             End Function())
         System.Console.WriteLine(inferredInlineFunction)
-        
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnLocalLambda() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class TestClass
+    Public Shared Sub Main()
+        Dim localDelegate = Function() As Integer
+                Return 6
+            End Function
+
+        Dim inferredLocalDelegate = MyIf({|SimplifyExtension:localDelegate()|})
+        System.Console.WriteLine(inferredLocalDelegate)
+    End Sub
+    
+    Public Shared Function MyIf(y As Integer)
+        Return y
+    End Function
+    
+    Public Shared Function MyIf(y As Object)
+        Return y
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Public Class TestClass
+    Public Shared Sub Main()       
         Dim localDelegate = Function() As Integer
                 Return 6
             End Function
