@@ -301,7 +301,7 @@ End Class
 
         <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestVisualBasic_OnlyRemoveEmptyArgumentLisForMethodGroup() As Task
+        Public Async Function TestVisualBasic_DoNotRemoveEmptyArgumentListOnLambda() As Task
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
