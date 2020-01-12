@@ -2179,11 +2179,15 @@ class C
             assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
 
-            void assertAnnotation(ForEachStatementSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            void assertAnnotation(ForEachStatementSyntax foreachStatement, PublicNullableAnnotation expectedAnnotation)
             {
-                var symbol = model.GetDeclaredSymbol(variable);
+                var symbol = model.GetDeclaredSymbol(foreachStatement);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+
+                var typeInfo = model.GetTypeInfo(foreachStatement.Type);
+                Assert.Equal(expectedAnnotation, typeInfo.Nullability.Annotation);
+                Assert.Equal(expectedAnnotation, typeInfo.ConvertedNullability.Annotation);
             }
         }
 

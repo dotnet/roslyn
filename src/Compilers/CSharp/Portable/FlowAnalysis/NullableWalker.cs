@@ -7165,7 +7165,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
                         {
                             // foreach (var variable in collection)
-                            _variableTypes[iterationVariable] = sourceState.ToAnnotatedTypeWithAnnotations();
+                            destinationType = sourceState.ToAnnotatedTypeWithAnnotations();
+                            _variableTypes[iterationVariable] = destinationType;
                         }
                         else
                         {

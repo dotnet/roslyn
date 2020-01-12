@@ -90,7 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
 
             if (parensDesignation is null)
             {
-                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).ConvertedType;
+                var typeInfo = semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded());
+                var typeSymbol = semanticModel.GetNullableContext(node.Span.End).AnnotationsEnabled() ? typeInfo.GetConvertedTypeWithAnnotatedNullability() : typeInfo.ConvertedType;
 
                 // We're going to be passed through the simplifier.  Tell it to not just convert
                 // this back to var (as that would defeat the purpose of this refactoring entirely).
