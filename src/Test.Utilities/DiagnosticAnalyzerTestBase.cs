@@ -7,11 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,7 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Test.Utilities
 {
@@ -32,7 +29,6 @@ namespace Test.Utilities
         {
             None = 0b000,
             RemoveCodeAnalysis = 0b001,
-            AddTestReferenceAssembly = 0b1000,
         }
 
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -48,17 +44,9 @@ namespace Test.Utilities
 
         protected const TestValidationMode DefaultTestValidationMode = TestValidationMode.AllowCompileWarnings;
 
-        public DiagnosticAnalyzerTestBase(ITestOutputHelper output)
-        {
-            this.Output = output;
-        }
-
-        public DiagnosticAnalyzerTestBase()
-            : this(null)
+        protected DiagnosticAnalyzerTestBase()
         {
         }
-
-        protected ITestOutputHelper Output { get; }
 
         /// <summary>
         /// Return the C# diagnostic analyzer to get analyzer diagnostics.
@@ -73,9 +61,6 @@ namespace Test.Utilities
         /// </summary>
         /// <returns></returns>
         protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
-
-        // It is assumed to be of the format, Get<RuleId>CSharpResultAt(line: {0}, column: {1}, message: {2})
-        private string ExpectedDiagnosticsAssertionTemplate { get; set; }
 
         protected static DiagnosticResult GetBasicResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
@@ -123,17 +108,6 @@ namespace Test.Utilities
             Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
         }
 
-        protected void VerifyCSharp(string[] sources, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, referenceFlags, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string[] sources, FileAndSource additionalFile, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            var additionalFiles = new[] { GetAdditionalTextFile(additionalFile.FilePath, additionalFile.Source) };
-            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, referenceFlags, compilationOptions: null, parseOptions: null, additionalFiles: additionalFiles, expected: expected);
-        }
-
         protected void VerifyCSharpAcrossTwoAssemblies(string dependencySource, string source, params DiagnosticResult[] expected)
         {
             VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.CSharp, additionalFileOpt: null, expected);
@@ -172,13 +146,13 @@ namespace Test.Utilities
         private void Verify(string source, string language, DiagnosticAnalyzer analyzer, ReferenceFlags referenceFlags, TestValidationMode validationMode, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, referenceFlags: referenceFlags, validationMode: validationMode);
-            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
+            diagnostics.Verify(analyzer, GetDefaultPath(language), expected);
         }
 
         private void Verify(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode, ReferenceFlags referenceFlags, CompilationOptions compilationOptions, ParseOptions parseOptions, IEnumerable<TestAdditionalDocument> additionalFiles, params DiagnosticResult[] expected)
         {
             var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, parseOptions, validationMode, referenceFlags: referenceFlags, additionalFiles: additionalFiles);
-            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
+            diagnostics.Verify(analyzer, GetDefaultPath(language), expected);
         }
 
         private void VerifyAcrossTwoAssemblies(string dependencySource, string source, string language, FileAndSource? additionalFileOpt, params DiagnosticResult[] expected)
@@ -297,11 +271,6 @@ namespace Test.Utilities
 
             project = project.AddMetadataReference(AdditionalMetadataReferences.SystemCollectionsImmutableReference);
             project = project.AddMetadataReference(AdditionalMetadataReferences.SystemXmlDataReference);
-
-            if ((referenceFlags & ReferenceFlags.AddTestReferenceAssembly) == ReferenceFlags.AddTestReferenceAssembly)
-            {
-                project = project.AddMetadataReference(AdditionalMetadataReferences.TestReferenceAssembly);
-            }
 
             int count = 0;
             foreach (FileAndSource source in sources)

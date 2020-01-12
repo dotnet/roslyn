@@ -24,8 +24,6 @@ namespace Test.Utilities
         public static void Verify(
             this IEnumerable<Diagnostic> actualResults,
             DiagnosticAnalyzer analyzer,
-            ITestOutputHelper output,
-            string expectedDiagnosticsAssertionTemplate,
             string defaultPath,
             params DiagnosticResult[] expectedResults)
         {
@@ -41,12 +39,6 @@ namespace Test.Utilities
             if (expectedCount != actualCount)
             {
                 string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzer, actualResults) : "    NONE.";
-
-                if (output != null)
-                {
-                    actualResults.Print(output, expectedDiagnosticsAssertionTemplate);
-                }
-
                 AssertFalse(
                     string.Format(CultureInfo.InvariantCulture, "Mismatch between number of diagnostics returned, expected \"{0}\" actual \"{1}\"\r\n\r\nDiagnostics:\r\n{2}\r\n", expectedCount, actualCount, diagnosticsOutput));
             }
@@ -65,11 +57,6 @@ namespace Test.Utilities
                 }
                 else
                 {
-                    if (output != null)
-                    {
-                        actualResults.Print(output, expectedDiagnosticsAssertionTemplate);
-                    }
-
                     // Eh...just blow up on the first actual that's left?
                     IsMatch(actualList[0], isAssertEnabled: true);
                 }
@@ -172,36 +159,10 @@ namespace Test.Utilities
             }
         }
 
-        public static void Verify(this IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, string defaultPath, params DiagnosticResult[] expectedResults)
-        {
-            Verify(actualResults, analyzer, null, null, defaultPath, expectedResults);
-        }
-
         private static void AssertFalse(
             string message)
         {
             Assert.True(false, message);
-        }
-
-        public static void Print(this IEnumerable<Diagnostic> actualResults, ITestOutputHelper output, string expectedDiagnosticsAssertionTemplate)
-        {
-            output.WriteLine("Actual diagnostics produced:");
-            output.WriteLine("============================");
-            foreach (var diagnostic in actualResults)
-            {
-                var actualLinePosition = diagnostic.Location.GetLineSpan().StartLinePosition;
-                var message = diagnostic.GetMessage();
-                var lineNumber = actualLinePosition.Line + 1;
-                var columnNumber = actualLinePosition.Character + 1;
-                if (expectedDiagnosticsAssertionTemplate != null)
-                {
-                    output.WriteLine(string.Format(CultureInfo.InvariantCulture, expectedDiagnosticsAssertionTemplate, lineNumber, columnNumber, message));
-                }
-                else
-                {
-                    output.WriteLine($"(line: {lineNumber}, column: {columnNumber}, id: {diagnostic.Id}, message: {message})");
-                }
-            }
         }
 
         /// <param name="isAssertEnabled">Indicates that unit test assertions are enabled for non-matches.</param>
