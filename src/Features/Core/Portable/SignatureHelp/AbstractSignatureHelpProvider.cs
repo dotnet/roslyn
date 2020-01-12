@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
+        // TODO: remove once Pythia moves to ExternalAccess APIs
         protected SignatureHelpItem CreateItem(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
@@ -129,13 +130,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> prefixParts,
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
-            IList<SignatureHelpSymbolParameter> parameters)
+            IList<SignatureHelpSymbolParameter> parameters,
+            IList<SymbolDisplayPart> descriptionParts = null)
         {
-            return CreateItem(orderSymbol, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService,
-                isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts: null);
+            return CreateItemImpl(orderSymbol, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService,
+                isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
         }
 
-        protected static SignatureHelpItem CreateItem(
+        protected static SignatureHelpItem CreateItemImpl(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,

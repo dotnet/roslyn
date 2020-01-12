@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
 
-            return CreateItem(
+            return CreateItemImpl(
                 method, semanticModel, position,
                 symbolDisplayService, anonymousTypeDisplayService,
                 method.IsParams(),
