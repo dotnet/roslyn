@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Host
             /// <see cref="MemoryMappedInfo"/>.
             /// </summary>
             public long Size { get; }
-            }
 
             /// <summary>
             /// Caller is responsible for disposing the returned stream.
