@@ -298,6 +298,44 @@ End Class
 
             Await TestAsync(input, expected)
         End Function
+
+        <WorkItem(40442, "https://github.com/dotnet/roslyn/issues/40442")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestVisualBasic_DontRemoveEmptyArgumentListParenthesesWhenNotInferrable() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Public Class TestClass
+    Private Shared prop As String
+    Public Shared Sub Main()
+        Dim inferred = If(prop, {|SimplifyExtension:Function() As Integer
+                    Return 5
+                End Function()|})
+        System.Console.WriteLine(inferred)
+        System.Console.WriteLine({|SimplifyExtension:inferred.ToString()|})
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Public Class TestClass
+    Private Shared prop As String
+    Public Shared Sub Main()
+        Dim inferred = If(prop, Function() As Integer
+                    Return 5
+                End Function())
+        System.Console.WriteLine(inferred)
+        System.Console.WriteLine(inferred.ToString())
+    End Sub
+End Class
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
 #End Region
 
 #Region "VB Array Literal tests"
