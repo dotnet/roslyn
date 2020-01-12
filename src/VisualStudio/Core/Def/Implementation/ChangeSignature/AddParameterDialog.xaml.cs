@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -17,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public readonly AddParameterDialogViewModel ViewModel;
         private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxView;
         private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxView;
+        private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
@@ -32,13 +34,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialog(
             IntellisenseTextBoxViewModel typeIntellisenseTextBoxViewModel,
             IntellisenseTextBoxViewModel nameIntellisenseTextBoxViewModel,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            Document document)
         {
             // The current implementation supports Add only.
             // The dialog should be initialized the other way if called for Edit.
             ViewModel = new AddParameterDialogViewModel(notificationService);
             _typeIntellisenseTextBoxView = typeIntellisenseTextBoxViewModel;
             _nameIntellisenseTextBoxView = nameIntellisenseTextBoxViewModel;
+            _document = document;
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = ViewModel;
 
@@ -61,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
             ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
 
-            if (ViewModel.TrySubmit())
+            if (ViewModel.TrySubmit(_document))
             {
                 DialogResult = true;
             }
@@ -94,9 +98,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
-                    else if (typeNameTextBox.ContainerName.Equals("NameContentControl") && e.Key == Key.Space)
+                    else if (e.Key == Key.Space &&
+                        (typeNameTextBox.ContainerName.Equals("NameContentControl") ||
+                        (typeNameTextBox.ContainerName.Equals("TypeContentControl") && _document.Project.Language.Equals(LanguageNames.CSharp))))
                     {
-                        // Do nothing. We disallow spaces in the name field for both C# and VB.
+                        // Do nothing. We disallow spaces in the name field for both C# and VB, and in the type field for C#.
                         e.Handled = true;
                     }
                     else

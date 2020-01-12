@@ -3,7 +3,9 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 Imports Microsoft.VisualStudio.Text
@@ -14,13 +16,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(IChangeSignatureLanguageService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicChangeSignatureLanguageService
         Inherits ChangeSignatureLanguageService
-        Implements IChangeSignatureLanguageService
-        Public Async Function CreateViewModelsAsync(rolesCollectionType() As String,
+        Public Overrides Async Function CreateViewModelsAsync(rolesCollectionType() As String,
                                               rolesCollectionName() As String,
                                               insertPosition As Integer, document As Document,
                                               documentText As String, contentType As IContentType,
                                               intellisenseTextBoxViewModelFactory As IntellisenseTextBoxViewModelFactory,
-                                              cancellationToken As CancellationToken) As Task(Of IntellisenseTextBoxViewModel()) Implements IChangeSignatureLanguageService.CreateViewModelsAsync
+                                              cancellationToken As CancellationToken) As Task(Of IntellisenseTextBoxViewModel())
             Dim rolesCollections = {rolesCollectionName, rolesCollectionType}
 
             ' We insert '[]' so that we're always able to generate the type even if the name field is empty. 
@@ -38,9 +39,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
                 cancellationToken).ConfigureAwait(False)
         End Function
 
-        Public Sub GeneratePreviewGrammar(addedParameterViewModel As ChangeSignatureDialogViewModel.AddedParameterViewModel, displayParts As List(Of SymbolDisplayPart)) Implements IChangeSignatureLanguageService.GeneratePreviewGrammar
+        Public Overrides Sub GeneratePreviewGrammar(addedParameterViewModel As ChangeSignatureDialogViewModel.AddedParameterViewModel, displayParts As List(Of SymbolDisplayPart))
             displayParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, addedParameterViewModel.Parameter))
             displayParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, " As " + addedParameterViewModel.Type))
         End Sub
+
+        Public Overrides Function IsTypeNameValid(typeName As String) As Boolean
+            Return Not SyntaxFactory.ParseTypeName(typeName).ContainsDiagnostics
+        End Function
     End Class
 End Namespace

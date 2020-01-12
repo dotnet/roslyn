@@ -12,6 +12,11 @@
         <target state="translated">Verrà creato un nuovo spazio dei nomi</target>
         <note />
       </trans-unit>
+      <trans-unit id="A_type_and_name_must_be_provided">
+        <source>A type and name must be provided.</source>
+        <target state="new">A type and name must be provided.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add">
         <source>_Add</source>
         <target state="new">_Add</target>
@@ -437,9 +442,19 @@
         <target state="new">Parameter name:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_name_contains_invalid_characters">
+        <source>Parameter name contains invalid character(s).</source>
+        <target state="new">Parameter name contains invalid character(s).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
         <target state="translated">Preferenze per parametri:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_type_contains_invalid_characters">
+        <source>Parameter type contains invalid character(s).</source>
+        <target state="new">Parameter type contains invalid character(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">

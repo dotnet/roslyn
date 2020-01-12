@@ -1,10 +1,20 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
-    internal class ChangeSignatureLanguageService
+    internal abstract class ChangeSignatureLanguageService : IChangeSignatureLanguageService
     {
+        public abstract Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(string[] rolesCollectionType, string[] rolesCollectionName, int insertPosition, Document document, string documentText, IContentType contentType, IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory, CancellationToken cancellationToken);
+        public abstract void GeneratePreviewGrammar(ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
+        public abstract bool IsTypeNameValid(string typeName);
+
         protected ITrackingSpan[] CreateTrackingSpansHelper(IProjectionSnapshot snapshot, int contextPoint, int spaceBetweenTypeAndName)
         {
             // Get the previous span/text.

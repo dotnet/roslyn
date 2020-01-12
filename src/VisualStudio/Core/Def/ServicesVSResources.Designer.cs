@@ -145,6 +145,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A type and name must be provided..
+        /// </summary>
+        internal static string A_type_and_name_must_be_provided {
+            get {
+                return ResourceManager.GetString("A_type_and_name_must_be_provided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Access:.
         /// </summary>
         internal static string Access_colon {
@@ -2308,11 +2317,29 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter name contains invalid character(s)..
+        /// </summary>
+        internal static string Parameter_name_contains_invalid_characters {
+            get {
+                return ResourceManager.GetString("Parameter_name_contains_invalid_characters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter preferences:.
         /// </summary>
         internal static string Parameter_preferences_colon {
             get {
                 return ResourceManager.GetString("Parameter_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter type contains invalid character(s)..
+        /// </summary>
+        internal static string Parameter_type_contains_invalid_characters {
+            get {
+                return ResourceManager.GetString("Parameter_type_contains_invalid_characters", resourceCulture);
             }
         }
         

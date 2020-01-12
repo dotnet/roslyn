@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Utilities;
@@ -24,5 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             CancellationToken cancellationToken);
 
         void GeneratePreviewGrammar(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
+
+        bool IsTypeNameValid(string typeName);
     }
 }
