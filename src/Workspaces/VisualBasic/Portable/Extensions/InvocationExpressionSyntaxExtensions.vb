@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            If TypeOf invocationExpression.Parent Is CallStatementSyntax
+            If invocationExpression.IsParentKind(SyntaxKind.CallStatement) Then
                 Return True
             End If
 
