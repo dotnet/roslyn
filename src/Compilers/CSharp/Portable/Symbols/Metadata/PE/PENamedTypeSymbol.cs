@@ -2356,36 +2356,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            private readonly PENamedTypeSymbolNonGeneric _underlying;
-            internal override bool IsNativeInt { get; }
-
             internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
             {
                 Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
 
-                if (IsNativeInt == asNativeInt)
-                {
-                    return this;
-                }
-
-                return asNativeInt ? new PENamedTypeSymbolNonGeneric(this, isNativeInt: true) : _underlying;
+                return asNativeInt ?
+                    (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) :
+                    this;
             }
 
-            // PROTOTYPE: Temporary approach for AsNativeInt().
             internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
             {
-                if ((object)t2 == null) return false;
-                if ((object)t2 == this) return true;
-
-                var other = t2 as PENamedTypeSymbolNonGeneric;
-                if ((object)other != null &&
-                    (this.IsNativeInt || other.IsNativeInt) &&
-                    this.SpecialType == other.SpecialType)
-                {
-                    return true;
-                }
-
-                return base.Equals(t2, comparison, isValueTypeOverrideOpt);
+                return t2 is NativeIntegerTypeSymbol nativeInteger ?
+                    nativeInteger.Equals(this, comparison, isValueTypeOverrideOpt) :
+                    base.Equals(t2, comparison, isValueTypeOverrideOpt);
             }
         }
 

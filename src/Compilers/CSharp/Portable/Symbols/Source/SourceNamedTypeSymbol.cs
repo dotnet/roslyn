@@ -10,7 +10,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1396,5 +1395,21 @@ next:;
         }
 
         #endregion
+
+        internal override NamedTypeSymbol AsNativeInt(bool asNativeInt)
+        {
+            Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+
+            return asNativeInt ?
+                (NamedTypeSymbol)new NativeIntegerTypeSymbol(this) :
+                this;
+        }
+
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        {
+            return t2 is NativeIntegerTypeSymbol nativeInteger ?
+                nativeInteger.Equals(this, comparison, isValueTypeOverrideOpt) :
+                base.Equals(t2, comparison, isValueTypeOverrideOpt);
+        }
     }
 }

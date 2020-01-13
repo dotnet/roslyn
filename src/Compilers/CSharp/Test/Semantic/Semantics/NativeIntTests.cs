@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NativeIntTests : CSharpTestBase
     {
+        private static readonly SymbolDisplayFormat FormatWithSpecialTypes = SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         [Fact]
         public void LanguageVersion()
         {
@@ -39,6 +41,100 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FromSource()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct IntPtr { }
+    public struct UIntPtr { }
+}";
+            var sourceB =
+@"interface I
+{
+    nint Add(nint x, nuint y);
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            verify(comp, comp.SyntaxTrees[1]);
+
+            comp = CreateEmptyCompilation(sourceA);
+            comp.VerifyDiagnostics();
+            var refA = comp.EmitToImageReference();
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            verify(comp, comp.SyntaxTrees[0]);
+
+            static void verify(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var nodes = tree.GetRoot().DescendantNodes().ToArray();
+                var model = comp.GetSemanticModel(tree);
+                var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
+                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                var type0 = method.Parameters[0].Type;
+                var type1 = method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_IntPtr, type0.SpecialType);
+                Assert.True(IsNativeInt(type0));
+                Assert.Equal(SymbolKind.NamedType, type0.Kind);
+                Assert.Equal(TypeKind.Struct, type0.TypeKind);
+                Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
+                Assert.True(IsNativeInt(type1));
+                Assert.Equal(SymbolKind.NamedType, type1.Kind);
+                Assert.Equal(TypeKind.Struct, type1.TypeKind);
+            }
+        }
+
+        [Fact]
+        public void MissingTypes()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+}";
+            var sourceB =
+@"interface I
+{
+    nint Add(nint x, nuint y);
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //     nint Add(nint x, nuint y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 5),
+                // (3,14): error CS0518: Predefined type 'System.IntPtr' is not defined or imported
+                //     nint Add(nint x, nuint y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.IntPtr").WithLocation(3, 14),
+                // (3,22): error CS0518: Predefined type 'System.UIntPtr' is not defined or imported
+                //     nint Add(nint x, nuint y);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint").WithArguments("System.UIntPtr").WithLocation(3, 22));
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[1];
+                var nodes = tree.GetRoot().DescendantNodes().ToArray();
+                var model = comp.GetSemanticModel(tree);
+                var method = model.GetDeclaredSymbol(nodes.OfType<MethodDeclarationSyntax>().Single());
+                Assert.Equal("nint I.Add(nint x, nuint y)", method.ToDisplayString(FormatWithSpecialTypes));
+                var type0 = method.Parameters[0].Type;
+                var type1 = method.Parameters[1].Type;
+                Assert.Equal(SpecialType.System_IntPtr, type0.SpecialType);
+                Assert.Equal(SymbolKind.ErrorType, type0.Kind);
+                Assert.Equal(TypeKind.Error, type0.TypeKind);
+                Assert.True(IsNativeInt(type0));
+                Assert.Equal(SpecialType.System_UIntPtr, type1.SpecialType);
+                Assert.True(IsNativeInt(type1));
+                Assert.Equal(SymbolKind.ErrorType, type1.Kind);
+                Assert.Equal(TypeKind.Error, type1.TypeKind);
+            }
         }
 
         // PROTOTYPE: Test:

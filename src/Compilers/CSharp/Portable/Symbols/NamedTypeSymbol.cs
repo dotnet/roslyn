@@ -1520,10 +1520,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        // PROTOTYPE: Should be abstract.
-        internal virtual NamedTypeSymbol AsNativeInt(bool asNativeInt) => this;
+        internal virtual NamedTypeSymbol AsNativeInt(bool asNativeInt) => throw ExceptionUtilities.Unreachable;
 
-        // PROTOTYPE: Should be abstract.
         internal virtual bool IsNativeInt => false;
 
         protected override ISymbol CreateISymbol()
