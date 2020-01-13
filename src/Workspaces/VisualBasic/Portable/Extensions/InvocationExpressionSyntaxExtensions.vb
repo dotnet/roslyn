@@ -47,6 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
+            If TypeOf invocationExpression.Parent Is CallStatementSyntax
+                Return True
+            End If
+
             Dim isOrdinaryMethod = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol?.IsOrdinaryMethod
             Return isOrdinaryMethod.HasValue AndAlso isOrdinaryMethod.Value
         End Function
