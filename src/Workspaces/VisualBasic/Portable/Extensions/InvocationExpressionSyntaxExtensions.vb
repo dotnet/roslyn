@@ -51,8 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
-            Dim isOrdinaryMethod = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol?.IsOrdinaryMethod
-            Return isOrdinaryMethod.HasValue AndAlso isOrdinaryMethod.Value
+            Dim symbol As ISymbol = semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol
+            Return symbol IsNot Nothing AndAlso symbol.MatchesKind(SymbolKind.Property, SymbolKind.Method) AndAlso Not symbol.IsAnonymousFunction
         End Function
 
         <Extension>
