@@ -30,9 +30,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
                 Return text.Substring("'".Length, text.Length - "''".Length)
             End If
         End Function
-
-        Protected Overrides Function IsConstMemberDeclaration(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As Boolean
-            Return syntaxFacts.GetModifiers(node).Contains(Function(s) s.IsKind(SyntaxKind.ConstKeyword))
-        End Function
     End Class
 End Namespace

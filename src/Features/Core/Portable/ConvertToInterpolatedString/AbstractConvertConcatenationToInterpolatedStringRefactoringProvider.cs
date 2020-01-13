@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
-        protected abstract bool IsConstMemberDeclaration(SyntaxNode node, ISyntaxFactsService syntaxFacts);
-
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;

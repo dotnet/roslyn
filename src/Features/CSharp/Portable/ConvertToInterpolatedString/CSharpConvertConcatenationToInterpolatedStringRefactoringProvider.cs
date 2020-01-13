@@ -34,10 +34,5 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString
             => isVerbatim
                 ? text.Substring("@'".Length, text.Length - "@''".Length)
                 : text.Substring("'".Length, text.Length - "''".Length);
-
-        protected override bool IsConstMemberDeclaration(SyntaxNode node, ISyntaxFactsService syntaxFacts)
-        {
-            return syntaxFacts.GetModifiers(node).Any(SyntaxKind.ConstKeyword);
-        }
     }
 }
