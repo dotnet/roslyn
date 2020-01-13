@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 cs: "E()",
                 csSimple: "E()",
                 vb: "E()",
-                vbSimple: "E");
+                vbSimple: "E()");
         }
 
         [Fact]
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 cs: "E[]",
                 csSimple: "E[]",
                 vb: "E()",
-                vbSimple: "E");
+                vbSimple: "E()");
         }
 
         [Fact]
