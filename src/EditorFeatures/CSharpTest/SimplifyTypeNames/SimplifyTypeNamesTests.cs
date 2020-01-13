@@ -1977,6 +1977,7 @@ index: 1);
             {
             }
         }
+
         static void Main(int Goo)
         {
             [|N.Program.Goo.Bar|]();
@@ -1994,6 +1995,7 @@ index: 1);
             {
             }
         }
+
         static void Main(int Goo)
         {
             Program.Goo.Bar();
@@ -2057,6 +2059,7 @@ index: 1);
         {
             await TestInRegularAndScriptAsync(
 @"using System.Linq;
+
 namespace N
 {
     class Program
@@ -2076,6 +2079,7 @@ namespace N
     }
 }",
 @"using System.Linq;
+
 namespace N
 {
     class Program
