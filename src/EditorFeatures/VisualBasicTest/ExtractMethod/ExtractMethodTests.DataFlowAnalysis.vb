@@ -4957,7 +4957,7 @@ Class C
     End Sub
 
     Private Shared Sub NewMethod()
-        Program()
+        Program
     End Sub
 End Class</text>
 
@@ -5169,7 +5169,7 @@ Module Program
     End Sub
 
     Private Sub NewMethod()
-        Console.Write()
+        Console.Write
     End Sub
 End Module</text>
 
