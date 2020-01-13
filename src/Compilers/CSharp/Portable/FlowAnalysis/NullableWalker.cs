@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol nodeType = node.Type;
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
                 var conversionsWithoutNullability = this.compilation.Conversions;
-                Debug.Assert(nodeType.IsErrorType() ||
+                Debug.Assert(node.HasErrors || nodeType.IsErrorType() ||
                        conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(slotType, nodeType, ref discardedUseSiteDiagnostics) ||
                        conversionsWithoutNullability.HasBoxingConversion(slotType, nodeType, ref discardedUseSiteDiagnostics));
             }

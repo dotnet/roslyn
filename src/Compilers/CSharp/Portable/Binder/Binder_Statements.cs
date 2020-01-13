@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: associatedSyntaxNode,
                 localSymbol: localSymbol,
                 declaredTypeOpt: boundDeclType,
-                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt) : initializerOpt,
+                initializerOpt: hasErrors ? BindToTypeForErrorRecovery(initializerOpt).WithHasErrors() : initializerOpt,
                 argumentsOpt: arguments,
                 inferredType: isVar,
                 hasErrors: hasErrors);
