@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                                                  .WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
                                                  .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
                                                  .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, newVarWhenTypeIsApparentValue)
-                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue);
+                                                 .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue)));
 
             await VerifyOptionSetsAsync(workspace, VerifyOptions).ConfigureAwait(false);
 
