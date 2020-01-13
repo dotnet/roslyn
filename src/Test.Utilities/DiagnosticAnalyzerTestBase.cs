@@ -483,7 +483,7 @@ namespace Test.Utilities
                             .ToImmutableDictionary()));
         }
 
-        protected static FileAndSource GetEditorConfigAdditionalFile(string source)
+        public static FileAndSource GetEditorConfigAdditionalFile(string source)
             => new FileAndSource() { Source = source, FilePath = ".editorconfig" };
     }
 
