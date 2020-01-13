@@ -560,6 +560,94 @@ class Program
             await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        public async Task NullableType_OutVar()
+        {
+            var before = @"
+#nullable enable
+class Program
+{
+    void Method(out Program? x)
+    {
+        Method(out [|var|] y1);
+        throw null!;
+    }
+}";
+            var after = @"
+#nullable enable
+class Program
+{
+    void Method(out Program? x)
+    {
+        Method(out Program? y1);
+        throw null!;
+    }
+}";
+            // The type is not intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        public async Task NotNullableType_OutVar()
+        {
+            var before = @"
+#nullable enable
+class Program
+{
+    void Method(out Program x)
+    {
+        Method(out [|var|] y1);
+        throw null!;
+    }
+}";
+            var after = @"
+#nullable enable
+class Program
+{
+    void Method(out Program x)
+    {
+        Method(out Program? y1);
+        throw null!;
+    }
+}";
+            // The type is not intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
+        public async Task ObliviousType_OutVar()
+        {
+            var before = @"
+class Program
+{
+    void Method(out Program x)
+    {
+        Method(out [|var|] y1);
+        throw null;
+    }
+}";
+            var after = @"
+class Program
+{
+    void Method(out Program x)
+    {
+        Method(out Program y1);
+        throw null;
+    }
+}";
+            // The type is not intrinsic and not apparent
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeEverywhere());
+            await TestMissingInRegularAndScriptAsync(before, new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
+            await TestInRegularAndScriptAsync(before, after, options: ExplicitTypeExceptWhereApparent());
+        }
+
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/40925"), Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
         [WorkItem(40477, "https://github.com/dotnet/roslyn/issues/40477")]
         [WorkItem(40925, "https://github.com/dotnet/roslyn/issues/40925")]
