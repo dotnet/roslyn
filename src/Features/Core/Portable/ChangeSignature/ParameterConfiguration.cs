@@ -56,9 +56,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal ParameterConfiguration WithoutAddedParameters()
-        {
-            return Create(ToListOfParameters().OfType<ExistingParameter>().ToList<Parameter>(), ThisParameter != null, selectedIndex: 0);
-        }
+            => Create(ToListOfParameters().OfType<ExistingParameter>().ToList<Parameter>(), ThisParameter != null, selectedIndex: 0);
 
         public List<Parameter> ToListOfParameters()
         {

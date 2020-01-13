@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SignatureChange signaturePermutation,
             CancellationToken cancellationToken);
 
-        protected abstract IUnifiedArgumentSyntax CreateRegularArgumentSyntax<T>(string callsiteValue);
-
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
@@ -387,10 +385,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return nodeToUpdate != null;
         }
 
-        protected List<IUnifiedArgumentSyntax> PermuteArguments<T>(
+        protected List<IUnifiedArgumentSyntax> PermuteArguments(
             ISymbol declarationSymbol,
             List<IUnifiedArgumentSyntax> arguments,
             SignatureChange updatedSignature,
+            Func<string, IUnifiedArgumentSyntax> createIUnifiedArgument,
             bool isReducedExtensionMethod = false)
         {
             // 1. Determine which parameters are permutable
@@ -462,7 +461,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var brandNewParameter in brandNewParameters)
             {
-                newArguments.Add(CreateRegularArgumentSyntax<T>(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
+                newArguments.Add(createIUnifiedArgument(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
             }
 
             // 6. Add the params argument with the first value:
@@ -513,9 +512,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
                 updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
 
-                var newOrigParams = ParameterConfiguration.Create(originalConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newOriginalParameters = ParameterConfiguration.Create(originalConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
                 var newUpdatedParams = ParameterConfiguration.Create(updatedConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
-                updatedSignature = new SignatureChange(newOrigParams, newUpdatedParams);
+                updatedSignature = new SignatureChange(newOriginalParameters, newUpdatedParams);
             }
 
             return updatedSignature;

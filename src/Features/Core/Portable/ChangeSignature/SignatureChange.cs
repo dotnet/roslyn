@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
@@ -42,8 +41,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal SignatureChange WithoutAddedParameters()
-        {
-            return new SignatureChange(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
-        }
+            => new SignatureChange(OriginalConfiguration, UpdatedConfiguration.WithoutAddedParameters());
     }
 }
