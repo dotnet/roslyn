@@ -69,19 +69,19 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var implementIEqutableOption = result.Options.FirstOrDefault(o => o.Id == ImplementIEquatableId);
                 if (implementIEqutableOption != null)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                         GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable,
                         _document.Project.Language,
-                        implementIEqutableOption.Value);
+                        implementIEqutableOption.Value)));
                 }
 
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
                 if (generateOperatorsOption != null)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                         GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators,
                         _document.Project.Language,
-                        generateOperatorsOption.Value);
+                        generateOperatorsOption.Value)));
                 }
 
                 var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();

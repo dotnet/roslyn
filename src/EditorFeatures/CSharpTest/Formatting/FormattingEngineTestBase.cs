@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             {
                 foreach (var option in options)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                        .WithChangedOption(option.option, LanguageNames.CSharp, option.enabled)));
                 }
             }
 

@@ -1265,11 +1265,11 @@ class C
         public async Task DisabledByOption()
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = WorkspaceFixture.GetWorkspace().Options;
+            var originalOptions = workspace.CurrentSolution.Options;
             try
             {
-                workspace.Options = originalOptions.
-                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions.
+                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
 
                 var markup = @"
 class Test
@@ -1281,7 +1281,7 @@ class Test
             }
             finally
             {
-                workspace.Options = originalOptions;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions));
             }
         }
 
@@ -1462,9 +1462,9 @@ public class Class1
 
             try
             {
-                workspace.Options = workspace.Options.WithChangedOption(
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions.WithChangedOption(
                     new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
-                    NamesEndWithSuffixPreferences());
+                    NamesEndWithSuffixPreferences())));
 
                 var markup = @"
 class Configuration
@@ -1483,7 +1483,7 @@ class Configuration
             }
             finally
             {
-                workspace.Options = originalOptions;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions));
             }
         }
 
@@ -1495,9 +1495,9 @@ class Configuration
 
             try
             {
-                workspace.Options = workspace.Options.WithChangedOption(
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions.WithChangedOption(
                     new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
-                    NamesEndWithSuffixPreferences());
+                    NamesEndWithSuffixPreferences())));
 
                 var markup = @"
 class Configuration
@@ -1518,7 +1518,7 @@ class Configuration
             }
             finally
             {
-                workspace.Options = originalOptions;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions));
             }
         }
 

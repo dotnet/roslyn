@@ -487,9 +487,9 @@ partial class Bar
 
             try
             {
-                workspace.Options = originalOptions.WithChangedOption(
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions.WithChangedOption(
                     CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent));
+                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent))));
 
                 var text = @"using System;
 partial class Bar
@@ -513,7 +513,7 @@ partial class Bar
             }
             finally
             {
-                workspace.Options = originalOptions;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(originalOptions));
             }
         }
     }

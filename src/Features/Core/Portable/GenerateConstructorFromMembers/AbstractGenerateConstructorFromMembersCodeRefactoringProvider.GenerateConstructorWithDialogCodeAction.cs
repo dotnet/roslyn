@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
                     var workspace = _document.Project.Solution.Workspace;
-                    workspace.Options = workspace.Options.WithChangedOption(
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
                         GenerateConstructorFromMembersOptions.AddNullChecks,
                         _document.Project.Language,
-                        addNullChecksOption.Value);
+                        addNullChecksOption.Value)));
                 }
 
                 var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();

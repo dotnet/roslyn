@@ -322,7 +322,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newVarWhenTypeIsApparentValue = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
             var newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
-            workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(CodeStyleOptions.QualifyFieldAccess, LanguageNames.CSharp, newQualifyFieldAccessValue)
                                                  .WithChangedOption(CodeStyleOptions.QualifyMethodAccess, LanguageNames.VisualBasic, newQualifyMethodAccessValue)
                                                  .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, newVarWhenTypeIsApparentValue)
                                                  .WithChangedOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.VisualBasic, newPreferIntrinsicPredefinedTypeKeywordInMemberAccessValue);

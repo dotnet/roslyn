@@ -354,11 +354,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             using var context = await TestContext.CreateAsync(initial, expected);
+            var workspace = context.Workspace;
             if (options != null)
             {
                 foreach (var kvp in options)
                 {
-                    context.Workspace.Options = context.Workspace.Options.WithChangedOption(kvp.Key, kvp.Value);
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                        .WithChangedOption(kvp.Key, kvp.Value)));
                 }
             }
 

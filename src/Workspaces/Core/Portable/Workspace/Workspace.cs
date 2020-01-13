@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.CurrentSolution.Options;
             }
-            // TODO: mark the setter as deprecated, add a new API that clearly indicates to the caller that underlying CurrentSolution changed,
-            //       and migrate all the callsites of this setter to the new API.
+
+            [Obsolete(@"Workspace options should be set by invoking 'workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptionSet))'")]
             set
             {
                 SetOptions(value);
