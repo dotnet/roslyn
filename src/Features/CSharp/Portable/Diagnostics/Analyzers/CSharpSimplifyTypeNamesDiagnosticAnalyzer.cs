@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -80,17 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         }
 
         internal override bool IsCandidate(SyntaxNode node)
-            => IsRegularCandidate(node) || IsCrefCandidate(node);
-
-        private static bool IsRegularCandidate(SyntaxNode node)
-        {
-            return node != null && s_kindsOfInterest.Contains(node.Kind());
-        }
-
-        private static bool IsCrefCandidate(SyntaxNode node)
-        {
-            return node is QualifiedCrefSyntax;
-        }
+            => node != null && s_kindsOfInterest.Contains(node.Kind());
 
         protected sealed override bool CanSimplifyTypeNameExpressionCore(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,

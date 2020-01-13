@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return _owner.EndPoint.InvokeAsync(
                             WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                             new object[] { scopeId, checksums.ToArray() },
-                            (s, c) => Task.FromResult(ReadAssets(s, scopeId, checksums, serializerService, c)),
+                            (stream, cancellationToken) => Task.FromResult(ReadAssets(stream, scopeId, checksums, serializerService, cancellationToken)),
                             cancellationToken);
                     }
                 }, cancellationToken).ConfigureAwait(false);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var results = new List<(Checksum, object)>();
 
-                using var reader = ObjectReader.TryGetReader(stream, cancellationToken);
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
                 // We only get a reader for data transmitted between live processes.
                 // This data should always be correct as we're never persisting the data between sessions.

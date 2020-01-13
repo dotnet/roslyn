@@ -5161,6 +5161,7 @@ namespace N
         Alias1 a1;
     }
 }",
+
 @"using System;
 
 namespace N
@@ -5170,6 +5171,111 @@ namespace N
     class C
     {
         Alias1 a1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C|].X""/>
+    /// </summary>
+    class X
+    {
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""X""/>
+    /// </summary>
+    class X
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly2()
+        {
+            await TestSpansAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C|].X""/>
+    /// </summary>
+    class X
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C.X|].Y(A.B.C.X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""Y(X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""A.B.C.X.Y([|A.B.C|].X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""A.B.C.X.Y(X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
     }
 }");
         }
@@ -5536,19 +5642,35 @@ class Goo
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
         [InlineData("Int16")]
         [InlineData("UInt16")]
         [InlineData("Int32")]
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
+        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 $@"using System;
 namespace N
 {{
@@ -5578,21 +5700,6 @@ $@"using System;
 namespace N
 {{
     using My{typeName} = {typeName};
-}}");
-        }
-
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
-        [InlineData("Float32")]
-        [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
-        {
-            await TestMissingInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
 }}");
         }
 
