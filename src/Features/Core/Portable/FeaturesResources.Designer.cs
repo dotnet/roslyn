@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. Any changes made to this file won&apos;t be applied until its content matches the built source..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {

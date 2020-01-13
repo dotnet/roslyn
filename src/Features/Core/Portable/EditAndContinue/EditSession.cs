@@ -500,10 +500,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var (changedDocumentAnalyses, diagnostics) = await GetChangedDocumentsAnalysesAsync(baseProject, project, cancellationToken).ConfigureAwait(false);
                     if (diagnostics.Any())
                     {
+                        // ignore out-of-sync documents - changes in these documents won't be applied unless they get in-sync before changes are applied.
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: out-of-sync documents present (diagnostic: '{2}')",
                             project.Id.DebugName, project.Id, diagnostics[0]);
-
-                        return SolutionUpdateStatus.Blocked;
                     }
 
                     if (changedDocumentAnalyses.Length == 0)
@@ -727,13 +726,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var (changedDocumentAnalyses, outOfSyncDiagnostics) = await GetChangedDocumentsAnalysesAsync(baseProject, project, cancellationToken).ConfigureAwait(false);
                     if (outOfSyncDiagnostics.Any())
                     {
-                        // The error hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
-                        // before the changes are attempted to be applied. If they are not the project changes can't be applied.
-                        diagnostics.Add((project.Id, outOfSyncDiagnostics));
+                        // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
+                        // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
+                        // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state, 
+                        // and we consider any further changes to it for application.
 
-                        Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.RudeEdits, outOfSyncDiagnostics);
-                        isBlocked = true;
-                        continue;
+                        diagnostics.Add((project.Id, outOfSyncDiagnostics));
                     }
 
                     var projectSummary = await GetProjectAnalysisSymmaryAsync(changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);

@@ -306,8 +306,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // might end up updating the committed solution with a document that has a different encoding than 
                 // the one that's in the workspace, resulting in false document changes when we compare the two.
                 var sourceText = SourceText.From(fileStream, encoding, checksumAlgorithm: algorithm);
+                var fileChecksum = sourceText.GetChecksum();
 
-                return (sourceText.GetChecksum().SequenceEqual(symChecksum) ? sourceText : null, origin, IsDocumentMissing: false);
+                if (fileChecksum.SequenceEqual(symChecksum))
+                {
+                    return (sourceText, origin, IsDocumentMissing: false);
+                }
+
+                EditAndContinueWorkspaceService.Log.Write("Checksum differs for source file '{0}'", sourceFilePath);
+                return (Source: null, origin, IsDocumentMissing: false);
             }
             catch (Exception e)
             {

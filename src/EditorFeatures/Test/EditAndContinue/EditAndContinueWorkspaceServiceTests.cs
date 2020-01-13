@@ -1017,10 +1017,10 @@ class C1
 
             // validate solution update status and emit:
             var solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatus);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatus);
 
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
             Assert.Empty(deltas);
 
             AssertEx.Equal(
@@ -1491,9 +1491,9 @@ class C1
         [Fact]
         public async Task BreakMode_ValidSignificantChange_FileUpdateBeforeDebuggingSessionStarts()
         {
-            // workspace:     --V0--------------V2-------|--------V3---------------V1--------------|
-            // file system:   --V0---------V1-----V2-----|---------------------------V1------------|
-            //                   \--build--/      ^save  F5   ^      ^F10 (blocked)  ^save         F10 (ok)
+            // workspace:     --V0--------------V2-------|--------V3------------------V1--------------|
+            // file system:   --V0---------V1-----V2-----|------------------------------V1------------|
+            //                   \--build--/      ^save  F5   ^      ^F10 (no change)   ^save         F10 (ok)
             //                                                file watcher: no-op
 
             var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -1536,8 +1536,8 @@ class C1
             var solutionStatus = await service.GetSolutionUpdateStatusAsync(sourceFilePath: null, CancellationToken.None).ConfigureAwait(false);
             var (solutionStatusEmit, deltas) = await service.EmitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatus);
-            Assert.Equal(SolutionUpdateStatus.Blocked, solutionStatusEmit);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatus);
+            Assert.Equal(SolutionUpdateStatus.None, solutionStatusEmit);
 
             AssertEx.Equal(
                 new[] { "ENC1005: " + string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path) },

@@ -198,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">ソース ファイル '{0}' の現在の内容はビルドされたソースと一致しません。ソース ファイルの内容が復元されるまで、デバッグ セッションを続行できません。</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">ソース ファイル '{0}' の現在の内容はビルドされたソースと一致しません。ソース ファイルの内容が復元されるまで、デバッグ セッションを続行できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
