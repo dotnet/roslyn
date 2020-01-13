@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<bool> IsInImportsDirectiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true);
             return leftToken.GetAncestor(syntaxFacts.IsUsingOrExternOrImport) != null;
         }
