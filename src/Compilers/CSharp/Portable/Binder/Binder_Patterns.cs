@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundDeclType is null &&
                 properties.IsDefaultOrEmpty &&
                 deconstructMethod is null &&
-                deconstructionSubpatterns.IsDefaultOrEmpty;
+                deconstructionSubpatterns.IsDefault;
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, deconstructMethod: deconstructMethod,
                 deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol,

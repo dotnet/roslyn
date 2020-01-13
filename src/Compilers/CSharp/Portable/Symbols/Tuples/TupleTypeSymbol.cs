@@ -261,8 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            RoslynDebug.Assert(diagnostics is object);
-            RoslynDebug.Assert(syntax is object);
+            RoslynDebug.Assert(diagnostics is object && syntax is object);
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
