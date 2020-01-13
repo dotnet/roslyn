@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,8 +13,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal abstract class ChangeSignatureLanguageService : IChangeSignatureLanguageService
     {
-        public abstract Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(string[] rolesCollectionType, string[] rolesCollectionName, int insertPosition, Document document, string documentText, IContentType contentType, IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory, CancellationToken cancellationToken);
-        public abstract void GeneratePreviewGrammar(ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
+        public abstract Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(
+            string[] rolesCollectionType, string[] rolesCollectionName, int insertPosition,
+            Document document, string documentText, IContentType contentType,
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory, CancellationToken cancellationToken);
+
+        public abstract void GeneratePreviewGrammar(
+            ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
+
         public abstract bool IsTypeNameValid(string typeName);
 
         protected ITrackingSpan[] CreateTrackingSpansHelper(IProjectionSnapshot snapshot, int contextPoint, int spaceBetweenTypeAndName)

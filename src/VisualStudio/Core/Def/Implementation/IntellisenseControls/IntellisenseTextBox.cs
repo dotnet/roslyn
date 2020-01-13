@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <summary>
         /// Appearance category of text view in the intellisense textbox
         /// </summary>
-        private const string appearanceCategory = "IntellisenseTextblock";
+        private const string appearanceCategory = "IntellisenseTextBlock";
 
         /// <summary>
         /// Name of container.
@@ -524,6 +524,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             // no translation available for this message
             return false;
         }
-
     }
 }

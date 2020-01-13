@@ -616,7 +616,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
             SignatureChange updatedSignature)
         {
-            var newArguments = PermuteArguments<AttributeArgumentSyntax>(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature);
+            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
+                updatedSignature,
+                callsiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callsiteValue))));
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
 
             // copy whitespace trivia from original position
@@ -632,7 +634,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange updatedSignature,
             bool isReducedExtensionMethod = false)
         {
-            var newArguments = PermuteArguments<ArgumentSyntax>(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(), updatedSignature, isReducedExtensionMethod);
+            var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
+                updatedSignature,
+                 callsiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callsiteValue))),
+                 isReducedExtensionMethod);
 
             // copy whitespace trivia from original position
             var newArgumentsWithTrivia = TransferLeadingWhitespaceTrivia(
@@ -883,22 +888,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return new[] { new ChangeSignatureFormattingRule() }.Concat(Formatter.GetDefaultFormattingRules(document));
-        }
-
-        protected override IUnifiedArgumentSyntax CreateRegularArgumentSyntax<T>(string callsiteValue)
-        {
-            var type = typeof(T);
-            if (type == typeof(ArgumentSyntax))
-            {
-                return UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callsiteValue)));
-            }
-
-            if (type == typeof(AttributeArgumentSyntax))
-            {
-                return UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callsiteValue)));
-            }
-
-            return default;
         }
 
         protected override SyntaxToken CreateSeparatorSyntaxToken()
