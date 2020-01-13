@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
             End If
 
-            If invocationExpression.IsParentKind(SyntaxKind.CallStatement) Then
+            If invocationExpression.IsParentKind(SyntaxKind.CallStatement) OrElse invocationExpression.IsParentKind(SyntaxKind.ExpressionStatement) Then
                 Return True
             End If
 
