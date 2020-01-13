@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 arguments[i] = generator.AttributeArgument(parsedExpression);
             }
 
-            SyntaxNode attribute = generator.Attribute(DiagnosticAnalyzerCorrectnessAnalyzer.DiagnosticAnalyzerAttributeFullName, arguments);
+            SyntaxNode attribute = generator.Attribute(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzerAttribute, arguments);
             SyntaxNode newClassDecl = generator.AddAttributes(classDecl, attribute);
             SyntaxNode newRoot = root.ReplaceNode(classDecl, newClassDecl);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class DoNotUseCompilationGetSemanticModelAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
+    public sealed class DoNotUseCompilationGetSemanticModelAnalyzer : DiagnosticAnalyzer
     {
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseCompilationGetSemanticModelTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseCompilationGetSemanticModelMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -33,36 +33,41 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-            base.Initialize(context);
-        }
-
-        protected override DiagnosticAnalyzerSymbolAnalyzer? GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
-        {
-            if (!compilationContext.Compilation.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCompilation, out var compilationType))
+            context.RegisterCompilationStartAction(csac =>
             {
-                return null;
-            }
+                var wellKnownTypeProvider = WellKnownTypeProvider.GetOrCreate(csac.Compilation);
 
-            var csharpCompilation = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpCompilation);
-            var visualBasicCompilation = compilationContext.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation);
-
-            compilationContext.RegisterOperationAction(oac =>
-            {
-                var invocation = (IInvocationOperation)oac.Operation;
-
-                if (invocation.TargetMethod.Name.Equals("GetSemanticModel", StringComparison.Ordinal) &&
-                    invocation.TargetMethod.Parameters.Length == 2 &&
-                    (
-                        invocation.TargetMethod.ContainingType.Equals(compilationType) ||
-                        invocation.TargetMethod.ContainingType.Equals(csharpCompilation) ||
-                        invocation.TargetMethod.ContainingType.Equals(visualBasicCompilation)
-                    ))
+                if (!wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsDiagnosticAnalyzer, out var diagnosticAnalyzerType) ||
+                    !wellKnownTypeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCompilation, out var compilationType))
                 {
-                    oac.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(Rule));
+                    return;
                 }
-            }, OperationKind.Invocation);
 
-            return null;
+                var csharpCompilation = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisCSharpCSharpCompilation);
+                var visualBasicCompilation = wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisVisualBasicVisualBasicCompilation);
+
+                csac.RegisterOperationBlockStartAction(obsac =>
+                {
+                    if (obsac.OwningSymbol is IMethodSymbol methodSymbol &&
+                        methodSymbol.ContainingType.Inherits(diagnosticAnalyzerType))
+                    {
+                        obsac.RegisterOperationAction(oac =>
+                        {
+                            var invocation = (IInvocationOperation)oac.Operation;
+
+                            if (invocation.TargetMethod.Name.Equals("GetSemanticModel", StringComparison.Ordinal) &&
+                                (
+                                    invocation.TargetMethod.ContainingType.Equals(compilationType) ||
+                                    invocation.TargetMethod.ContainingType.Equals(csharpCompilation) ||
+                                    invocation.TargetMethod.ContainingType.Equals(visualBasicCompilation)
+                                ))
+                            {
+                                oac.ReportDiagnostic(invocation.Syntax.CreateDiagnostic(Rule));
+                            }
+                        }, OperationKind.Invocation);
+                    }
+                });
+            });
         }
     }
 }

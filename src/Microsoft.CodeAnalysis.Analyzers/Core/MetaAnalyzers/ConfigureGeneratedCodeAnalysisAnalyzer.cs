@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             var compilation = compilationContext.Compilation;
 
-            var analysisContext = compilation.GetOrCreateTypeByMetadataName(AnalysisContextFullName);
+            var analysisContext = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftCodeAnalysisDiagnosticsAnalysisContext);
             if (analysisContext is null)
             {
                 return null;

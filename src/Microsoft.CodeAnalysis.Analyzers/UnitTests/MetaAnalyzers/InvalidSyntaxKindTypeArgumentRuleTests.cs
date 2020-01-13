@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
+using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -53,8 +53,8 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             DiagnosticResult[] expected = new[]
             {
-                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
-                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
+                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
+                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
             };
 
             VerifyCSharp(source, expected);
@@ -95,8 +95,8 @@ End Class
 ";
             DiagnosticResult[] expected = new[]
             {
-                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
-                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
+                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterSyntaxNodeActionName),
+                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticWellKnownNames.RegisterCodeBlockStartActionName)
             };
 
             VerifyBasic(source, expected);
@@ -210,7 +210,7 @@ End Class
             return new DiagnosticResult(DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
                 .WithLocation(line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage)
-                .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
+                .WithArguments(typeArgumentName, DiagnosticWellKnownNames.TLanguageKindEnumName, registerMethodName);
         }
     }
 }

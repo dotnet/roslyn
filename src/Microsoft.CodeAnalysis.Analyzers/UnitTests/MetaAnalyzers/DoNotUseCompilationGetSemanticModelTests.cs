@@ -166,6 +166,40 @@ End Class",
                 GetBasicExpectedDiagnostic(20, 17));
         }
 
+        [Fact]
+        public async Task CallInNonDiagnosticAnalyzerClass()
+        {
+            await VerifyCS.VerifyAnalyzerAsync(@"
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+class NotADiagnosticAnalyzer
+{
+    public void Foo(AnalysisContext context)
+    {
+        context.RegisterCompilationStartAction(csac =>
+        {
+            csac.Compilation.GetSemanticModel(null);
+        });
+    }
+}");
+
+            await VerifyVB.VerifyAnalyzerAsync(@"
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+Class NotADiagnosticAnalyzer
+    Public Sub Foo(ByVal context As AnalysisContext)
+        context.RegisterCompilationStartAction(
+            Function(csac)
+                csac.Compilation.GetSemanticModel(Nothing)
+            End Function)
+    End Sub
+End Class");
+        }
+
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column) =>
             VerifyCS.Diagnostic().WithLocation(line, column);
 

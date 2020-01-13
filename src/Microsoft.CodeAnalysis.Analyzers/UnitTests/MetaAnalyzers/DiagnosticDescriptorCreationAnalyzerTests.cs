@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
@@ -1241,12 +1242,12 @@ End Class",
         private static DiagnosticResult GetCSharpRS1007ExpectedDiagnostic(int line, int column) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
                 .WithLocation(line, column)
-                .WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
+                .WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
 
         private static DiagnosticResult GetBasicRS1007ExpectedDiagnostic(int line, int column) =>
             VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.UseLocalizableStringsInDescriptorRule)
                 .WithLocation(line, column)
-                .WithArguments(DiagnosticAnalyzerCorrectnessAnalyzer.LocalizableStringFullName);
+                .WithArguments(WellKnownTypeNames.MicrosoftCodeAnalysisLocalizableString);
 
         private static DiagnosticResult GetCSharpRS1015ExpectedDiagnostic(int line, int column) =>
             VerifyCS.Diagnostic(DiagnosticDescriptorCreationAnalyzer.ProvideHelpUriInDescriptorRule)
