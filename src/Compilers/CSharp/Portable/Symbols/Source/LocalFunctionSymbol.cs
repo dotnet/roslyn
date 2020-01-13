@@ -495,19 +495,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeParameterConstraints;
         }
 
-        public override int GetHashCode()
+        internal bool Equals(LocalFunctionSymbol localFunction, TypeCompareKind compareKind)
         {
-            // this is what lambdas do (do not use hashes of other fields)
-            return _syntax.GetHashCode();
-        }
-
-        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
-        {
-            if ((object)this == symbol) return true;
-
-            var localFunction = symbol as LocalFunctionSymbol;
-            return (object)localFunction != null
-                && localFunction._syntax == _syntax;
+            return localFunction._syntax == _syntax;
         }
     }
 }

@@ -377,22 +377,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)
+        internal bool Equals(LambdaSymbol lambda, TypeCompareKind compareKind)
         {
-            if ((object)this == symbol) return true;
-
-            return symbol is LambdaSymbol lambda
-                && lambda._syntax == _syntax
+            return lambda._syntax == _syntax
                 && lambda._refKind == _refKind
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))
                 && lambda.ContainingSymbol.Equals(ContainingSymbol, compareKind);
-        }
 
-        public override int GetHashCode()
-        {
-            return _syntax.GetHashCode();
         }
 
         public override bool IsImplicitlyDeclared

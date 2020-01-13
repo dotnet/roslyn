@@ -113,26 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetUseSiteDiagnostic();
         }
 
-        public override sealed int GetHashCode()
+        internal bool Equals(TupleFieldSymbol other, TypeCompareKind compareKind)
         {
-            return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
-        }
-
-        public override sealed bool Equals(Symbol obj, TypeCompareKind compareKind)
-        {
-            var other = obj as TupleFieldSymbol;
-
-            if ((object?)other == this)
-            {
-                return true;
-            }
+            RoslynDebug.Assert(other is object);
 
             // note we have to compare both index and name because
             // in nameless tuple there could be fields that differ only by index
             // and in named tuples there could be fields that differ only by name
-            return (object?)other != null &&
-                _tupleElementIndex == other._tupleElementIndex &&
-                TypeSymbol.Equals(_containingTuple, other._containingTuple, compareKind);
+            return _tupleElementIndex == other._tupleElementIndex
+                && TypeSymbol.Equals(_containingTuple, other._containingTuple, compareKind);
         }
     }
 

@@ -569,17 +569,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        internal bool Equals(ReducedExtensionMethodSymbol symbol, TypeCompareKind compareKind)
         {
-            if ((object)this == obj) return true;
-
-            ReducedExtensionMethodSymbol other = obj as ReducedExtensionMethodSymbol;
-            return (object)other != null && _reducedFrom.Equals(other._reducedFrom, compareKind);
-        }
-
-        public override int GetHashCode()
-        {
-            return _reducedFrom.GetHashCode();
+            return _reducedFrom.Equals(symbol._reducedFrom, compareKind);
         }
 
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol

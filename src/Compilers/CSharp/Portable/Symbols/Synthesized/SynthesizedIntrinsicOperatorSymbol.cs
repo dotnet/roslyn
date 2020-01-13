@@ -413,20 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        internal bool Equals(SynthesizedIntrinsicOperatorSymbol other, TypeCompareKind compareKind)
         {
-            if (obj == (object)this)
-            {
-                return true;
-            }
-
-            var other = obj as SynthesizedIntrinsicOperatorSymbol;
-
-            if ((object)other == null)
-            {
-                return false;
-            }
-
             if (_isCheckedBuiltin == other._isCheckedBuiltin &&
                 _parameters.Length == other._parameters.Length &&
                 string.Equals(_name, other._name, StringComparison.Ordinal) &&
@@ -445,11 +433,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(_name, Hash.Combine(_containingType, _parameters.Length));
         }
 
         private sealed class SynthesizedOperatorParameterSymbol : SynthesizedParameterSymbolBase

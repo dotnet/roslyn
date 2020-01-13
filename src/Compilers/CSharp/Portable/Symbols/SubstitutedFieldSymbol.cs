@@ -99,20 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
-        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        internal bool Equals(FieldSymbol other, TypeCompareKind compareKind)
         {
-            if ((object)this == obj)
-            {
-                return true;
-            }
-
-            var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(_containingType, OriginalDefinition.GetHashCode());
+            RoslynDebug.Assert(other is object);
+            return TypeSymbol.Equals(_containingType, other.ContainingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
     }
 }

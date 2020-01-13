@@ -1042,5 +1042,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.MethodSymbol(this);
         }
+
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        {
+            if (object.ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return (this, obj) switch
+            {
+                (SubstitutedMethodSymbol left, MethodSymbol right) => left.Equals(right, compareKind),
+                (MethodSymbol left, SubstitutedMethodSymbol right) => right.Equals(left, compareKind),
+                (ReducedExtensionMethodSymbol left, ReducedExtensionMethodSymbol right) => left.Equals(right, compareKind),
+                (SynthesizedIntrinsicOperatorSymbol left, SynthesizedIntrinsicOperatorSymbol right) => left.Equals(right, compareKind),
+                (LambdaSymbol left, LambdaSymbol right) => left.Equals(right, compareKind),
+                _ => false
+            };
+        }
+
+        public sealed override int GetHashCode()
+        {
+            var code = this.ContainingType?.GetHashCode() ?? 0;
+            code = Hash.Combine(this.Name, code);
+            return code;
+        }
     }
 }

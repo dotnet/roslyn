@@ -453,5 +453,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.FieldSymbol(this);
         }
+
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            if (object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return (this, other) switch
+            {
+                (SubstitutedFieldSymbol left, FieldSymbol right) => left.Equals(right, compareKind),
+                (FieldSymbol left, SubstitutedFieldSymbol right) => right.Equals(left, compareKind),
+                (TupleFieldSymbol left, TupleFieldSymbol right) => left.Equals(right, compareKind),
+                (TupleErrorFieldSymbol left, TupleErrorFieldSymbol right) => left.Equals(right, compareKind),
+                _ => false
+            };
+        }
+
+        public sealed override int GetHashCode()
+        {
+            var code = this.ContainingType.GetHashCode();
+            code = Hash.Combine(this.Name, code);
+            return code;
+        }
     }
 }
