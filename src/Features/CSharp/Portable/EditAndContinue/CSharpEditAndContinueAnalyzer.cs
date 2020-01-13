@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode(), 0);
+                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode()!, 0);
                 }
                 else
                 {
