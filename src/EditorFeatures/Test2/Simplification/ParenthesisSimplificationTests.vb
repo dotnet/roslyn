@@ -435,7 +435,7 @@ End Class
             Dim expected =
 <code>
 Public Class TestClass
-    Public Shared Sub Main()       
+    Public Shared Sub Main()
         Dim localDelegate = Function() As Integer
                 Return 6
             End Function
