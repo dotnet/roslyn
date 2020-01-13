@@ -2983,29 +2983,6 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase4()
         {
-            await TestMissingAsync(
-@"using A;
-
-namespace A
-{
-    public struct Goo { }
-}
-
-namespace N
-{
-    /// <summary><see cref=""[|A|].Goo""/></summary
-    class Color
-    {
-        public Goo Goo;
-    }
-}
-");
-        }
-
-        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestColorColorCase5()
-        {
             await TestInRegularAndScriptAsync(
 @"namespace N
 {
@@ -3043,6 +3020,29 @@ namespace N
         public Goo Goo;
     }
 }");
+        }
+
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestColorColorCase5()
+        {
+            await TestMissingAsync(
+@"using A;
+
+namespace A
+{
+    public struct Goo { }
+}
+
+namespace N
+{
+    /// <summary><see cref=""[|A|].Goo""/></summary
+    class Color
+    {
+        public Goo Goo;
+    }
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
