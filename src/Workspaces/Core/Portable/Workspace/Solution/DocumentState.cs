@@ -667,6 +667,16 @@ namespace Microsoft.CodeAnalysis
             return (lazyTextAndVersion, TreeAndVersion.Create(tree, treeVersion));
         }
 
+        internal override Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
+        {
+            if (TextAndVersionSource is TreeTextSource)
+            {
+                return SpecializedTasks.Null<Diagnostic>();
+            }
+
+            return base.GetLoadDiagnosticAsync(cancellationToken);
+        }
+
         private VersionStamp GetNewerVersion()
         {
             if (TextAndVersionSource.TryGetValue(out var textAndVersion))
