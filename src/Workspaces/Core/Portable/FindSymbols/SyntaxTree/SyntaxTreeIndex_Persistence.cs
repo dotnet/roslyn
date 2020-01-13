@@ -75,9 +75,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 using var storage = persistentStorageService.GetStorage(solution, checkBranchId: false);
                 using var stream = SerializableBytes.CreateWritableStream();
-                using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
 
-                this.WriteTo(writer);
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                {
+                    WriteTo(writer);
+                }
 
                 stream.Position = 0;
                 return await storage.WriteStreamAsync(document, PersistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);

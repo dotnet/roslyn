@@ -106,9 +106,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     Contract.ThrowIfNull(result);
 
                     using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
                     {
-                        result.WriteTo(writer);
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                        {
+                            result.WriteTo(writer);
+                        }
+
                         stream.Position = 0;
 
                         await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);

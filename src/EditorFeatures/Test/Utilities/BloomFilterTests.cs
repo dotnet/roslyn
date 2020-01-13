@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, false, new[] { "Hello, World" });
 
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 bloomFilter.WriteTo(writer);
             }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             var stream = new MemoryStream();
             var bloomFilter = new BloomFilter(0.001, new[] { "Hello, World" }, new long[] { long.MaxValue, -1, 0, 1, long.MinValue });
 
-            using (var writer = new ObjectWriter(stream))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 bloomFilter.WriteTo(writer);
             }
