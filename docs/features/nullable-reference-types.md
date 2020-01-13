@@ -146,7 +146,7 @@ Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
 string notNull = maybeNull; // assigns ?, warning
 ```
-Nullability of `var` declarations the nullable version of a the inferred type.
+The nullability of `var` declarations is the nullable version of the inferred type.
 ```c#
 var s = maybeNull; // s is ?, no warning
 if (maybeNull == null) return;
