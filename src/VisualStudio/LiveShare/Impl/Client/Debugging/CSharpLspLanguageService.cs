@@ -3,7 +3,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Text;
@@ -22,8 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
             : base(package)
         {
         }
-
-        internal IComponentModel ComponentModel => (IComponentModel)SystemServiceProvider.GetService(typeof(SComponentModel));
 
         protected override Guid DebuggerLanguageId { get; } = new Guid(StringConstants.CSharpLspDebuggerLanguageGuidString);
 

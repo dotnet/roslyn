@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     {
         private VisualStudioWorkspace _workspace;
         private WorkspaceFailureOutputPane _outputPane;
-        private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
 
@@ -53,9 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
-            cancellationToken.ThrowIfCancellationRequested();
-            Assumes.Present(_componentModel);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
@@ -68,16 +64,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
-            _workspace = _componentModel.GetService<VisualStudioWorkspace>();
+            _workspace = ComponentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            _componentModel.GetExtensions<IOptionPersister>();
+            ComponentModel.GetExtensions<IOptionPersister>();
 
             RoslynTelemetrySetup.Initialize(this);
 
             // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
+            _outputPane = new WorkspaceFailureOutputPane(ComponentModel.GetService<IThreadingContext>(), this, _workspace);
 
             InitializeColors();
 
@@ -166,14 +162,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
                 .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
-        }
-
-        internal IComponentModel ComponentModel
-        {
-            get
-            {
-                return _componentModel ?? throw new InvalidOperationException($"Cannot use {nameof(RoslynPackage)}.{nameof(ComponentModel)} prior to initialization.");
-            }
         }
 
         protected override void Dispose(bool disposing)
