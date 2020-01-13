@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -44,9 +46,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return _providers;
         }
 
-        public override async Task<QuickInfoItem> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        public override async Task<QuickInfoItem?> GetQuickInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var extensionManager = _workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
 
             // returns the first non-empty quick info found (based on provider order)
             foreach (var provider in GetProviders())
