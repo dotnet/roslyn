@@ -52,7 +52,7 @@ introduces new warnings into consumer code.
 
 This is necessary as Roslyn is a very large code base and it will take a 
 significant amount of time to annotate the code base. Even Public API 
-annotations only is a siginifcant amount of work and, without the 
+annotations only is a significant amount of work and, without the 
 implementations also being annotated, there won't be significant confidence the
 annotations are correct.
 
@@ -62,6 +62,5 @@ and the library names will be added to this document as being complete.
 
 At that point nullable annotation changes will still be allowed but there will
 be a **significantly** higher bar to making such changes.
-
 
 
