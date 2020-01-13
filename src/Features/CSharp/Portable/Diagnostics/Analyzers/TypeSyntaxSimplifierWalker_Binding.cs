@@ -269,8 +269,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // namespace, type or member (including static and instance members).  Because of this
             // we basically have no avenues for bailing early and we have to try out all possible
             // simplifications paths.
+
+            // First, just try to simplify the top-most qualified-cref alone. If we're able to do
+            // this, then there's no need to process it's container.  i.e.
+            //
+            // if we have <see cref="A.B.C"/> and we simplify that to <see cref="C"/> there's no
+            // point looking at `A.B`.
+
             if (TrySimplify(node))
+            {
+                // unilaterally process the member portion of the qualified cref.  These may have things
+                // like parameters that could be simplified.  i.e. if we have:
+                //
+                //      <see cref="A.B.C(X.Y)"/>
+                //
+                // We can simplify both the qualified portion to just `C` and we can simplify the
+                // parameter to just `Y`.
+                this.Visit(node.Member);
                 return;
+            }
 
             base.VisitQualifiedCref(node);
         }
