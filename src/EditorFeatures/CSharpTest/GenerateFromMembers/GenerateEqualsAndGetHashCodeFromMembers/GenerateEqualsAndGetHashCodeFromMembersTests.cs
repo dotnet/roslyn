@@ -2581,5 +2581,5 @@ chosenSymbols: null,
 optionsCallback: options => EnableOption(options, GenerateOperatorsId),
 parameters: CSharpLatestImplicit);
         }
-        }
     }
+}
