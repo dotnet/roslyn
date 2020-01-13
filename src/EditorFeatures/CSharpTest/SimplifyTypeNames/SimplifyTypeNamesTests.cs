@@ -4595,6 +4595,18 @@ namespace N
     {
         Alias1 a1;
     }
+}",
+
+@"using System;
+
+namespace N
+{
+    using Alias1 = Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
 }");
         }
 
