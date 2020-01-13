@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
                 var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-                var enumeratorCancellationCount = Parameters.Count(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true });
+                var enumeratorCancellationCount = Parameters.Count(p => p.HasEnumeratorCancellationAttribute);
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
                     (Bodies.blockBody != null || Bodies.arrowBody != null))
                 {

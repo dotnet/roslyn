@@ -187,16 +187,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
-            string name = "",
-            ImmutableArray<CustomModifier> refCustomModifiers = default,
-            ImmutableArray<CSharpAttributeData> attributes = default)
+            string name = "")
         {
-            if (refCustomModifiers.IsDefaultOrEmpty && attributes.IsDefaultOrEmpty)
-            {
-                return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
-            }
+            return new SynthesizedParameterSymbol(container, type, ordinal, refKind, name);
+        }
 
-            return new SynthesizedComplexParameterSymbol(container, type, ordinal, refKind, name, refCustomModifiers.NullToEmpty(), attributes.NullToEmpty());
+        public static ParameterSymbol Create(MethodSymbol container, TypeWithAnnotations type, ParameterSymbol baseParameter, bool inheritAttributes)
+
+        {
+            return new SynthesizedComplexParameterSymbol(container, type, baseParameter, inheritAttributes);
         }
 
         /// <summary>
@@ -213,8 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var oldParam in sourceMethod.Parameters)
             {
                 //same properties as the old one, just change the owner
-                builder.Add(SynthesizedParameterSymbol.Create(destinationMethod, oldParam.TypeWithAnnotations, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.RefCustomModifiers));
+                builder.Add(
+                    Create(
+                        destinationMethod,
+                        oldParam.TypeWithAnnotations,
+                        oldParam,
+                        inheritAttributes: false));
             }
 
             return builder.ToImmutableAndFree();
@@ -227,35 +230,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class SynthesizedComplexParameterSymbol : SynthesizedParameterSymbolBase
         {
-            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
-            private readonly ImmutableArray<CSharpAttributeData> _attributes;
+            private readonly ParameterSymbol _baseParameter;
+            private readonly bool _inheritAttributes;
+
 
             public SynthesizedComplexParameterSymbol(
                 MethodSymbol container,
                 TypeWithAnnotations type,
-                int ordinal,
-                RefKind refKind,
-                string name,
-                ImmutableArray<CustomModifier> refCustomModifiers,
-                ImmutableArray<CSharpAttributeData> attributes)
-                : base(container, type, ordinal, refKind, name)
+                ParameterSymbol baseParameter,
+                bool inheritAttributes)
+                : base(container,
+                      type,
+                      baseParameter.Ordinal,
+                      baseParameter.RefKind,
+                      baseParameter.Name)
             {
-                Debug.Assert(!refCustomModifiers.IsDefault);
-                Debug.Assert(!attributes.IsDefault);
+                _baseParameter = baseParameter;
+                _inheritAttributes = inheritAttributes;
 
-                _refCustomModifiers = refCustomModifiers;
-                _attributes = attributes;
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers
             {
-                get { return _refCustomModifiers; }
+                get { return _baseParameter.RefCustomModifiers; }
             }
 
             public override ImmutableArray<CSharpAttributeData> GetAttributes()
             {
-                return _attributes;
+                return _inheritAttributes ? _baseParameter.GetAttributes() : ImmutableArray<CSharpAttributeData>.Empty;
             }
+
+            internal override bool HasEnumeratorCancellationAttribute => _inheritAttributes ? _baseParameter.HasEnumeratorCancellationAttribute : false;
+
+            // PROTOTYPE: add overrides for other well-known parameter attributes used after lowering
         }
     }
 }
