@@ -58,116 +58,6 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using A;
-using B;
-
-namespace A
-{
-    class Goo { }
-}
-
-namespace B
-{
-    class Goo { }
-}
-
-class C
-{
-    void Bar(object o)
-    {
-        var x = ([|A|].Goo)o;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using A;
-
-namespace A
-{
-    class Goo { }
-}
-
-namespace B
-{
-    class Goo { }
-}
-
-namespace N
-{
-    using B;
-
-    class C
-    {
-        void Bar(object o)
-        {
-            var x = ([|A|].Goo)o;
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestAllowSimplificationWithoutAmbiguity2()
-        {
-            await TestInRegularAndScript1Async(
-@"using A;
-
-namespace A
-{
-    class Goo { }
-}
-
-namespace B
-{
-    class Goo { }
-}
-
-namespace N
-{
-    using A;
-
-    class C
-    {
-        void Bar(object o)
-        {
-            var x = ([|A|].Goo)o;
-        }
-    }
-}",
-@"using A;
-
-namespace A
-{
-    class Goo { }
-}
-
-namespace B
-{
-    class Goo { }
-}
-
-namespace N
-{
-    using A;
-
-    class C
-    {
-        void Bar(object o)
-        {
-            var x = (Goo)o;
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias0()
         {
             await TestWithPredefinedTypeOptionsAsync(
@@ -5706,6 +5596,116 @@ namespace N
 {{
     using My{typeName} = {typeName};
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using A;
+using B;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+class C
+{
+    void Bar(object o)
+    {
+        var x = ([|A|].Goo)o;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoNotSimplifyIfItWouldIntroduceAmbiguity2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using A;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+namespace N
+{
+    using B;
+
+    class C
+    {
+        void Bar(object o)
+        {
+            var x = ([|A|].Goo)o;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAllowSimplificationWithoutAmbiguity2()
+        {
+            await TestInRegularAndScript1Async(
+@"using A;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+namespace N
+{
+    using A;
+
+    class C
+    {
+        void Bar(object o)
+        {
+            var x = ([|A|].Goo)o;
+        }
+    }
+}",
+@"using A;
+
+namespace A
+{
+    class Goo { }
+}
+
+namespace B
+{
+    class Goo { }
+}
+
+namespace N
+{
+    using A;
+
+    class C
+    {
+        void Bar(object o)
+        {
+            var x = (Goo)o;
+        }
+    }
+}");
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
