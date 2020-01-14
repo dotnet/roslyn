@@ -1622,6 +1622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         if (!name.Parent.IsKind(SyntaxKind.QualifiedName) && (inDeclarationContext || inMemberAccessContext))
                         {
+                            // See if we can simplify this name (like System.Int32) to a built-in type (like 'int').
+                            // If not, we'll still fall through and see if we can convert it to Int32.
+
                             var codeStyleOptionName = inDeclarationContext
                                 ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
                                 : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
