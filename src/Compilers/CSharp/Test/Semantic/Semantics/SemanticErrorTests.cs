@@ -3676,9 +3676,12 @@ namespace MyNamespace
 }";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    // (9,14): error CS0128: A local variable named 'i' is already defined in this scope
+                    // (9,14): error CS0128: A local variable or function named 'i' is already defined in this scope
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i")
+                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(9, 14),
+                    // (9,14): warning CS0219: The variable 'i' is assigned but its value is never used
+                    //          int i = 2;   // CS0128
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(9, 14)
                 );
         }
 
