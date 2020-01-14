@@ -982,72 +982,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 issueSpan = memberAccess.Span
                 Return True
-            Else
+            End If
 
-                If Not memberAccess.IsRightSideOfDot() Then
-                    Dim aliasReplacement As IAliasSymbol = Nothing
+            If Not memberAccess.IsRightSideOfDot() Then
+                Dim aliasReplacement As IAliasSymbol = Nothing
 
-                    If memberAccess.TryReplaceWithAlias(semanticModel, aliasReplacement) Then
-                        Dim identifierToken = SyntaxFactory.Identifier(
+                If memberAccess.TryReplaceWithAlias(semanticModel, aliasReplacement) Then
+                    Dim identifierToken = SyntaxFactory.Identifier(
                                 memberAccess.GetLeadingTrivia(),
                                 aliasReplacement.Name,
                                 memberAccess.GetTrailingTrivia())
 
-                        identifierToken = VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                    identifierToken = VisualBasicSimplificationService.TryEscapeIdentifierToken(
                                             identifierToken,
                                             semanticModel)
-                        replacementNode = SyntaxFactory.IdentifierName(identifierToken)
+                    replacementNode = SyntaxFactory.IdentifierName(identifierToken)
 
-                        issueSpan = memberAccess.Span
+                    issueSpan = memberAccess.Span
 
-                        ' In case the alias name is the same as the last name of the alias target, we only include 
-                        ' the left part of the name in the unnecessary span to Not confuse uses.
-                        If memberAccess.Name.Identifier.ValueText = identifierToken.ValueText Then
-                            issueSpan = memberAccess.Expression.Span
-                        End If
-
-                        Return True
+                    ' In case the alias name is the same as the last name of the alias target, we only include 
+                    ' the left part of the name in the unnecessary span to Not confuse uses.
+                    If memberAccess.Name.Identifier.ValueText = identifierToken.ValueText Then
+                        issueSpan = memberAccess.Expression.Span
                     End If
 
-                    If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
-                        Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
-                        If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
-                            Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
-                            If keywordKind <> SyntaxKind.None Then
-                                replacementNode = SyntaxFactory.PredefinedType(
+                    Return True
+                End If
+
+                If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
+                    Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
+                    If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
+                        Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
+                        If keywordKind <> SyntaxKind.None Then
+                            replacementNode = SyntaxFactory.PredefinedType(
                                                 SyntaxFactory.Token(
                                                     memberAccess.GetLeadingTrivia(),
                                                     keywordKind,
                                                     memberAccess.GetTrailingTrivia()))
 
-                                replacementNode = replacementNode.WithAdditionalAnnotations(
+                            replacementNode = replacementNode.WithAdditionalAnnotations(
                                     New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
 
-                                issueSpan = memberAccess.Span
-
-                                Return True
-                            End If
+                            issueSpan = memberAccess.Span
+                            Return True
                         End If
                     End If
                 End If
+            End If
 
-                ' a module name was inserted by the name expansion, so removing this should be tried first.
-                If memberAccess.HasAnnotation(SimplificationHelpers.SimplifyModuleNameAnnotation) Then
-                    If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
-                        Return True
-                    End If
-                End If
-
-                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
-                issueSpan = memberAccess.Expression.Span
-
-                If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
-                    Return True
-                End If
-
+            ' a module name was inserted by the name expansion, so removing this should be tried first.
+            If memberAccess.HasAnnotation(SimplificationHelpers.SimplifyModuleNameAnnotation) Then
                 If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
                     Return True
                 End If
+            End If
+
+            replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
+            issueSpan = memberAccess.Expression.Span
+
+            If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
+                Return True
+            End If
+
+            If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
+                Return True
             End If
 
             Return False
