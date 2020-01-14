@@ -1092,6 +1092,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
         {
+            while (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+            {
+                expression = currentMember.Expression;
+            }
+
             if (expression.Kind() == SyntaxKind.IdentifierName ||
                 expression.Kind() == SyntaxKind.QualifiedName ||
                 expression.Kind() == SyntaxKind.AliasQualifiedName ||
@@ -1099,9 +1104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 return true;
             }
-
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
-                return IsAliasReplaceableExpression(memberAccess.Expression);
 
             return false;
         }
