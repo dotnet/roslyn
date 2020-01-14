@@ -1681,7 +1681,10 @@ This version used in: {2}</value>
     <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
   <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
-    <value>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</value>
+    <value>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
+  </data>
+  <data name="UnableToReadSourceFileOrPdb" xml:space="preserve">
+    <value>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
   </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>

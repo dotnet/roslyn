@@ -7532,19 +7532,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
 
             var operand = node.Operand;
+            var typeExpr = node.TargetType;
+
             var result = base.VisitIsOperator(node);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Boolean);
 
-            var slotBuilder = ArrayBuilder<int>.GetInstance();
-            GetSlotsToMarkAsNotNullable(operand, slotBuilder);
-            if (slotBuilder.Count > 0)
+            Split();
+            LearnFromNonNullTest(operand, ref StateWhenTrue);
+            if (typeExpr.Type?.SpecialType == SpecialType.System_Object)
             {
-                Split();
-                MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
+                LearnFromNullTest(operand, ref StateWhenFalse);
             }
-            slotBuilder.Free();
 
-            VisitTypeExpression(node.TargetType);
+            VisitTypeExpression(typeExpr);
             SetNotNullResult(node);
             return result;
         }
@@ -8265,7 +8265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Equals((BoundNode? expr, Symbol sym) x, (BoundNode? expr, Symbol sym) y)
             {
-                Debug.Assert(x.sym is object && y.sym is object);
+                RoslynDebug.Assert(x.sym is object);
+                RoslynDebug.Assert(y.sym is object);
 
                 // We specifically use reference equality for the symbols here because the BoundNode should be immutable.
                 // We should be storing and retrieving the exact same instance of the symbol, not just an "equivalent"
@@ -8275,7 +8276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public int GetHashCode((BoundNode? expr, Symbol sym) obj)
             {
-                Debug.Assert(obj.sym is object);
+                RoslynDebug.Assert(obj.sym is object);
                 return Hash.Combine(obj.expr, obj.sym.GetHashCode());
             }
         }

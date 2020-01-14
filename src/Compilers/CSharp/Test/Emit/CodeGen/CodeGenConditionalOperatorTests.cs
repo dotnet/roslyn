@@ -2692,7 +2692,7 @@ class Program
         public int field;
 
         public static implicit operator S1(int arg) => new S1 {field = arg };
-        
+
         public void Mutate()
         {
             field = 42;
@@ -2775,13 +2775,13 @@ public class C<T>
     public C(){}
 
     private T t;
-    
+
     public void Print()
     {
         Console.WriteLine(t?.ToString());
         Console.WriteLine(t);
     }
-    
+
 }
 
 public struct S
@@ -2848,13 +2848,13 @@ hello");
         public void ConditionalAccessReadonlyUnconstrainedTField()
         {
             var source = @"using System;
-public class C<T> 
+public class C<T>
 {
     public C(T t) => this.t = t;
     public C(){}
 
     readonly T t;
-    
+
     public void Print()
     {
         Console.WriteLine(t?.ToString());
@@ -2891,27 +2891,36 @@ hello");
 
             verify.VerifyIL("C<T>.Print()", @"
 {
-  // Code size       54 (0x36)
+  // Code size       78 (0x4e)
   .maxstack  2
-  .locals init (T V_0)
+  .locals init (T V_0,
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""T C<T>.t""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0015
-  IL_0011:  pop
-  IL_0012:  ldnull
-  IL_0013:  br.s       IL_0020
-  IL_0015:  constrained. ""T""
-  IL_001b:  callvirt   ""string object.ToString()""
-  IL_0020:  call       ""void System.Console.WriteLine(string)""
-  IL_0025:  ldarg.0
-  IL_0026:  ldfld      ""T C<T>.t""
-  IL_002b:  box        ""T""
-  IL_0030:  call       ""void System.Console.WriteLine(object)""
-  IL_0035:  ret
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string object.ToString()""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ldarg.0
+  IL_003e:  ldfld      ""T C<T>.t""
+  IL_0043:  box        ""T""
+  IL_0048:  call       ""void System.Console.WriteLine(object)""
+  IL_004d:  ret
 }");
 
         }
@@ -2927,14 +2936,14 @@ public class C<T>
     public C(){}
 
     private T t;
-    
-    public void Print() 
+
+    public void Print()
     {
         var temp = t;
         Console.WriteLine(temp?.ToString());
         Console.WriteLine(temp);
     }
-    
+
 }
 
 public struct S
@@ -3001,7 +3010,7 @@ public class C<T>
     T t;
 
     T M() => t;
-    
+
     public void Print() => Console.WriteLine(M()?.ToString());
 }
 
@@ -3025,25 +3034,118 @@ hello
 
             verify.VerifyIL("C<T>.Print()", @"
 {
-  // Code size       38 (0x26)
+  // Code size       62 (0x3e)
   .maxstack  2
-  .locals init (T V_0)
+  .locals init (T V_0,
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T C<T>.M()""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloc.0
-  IL_000a:  box        ""T""
-  IL_000f:  brtrue.s   IL_0015
-  IL_0011:  pop
-  IL_0012:  ldnull
-  IL_0013:  br.s       IL_0020
-  IL_0015:  constrained. ""T""
-  IL_001b:  callvirt   ""string object.ToString()""
-  IL_0020:  call       ""void System.Console.WriteLine(string)""
-  IL_0025:  ret
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.1
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_002d
+  IL_0019:  ldobj      ""T""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloc.1
+  IL_0022:  box        ""T""
+  IL_0027:  brtrue.s   IL_002d
+  IL_0029:  pop
+  IL_002a:  ldnull
+  IL_002b:  br.s       IL_0038
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string object.ToString()""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ret
 }");
+        }
 
+        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        public void ConditionalAccess_GenericExtension_ValueTuple()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace bug
+{
+    public static class Extension
+    {
+        public static String GetValue(this object value) => value?.ToString();
+    }
+
+    public partial class BGen<__T__>
+    {
+        public (Int64, __T__) Data { get; }
+
+        public BGen((Int64, __T__) data)
+        {
+            this.Data = data;
+        }
+
+        internal String Value
+        {
+            get
+            {
+                /// This works fine:
+                //var i2 = Data.Item2;
+                //var q2 = i2?.GetValue();
+
+                // This causes the AccessViolation:
+                var q2 = Data.Item2?.GetValue();
+                return q2;
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var i = new BGen<string>((0, ""abc""));
+            var r = i.Value;
+
+            Console.Write(r);
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "abc");
+            verifier.VerifyIL("bug.BGen<__T__>.Value.get", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (System.ValueTuple<long, __T__> V_0,
+                __T__ V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.ValueTuple<long, __T__> bug.BGen<__T__>.Data.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldflda     ""__T__ System.ValueTuple<long, __T__>.Item2""
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  initobj    ""__T__""
+  IL_0016:  ldloc.1
+  IL_0017:  box        ""__T__""
+  IL_001c:  brtrue.s   IL_0031
+  IL_001e:  ldobj      ""__T__""
+  IL_0023:  stloc.1
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldloc.1
+  IL_0027:  box        ""__T__""
+  IL_002c:  brtrue.s   IL_0031
+  IL_002e:  pop
+  IL_002f:  ldnull
+  IL_0030:  ret
+  IL_0031:  ldobj      ""__T__""
+  IL_0036:  box        ""__T__""
+  IL_003b:  call       ""string bug.Extension.GetValue(object)""
+  IL_0040:  ret
+}");
         }
     }
 }

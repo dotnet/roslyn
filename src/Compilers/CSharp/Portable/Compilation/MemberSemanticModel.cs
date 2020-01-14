@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_lazyRemappedSymbols.TryGetValue(originalSymbol, out Symbol remappedSymbol))
             {
-                Debug.Assert(remappedSymbol is object);
+                RoslynDebug.Assert(remappedSymbol is object);
                 return (T)remappedSymbol;
             }
 

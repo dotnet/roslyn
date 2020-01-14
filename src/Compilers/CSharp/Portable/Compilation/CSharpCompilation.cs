@@ -3409,7 +3409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)
         {
-            Debug.Assert(symbol is object);
+            RoslynDebug.Assert(symbol is object);
             Debug.Assert(symbol.IsDefinition);
 
             if (symbol.ContainingModule != SourceModule)
