@@ -891,15 +891,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
             {
                 var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
-                if (!TryGetReplacementCandidates(
+                GetReplacementCandidates(
                     semanticModel,
                     memberAccess,
                     actualSymbol,
                     out var speculativeSymbols,
-                    out var speculativeNamespacesAndTypes))
-                {
-                    return false;
-                }
+                    out var speculativeNamespacesAndTypes);
 
                 if (!IsReplacementCandidate(actualSymbol, speculativeSymbols, speculativeNamespacesAndTypes))
                 {
@@ -923,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 .WithLeadingTrivia(GetLeadingTriviaForSimplifiedMemberAccess(memberAccess))
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
-        private static bool TryGetReplacementCandidates(
+        private static void GetReplacementCandidates(
             SemanticModel semanticModel,
             MemberAccessExpressionSyntax memberAccess,
             SymbolInfo actualSymbol,
@@ -946,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 speculativeSymbols = ImmutableArray<ISymbol>.Empty;
                 speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
-                return false;
+                return;
             }
 
             speculativeSymbols = containsOtherSymbol
@@ -955,7 +952,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
                 ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
                 : ImmutableArray<ISymbol>.Empty;
-            return true;
         }
 
         /// <summary>
