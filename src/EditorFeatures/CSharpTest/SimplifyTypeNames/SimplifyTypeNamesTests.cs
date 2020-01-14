@@ -4864,6 +4864,21 @@ namespace N
 }}");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|{typeName}|];
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
@@ -5472,21 +5487,6 @@ class Goo
         var v = Parse(a);
     }
 }");
-        }
-
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
-        [InlineData("Float32")]
-        [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
-        {
-            await TestMissingInRegularAndScriptAsync(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|{typeName}|];
-}}");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
