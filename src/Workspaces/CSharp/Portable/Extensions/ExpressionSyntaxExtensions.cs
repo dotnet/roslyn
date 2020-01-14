@@ -216,7 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return
                 IsLeftSideOfQualifiedName(expression) ||
-                (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
+                IsLeftSideOfSimpleMemberAccessExpression(expression);
+        }
+
+        public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
+        {
+            return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression;
         }
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
