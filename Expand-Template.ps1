@@ -125,7 +125,8 @@ try {
     }
     Replace-Placeholders -Path "README.md" -Replacements @{
         "(?m)^.*\[NuGet package\][^`r`n]*"="[![NuGet package](https://img.shields.io/nuget/v/$LibraryName.svg)](https://nuget.org/packages/$LibraryName)"
-        "(?m)^.*\[Build Status\].*`r?`n"=""
+        "(?m)^.*\[Azure Pipelines status\].*`r?`n"=""
+        "(?m)^.*\[GitHub Actions status\].*`r?`n"=""
         "(?m)^.*\[codecov\].*`r?`n"=""
     }
 
