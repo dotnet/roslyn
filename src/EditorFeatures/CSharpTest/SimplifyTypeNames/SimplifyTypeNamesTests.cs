@@ -4815,6 +4815,30 @@ namespace A.B.C
 }");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        [InlineData("Float32")]
+        [InlineData("Float64")]
+        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType(string typeName)
+        {
+            await TestMissingAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|{typeName}|];
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
