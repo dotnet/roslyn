@@ -3008,45 +3008,6 @@ static class M
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
-        {
-            var source =
-@"class Base
-{
-    public static int Y;
-}
-
-class Derived : Base
-{
-}
-
-static class M
-{
-    public static void Main()
-    {
-        int k = [|Derived|].Y;
-    }
-}";
-            await TestInRegularAndScriptAsync(source,
-@"class Base
-{
-    public static int Y;
-}
-
-class Derived : Base
-{
-}
-
-static class M
-{
-    public static void Main()
-    {
-        int k = Base.Y;
-    }
-}");
-        }
-
         [WorkItem(551040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyNestedType()
@@ -4488,21 +4449,6 @@ class Base
 }", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestNameofReportsSimplifyMemberAccess()
-        {
-            await TestDiagnosticInfoAsync(
-@"using System;
-
-class Base
-{
-    void Goo()
-    {
-        var v = nameof([|System|].Int32);
-    }
-}", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
-        }
-
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
@@ -5706,6 +5652,60 @@ internal struct BitVector : IEquatable<BitVector>
 }";
 
             await TestMissingInRegularAndScriptAsync(content);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyStaticMemberAccessThroughDerivedType()
+        {
+            var source =
+@"class Base
+{
+    public static int Y;
+}
+
+class Derived : Base
+{
+}
+
+static class M
+{
+    public static void Main()
+    {
+        int k = [|Derived|].Y;
+    }
+}";
+            await TestInRegularAndScriptAsync(source,
+@"class Base
+{
+    public static int Y;
+}
+
+class Derived : Base
+{
+}
+
+static class M
+{
+    public static void Main()
+    {
+        int k = Base.Y;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNameofReportsSimplifyMemberAccess()
+        {
+            await TestDiagnosticInfoAsync(
+@"using System;
+
+class Base
+{
+    void Goo()
+    {
+        var v = nameof([|System|].Int32);
+    }
+}", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
