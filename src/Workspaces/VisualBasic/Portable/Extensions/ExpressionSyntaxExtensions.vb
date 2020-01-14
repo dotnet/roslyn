@@ -969,11 +969,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
-                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
-                Return False
-            End If
-
             If memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind) Then
                 replacementNode = SyntaxFactory.PredefinedType(
                     SyntaxFactory.Token(
@@ -982,6 +977,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 issueSpan = memberAccess.Span
                 Return True
+            End If
+
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
+                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
+                Return False
             End If
 
             If Not memberAccess.IsRightSideOfDot() Then

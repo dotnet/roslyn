@@ -805,12 +805,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (memberAccess.Name == null || memberAccess.Expression == null)
                 return false;
 
-            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
-            {
-                return false;
-            }
-
             // if this node is annotated as being a SpecialType, let's use this information.
             if (memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind))
             {
@@ -822,6 +816,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 issueSpan = memberAccess.Span;
                 return true;
+            }
+
+            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
+                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
+            {
+                return false;
             }
 
             // if this node is on the left side, we could simplify to aliases
@@ -1052,9 +1052,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
         {
+            if (!SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language))
+                return false;
+
             return (IsInMemberAccessContext(expression) || InsideCrefReference(expression)) &&
-                   !InsideNameOfExpression(expression, semanticModel) &&
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language);
+                   !InsideNameOfExpression(expression, semanticModel);
         }
 
         public static bool IsInMemberAccessContext(this ExpressionSyntax expression) =>
