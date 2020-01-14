@@ -1783,11 +1783,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
-            BoundExpression result;
+            BoundExpression? result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
 
             return success &&
-                (result.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
+                (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
@@ -3168,7 +3168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return NamedTypeSymbol.CreateTuple(
                 locationOpt: null, // no location for the type declaration
                 elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
-                elementLocations: elementLocations,
+                elementLocations: elementLocations!,
                 elementNames: elementNames,
                 compilation: this,
                 shouldCheckConstraints: false,
@@ -3194,7 +3194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations);
 
             var tupleType = NamedTypeSymbol.CreateTuple(
-                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations!);
             if (!elementNullableAnnotations.IsDefault)
             {
                 tupleType = tupleType.WithElementTypes(
