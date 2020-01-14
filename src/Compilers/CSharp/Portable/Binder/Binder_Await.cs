@@ -244,10 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression expression,
             BoundExpression getAwaiterArgument,
             out bool isDynamic,
-            out BoundExpression? getAwaiter,
-            out PropertySymbol? isCompleted,
+            [NotNullWhen(true)] out BoundExpression? getAwaiter,
+            [NotNullWhen(true)] out PropertySymbol? isCompleted,
             out MethodSymbol? getResult,
-            out BoundExpression? getAwaiterGetResultCall,
+            [NotNullWhen(true)] out BoundExpression? getAwaiterGetResultCall,
             SyntaxNode node,
             DiagnosticBag diagnostics)
         {
