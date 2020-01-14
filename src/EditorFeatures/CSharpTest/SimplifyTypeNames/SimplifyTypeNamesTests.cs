@@ -4653,6 +4653,63 @@ class Base
 ");
         }
 
+        [WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyInTypeOf()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = typeof([|Object|]);
+    }
+}
+",
+@"using System;
+
+class C
+{
+    void Goo()
+    {
+        var v = typeof(object);
+    }
+}
+");
+        }
+
+        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyPredefinedTypeInUsingDirective1()
+        {
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
+
+namespace N
+{
+    using Alias1 = [|System|].Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}",
+
+@"using System;
+
+namespace N
+{
+    using Alias1 = Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
@@ -4902,63 +4959,6 @@ enum E
 enum E
 {
     Goo = 1,
-}");
-        }
-
-        [WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task SimplifyInTypeOf()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        var v = typeof([|Object|]);
-    }
-}
-",
-@"using System;
-
-class C
-{
-    void Goo()
-    {
-        var v = typeof(object);
-    }
-}
-");
-        }
-
-        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task SimplifyPredefinedTypeInUsingDirective1()
-        {
-            await TestWithPredefinedTypeOptionsAsync(
-@"using System;
-
-namespace N
-{
-    using Alias1 = [|System|].Object;
-
-    class C
-    {
-        Alias1 a1;
-    }
-}",
-
-@"using System;
-
-namespace N
-{
-    using Alias1 = Object;
-
-    class C
-    {
-        Alias1 a1;
-    }
 }");
         }
 
