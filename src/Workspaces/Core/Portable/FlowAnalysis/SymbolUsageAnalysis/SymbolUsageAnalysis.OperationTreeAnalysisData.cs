@@ -21,10 +21,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 PooledHashSet<ISymbol> symbolsRead,
                 PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
                 Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
-                : base(symbolsWriteMap, symbolsRead, lambdaOrLocalFunctionsBeingAnalyzed)
             {
                 _analyzeLocalFunction = analyzeLocalFunction;
+                SymbolsWriteBuilder = symbolsWriteMap;
+                SymbolsReadBuilder = symbolsRead;
+                LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
             }
+
+            /// <inheritdoc/>
+            protected override PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
+
+            /// <inheritdoc/>
+            protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
+
+            /// <inheritdoc/>
+            protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
             public static OperationTreeAnalysisData Create(
                 ISymbol owningSymbol,
@@ -67,6 +78,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 => throw ExceptionUtilities.Unreachable;
             public override bool TryGetDelegateInvocationTargets(IOperation write, out ImmutableHashSet<IOperation> targets)
                 => throw ExceptionUtilities.Unreachable;
+
+            public override void Dispose()
+            {
+                base.Dispose();
+
+                SymbolsWriteBuilder.Free();
+                SymbolsReadBuilder.Free();
+                LambdaOrLocalFunctionsBeingAnalyzed.Free();
+            }
         }
     }
 }
