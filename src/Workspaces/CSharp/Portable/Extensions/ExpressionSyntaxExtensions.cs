@@ -214,39 +214,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                IsLeftSideOfSimpleMemberAccessExpression(expression);
+            return IsLeftSideOfQualifiedName(expression) ||
+                   IsLeftSideOfSimpleMemberAccessExpression(expression);
         }
 
         public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
-        {
-            return (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess)
-                && memberAccess.Expression == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) &&
+               memberAccess.Expression == expression;
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
-        {
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
-        }
+            => IsLeftSideOfQualifiedName(expression) ||
+               (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-        {
-            return
-                (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
 
         public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
 
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
-        {
-            return
-                (expression?.Parent).IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation)
-                && invocation.Expression == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+               invocation.Expression == expression;
 
         public static bool TryGetNameParts(this ExpressionSyntax expression, out IList<string> parts)
         {
@@ -792,19 +780,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
-            {
                 return false;
-            }
 
             if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
-            {
                 return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
 
             if (expression is NameSyntax name)
-            {
                 return TryReduceName(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
 
             return false;
         }
@@ -821,9 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = default;
 
             if (memberAccess.Name == null || memberAccess.Expression == null)
-            {
                 return false;
-            }
 
             if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
                 !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
@@ -841,7 +821,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         memberAccess.GetTrailingTrivia()));
 
                 issueSpan = memberAccess.Span;
-
                 return true;
             }
 
@@ -1116,9 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             aliasReplacement = null;
 
             if (!IsAliasReplaceableExpression(node))
-            {
                 return false;
-            }
 
             // Avoid the TryReplaceWithAlias algorithm if the tree has no using alias directives. Since the input node
             // might be a speculative node (not fully rooted in a tree), we use the original semantic model to find the
@@ -1800,7 +1777,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // QualifiedNameSyntax
 
                 var qualifiedReplacement = SyntaxFactory.QualifiedName(replacementName, qualifiedParent.Right);
-                return CanReplaceWithReducedName(qualifiedParent, qualifiedReplacement, semanticModel, cancellationToken);
+                return CanReplaceWithReducedName(
+                    qualifiedParent, qualifiedReplacement, semanticModel, cancellationToken);
             }
 
             return false;

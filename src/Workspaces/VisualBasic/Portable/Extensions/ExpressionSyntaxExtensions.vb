@@ -981,7 +981,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             .WithLeadingTrivia(memberAccess.GetLeadingTrivia())
 
                 issueSpan = memberAccess.Span
-
                 Return True
             Else
 
@@ -1146,7 +1145,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return Nothing
         End Function
 
-        Private Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
+                                           semanticModel As SemanticModel,
+                                           <Out> ByRef replacementNode As ExpressionSyntax,
+                                           <Out> ByRef issueSpan As TextSpan,
+                                           cancellationToken As CancellationToken) As Boolean
             If memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax)).Symbol
                 If symbolForMemberAccess.IsModuleMember Then
