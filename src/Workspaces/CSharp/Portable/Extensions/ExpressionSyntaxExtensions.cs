@@ -907,11 +907,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
-            if (replacementNode == null)
-            {
-                return false;
-            }
-
             return CanReplaceWithReducedName(memberAccess, replacementNode, semanticModel, cancellationToken);
         }
 
