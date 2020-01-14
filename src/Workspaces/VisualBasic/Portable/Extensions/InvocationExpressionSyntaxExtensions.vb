@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function CanRemoveEmptyArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            Return invocationExpression.ArgumentList IsNot Nothing AndAlso invocationExpression.ArgumentList.Arguments.Count = 0 AndAlso _
+            Return invocationExpression.ArgumentList IsNot Nothing AndAlso invocationExpression.ArgumentList.Arguments.Count = 0 AndAlso
                 CanHaveOmittedArgumentList(invocationExpression, semanticModel, cancellationToken)
         End Function
 
