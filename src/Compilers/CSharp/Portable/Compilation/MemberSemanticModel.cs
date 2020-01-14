@@ -2185,6 +2185,18 @@ done:
                 }
             }
 
+            switch (node.Kind())
+            {
+                case SyntaxKind.AliasQualifiedName:
+                case SyntaxKind.QualifiedName:
+                case SyntaxKind.IdentifierName:
+                    if (node.Parent.IsKind(SyntaxKind.NullableType))
+                    {
+                        node = node.Parent;
+                    }
+                    break;
+            }
+
             return node;
         }
 

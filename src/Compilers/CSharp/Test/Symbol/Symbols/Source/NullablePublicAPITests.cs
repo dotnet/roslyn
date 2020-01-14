@@ -3815,5 +3815,40 @@ class B2 : A<int?>
                 Assert.Equal(expectedState, info.FlowState);
             }
         }
+
+        [Fact]
+        public void GetTypeInfoOnNullableType()
+        {
+            var source = @"
+#nullable enable
+namespace N
+{
+    class C    
+    {    
+        void M(C x)    
+        {    
+            global::N.C c1 = x;    
+            global::N.C? c2 = x;    
+            N.C c3 = x;    
+            N.C? c4 = x;    
+            C c5 = x;    
+            C? c6 = x;    
+        }    
+    }    
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var identifiers = tree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().ToList();
+
+            for (int i = 0; i < 6; i += 2)
+            {
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(identifiers[i].Type).Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(((NullableTypeSyntax)identifiers[i + 1].Type).ElementType).Type.NullableAnnotation);
+            }
+        }
     }
 }

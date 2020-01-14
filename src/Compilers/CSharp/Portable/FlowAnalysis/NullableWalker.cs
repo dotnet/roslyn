@@ -7193,7 +7193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitTypeExpression(node.BoundContainingTypeOpt);
             }
 
-            SetNotNullResult(node);
+            SetResult(node, node.TypeWithAnnotations.ToTypeWithState(), node.TypeWithAnnotations);
             return result;
         }
 
