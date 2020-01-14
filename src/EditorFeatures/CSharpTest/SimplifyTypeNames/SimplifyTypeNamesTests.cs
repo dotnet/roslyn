@@ -4839,6 +4839,31 @@ namespace N
 }}");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Boolean")]
+        [InlineData("Char")]
+        [InlineData("String")]
+        [InlineData("Int16")]
+        [InlineData("UInt16")]
+        [InlineData("Int32")]
+        [InlineData("UInt32")]
+        [InlineData("Int64")]
+        [InlineData("UInt64")]
+        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
@@ -5447,31 +5472,6 @@ class Goo
         var v = Parse(a);
     }
 }");
-        }
-
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [InlineData("Boolean")]
-        [InlineData("Char")]
-        [InlineData("String")]
-        [InlineData("Int16")]
-        [InlineData("UInt16")]
-        [InlineData("Int32")]
-        [InlineData("UInt32")]
-        [InlineData("Int64")]
-        [InlineData("UInt64")]
-        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
-        {
-            await TestInRegularAndScript1Async(
-$@"using System;
-namespace N
-{{
-    using My{typeName} = [|System.{typeName}|];
-}}",
-$@"using System;
-namespace N
-{{
-    using My{typeName} = {typeName};
-}}");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
