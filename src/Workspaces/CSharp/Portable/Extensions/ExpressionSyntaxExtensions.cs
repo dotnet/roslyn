@@ -1064,20 +1064,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
         {
-            while (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+            var current = expression;
+            while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
             {
-                expression = currentMember.Expression;
+                current = currentMember.Expression;
+                continue;
             }
 
-            if (expression.Kind() == SyntaxKind.IdentifierName ||
-                expression.Kind() == SyntaxKind.QualifiedName ||
-                expression.Kind() == SyntaxKind.AliasQualifiedName ||
-                expression.Kind() == SyntaxKind.GenericName)
-            {
-                return true;
-            }
-
-            return false;
+            return current.IsKind(SyntaxKind.AliasQualifiedName,
+                                  SyntaxKind.IdentifierName,
+                                  SyntaxKind.GenericName,
+                                  SyntaxKind.QualifiedName);
         }
 
         [PerformanceSensitive(
