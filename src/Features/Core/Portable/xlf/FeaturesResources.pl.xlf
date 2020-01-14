@@ -572,6 +572,11 @@
         <target state="new">The selection contains a local function call without its declaration.</target>
         <note />
       </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">Niepotrzebne przypisanie wartości</target>
