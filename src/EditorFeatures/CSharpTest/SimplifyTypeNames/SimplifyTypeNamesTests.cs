@@ -2939,6 +2939,7 @@ class Program
 }");
         }
 
+        [WorkItem(40632, "https://github.com/dotnet/roslyn/issues/40632")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestColorColorCase3()
         {
