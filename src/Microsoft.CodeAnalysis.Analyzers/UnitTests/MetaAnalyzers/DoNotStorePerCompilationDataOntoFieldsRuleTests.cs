@@ -272,7 +272,7 @@ End Class
         private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, string violatingTypeName)
         {
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(fileName, line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage)
                 .WithArguments(violatingTypeName);

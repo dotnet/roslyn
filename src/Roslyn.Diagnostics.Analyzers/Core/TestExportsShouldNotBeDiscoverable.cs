@@ -29,7 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
             s_localizableTitle,
             s_localizableMessage,
             DiagnosticCategory.RoslyDiagnosticsReliability,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
             helpLinkUri: null,

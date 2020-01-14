@@ -110,7 +110,7 @@ End Class";
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column)
         {
-            return new DiagnosticResult(DiagnosticIds.UpgradeMSBuildWorkspaceRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.UpgradeMSBuildWorkspaceRuleId, DiagnosticSeverity.Warning)
                .WithLocation(line, column)
                .WithMessageFormat(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage);
         }

@@ -84,12 +84,12 @@ namespace Test.Utilities
 
         protected static DiagnosticResult GetGlobalResult(string id, string message)
         {
-            return new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithMessage(message);
+            return new DiagnosticResult(id, DiagnosticSeverity.Warning).WithMessage(message);
         }
 
         protected static DiagnosticResult GetGlobalResult(DiagnosticDescriptor rule, params string[] messageArguments)
         {
-            return new DiagnosticResult(rule).WithMessage(string.Format(rule.MessageFormat.ToString(), messageArguments));
+            return new DiagnosticResult(rule).WithMessage(string.Format(rule.MessageFormat.ToString(), messageArguments)).WithSeverity(rule.DefaultSeverity);
         }
 
         protected static DiagnosticResult GetBasicResultAt(int line, int column, string id, string message)
@@ -112,9 +112,9 @@ namespace Test.Utilities
             return GetResultAt(CSharpDefaultFilePath, line, column, id, message);
         }
 
-        protected static DiagnosticResult GetCSharpResultAt(string id, string message, params string[] locationStrings)
+        protected static DiagnosticResult GetCSharpResultAt(DiagnosticDescriptor rule, string[] messageArgs, params string[] locationStrings)
         {
-            return GetResultAt(CSharpDefaultFilePath, id, message, locationStrings);
+            return GetResultAt(CSharpDefaultFilePath, rule, messageArgs, locationStrings);
         }
 
         protected static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
@@ -129,12 +129,12 @@ namespace Test.Utilities
 
         private static DiagnosticResult GetResultAt(string path, int line, int column, string id, string message)
         {
-            return new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithLocation(path, line, column).WithMessage(message);
+            return new DiagnosticResult(id, DiagnosticSeverity.Warning).WithLocation(path, line, column).WithMessage(message);
         }
 
-        protected static DiagnosticResult GetResultAt(string path, string id, string message, params string[] locationStrings)
+        protected static DiagnosticResult GetResultAt(string path, DiagnosticDescriptor rule, string[] messageArguments, params string[] locationStrings)
         {
-            var result = new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithMessage(message);
+            var result = new DiagnosticResult(rule).WithArguments(messageArguments);
             foreach (var location in ParseResultLocations(path, locationStrings))
             {
                 result = result.WithLocation(location.path, location.location);
@@ -145,12 +145,12 @@ namespace Test.Utilities
 
         private static DiagnosticResult GetResultAt(string path, int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
-            return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments);
+            return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments).WithSeverity(rule.DefaultSeverity);
         }
 
         private static DiagnosticResult GetResultAt(string path, IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
         {
-            DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments);
+            DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments).WithSeverity(rule.DefaultSeverity);
             foreach (var (line, column) in lineColumnPairs)
             {
                 result = result.WithLocation(path, line, column);

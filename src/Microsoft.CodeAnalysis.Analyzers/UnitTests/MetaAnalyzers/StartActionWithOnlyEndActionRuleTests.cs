@@ -377,7 +377,7 @@ End Class
 
             string message = string.Format(CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);
 
-            return new DiagnosticResult(DiagnosticIds.StartActionWithOnlyEndActionRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.StartActionWithOnlyEndActionRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(message);
         }
