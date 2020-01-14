@@ -952,15 +952,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     || speculativeNamespacesAndTypes.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance);
             }
 
-            //foreach (var symbol in actualSymbol.CandidateSymbols)
-            //{
-            //    if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
-            //        && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
-            //    {
-            //        return false;
-            //    }
-            //}
-
             return true;
         }
 
