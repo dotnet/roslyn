@@ -4592,6 +4592,29 @@ class Base
 ");
         }
 
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAliasToGeneric2()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|List<int>|] Goo;
+}
+",
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public MyList Goo;
+}
+");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
@@ -4842,29 +4865,6 @@ enum E
 {
     Goo = 1,
 }");
-        }
-
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task SimplifyAliasToGeneric2()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.Collections.Generic;
-using MyList = System.Collections.Generic.List<int>;
-
-class Base
-{
-    public [|List<int>|] Goo;
-}
-",
-@"using System.Collections.Generic;
-using MyList = System.Collections.Generic.List<int>;
-
-class Base
-{
-    public MyList Goo;
-}
-");
         }
 
         [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
