@@ -3,9 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
 using Test.Utilities;
@@ -24,18 +22,14 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
     public class RestrictedInternalsVisibleToAnalyzerTests
     {
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
-        {
-            return new DiagnosticResult(CSharpRestrictedInternalsVisibleToAnalyzer.Rule)
+            => VerifyCS.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
-        }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string bannedSymbolName, string restrictedNamespaces)
-        {
-            return new DiagnosticResult(BasicRestrictedInternalsVisibleToAnalyzer.Rule)
+            => VerifyVB.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(bannedSymbolName, ApiProviderProjectName, restrictedNamespaces);
-        }
 
         private static DiagnosticResult GetBasicResultAt(int startLine, int startColumn, int endLine, int endColumn, string bannedSymbolName, string restrictedNamespaces)
         {

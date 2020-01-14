@@ -14,8 +14,15 @@ namespace Test.Utilities
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0")));
 
+        public static ReferenceAssemblies DefaultWithoutRoslynSymbols { get; } = ReferenceAssemblies.Default
+            .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis.Workspaces.Common", "3.0.0")));
+
         public static ReferenceAssemblies DefaultWithSystemWeb { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
+
+        public static ReferenceAssemblies DefaultForTaintedDataAnalysis { get; } = Default
+            .AddAssemblies(ImmutableArray.Create("PresentationFramework", "System.DirectoryServices", "System.Web", "System.Web.Extensions", "System.Xaml"));
 
         public static ReferenceAssemblies DefaultWithSerialization { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Runtime.Serialization"));
@@ -25,6 +32,9 @@ namespace Test.Utilities
 
         public static ReferenceAssemblies DefaultWithNewtonsoftJson { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Newtonsoft.Json", "10.0.1")));
+
+        public static ReferenceAssemblies DefaultWithWinForms { get; } = Default
+            .AddAssemblies(ImmutableArray.Create("System.Windows.Forms"));
 
         public static MetadataReference SystemCollectionsImmutableReference { get; } = MetadataReference.CreateFromFile(typeof(ImmutableHashSet<>).Assembly.Location);
         public static MetadataReference SystemComponentModelCompositionReference { get; } = MetadataReference.CreateFromFile(typeof(System.ComponentModel.Composition.ExportAttribute).Assembly.Location);
@@ -36,7 +46,7 @@ namespace Test.Utilities
         internal static MetadataReference WorkspacesReference { get; } = MetadataReference.CreateFromFile(typeof(Workspace).Assembly.Location);
         internal static MetadataReference SystemWebReference { get; } = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
         internal static MetadataReference SystemRuntimeSerialization { get; } = MetadataReference.CreateFromFile(typeof(System.Runtime.Serialization.NetDataContractSerializer).Assembly.Location);
-        internal static MetadataReference TestReferenceAssembly { get; } = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
+        public static MetadataReference TestReferenceAssembly { get; } = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
         internal static MetadataReference SystemDirectoryServices { get; } = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
         internal static MetadataReference SystemXaml { get; } = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
         internal static MetadataReference PresentationFramework { get; } = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
