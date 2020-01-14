@@ -101,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             return symbol != null && !symbol.IsErrorType();
         }
 
-        internal static bool ShouldSimplifyMemberAccessExpression(SemanticModel semanticModel, SyntaxNode expression, OptionSet optionSet)
+        internal static bool ShouldSimplifyMemberAccessExpression(
+            SemanticModel semanticModel, SyntaxNode expression, OptionSet optionSet)
         {
             var symbol = GetOriginalSymbolInfo(semanticModel, expression);
             if (symbol == null ||
