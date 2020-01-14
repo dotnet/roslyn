@@ -979,8 +979,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            Dim symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess)
+            If symbol Is Nothing Then
+                Return False
+            End If
+
             If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
-                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
+                Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, optionSet, symbol) Then
                 Return False
             End If
 
@@ -1010,7 +1015,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
-                    Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
                     If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
                         Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
                         If keywordKind <> SyntaxKind.None Then
@@ -1032,7 +1036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' a module name was inserted by the name expansion, so removing this should be tried first.
             If memberAccess.HasAnnotation(SimplificationHelpers.SimplifyModuleNameAnnotation) Then
-                If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
+                If TryOmitModuleName(memberAccess, semanticModel, symbol, replacementNode, issueSpan, cancellationToken) Then
                     Return True
                 End If
             End If
@@ -1040,11 +1044,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
             issueSpan = memberAccess.Expression.Span
 
-            If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
+            If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, symbol, cancellationToken) Then
                 Return True
             End If
 
-            If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
+            If TryOmitModuleName(memberAccess, semanticModel, symbol, replacementNode, issueSpan, cancellationToken) Then
                 Return True
             End If
 
@@ -1145,6 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
                                            semanticModel As SemanticModel,
+                                           symbol As ISymbol,
                                            <Out> ByRef replacementNode As ExpressionSyntax,
                                            <Out> ByRef issueSpan As TextSpan,
                                            cancellationToken As CancellationToken) As Boolean
@@ -1157,7 +1162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim parent = DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax)
                     Dim parentReplacement = parent.ReplaceNode(parent.Expression, replacementNode)
 
-                    If parent.CanReplaceWithReducedName(parentReplacement, semanticModel, cancellationToken) Then
+                    If parent.CanReplaceWithReducedName(parentReplacement, semanticModel, symbol, cancellationToken) Then
                         Return True
                     End If
                 End If
@@ -1171,6 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             memberAccess As MemberAccessExpressionSyntax,
             reducedNode As ExpressionSyntax,
             semanticModel As SemanticModel,
+            symbol As ISymbol,
             cancellationToken As CancellationToken
         ) As Boolean
             If Not IsMeOrNamedTypeOrNamespace(memberAccess.Expression, semanticModel) Then
@@ -1186,7 +1192,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             If memberAccess.Expression.IsKind(SyntaxKind.MyBaseExpression) Then
                 Dim enclosingNamedType = semanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken)
-                Dim symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol
                 If enclosingNamedType IsNot Nothing AndAlso
                     Not enclosingNamedType.IsSealed AndAlso
                     symbol IsNot Nothing AndAlso

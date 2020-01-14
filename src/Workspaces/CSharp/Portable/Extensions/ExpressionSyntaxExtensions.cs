@@ -815,8 +815,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            var symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess);
+            if (symbol == null)
+                return false;
+
             if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
+                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, optionSet, symbol))
             {
                 return false;
             }
@@ -826,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 // Check if we need to replace this syntax with an alias identifier
                 if (TryReplaceExpressionWithAlias(
-                        memberAccess, semanticModel,
+                        memberAccess, semanticModel, symbol,
                         cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
@@ -865,7 +869,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Check if the Expression can be replaced by Predefined Type keyword
                 if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet, semanticModel))
                 {
-                    var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
                     if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
                     {
                         var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)symbol).SpecialType);
@@ -889,15 +892,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 'this.Name' or 'base.Name', no additional check here is required.
             if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
             {
-                var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
                 GetReplacementCandidates(
                     semanticModel,
                     memberAccess,
-                    actualSymbol,
+                    symbol,
                     out var speculativeSymbols,
                     out var speculativeNamespacesAndTypes);
 
-                if (!IsReplacementCandidate(actualSymbol, speculativeSymbols, speculativeNamespacesAndTypes))
+                if (!IsReplacementCandidate(symbol, speculativeSymbols, speculativeNamespacesAndTypes))
                 {
                     return false;
                 }
@@ -907,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = memberAccess.Expression.Span;
 
             return CanReplaceWithReducedName(
-                memberAccess, replacementNode, semanticModel, cancellationToken);
+                memberAccess, replacementNode, semanticModel, symbol, cancellationToken);
         }
 
         public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
@@ -918,28 +920,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static void GetReplacementCandidates(
             SemanticModel semanticModel,
             MemberAccessExpressionSyntax memberAccess,
-            SymbolInfo actualSymbol,
+            ISymbol actualSymbol,
             out ImmutableArray<ISymbol> speculativeSymbols,
             out ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
         {
-            bool containsNamespaceOrTypeSymbol;
-            bool containsOtherSymbol;
-            if (actualSymbol.Symbol is object)
-            {
-                containsNamespaceOrTypeSymbol = actualSymbol.Symbol is INamespaceOrTypeSymbol;
-                containsOtherSymbol = !containsNamespaceOrTypeSymbol;
-            }
-            else if (!actualSymbol.CandidateSymbols.IsDefaultOrEmpty)
-            {
-                containsNamespaceOrTypeSymbol = actualSymbol.CandidateSymbols.Any(symbol => symbol is INamespaceOrTypeSymbol);
-                containsOtherSymbol = actualSymbol.CandidateSymbols.Any(symbol => !(symbol is INamespaceOrTypeSymbol));
-            }
-            else
-            {
-                speculativeSymbols = ImmutableArray<ISymbol>.Empty;
-                speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
-                return;
-            }
+            var containsNamespaceOrTypeSymbol = actualSymbol is INamespaceOrTypeSymbol;
+            var containsOtherSymbol = !containsNamespaceOrTypeSymbol;
 
             speculativeSymbols = containsOtherSymbol
                 ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
@@ -953,26 +939,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// Determines if <paramref name="speculativeSymbols"/> and <paramref name="speculativeNamespacesAndTypes"/>
         /// together contain a superset of the symbols in <paramref name="actualSymbol"/>.
         /// </summary>
-        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        private static bool IsReplacementCandidate(ISymbol actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
         {
             if (speculativeSymbols.IsEmpty && speculativeNamespacesAndTypes.IsEmpty)
             {
                 return false;
             }
 
-            if (actualSymbol.Symbol is object)
+            if (actualSymbol is object)
             {
-                return speculativeSymbols.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance)
-                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance);
-            }
-
-            foreach (var symbol in actualSymbol.CandidateSymbols)
-            {
-                if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
-                    && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
-                {
-                    return false;
-                }
+                return speculativeSymbols.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance)
+                    || speculativeNamespacesAndTypes.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance);
             }
 
             return true;
@@ -1082,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
         private static bool TryReplaceExpressionWithAlias(
             ExpressionSyntax node, SemanticModel semanticModel,
-            CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
+            ISymbol symbol, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
 
@@ -1104,8 +1081,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
             }
-
-            var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
             // If the Symbol is a constructor get its containing type
             if (symbol.IsConstructor())
@@ -1495,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (!name.IsRightSideOfDotOrColonColon())
                 {
-                    if (TryReplaceExpressionWithAlias(name, semanticModel, cancellationToken, out var aliasReplacement))
+                    if (TryReplaceExpressionWithAlias(name, semanticModel, symbol, cancellationToken, out var aliasReplacement))
                     {
                         // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
@@ -2079,6 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             MemberAccessExpressionSyntax memberAccess,
             ExpressionSyntax reducedName,
             SemanticModel semanticModel,
+            ISymbol symbol,
             CancellationToken cancellationToken)
         {
             if (!IsThisOrTypeOrNamespace(memberAccess, semanticModel))
@@ -2111,7 +2087,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (memberAccess.Expression.Kind() == SyntaxKind.BaseExpression)
             {
                 var enclosingNamedType = semanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken);
-                var symbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken).Symbol;
                 if (enclosingNamedType != null &&
                     !enclosingNamedType.IsSealed &&
                     symbol != null &&
