@@ -5,11 +5,15 @@
 # what the build would do. So only set them if they have not already been set.
 
 (& "$PSScriptRoot\_all.ps1").GetEnumerator() |% {
-    if (Test-Path -Path "env:$($_.Key.ToUpper())") {
+    if (Test-Path -Path "env:$($_.Key)") {
         Write-Host "Skipping setting $($_.Key) because variable is already set." -ForegroundColor Cyan
     } else {
         Write-Host "$($_.Key)=$($_.Value)" -ForegroundColor Yellow
-        Write-Host "##vso[task.setvariable variable=$($_.Key);]$($_.Value)"
+        if ($env:TF_BUILD) {
+            Write-Host "##vso[task.setvariable variable=$($_.Key);]$($_.Value)"
+        } elseif ($env:GITHUB_ACTIONS) {
+            Write-Host "::set-env name=$($_.Key)::$($_.Value)"
+        }
         Set-Item -Path "env:$($_.Key)" -Value $_.Value
     }
 }
