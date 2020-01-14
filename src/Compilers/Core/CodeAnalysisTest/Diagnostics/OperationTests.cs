@@ -33,15 +33,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             argumentNames = default;
             argumentRefKinds = default;
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
-            Assert.Equal(null, dynamicExpression.GetArgumentName(0));
-            Assert.Equal(null, dynamicExpression.GetArgumentRefKind(0));
+            Assert.Null(dynamicExpression.GetArgumentName(0));
+            Assert.Null(dynamicExpression.GetArgumentRefKind(0));
 
             // Non-empty arguments and empty argument names/refkinds
             arguments = ImmutableArray.Create((IOperation)null);
             argumentNames = ImmutableArray<string>.Empty;
             argumentRefKinds = ImmutableArray<RefKind>.Empty;
             dynamicExpression = createDynamicExpression(arguments, argumentNames, argumentRefKinds);
-            Assert.Equal(null, dynamicExpression.GetArgumentName(0));
+            Assert.Null(dynamicExpression.GetArgumentName(0));
             Assert.Equal(RefKind.None, dynamicExpression.GetArgumentRefKind(0));
 
             // Non-empty arguments and non-empty argument names/refkinds
@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IFieldInitializerOperation initializer = new FieldInitializerOperation(
-                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IFieldSymbol>.Empty,
-                    value: null, kind: OperationKind.FieldInitializer,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                    ImmutableArray<IFieldSymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -178,9 +178,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IPropertyInitializerOperation initializer = new PropertyInitializerOperation(
-                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IPropertySymbol>.Empty,
-                    value: null, kind: OperationKind.PropertyInitializer,
-                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                    ImmutableArray<IPropertySymbol>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }
@@ -196,9 +196,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             try
             {
                 IParameterInitializerOperation initializer = new ParameterInitializerOperation(
-                                    ImmutableArray<ILocalSymbol>.Empty, parameter: null,
-                                    value: null, kind: OperationKind.ParameterInitializer,
-                                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                                    parameter: null, locals: ImmutableArray<ILocalSymbol>.Empty,
+                    value: null, semanticModel: null,
+                    syntax: null, type: null, constantValue: default, isImplicit: false);
                 initializer = Operation.SetParentOperation(initializer, parent);
                 _ = ControlFlowGraph.Create(initializer);
             }

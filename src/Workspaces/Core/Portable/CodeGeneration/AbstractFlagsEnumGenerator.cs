@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             for (var i = allFieldsAndValues.Count - 1; i >= 0; i--)
             {
-                var tuple = allFieldsAndValues[i];
-                if (tuple.value == 0)
+                var (field, value) = allFieldsAndValues[i];
+                if (value == 0)
                 {
-                    return tuple.field;
+                    return field;
                 }
             }
 

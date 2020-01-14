@@ -2,8 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
-Imports System.ComponentModel
-Imports System.IO
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -20,42 +18,44 @@ Namespace Microsoft.CodeAnalysis
     Public Module VisualBasicExtensions
 
         ''' <summary>
-        ''' Determines if SyntaxTrivia is a specified kind.
+        ''' Determines if <see cref="SyntaxTrivia"/> is of a specified kind.
         ''' </summary>
-        '''<param name="trivia">The Source SyntaxTrivia.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
+        ''' <param name="trivia">The source trivia.</param>
+        ''' <param name="kind">The syntax kind to test for.</param>
+        ''' <returns><see langword="true"/> if the trivia is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
             Return trivia.RawKind = kind
         End Function
 
         ''' <summary>
-        ''' Determines if SyntaxToken is a specified kind.
+        ''' Determines if <see cref="SyntaxToken"/> is of a specified kind.
         ''' </summary>
-        '''<param name="token">The Source SyntaxToken.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
+        ''' <param name="token">The source token.</param>
+        ''' <param name="kind">The syntax kind to test for.</param>
+        ''' <returns><see langword="true"/> if the token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.RawKind = kind
         End Function
 
         ''' <summary>
-        ''' Determines if SyntaxNode is a specified kind.
+        ''' Determines if <see cref="SyntaxNode"/> is of a specified kind.
         ''' </summary>
-        ''' <param name="node">The Source SyntaxNode.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if node is of specified kind; otherwise false.</returns>
+        ''' <param name="node">The Source node.</param>
+        ''' <param name="kind">The syntax kind  to test for.</param>
+        ''' <returns><see langword="true"/> if the node is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
             Return node IsNot Nothing AndAlso node.RawKind = kind
         End Function
 
         ''' <summary>
-        ''' Determines if a SyntaxNodeOrToken is a specified kind.
+        ''' Determines if <see cref="SyntaxNodeOrToken"/> is of a specified kind.
         ''' </summary>
-        ''' <param name="nodeOrToken">The source SyntaxNodeOrToken.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if nodeOrToken is of specified kind; otherwise false.</returns>
+        ''' <param name="nodeOrToken">The source node or token.</param>
+        ''' <param name="kind">The syntax kind to test for.</param>
+        ''' <returns><see langword="true"/> if the node or token is of the specified kind; otherwise, <see langword="false"/>.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
             Return nodeOrToken.RawKind = kind
@@ -164,6 +164,11 @@ End Namespace
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module VisualBasicExtensions
+        ''' <summary>
+        ''' Determines if the given raw kind value belongs to the Visual Basic <see cref="SyntaxKind"/> enumeration.
+        ''' </summary>
+        ''' <param name="rawKind">The raw value to test.</param>
+        ''' <returns><see langword="true"/> when the raw value belongs to the Visual Basic syntax kind; otherwise, <see langword="false"/>.</returns>
         Friend Function IsVisualBasicKind(rawKind As Integer) As Boolean
             Const LastPossibleVisualBasicKind As Integer = 8192
 
@@ -171,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> nodes.
+        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> from <see cref="SyntaxTrivia.RawKind"/> property.
         ''' </summary>
         <Extension>
         Public Function Kind(trivia As SyntaxTrivia) As SyntaxKind
@@ -189,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxToken.RawKind"/> property.
+        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxNode.RawKind"/> property.
         ''' </summary>
         <Extension>
         Public Function Kind(node As SyntaxNode) As SyntaxKind
@@ -198,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNodeOrToken"/> from <see cref="SyntaxToken.RawKind"/> property.
+        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNodeOrToken"/> from <see cref="SyntaxNodeOrToken.RawKind"/> property.
         ''' </summary>
         <Extension>
         Public Function Kind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
@@ -1374,7 +1379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function GetConversion(conversionExpression As IConversionOperation) As Conversion
             If conversionExpression.Language = LanguageNames.VisualBasic Then
-                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConvertibleConversion, Conversion)
+                Return DirectCast(DirectCast(conversionExpression, BaseConversionOperation).ConversionConvertible, Conversion)
             Else
                 Throw New ArgumentException(String.Format(VBResources.IConversionExpressionIsNotVisualBasicConversion,
                                                           NameOf(IConversionOperation)),

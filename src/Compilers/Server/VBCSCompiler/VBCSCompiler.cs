@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             try
             {
-                var controller = new DesktopBuildServerController(appSettings);
+                var controller = new BuildServerController(appSettings);
                 return controller.Run(args);
             }
             catch (FileNotFoundException e)

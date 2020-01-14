@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var addImportsCodeAction = new AddMissingImportsCodeAction(
                 CodeActionTitle,
                 cancellationToken => AddMissingImports(document, textSpan, cancellationToken));
-            context.RegisterRefactoring(addImportsCodeAction);
+            context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
         private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)

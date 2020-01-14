@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         public CodeActionPriority Priority { get; private set; }
 
-        #region When adding P2P refrences.
+        #region When adding P2P references.
 
         /// <summary>
         /// The optional id for a <see cref="Project"/> we'd like to add a reference to.

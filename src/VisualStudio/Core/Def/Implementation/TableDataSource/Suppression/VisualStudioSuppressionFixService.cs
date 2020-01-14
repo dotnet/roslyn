@@ -461,7 +461,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 var document = newSolution.GetDocument(kvp.Key.Id);
                 if (document != null)
                 {
-                    builder = builder ?? ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
+                    builder ??= ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
                     builder.Add(document, kvp.Value);
                 }
             }
@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 var project = newSolution.GetProject(kvp.Key.Id);
                 if (project != null)
                 {
-                    projectDiagsBuilder = projectDiagsBuilder ?? ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
+                    projectDiagsBuilder ??= ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
                     projectDiagsBuilder.Add(project, kvp.Value);
                 }
             }
@@ -498,10 +498,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
         {
-            bool isDocumentDiagnostic(DiagnosticData d) => d.DataLocation != null && d.HasTextSpan;
-
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, List<DiagnosticData>>();
-            foreach (var diagnosticData in diagnosticsToFix.Where(isDocumentDiagnostic))
+            foreach (var diagnosticData in diagnosticsToFix.Where(IsDocumentDiagnostic))
             {
                 if (!builder.TryGetValue(diagnosticData.DocumentId, out var diagnosticsPerDocument))
                 {
@@ -532,7 +530,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 {
                     var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
                     var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false)).Where(isDocumentDiagnostic);
+                        .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                     latestDocumentDiagnosticsMapOpt.Clear();
                     foreach (var kvp in latestProjectDiagnostics.Where(d => d.DocumentId != null).GroupBy(d => d.DocumentId))
@@ -575,13 +573,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             return finalBuilder.ToImmutableDictionary();
+
+            // Local functions
+            static bool IsDocumentDiagnostic(DiagnosticData d) => d.DataLocation != null && d.HasTextSpan;
         }
 
         private async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
         {
-            bool isProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
             var builder = ImmutableDictionary.CreateBuilder<ProjectId, List<DiagnosticData>>();
-            foreach (var diagnosticData in diagnosticsToFix.Where(isProjectDiagnostic))
+            foreach (var diagnosticData in diagnosticsToFix.Where(IsProjectDiagnostic))
             {
                 if (!builder.TryGetValue(diagnosticData.ProjectId, out var diagnosticsPerProject))
                 {
@@ -617,7 +617,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                         .ConfigureAwait(false));
 
                     latestDiagnosticsToFixOpt.Clear();
-                    latestDiagnosticsToFixOpt.AddRange(latestDiagnosticsFromDiagnosticService.Where(isProjectDiagnostic));
+                    latestDiagnosticsToFixOpt.AddRange(latestDiagnosticsFromDiagnosticService.Where(IsProjectDiagnostic));
 
                     // Filter out stale diagnostics in error list.
                     projectDiagnosticsToFix = diagnostics.Where(d => latestDiagnosticsFromDiagnosticService.Contains(d) || SuppressionHelpers.IsSynthesizedExternalSourceDiagnostic(d));
@@ -635,6 +635,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             return finalBuilder.ToImmutableDictionary();
+
+            // Local functions
+            static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
         }
     }
 }

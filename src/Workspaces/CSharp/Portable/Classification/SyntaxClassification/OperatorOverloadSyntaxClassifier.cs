@@ -41,20 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
-        {
-            switch (syntax)
+            => syntax switch
             {
-                case AssignmentExpressionSyntax assignmentExpression:
-                    return assignmentExpression.OperatorToken.Span;
-                case BinaryExpressionSyntax binaryExpression:
-                    return binaryExpression.OperatorToken.Span;
-                case PrefixUnaryExpressionSyntax prefixUnaryExpression:
-                    return prefixUnaryExpression.OperatorToken.Span;
-                case PostfixUnaryExpressionSyntax postfixUnaryExpression:
-                    return postfixUnaryExpression.OperatorToken.Span;
-            }
-
-            return default;
-        }
+                AssignmentExpressionSyntax assignmentExpression => assignmentExpression.OperatorToken.Span,
+                BinaryExpressionSyntax binaryExpression => binaryExpression.OperatorToken.Span,
+                PrefixUnaryExpressionSyntax prefixUnaryExpression => prefixUnaryExpression.OperatorToken.Span,
+                PostfixUnaryExpressionSyntax postfixUnaryExpression => postfixUnaryExpression.OperatorToken.Span,
+                _ => default,
+            };
     }
 }

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Complete_statement_on_semicolon">
         <source>Complete statement on ;</source>
-        <target state="new">Complete statement on ;</target>
+        <target state="translated">完成语句时间;</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">

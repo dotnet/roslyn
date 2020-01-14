@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -57,64 +54,5 @@ namespace Microsoft.CodeAnalysis
         /// For example, 'N1' or <code>namespaces N1.N2 { }</code>.
         /// </summary>
         NamespaceDeclaration = 0x40,
-    }
-
-    internal static class TypeOrNamespaceUsageInfoExtensions
-    {
-        public static string ToLocalizableString(this TypeOrNamespaceUsageInfo info)
-        {
-            // We don't support localizing value combinations.
-            Debug.Assert(info.IsSingleBitSet());
-
-            switch (info)
-            {
-                case TypeOrNamespaceUsageInfo.Qualified:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Qualify;
-
-                case TypeOrNamespaceUsageInfo.TypeArgument:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_TypeArgument;
-
-                case TypeOrNamespaceUsageInfo.TypeConstraint:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_TypeConstraint;
-
-                case TypeOrNamespaceUsageInfo.Base:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_BaseType;
-
-                case TypeOrNamespaceUsageInfo.ObjectCreation:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Construct;
-
-                case TypeOrNamespaceUsageInfo.Import:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Import;
-
-                case TypeOrNamespaceUsageInfo.NamespaceDeclaration:
-                    return WorkspacesResources.TypeOrNamespaceUsageInfo_Declare;
-
-                default:
-                    Debug.Fail($"Unhandled value: '{info.ToString()}'");
-                    return info.ToString();
-            }
-        }
-
-        public static bool IsSingleBitSet(this TypeOrNamespaceUsageInfo usageInfo)
-            => usageInfo != TypeOrNamespaceUsageInfo.None && (usageInfo & (usageInfo - 1)) == 0;
-
-        public static ImmutableArray<string> ToLocalizableValues(this TypeOrNamespaceUsageInfo usageInfo)
-        {
-            if (usageInfo == TypeOrNamespaceUsageInfo.None)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-
-            var builder = ArrayBuilder<string>.GetInstance();
-            foreach (TypeOrNamespaceUsageInfo value in Enum.GetValues(typeof(TypeOrNamespaceUsageInfo)))
-            {
-                if (value.IsSingleBitSet() && (usageInfo & value) != 0)
-                {
-                    builder.Add(value.ToLocalizableString());
-                }
-            }
-
-            return builder.ToImmutableAndFree();
-        }
     }
 }

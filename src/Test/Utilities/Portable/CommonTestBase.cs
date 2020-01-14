@@ -394,11 +394,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public static string WithWindowsLineBreaks(string source)
+            => source.Replace(Environment.NewLine, "\r\n");
+
         #endregion
 
         #region IL Verification
 
-        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers);
+        internal abstract string VisualizeRealIL(IModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed);
 
         #endregion
 

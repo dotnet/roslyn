@@ -28,5 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override int UsingStatement => (int)SyntaxKind.UsingStatement;
         public override int ReturnStatement => (int)SyntaxKind.ReturnStatement;
         public override int HashToken => (int)SyntaxKind.HashToken;
+
+        public override int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
     }
 }

@@ -1734,6 +1734,37 @@ public class Program
         }
 
         [Fact]
+        public void EmitAttribute_NestedEnum()
+        {
+            var source =
+@"#nullable enable
+public class Program
+{
+    public enum E
+    {
+        A,
+        B
+    }
+    public object F1;
+    public object F2;
+    public object F3;
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"[NullableContext(1)] [Nullable(0)] Program
+    System.Object! F1
+    System.Object! F2
+    System.Object! F3
+    Program()
+    [NullableContext(0)] Program.E
+        A
+        B
+        E()
+";
+            AssertNullableAttributes(comp, expected);
+        }
+
+        [Fact]
         public void EmitAttribute_LambdaReturnType()
         {
             var source =
@@ -3521,8 +3552,8 @@ public class Program
         }
 
         private static readonly SymbolDisplayFormat _displayFormat = SymbolDisplayFormat.TestFormat.
-            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
-            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+            WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes).
+            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         private static void VerifyBytes(TypeWithAnnotations type, byte[] expectedPreviously, byte[] expectedNow, string expectedDisplay)
         {

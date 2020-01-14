@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var block = method.Body;
             var statement = block.Statements[0] as LocalDeclarationStatementSyntax;
             var expression = statement.Declaration.Variables[0].Initializer.Value as BinaryExpressionSyntax;
-            Assert.Equal(expression.Kind(), SyntaxKind.MultiplyExpression);
+            Assert.Equal(SyntaxKind.MultiplyExpression, expression.Kind());
         }
 
         [Fact]

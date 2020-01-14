@@ -155,15 +155,15 @@ class C
 
                 uint stringTableSize;
                 IntPtr stringTable = Win32Res.GetResource(lib, "#1", "#6", out stringTableSize);
-                Assert.NotNull(stringTable);
+                Assert.NotEqual(default, stringTable);
 
                 uint elevenSize;
                 IntPtr elevenRsrc = Win32Res.GetResource(lib, "#1", "#11", out elevenSize);
-                Assert.NotNull(elevenRsrc);
+                Assert.NotEqual(default, elevenRsrc);
 
                 uint wevtSize;
                 IntPtr wevtRsrc = Win32Res.GetResource(lib, "#1", "WEVT_TEMPLATE", out wevtSize);
-                Assert.NotNull(wevtRsrc);
+                Assert.NotEqual(default, wevtRsrc);
             }
             finally
             {

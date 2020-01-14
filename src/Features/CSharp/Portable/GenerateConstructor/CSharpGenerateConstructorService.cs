@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
         {
-            return compilation.ClassifyConversion(sourceType.WithoutNullability(), targetType.WithoutNullability()).IsImplicit;
+            return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
         internal override IMethodSymbol GetDelegatingConstructor(
@@ -230,8 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
                 {
                     while (true)
                     {
-                        var parentType = typeNameToReplace.Parent as TypeSyntax;
-                        if (parentType == null)
+                        if (!(typeNameToReplace.Parent is TypeSyntax parentType))
                         {
                             break;
                         }

@@ -228,62 +228,57 @@ namespace Roslyn.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             DiagnosticBag diagnostics,
             CompilationTestData testData,
-            EmitOptions emitOptions
-        )
+            EmitOptions emitOptions)
         {
-            if (emitOptions is null)
+            emitOptions ??= EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+
+            using var executableStream = new MemoryStream();
+
+            var pdb = default(ImmutableArray<byte>);
+            var assembly = default(ImmutableArray<byte>);
+            var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
+
+            var embeddedTexts = compilation.SyntaxTrees
+                .Select(t => (filePath: t.FilePath, text: t.GetText()))
+                .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
+                .Select(t => EmbeddedText.FromSource(t.filePath, t.text))
+                .ToImmutableArray();
+
+            EmitResult result;
+            try
             {
-                emitOptions = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded);
+                result = compilation.Emit(
+                    executableStream,
+                    metadataPEStream: null,
+                    pdbStream: pdbStream,
+                    xmlDocumentationStream: null,
+                    win32Resources: null,
+                    manifestResources: manifestResources,
+                    options: emitOptions,
+                    debugEntryPoint: null,
+                    sourceLinkStream: null,
+                    embeddedTexts,
+                    testData: testData,
+                    cancellationToken: default);
+            }
+            finally
+            {
+                if (pdbStream != null)
+                {
+                    pdb = pdbStream.ToImmutable();
+                    pdbStream.Dispose();
+                }
             }
 
-            using (var executableStream = new MemoryStream())
+            diagnostics.AddRange(result.Diagnostics);
+            assembly = executableStream.ToImmutable();
+
+            if (result.Success)
             {
-                var pdb = default(ImmutableArray<byte>);
-                var assembly = default(ImmutableArray<byte>);
-                var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
-
-                var embeddedTexts = compilation.SyntaxTrees
-                    .Select(t => (filePath: t.FilePath, text: t.GetText()))
-                    .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
-                    .Select(t => EmbeddedText.FromSource(t.filePath, t.text))
-                    .ToImmutableArray();
-
-                EmitResult result;
-                try
-                {
-                    result = compilation.Emit(
-                        executableStream,
-                        metadataPEStream: null,
-                        pdbStream: pdbStream,
-                        xmlDocumentationStream: null,
-                        win32Resources: null,
-                        manifestResources: manifestResources,
-                        options: emitOptions,
-                        debugEntryPoint: null,
-                        sourceLinkStream: null,
-                        embeddedTexts,
-                        testData: testData,
-                        cancellationToken: default);
-                }
-                finally
-                {
-                    if (pdbStream != null)
-                    {
-                        pdb = pdbStream.ToImmutable();
-                        pdbStream.Dispose();
-                    }
-                }
-
-                diagnostics.AddRange(result.Diagnostics);
-                assembly = executableStream.ToImmutable();
-
-                if (result.Success)
-                {
-                    return new EmitOutput(assembly, pdb);
-                }
-
-                return null;
+                return new EmitOutput(assembly, pdb);
             }
+
+            return null;
         }
 
         public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)

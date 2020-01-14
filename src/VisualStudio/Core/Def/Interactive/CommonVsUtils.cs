@@ -48,8 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            var frame = curDocument as IVsWindowFrame;
-            if (frame == null)
+            if (!(curDocument is IVsWindowFrame frame))
             {
                 // TODO: Report error
                 return null;

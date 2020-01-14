@@ -20,21 +20,24 @@ namespace Microsoft.CodeAnalysis.Host
     {
         /// <summary>
         /// Indicate that status has changed
-        /// 
-        /// event argument, true, means solution is fully loaded.
-        /// 
-        /// but right now, bool doesn't mean much but having it since platform API we decide to start with bool rather than
-        /// more richer information
         /// </summary>
-        event EventHandler<bool> StatusChanged;
+        event EventHandler StatusChanged;
 
         /// <summary>
         /// Wait until workspace is fully loaded
+        /// 
+        /// unfortunately, some hosts, such as VS, use services (ex, IVsOperationProgressStatusService) that require UI thread to let project system to proceed to next stages.
+        /// what that means is that this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
+        /// deadlock
         /// </summary>
         Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Indicates whether workspace is fully loaded
+        /// 
+        /// unfortunately, some hosts, such as VS, use services (ex, IVsOperationProgressStatusService) that require UI thread to let project system to proceed to next stages.
+        /// what that means is that this method should only be used with either await or JTF.Run, it should be never used with Task.Wait otherwise, it can
+        /// deadlock
         /// </summary>
         Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken);
     }

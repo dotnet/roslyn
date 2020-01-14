@@ -752,7 +752,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                              MethodAttributes.Final Or
                              MethodAttributes.Abstract Or
                              MethodAttributes.NewSlot)) =
-                        (MethodAttributes.Virtual Or MethodAttributes.Final)
+                        If(_containingType.IsInterface,
+                           MethodAttributes.Virtual Or MethodAttributes.Final Or MethodAttributes.Abstract,
+                           MethodAttributes.Virtual Or MethodAttributes.Final)
             End Get
         End Property
 
@@ -782,7 +784,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                      MethodAttributes.NewSlot))
 
                 Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
-                       (flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
+                       (Not _containingType.IsInterface AndAlso
+                        flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
             End Get
         End Property
 
@@ -795,7 +798,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 '
                 ' This means that a virtual method without NewSlot flag in a type that doesn't have a base
                 ' is a new virtual method and doesn't override anything.
-                Return (_flags And MethodAttributes.Virtual) <> 0 AndAlso
+                Return Not _containingType.IsInterface AndAlso
+                       (_flags And MethodAttributes.Virtual) <> 0 AndAlso
                        (_flags And MethodAttributes.NewSlot) = 0 AndAlso
                        _containingType.BaseTypeNoUseSiteDiagnostics IsNot Nothing
             End Get

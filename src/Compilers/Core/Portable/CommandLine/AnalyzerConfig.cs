@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// at 2018-04-21 19:37:05Z. New keys may be added to this list in newer versions, but old ones will
         /// not be removed.
         /// </remarks>
-        public static ImmutableHashSet<string> ReservedKeys { get; }
+        internal static ImmutableHashSet<string> ReservedKeys { get; }
             = ImmutableHashSet.CreateRange(Section.PropertiesKeyComparer, new[] {
                 "root",
                 "indent_style",
@@ -50,21 +50,21 @@ namespace Microsoft.CodeAnalysis
         /// A set of values that are reserved for special use for the editorconfig specification
         /// and will always be lower-cased by the parser.
         /// </summary>
-        public static ImmutableHashSet<string> ReservedValues { get; }
+        internal static ImmutableHashSet<string> ReservedValues { get; }
             = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] { "unset" });
 
-        public Section GlobalSection { get; }
+        internal Section GlobalSection { get; }
 
         /// <summary>
         /// The directory the editorconfig was contained in, with all directory separators
         /// replaced with '/'.
         /// </summary>
-        public string NormalizedDirectory { get; }
+        internal string NormalizedDirectory { get; }
 
         /// <summary>
         /// The path passed to <see cref="Parse(string, string)"/> during construction.
         /// </summary>
-        public string PathToFile { get; }
+        internal string PathToFile { get; }
 
         /// <summary>
         /// Comparer for sorting <see cref="AnalyzerConfig"/> files by <see cref="NormalizedDirectory"/> path length.
@@ -72,12 +72,12 @@ namespace Microsoft.CodeAnalysis
         internal static Comparer<AnalyzerConfig> DirectoryLengthComparer { get; } = Comparer<AnalyzerConfig>.Create(
             (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length));
 
-        public ImmutableArray<Section> NamedSections { get; }
+        internal ImmutableArray<Section> NamedSections { get; }
 
         /// <summary>
         /// Gets whether this editorconfig is a topmost editorconfig.
         /// </summary>
-        public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        internal bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         private AnalyzerConfig(
             Section globalSection,
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         /// Represents a named section of the editorconfig file, which consists of a name followed by a set
         /// of key-value pairs.
         /// </summary>
-        public sealed class Section
+        internal sealed class Section
         {
             /// <summary>
             /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to

@@ -28,13 +28,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         ''' </summary>
         Private ReadOnly _unassertedRelatedLocations As HashSet(Of RelatedLocation)
 
-        ''' <summary>
-        ''' The list of text replacements that haven't been asserted about yet. Items are removed
-        ''' from here when they are asserted, so the set should be empty once we're done.
-        ''' </summary>
-        ''' <remarks></remarks>
-        Private ReadOnly _unassertedTextChanges As HashSet(Of Location)
-
         Private ReadOnly _renameTo As String
 
         Private _failedAssert As Boolean
@@ -100,15 +93,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
             Return engineResult
         End Function
-
-        Private Shared Sub AssertIsComplete(currentSolution As Solution)
-            ' Ensure we don't have a partial solution. This is to detect for possible root causes of
-            ' https://github.com/dotnet/roslyn/issues/9298
-
-            If currentSolution.Projects.Any(Function(p) Not p.HasSuccessfullyLoadedAsync().Result) Then
-                AssertEx.Fail("We have an incomplete project floating around which we should not.")
-            End If
-        End Sub
 
         Friend ReadOnly Property ConflictResolution As ConflictResolution
             Get
@@ -229,15 +213,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub Dispose() Implements IDisposable.Dispose
             ' Make sure we're cleaned up. Don't want the test harness crashing...
             GC.SuppressFinalize(Me)
-            _workspace.Dispose()
 
             ' If we failed some other assert, we know we're going to have things left
             ' over. So let's just suppress these so we don't lose the root cause
             If Not _failedAssert Then
                 If _unassertedRelatedLocations.Count > 0 Then
-                    AssertEx.Fail("There were additional related locations than were unasserted.")
+                    AssertEx.Fail(
+                        "There were additional related locations that were unasserted:" + Environment.NewLine _
+                        + String.Join(Environment.NewLine,
+                            From location In _unassertedRelatedLocations
+                            Let document = _workspace.CurrentSolution.GetDocument(location.DocumentId)
+                            Let spanText = document.GetTextSynchronously(CancellationToken.None).ToString(location.ConflictCheckSpan)
+                            Select $"{spanText} @{document.Name}[{location.ConflictCheckSpan.Start}..{location.ConflictCheckSpan.End})"))
                 End If
             End If
+
+            _workspace.Dispose()
         End Sub
 
         Protected Overrides Sub Finalize()

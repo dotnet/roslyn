@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="1012">
         <source>Visual Basic Editor with Encoding</source>
-        <target state="needs-review-translation">Editor tabella codici di Microsoft Visual Basic</target>
+        <target state="translated">Visual Basic Editor con codifica</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
         <source>Visual Basic Editor</source>
-        <target state="needs-review-translation">Microsoft Visual Basic Editor</target>
+        <target state="translated">Visual Basic Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Inserimento automatico di costrutti End;Modifica impostazioni di riformattazione;Modifica modalità struttura;Inserimento automatico di membri Interface e MustOverride;Mostra o nascondi separatori di riga routine;Attiva o disattiva i suggerimenti per la correzione degli errori;Attiva o disattiva evidenziazione di riferimenti e parole chiave;Regex;Colora espressioni regolari;Evidenzia componenti correlati sotto il cursore;Segnala espressioni regolari non valide</target>
+        <target state="translated">Inserimento automatico di costrutti End;Modifica impostazioni di riformattazione;Modifica modalità struttura;Inserimento automatico di membri Interface e MustOverride;Mostra o nascondi separatori di riga routine;Attiva o disattiva i suggerimenti per la correzione degli errori;Attiva o disattiva evidenziazione di riferimenti e parole chiave;Regex;Colora espressioni regolari;Evidenzia componenti correlati sotto il cursore;Segnala espressioni regolari non valide;regex;espressione regolare;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">File script di Visual Basic vuoto.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Script di Visual Basic</target>
         <note />
       </trans-unit>
     </body>

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var (document, textSpan, cancellationToken) = context;
+            var (document, _, cancellationToken) = context;
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -40,19 +40,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.AddAwait
                 return;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindTokenOnLeftOfPosition(textSpan.Start);
-
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitle(),
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)));
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: false, c)),
+                awaitable.Span);
 
 
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitleWithConfigureAwait(),
-                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)));
+                    c => AddAwaitAsync(document, awaitable, withConfigureAwait: true, c)),
+                awaitable.Span);
         }
 
         private bool IsValidAwaitableExpression(SyntaxNode invocation, SemanticModel model, ISyntaxFactsService syntaxFacts)

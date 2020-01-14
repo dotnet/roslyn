@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -76,51 +73,7 @@ namespace Microsoft.CodeAnalysis
         public static bool IsNameOnly(this ValueUsageInfo valueUsageInfo)
             => (valueUsageInfo & ValueUsageInfo.Name) != 0;
 
-        public static string ToLocalizableString(this ValueUsageInfo value)
-        {
-            // We don't support localizing value combinations.
-            Debug.Assert(value.IsSingleBitSet());
-
-            switch (value)
-            {
-                case ValueUsageInfo.Read:
-                    return WorkspacesResources.ValueUsageInfo_Read;
-
-                case ValueUsageInfo.Write:
-                    return WorkspacesResources.ValueUsageInfo_Write;
-
-                case ValueUsageInfo.Reference:
-                    return WorkspacesResources.ValueUsageInfo_Reference;
-
-                case ValueUsageInfo.Name:
-                    return WorkspacesResources.ValueUsageInfo_Name;
-
-                default:
-                    Debug.Fail($"Unhandled value: '{value.ToString()}'");
-                    return value.ToString();
-            }
-        }
-
-        public static bool IsSingleBitSet(this ValueUsageInfo valueUsageInfo)
-            => valueUsageInfo != ValueUsageInfo.None && (valueUsageInfo & (valueUsageInfo - 1)) == 0;
-
-        public static ImmutableArray<string> ToLocalizableValues(this ValueUsageInfo valueUsageInfo)
-        {
-            if (valueUsageInfo == ValueUsageInfo.None)
-            {
-                return ImmutableArray<string>.Empty;
-            }
-
-            var builder = ArrayBuilder<string>.GetInstance();
-            foreach (ValueUsageInfo value in Enum.GetValues(typeof(ValueUsageInfo)))
-            {
-                if (value.IsSingleBitSet() && (valueUsageInfo & value) != 0)
-                {
-                    builder.Add(value.ToLocalizableString());
-                }
-            }
-
-            return builder.ToImmutableAndFree();
-        }
+        public static bool IsReference(this ValueUsageInfo valueUsageInfo)
+            => (valueUsageInfo & ValueUsageInfo.Reference) != 0;
     }
 }

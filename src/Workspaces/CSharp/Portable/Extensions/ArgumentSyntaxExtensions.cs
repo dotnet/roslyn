@@ -49,14 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool allowParams = false,
             CancellationToken cancellationToken = default)
         {
-            var argumentList = argument.Parent as BaseArgumentListSyntax;
-            if (argumentList == null)
+            if (!(argument.Parent is BaseArgumentListSyntax argumentList))
             {
                 return null;
             }
 
-            var invocableExpression = argumentList.Parent as ExpressionSyntax;
-            if (invocableExpression == null)
+            if (!(argumentList.Parent is ExpressionSyntax invocableExpression))
             {
                 return null;
             }

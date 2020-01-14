@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 {
                     _trackingPoint = textView.TextSnapshot.CreateTrackingPoint(0, PointTrackingMode.Negative);
                     _trackingSpan = textView.TextSnapshot.CreateTrackingSpan(new Span(), SpanTrackingMode.EdgeInclusive);
-                    this.GetEventNameTask = SpecializedTasks.Default<string>();
+                    this.GetEventNameTask = SpecializedTasks.Null<string>();
                     eventHookupSessionManager.CancelAndDismissExistingSessions();
                 }
             }
@@ -191,8 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             private IEventSymbol GetEventSymbol(SemanticModel semanticModel, SyntaxToken plusEqualsToken, CancellationToken cancellationToken)
             {
                 AssertIsBackground();
-                var parentToken = plusEqualsToken.Parent as AssignmentExpressionSyntax;
-                if (parentToken == null)
+                if (!(plusEqualsToken.Parent is AssignmentExpressionSyntax parentToken))
                 {
                     return null;
                 }

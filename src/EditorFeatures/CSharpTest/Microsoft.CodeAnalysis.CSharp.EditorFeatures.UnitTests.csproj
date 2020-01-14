@@ -64,6 +64,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" IncludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
@@ -78,6 +79,10 @@
     <Compile Remove="ReorderParameters\ReorderParametersTests.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationErrors.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationLocation.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Debugging\Resources\*.*" />
+    <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILTools.targets" />
 </Project>

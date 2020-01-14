@@ -86,8 +86,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
-            var operation = semanticModel.GetOperation(forStatement, cancellationToken) as ILoopOperation;
-            if (operation == null || operation.Locals.Length != 1)
+            if (!(semanticModel.GetOperation(forStatement, cancellationToken) is ILoopOperation operation) || operation.Locals.Length != 1)
             {
                 return;
             }
@@ -144,10 +143,12 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
-            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => ConvertForToForEachAsync(
-                    document, forStatement, iterationVariable, collectionExpression,
-                    containingType, collectionType.Type, iterationType, c)));
+            context.RegisterRefactoring(
+                new MyCodeAction(GetTitle(),
+                    c => ConvertForToForEachAsync(
+                        document, forStatement, iterationVariable, collectionExpression,
+                        containingType, collectionType.Type, iterationType, c)),
+                forStatement.Span);
 
             return;
 

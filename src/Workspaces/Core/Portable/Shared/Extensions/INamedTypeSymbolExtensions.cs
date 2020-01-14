@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (member.Kind == SymbolKind.Property)
                 {
-                    return IsInterfacePropertyImplemented(classOrStructType, (IPropertySymbol)member, cancellationToken);
+                    return IsInterfacePropertyImplemented(classOrStructType, (IPropertySymbol)member);
                 }
                 else
                 {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (member.Kind == SymbolKind.Property)
                 {
-                    return IsAbstractPropertyImplemented(classOrStructType, (IPropertySymbol)member, cancellationToken);
+                    return IsAbstractPropertyImplemented(classOrStructType, (IPropertySymbol)member);
                 }
                 else
                 {
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        private static bool IsInterfacePropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
+        private static bool IsInterfacePropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol)
         {
             // A property is only fully implemented if both it's setter and getter is implemented.
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        private static bool IsAbstractPropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
+        private static bool IsAbstractPropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol)
         {
             // A property is only fully implemented if both it's setter and getter is implemented.
             if (propertySymbol.GetMethod != null)
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return IsNonPublicImplementableAccessor(property.GetMethod) || IsNonPublicImplementableAccessor(property.SetMethod);
             }
 
-            static bool IsNonPublicImplementableAccessor(IMethodSymbol accessor)
+            static bool IsNonPublicImplementableAccessor(IMethodSymbol? accessor)
             {
                 return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
             }
@@ -356,13 +356,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return interfacesOrAbstractClasses.First().TypeKind == TypeKind.Interface
                 ? GetInterfacesToImplement(classOrStructType, interfacesOrAbstractClasses, allowReimplementation, cancellationToken)
-                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses, cancellationToken);
+                : GetAbstractClassesToImplement(classOrStructType, interfacesOrAbstractClasses);
         }
 
         private static ImmutableArray<INamedTypeSymbol> GetAbstractClassesToImplement(
             INamedTypeSymbol classOrStructType,
-            IEnumerable<INamedTypeSymbol> abstractClasses,
-            CancellationToken cancellationToken)
+            IEnumerable<INamedTypeSymbol> abstractClasses)
         {
             return abstractClasses.SelectMany(a => a.GetBaseTypesAndThis())
                                   .Where(t => t.IsAbstractClass())
@@ -602,7 +601,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
         {
-            return typeArguments.Length > 0 ? type.ConstructWithNullability(typeArguments) : type;
+            return typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
         }
     }
 }

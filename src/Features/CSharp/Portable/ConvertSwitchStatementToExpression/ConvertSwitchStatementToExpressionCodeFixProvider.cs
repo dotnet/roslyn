@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
@@ -40,30 +40,47 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             using var spansDisposer = ArrayBuilder<TextSpan>.GetInstance(diagnostics.Length, out var spans);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var span = diagnostic.AdditionalLocations[0].SourceSpan;
-                if (spans.Any((s, nodeSpan) => s.Contains(nodeSpan), span))
+                var switchLocation = diagnostic.AdditionalLocations[0];
+                if (spans.Any((s, nodeSpan) => s.Contains(nodeSpan), switchLocation.SourceSpan))
                 {
                     // Skip nested switch expressions in case of a fix-all operation.
                     continue;
                 }
 
-                spans.Add(span);
+                spans.Add(switchLocation.SourceSpan);
 
                 var properties = diagnostic.Properties;
                 var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]);
                 var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]);
 
-                var switchStatement = (SwitchStatementSyntax)editor.OriginalRoot.FindNode(span);
-                editor.ReplaceNode(switchStatement,
-                    Rewriter.Rewrite(switchStatement, semanticModel, editor,
-                        nodeToGenerate, shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement)
-                    .WithAdditionalAnnotations(Formatter.Annotation));
+                var declaratorToRemoveLocationOpt = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                SyntaxNode declaratorToRemoveNodeOpt = null;
+                ITypeSymbol declaratorToRemoveTypeOpt = null;
+
+                if (declaratorToRemoveLocationOpt != default)
+                {
+                    declaratorToRemoveNodeOpt = declaratorToRemoveLocationOpt.FindNode(cancellationToken);
+                    declaratorToRemoveTypeOpt = semanticModel.GetDeclaredSymbol(declaratorToRemoveNodeOpt).GetSymbolType();
+                }
+
+                var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(cancellationToken);
+                var switchExpression = Rewriter.Rewrite(switchStatement, declaratorToRemoveTypeOpt, nodeToGenerate,
+                    shouldMoveNextStatementToSwitchExpression: shouldRemoveNextStatement,
+                    generateDeclaration: declaratorToRemoveLocationOpt is object);
+
+                editor.ReplaceNode(switchStatement, switchExpression.WithAdditionalAnnotations(Formatter.Annotation));
+
+                if (declaratorToRemoveLocationOpt is object)
+                {
+                    editor.RemoveNode(declaratorToRemoveLocationOpt.FindNode(cancellationToken));
+                }
 
                 if (shouldRemoveNextStatement)
                 {

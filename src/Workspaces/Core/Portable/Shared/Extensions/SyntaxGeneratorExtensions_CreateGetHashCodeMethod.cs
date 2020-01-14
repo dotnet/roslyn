@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -16,14 +18,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static ImmutableArray<SyntaxNode> GetGetHashCodeComponents(
             this SyntaxGenerator factory,
             Compilation compilation,
-            INamedTypeSymbol containingType,
+            INamedTypeSymbol? containingType,
             ImmutableArray<ISymbol> members,
-            bool justMemberReference,
-            CancellationToken cancellationToken)
+            bool justMemberReference)
         {
             var result = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            if (GetBaseGetHashCodeMethod(containingType, cancellationToken) != null)
+            if (containingType != null && GetBaseGetHashCodeMethod(containingType) != null)
             {
                 result.Add(factory.InvocationExpression(
                     factory.MemberAccessExpression(factory.BaseExpression(), GetHashCodeName)));
@@ -37,6 +38,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return result.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
+            this SyntaxGenerator factory, INamedTypeSymbol hashCodeType, ImmutableArray<SyntaxNode> memberReferences)
+        {
+            if (memberReferences.Length <= 8)
+            {
+                var statement = factory.ReturnStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
+                        memberReferences));
+                return ImmutableArray.Create(statement);
+            }
+
+            const string hashName = "hash";
+            var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+            statements.Add(factory.SimpleLocalDeclarationStatement(
+                hashCodeType, hashName, factory.ObjectCreationExpression(hashCodeType)));
+
+            var localReference = factory.IdentifierName(hashName);
+            foreach (var member in memberReferences)
+            {
+                statements.Add(factory.ExpressionStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(localReference, "Add"),
+                        member)));
+            }
+
+            statements.Add(factory.ReturnStatement(
+                factory.InvocationExpression(
+                    factory.MemberAccessExpression(localReference, "ToHashCode"))));
+
+            return statements.ToImmutableAndFree();
+        }
+
         /// <summary>
         /// Generates an override of <see cref="object.GetHashCode()"/> similar to the one
         /// generated for anonymous types.
@@ -46,11 +80,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
-            bool useInt64,
-            CancellationToken cancellationToken)
+            bool useInt64)
         {
             var components = GetGetHashCodeComponents(
-                factory, compilation, containingType, members, justMemberReference: false, cancellationToken);
+                factory, compilation, containingType, members, justMemberReference: false);
 
             if (components.Length == 0)
             {
@@ -60,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             const int hashFactor = -1521134295;
 
             var initHash = 0;
-            var baseHashCode = GetBaseGetHashCodeMethod(containingType, cancellationToken);
+            var baseHashCode = GetBaseGetHashCodeMethod(containingType);
             if (baseHashCode != null)
             {
                 initHash = initHash * hashFactor + Hash.GetFNVHashCode(baseHashCode.Name);
@@ -98,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             const string HashCodeName = "hashCode";
             statements.Add(!useInt64
-                ? factory.LocalDeclarationStatement(HashCodeName, CreateLiteralExpression(factory, initHash))
+                ? factory.SimpleLocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int32), HashCodeName, CreateLiteralExpression(factory, initHash))
                 : factory.LocalDeclarationStatement(compilation.GetSpecialType(SpecialType.System_Int64), HashCodeName, CreateLiteralExpression(factory, initHash)));
 
             var hashCodeNameExpression = factory.IdentifierName(HashCodeName);
@@ -134,12 +167,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return statements.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// In VB it's more idiomatic to write things like <c>Dim t = TryCast(obj, SomeType)</c>
+        /// instead of <c>Dim t As SomeType = TryCast(obj, SomeType)</c>, so we just elide the type
+        /// from the decl.  For C# we don't want to do this though.  We want to always include the
+        /// type and let the simplifier decide if it should be <c>var</c> or not.
+        /// </summary>
+        private static SyntaxNode SimpleLocalDeclarationStatement(
+            this SyntaxGenerator generator, INamedTypeSymbol namedTypeSymbol,
+            string name, SyntaxNode initializer)
+        {
+            return generator.RequiresLocalDeclarationType()
+                ? generator.LocalDeclarationStatement(namedTypeSymbol, name, initializer)
+                : generator.LocalDeclarationStatement(name, initializer);
+        }
+
         private static SyntaxNode CreateLiteralExpression(SyntaxGenerator factory, int value)
             => value < 0
                 ? factory.NegateExpression(factory.LiteralExpression(-value))
                 : factory.LiteralExpression(value);
 
-        public static IMethodSymbol GetBaseGetHashCodeMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        public static IMethodSymbol? GetBaseGetHashCodeMethod(INamedTypeSymbol containingType)
         {
             if (containingType.IsValueType)
             {
@@ -179,11 +227,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return thisSymbol;
             }
 
-            var memberType = member.GetSymbolType();
-            var primitiveValue = IsPrimitiveValueType(memberType) && memberType.SpecialType != SpecialType.System_String;
-            var isTupleType = memberType?.IsTupleType == true;
-            if (primitiveValue || isTupleType)
+            if (member.GetSymbolType()?.IsValueType ?? false)
             {
+                // There is no reason to generate the bulkier syntax of EqualityComparer<>.Default.GetHashCode for value
+                // types. No null check is necessary, and there's no performance advantage on .NET Core for using
+                // EqualityComparer.GetHashCode instead of calling GetHashCode directly. On .NET Framework, using
+                // EqualityComparer.GetHashCode on value types actually performs more poorly.
+
                 return factory.InvocationExpression(
                     factory.MemberAccessExpression(thisSymbol, nameof(object.GetHashCode)));
             }

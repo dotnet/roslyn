@@ -1374,5 +1374,46 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 // [A(B.F(async () => null))]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.F(async () => null)").WithLocation(15, 4));
         }
+
+        [Fact, WorkItem(37712, "https://github.com/dotnet/roslyn/issues/37712")]
+        public void TaskLikeWithRefStructValue()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+ref struct MyAwaitable
+{
+    public MyAwaiter GetAwaiter() => new MyAwaiter();
+}
+struct MyAwaiter : System.Runtime.CompilerServices.INotifyCompletion
+{
+    public bool IsCompleted => true;
+    public MyResult GetResult() => new MyResult();
+    public void OnCompleted(Action continuation) { }
+}
+ref struct MyResult
+{
+}
+class Program
+{
+    public static async Task Main()
+    {
+        M(await new MyAwaitable());
+    }
+    public static void M(MyResult r)
+    {
+        Console.WriteLine(3);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "3");
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "3");
+        }
     }
 }

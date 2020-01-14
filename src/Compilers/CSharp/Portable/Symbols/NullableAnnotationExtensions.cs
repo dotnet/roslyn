@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -84,10 +85,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NullabilityInfo(ToPublicAnnotation(type, annotation), flowState.ToPublicFlowState());
         }
 
+        internal static ITypeSymbol GetPublicSymbol(this TypeWithAnnotations type)
+        {
+            return type.Type?.GetITypeSymbol(type.ToPublicAnnotation());
+        }
+
+        internal static ImmutableArray<ITypeSymbol> GetPublicSymbols(this ImmutableArray<TypeWithAnnotations> types)
+        {
+            return types.SelectAsArray(t => t.GetPublicSymbol());
+        }
+
         internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this TypeWithAnnotations type) =>
             ToPublicAnnotation(type.Type, type.NullableAnnotation);
 
-        private static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
+        internal static ImmutableArray<CodeAnalysis.NullableAnnotation> ToPublicAnnotations(this ImmutableArray<TypeWithAnnotations> types) =>
+            types.SelectAsArray(t => t.ToPublicAnnotation());
+
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(TypeSymbol type, NullableAnnotation annotation) =>
             annotation switch
             {
                 CSharp.NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
@@ -95,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // A value type may be oblivious or not annotated depending on whether the type reference
                 // is from source or metadata. (Binding using the #nullable context only when setting the annotation
                 // to avoid checking IsValueType early.) The annotation is normalized here in the public API.
-                CSharp.NullableAnnotation.Oblivious when  type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                CSharp.NullableAnnotation.Oblivious when type.IsValueType => CodeAnalysis.NullableAnnotation.NotAnnotated,
                 CSharp.NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.None,
                 _ => throw ExceptionUtilities.UnexpectedValue(annotation)
             };

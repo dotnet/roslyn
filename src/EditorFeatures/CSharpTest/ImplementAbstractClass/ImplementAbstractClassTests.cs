@@ -1797,7 +1797,7 @@ public class Test : TestParent
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
         public async Task TestUnmanagedConstraint()
         {
             await TestInRegularAndScriptAsync(

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
         }
 
-        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default)
+        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span)
         {
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var paramNode = GetParamNode(root, span, cancellationToken);
+            var paramNode = GetParamNode(root, span);
 
             var removedNodes = new List<SyntaxNode> { paramNode };
             var paramNodeSiblings = paramNode.Parent.ChildNodes().ToList();

@@ -6,17 +6,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class AnonymousMethodExpressionSyntax
     {
-        public BlockSyntax Block => (BlockSyntax)this.Body;
+        public new AnonymousMethodExpressionSyntax WithBody(CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? WithBlock(block).WithExpressionBody(null)
+                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
 
-        public AnonymousMethodExpressionSyntax WithBlock(BlockSyntax block)
-        {
-            return this.Update(this.AsyncKeyword, this.DelegateKeyword, this.ParameterList, block);
-        }
-
-        public AnonymousMethodExpressionSyntax AddBlockStatements(params StatementSyntax[] items)
-        {
-            return this.WithBlock(this.Block.WithStatements(this.Block.Statements.AddRange(items)));
-        }
+        public AnonymousMethodExpressionSyntax Update(SyntaxToken asyncKeyword, SyntaxToken delegateKeyword, ParameterListSyntax parameterList, CSharpSyntaxNode body)
+            => body is BlockSyntax block
+                ? Update(asyncKeyword, delegateKeyword, parameterList, block, null)
+                : Update(asyncKeyword, delegateKeyword, parameterList, null, (ExpressionSyntax)body);
     }
 }
 
@@ -26,8 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>Creates a new AnonymousMethodExpressionSyntax instance.</summary>
         public static AnonymousMethodExpressionSyntax AnonymousMethodExpression()
-        {
-            return SyntaxFactory.AnonymousMethodExpression(default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.DelegateKeyword), default(ParameterListSyntax), SyntaxFactory.Block());
-        }
+            => AnonymousMethodExpression(
+                asyncKeyword: default,
+                Token(SyntaxKind.DelegateKeyword),
+                parameterList: null,
+                Block(),
+                expressionBody: null);
     }
 }

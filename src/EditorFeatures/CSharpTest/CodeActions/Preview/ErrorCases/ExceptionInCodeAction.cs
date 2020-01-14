@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.ErrorC
     {
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            context.RegisterRefactoring(new ExceptionCodeAction());
+            context.RegisterRefactoring(new ExceptionCodeAction(), context.Span);
             return Task.CompletedTask;
         }
 

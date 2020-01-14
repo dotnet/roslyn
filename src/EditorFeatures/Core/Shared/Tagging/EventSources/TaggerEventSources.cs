@@ -34,11 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         public static ITaggerEventSource OnCompletionClosed(
-            ITextView textView,
             IIntellisenseSessionStack sessionStack,
             TaggerDelay delay)
         {
-            return new CompletionClosedEventSource(textView, sessionStack, delay);
+            return new CompletionClosedEventSource(sessionStack, delay);
         }
 
         public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)

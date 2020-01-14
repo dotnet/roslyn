@@ -791,5 +791,18 @@ end class"
 End Module"
             Await TestAsync(text, "System.Object", TestMode.Position)
         End Function
+
+        <WorkItem(39333, "https://github.com/dotnet/roslyn/issues/39333")>
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestInferringAfterAwaitInAsync() As Task
+            Dim text =
+"Imports System.Threading.Tasks
+Class C
+    Private Async Function WaitForIt() As Task(Of Boolean)
+        Return Await [||]
+    End Function
+End Class"
+            Await TestAsync(text, "Task.FromResult(False)", TestMode.Position)
+        End Function
     End Class
 End Namespace

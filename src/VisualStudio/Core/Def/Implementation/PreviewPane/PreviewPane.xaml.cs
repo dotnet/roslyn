@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private readonly IVsUIShell _uiShell;
 
         private bool _isExpanded;
-        private double _heightForThreeLineTitle;
+        private readonly double _heightForThreeLineTitle;
         private DifferenceViewerPreview _differenceViewerPreview;
 
         public PreviewPane(
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 Contract.ThrowIfFalse(_differenceViewerPreview == null);
 
                 // cache the diff viewer so that we can close it when panel goes away.
-                // this is a bit wierd since we are mutating state here.
+                // this is a bit weird since we are mutating state here.
                 _differenceViewerPreview = (DifferenceViewerPreview)previewItem;
                 PreviewDockPanel.Background = _differenceViewerPreview.Viewer.InlineView.Background;
 
@@ -329,8 +329,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
-            var hyperlink = sender as Hyperlink;
-            if (hyperlink == null)
+            if (!(sender is Hyperlink hyperlink))
             {
                 return;
             }

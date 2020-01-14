@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return Me.InsertionPoint.With(document).GetContext()
             End Function
 
-            Protected Overrides Function GenerateMethodDefinition(cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
+            Protected Overrides Function GenerateMethodDefinition(localFunction As Boolean, cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
                 Dim result = CreateMethodBody(cancellationToken)
                 Dim statements = result.Data
 
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     refKind:=RefKind.None,
                     explicitInterfaceImplementations:=Nothing,
                     name:=_methodName.ToString(),
-                    typeParameters:=CreateMethodTypeParameters(cancellationToken),
+                    typeParameters:=CreateMethodTypeParameters(),
                     parameters:=CreateMethodParameters(),
                     statements:=statements.Cast(Of SyntaxNode).ToImmutableArray())
 
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 statements = postProcessor.MergeDeclarationStatements(statements)
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
-                statements = AddReturnIfUnreachable(statements, cancellationToken)
+                statements = AddReturnIfUnreachable(statements)
 
                 Return statements
             End Function
@@ -331,6 +331,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     methodName, SyntaxFactory.ArgumentList(arguments:=SyntaxFactory.SeparatedList(arguments)))
 
                 If Me.VBSelectionResult.ShouldPutAsyncModifier() Then
+                    If Me.VBSelectionResult.ShouldCallConfigureAwaitFalse() Then
+                        If AnalyzerResult.ReturnType.GetMembers().Any(
+                        Function(x)
+                            Dim method = TryCast(x, IMethodSymbol)
+                            If method Is Nothing Then
+                                Return False
+                            End If
+
+                            If Not CaseInsensitiveComparison.Equals(method.Name, NameOf(Task.ConfigureAwait)) Then
+                                Return False
+                            End If
+
+                            If method.Parameters.Length <> 1 Then
+                                Return False
+                            End If
+
+                            Return method.Parameters(0).Type.SpecialType = SpecialType.System_Boolean
+                        End Function) Then
+
+                            invocation = SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                invocation,
+                                SyntaxFactory.Token(SyntaxKind.DotToken),
+                                SyntaxFactory.IdentifierName(NameOf(Task.ConfigureAwait))),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(Of ArgumentSyntax)(
+                                SyntaxFactory.SimpleArgument(
+                                    SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.FalseLiteralExpression,
+                                        SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
+                        End If
+                    End If
                     Return SyntaxFactory.AwaitExpression(invocation)
                 End If
 

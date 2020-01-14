@@ -289,7 +289,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch 
+            // Otherwise, if there is any such method where type inference succeeded but inferred
+            // type arguments that violate the constraints on the method, then the first such method is
+            // the best bad method.
+
+            if (HadConstraintFailure(location, diagnostics))
+            {
+                return;
+            }
+
+            // Since we didn't return...
+            AssertNone(MemberResolutionKind.ConstraintFailure);
+
+            // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch
             // then the first such method found is the best bad method.
 
             if (HadBadArguments(diagnostics, binder, name, arguments, symbols, location, binder.Flags, isMethodGroupConversion))
@@ -299,15 +311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Since we didn't return...
             AssertNone(MemberResolutionKind.BadArgumentConversion);
-
-            // Otherwise, if there is any such method where type inference succeeded but inferred
-            // type arguments that violate the constraints on the method, then the first such method is 
-            // the best bad method.
-
-            if (HadConstraintFailure(location, diagnostics))
-            {
-                return;
-            }
 
             // Otherwise, if there is any such method where type inference succeeded but inferred
             // a parameter type that violates its own constraints then the first such method is 
@@ -883,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HadConstructedParameterFailedConstraintCheck(
             ConversionsBase conversions,
-            Compilation compilation,
+            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             Location location)
         {

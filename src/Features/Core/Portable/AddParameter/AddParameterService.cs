@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 {
                     // First parameter is on hte same line as the method.  
 
-                    // We want to insert the parameter at the front of the exsiting parameter
+                    // We want to insert the parameter at the front of the existing parameter
                     // list.  That means we need to move the current first parameter to a new
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     // make sure the current first parameter gets a newline so it stays on 
                     // its own line.
 
-                    // We want to insert the parameter at the front of the exsiting parameter
+                    // We want to insert the parameter at the front of the existing parameter
                     // list.  That means we need to move the current first parameter to a new
                     // line.  Give the current first parameter the indentation of the second
                     // parameter in the list.

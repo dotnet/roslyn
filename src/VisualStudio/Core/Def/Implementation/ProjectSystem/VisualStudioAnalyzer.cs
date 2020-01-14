@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // these 2 are mutable states that must be guarded under the _gate.
         private readonly object _gate = new object();
-        private AnalyzerReference _analyzerReference = null;
+        private AnalyzerReference? _analyzerReference;
         private ImmutableArray<DiagnosticData> _analyzerLoadErrors = ImmutableArray<DiagnosticData>.Empty;
 
         public VisualStudioAnalyzer(string fullPath, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, string language)
@@ -63,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnAnalyzerLoadError(object sender, AnalyzerLoadFailureEventArgs e)
         {
-            var data = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(_projectId, _language, FullPath, e);
+            var data = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
 
             lock (_gate)
             {
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void ResetReferenceAndErrors(out AnalyzerReference reference, out ImmutableArray<DiagnosticData> loadErrors)
+        private void ResetReferenceAndErrors(out AnalyzerReference? reference, out ImmutableArray<DiagnosticData> loadErrors)
         {
             lock (_gate)
             {
@@ -148,6 +150,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public override object Id
                 => _underlying.Id;
+
+            public override string Display
+                => _underlying.Display;
 
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             {

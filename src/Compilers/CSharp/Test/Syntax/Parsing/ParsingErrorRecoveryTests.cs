@@ -4445,7 +4445,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.Kind());
-            Assert.NotNull(ds.Declaration.Variables[0].Initializer.EqualsToken);
+            Assert.NotEqual(default, ds.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal(1, file.Errors().Length);
@@ -5550,9 +5550,9 @@ class C
             Assert.Equal(SyntaxKind.PropertyDeclaration, agg.Members[0].Kind());
             var pd = (PropertyDeclarationSyntax)agg.Members[0];
             Assert.NotNull(pd.AccessorList);
-            Assert.NotNull(pd.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.OpenBraceToken);
             Assert.False(pd.AccessorList.OpenBraceToken.IsMissing);
-            Assert.NotNull(pd.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.CloseBraceToken);
             Assert.False(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(0, pd.AccessorList.Accessors.Count);
             Assert.Equal(0, file.Errors().Length);
@@ -5575,9 +5575,9 @@ class C
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
             var pd = (PropertyDeclarationSyntax)agg.Members[0];
             Assert.NotNull(pd.AccessorList);
-            Assert.NotNull(pd.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.OpenBraceToken);
             Assert.False(pd.AccessorList.OpenBraceToken.IsMissing);
-            Assert.NotNull(pd.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(0, pd.AccessorList.Accessors.Count);
             Assert.Equal(1, file.Errors().Length);
@@ -5600,18 +5600,18 @@ class C
             Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[1].Kind());
             var pd = (PropertyDeclarationSyntax)agg.Members[0];
             Assert.NotNull(pd.AccessorList);
-            Assert.NotNull(pd.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.OpenBraceToken);
             Assert.False(pd.AccessorList.OpenBraceToken.IsMissing);
-            Assert.NotNull(pd.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(1, pd.AccessorList.Accessors.Count);
             var acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
-            Assert.NotNull(acc.Keyword);
+            Assert.NotEqual(default, acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
             Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.Kind());
             Assert.Null(acc.Body);
-            Assert.NotNull(acc.SemicolonToken);
+            Assert.NotEqual(default, acc.SemicolonToken);
             Assert.True(acc.SemicolonToken.IsMissing);
 
             Assert.Equal(2, file.Errors().Length);
@@ -5635,21 +5635,21 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, agg.Members[1].Kind());
             var pd = (PropertyDeclarationSyntax)agg.Members[0];
             Assert.NotNull(pd.AccessorList);
-            Assert.NotNull(pd.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.OpenBraceToken);
             Assert.False(pd.AccessorList.OpenBraceToken.IsMissing);
-            Assert.NotNull(pd.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(1, pd.AccessorList.Accessors.Count);
             var acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
-            Assert.NotNull(acc.Keyword);
+            Assert.NotEqual(default, acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
             Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.Kind());
             Assert.NotNull(acc.Body);
-            Assert.NotNull(acc.Body.OpenBraceToken);
+            Assert.NotEqual(default, acc.Body.OpenBraceToken);
             Assert.False(acc.Body.OpenBraceToken.IsMissing);
             Assert.Equal(0, acc.Body.Statements.Count);
-            Assert.NotNull(acc.Body.CloseBraceToken);
+            Assert.NotEqual(default, acc.Body.CloseBraceToken);
             Assert.True(acc.Body.CloseBraceToken.IsMissing);
             Assert.Equal(SyntaxKind.None, acc.SemicolonToken.Kind());
 
@@ -5674,21 +5674,21 @@ class C
             Assert.Equal(SyntaxKind.ClassDeclaration, agg.Members[1].Kind());
             var pd = (PropertyDeclarationSyntax)agg.Members[0];
             Assert.NotNull(pd.AccessorList);
-            Assert.NotNull(pd.AccessorList.OpenBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.OpenBraceToken);
             Assert.False(pd.AccessorList.OpenBraceToken.IsMissing);
-            Assert.NotNull(pd.AccessorList.CloseBraceToken);
+            Assert.NotEqual(default, pd.AccessorList.CloseBraceToken);
             Assert.True(pd.AccessorList.CloseBraceToken.IsMissing);
             Assert.Equal(1, pd.AccessorList.Accessors.Count);
             var acc = pd.AccessorList.Accessors[0];
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind());
-            Assert.NotNull(acc.Keyword);
+            Assert.NotEqual(default, acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
             Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.Kind());
             Assert.NotNull(acc.Body);
-            Assert.NotNull(acc.Body.OpenBraceToken);
+            Assert.NotEqual(default, acc.Body.OpenBraceToken);
             Assert.False(acc.Body.OpenBraceToken.IsMissing);
             Assert.Equal(0, acc.Body.Statements.Count);
-            Assert.NotNull(acc.Body.CloseBraceToken);
+            Assert.NotEqual(default, acc.Body.CloseBraceToken);
             Assert.True(acc.Body.CloseBraceToken.IsMissing);
             Assert.Equal(SyntaxKind.None, acc.SemicolonToken.Kind());
 
@@ -5776,9 +5776,9 @@ class C
             var md = (MethodDeclarationSyntax)agg.Members[0];
 
             Assert.NotNull(md.Body);
-            Assert.NotNull(md.Body.OpenBraceToken);
+            Assert.NotEqual(default, md.Body.OpenBraceToken);
             Assert.False(md.Body.OpenBraceToken.IsMissing);
-            Assert.NotNull(md.Body.CloseBraceToken);
+            Assert.NotEqual(default, md.Body.CloseBraceToken);
             Assert.False(md.Body.CloseBraceToken.IsMissing);
             Assert.Equal(1, md.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, md.Body.Statements[0].Kind());
@@ -5792,7 +5792,7 @@ class C
             Assert.Equal(SyntaxKind.FromClause, qx.FromClause.Kind());
             Assert.Equal(SyntaxKind.OrderByClause, qx.Body.Clauses[0].Kind());
             var oc = (OrderByClauseSyntax)qx.Body.Clauses[0];
-            Assert.NotNull(oc.OrderByKeyword);
+            Assert.NotEqual(default, oc.OrderByKeyword);
             Assert.False(oc.OrderByKeyword.IsMissing);
             Assert.Equal(1, oc.Orderings.Count);
             Assert.NotNull(oc.Orderings[0].Expression);
@@ -5821,9 +5821,9 @@ class C
             var md = (MethodDeclarationSyntax)agg.Members[0];
 
             Assert.NotNull(md.Body);
-            Assert.NotNull(md.Body.OpenBraceToken);
+            Assert.NotEqual(default, md.Body.OpenBraceToken);
             Assert.False(md.Body.OpenBraceToken.IsMissing);
-            Assert.NotNull(md.Body.CloseBraceToken);
+            Assert.NotEqual(default, md.Body.CloseBraceToken);
             Assert.False(md.Body.CloseBraceToken.IsMissing);
             Assert.Equal(1, md.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, md.Body.Statements[0].Kind());
@@ -5837,7 +5837,7 @@ class C
             Assert.Equal(SyntaxKind.FromClause, qx.FromClause.Kind());
             Assert.Equal(SyntaxKind.OrderByClause, qx.Body.Clauses[0].Kind());
             var oc = (OrderByClauseSyntax)qx.Body.Clauses[0];
-            Assert.NotNull(oc.OrderByKeyword);
+            Assert.NotEqual(default, oc.OrderByKeyword);
             Assert.False(oc.OrderByKeyword.IsMissing);
             Assert.Equal(1, oc.Orderings.Count);
             Assert.NotNull(oc.Orderings[0].Expression);
@@ -5865,9 +5865,9 @@ class C
             var md = (MethodDeclarationSyntax)agg.Members[0];
 
             Assert.NotNull(md.Body);
-            Assert.NotNull(md.Body.OpenBraceToken);
+            Assert.NotEqual(default, md.Body.OpenBraceToken);
             Assert.False(md.Body.OpenBraceToken.IsMissing);
-            Assert.NotNull(md.Body.CloseBraceToken);
+            Assert.NotEqual(default, md.Body.CloseBraceToken);
             Assert.False(md.Body.CloseBraceToken.IsMissing);
             Assert.Equal(1, md.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, md.Body.Statements[0].Kind());
@@ -5881,7 +5881,7 @@ class C
             Assert.Equal(SyntaxKind.FromClause, qx.FromClause.Kind());
             Assert.Equal(SyntaxKind.OrderByClause, qx.Body.Clauses[0].Kind());
             var oc = (OrderByClauseSyntax)qx.Body.Clauses[0];
-            Assert.NotNull(oc.OrderByKeyword);
+            Assert.NotEqual(default, oc.OrderByKeyword);
             Assert.False(oc.OrderByKeyword.IsMissing);
             Assert.Equal(2, oc.Orderings.Count);
             Assert.NotNull(oc.Orderings[0].Expression);
@@ -5915,9 +5915,9 @@ class C
             var md = (MethodDeclarationSyntax)agg.Members[0];
 
             Assert.NotNull(md.Body);
-            Assert.NotNull(md.Body.OpenBraceToken);
+            Assert.NotEqual(default, md.Body.OpenBraceToken);
             Assert.False(md.Body.OpenBraceToken.IsMissing);
-            Assert.NotNull(md.Body.CloseBraceToken);
+            Assert.NotEqual(default, md.Body.CloseBraceToken);
             Assert.True(md.Body.CloseBraceToken.IsMissing);
             Assert.Equal(1, md.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, md.Body.Statements[0].Kind());
@@ -5931,7 +5931,7 @@ class C
             Assert.Equal(SyntaxKind.FromClause, qx.FromClause.Kind());
             Assert.Equal(SyntaxKind.OrderByClause, qx.Body.Clauses[0].Kind());
             var oc = (OrderByClauseSyntax)qx.Body.Clauses[0];
-            Assert.NotNull(oc.OrderByKeyword);
+            Assert.NotEqual(default, oc.OrderByKeyword);
             Assert.False(oc.OrderByKeyword.IsMissing);
             Assert.Equal(1, oc.Orderings.Count);
             Assert.NotNull(oc.Orderings[0].Expression);
@@ -5963,9 +5963,9 @@ class C
             var md = (MethodDeclarationSyntax)agg.Members[0];
 
             Assert.NotNull(md.Body);
-            Assert.NotNull(md.Body.OpenBraceToken);
+            Assert.NotEqual(default, md.Body.OpenBraceToken);
             Assert.False(md.Body.OpenBraceToken.IsMissing);
-            Assert.NotNull(md.Body.CloseBraceToken);
+            Assert.NotEqual(default, md.Body.CloseBraceToken);
             Assert.True(md.Body.CloseBraceToken.IsMissing);
             Assert.Equal(1, md.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, md.Body.Statements[0].Kind());
@@ -5979,7 +5979,7 @@ class C
             Assert.Equal(SyntaxKind.FromClause, qx.FromClause.Kind());
             Assert.Equal(SyntaxKind.OrderByClause, qx.Body.Clauses[0].Kind());
             var oc = (OrderByClauseSyntax)qx.Body.Clauses[0];
-            Assert.NotNull(oc.OrderByKeyword);
+            Assert.NotEqual(default, oc.OrderByKeyword);
             Assert.False(oc.OrderByKeyword.IsMissing);
             Assert.Equal(1, oc.Orderings.Count);
             Assert.NotNull(oc.Orderings[0].Expression);
@@ -6010,9 +6010,9 @@ class C
             var md = (MethodDeclarationSyntax)agg.Members[0];
 
             Assert.NotNull(md.Body);
-            Assert.NotNull(md.Body.OpenBraceToken);
+            Assert.NotEqual(default, md.Body.OpenBraceToken);
             Assert.False(md.Body.OpenBraceToken.IsMissing);
-            Assert.NotNull(md.Body.CloseBraceToken);
+            Assert.NotEqual(default, md.Body.CloseBraceToken);
             Assert.True(md.Body.CloseBraceToken.IsMissing);
             Assert.Equal(1, md.Body.Statements.Count);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, md.Body.Statements[0].Kind());
@@ -6026,7 +6026,7 @@ class C
             Assert.Equal(SyntaxKind.FromClause, qx.FromClause.Kind());
             Assert.Equal(SyntaxKind.OrderByClause, qx.Body.Clauses[0].Kind());
             var oc = (OrderByClauseSyntax)qx.Body.Clauses[0];
-            Assert.NotNull(oc.OrderByKeyword);
+            Assert.NotEqual(default, oc.OrderByKeyword);
             Assert.False(oc.OrderByKeyword.IsMissing);
             Assert.Equal(2, oc.Orderings.Count);
             Assert.NotNull(oc.Orderings[0].Expression);
@@ -6419,27 +6419,27 @@ class C
             Assert.Equal(text, file.ToFullString());
 
             var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
-            Assert.Equal(incompleteMemberDecl.Kind(), SyntaxKind.IncompleteMember);
+            Assert.Equal(SyntaxKind.IncompleteMember, incompleteMemberDecl.Kind());
             Assert.False(incompleteMemberDecl.IsMissing);
 
             var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];
-            Assert.Equal(attributeDecl.Kind(), SyntaxKind.AttributeList);
+            Assert.Equal(SyntaxKind.AttributeList, attributeDecl.Kind());
             Assert.False(attributeDecl.IsMissing);
 
             var openBracketToken = attributeDecl.ChildNodesAndTokens()[0];
-            Assert.Equal(openBracketToken.Kind(), SyntaxKind.OpenBracketToken);
+            Assert.Equal(SyntaxKind.OpenBracketToken, openBracketToken.Kind());
             Assert.False(openBracketToken.IsMissing);
 
             var attribute = attributeDecl.ChildNodesAndTokens()[1];
-            Assert.Equal(attribute.Kind(), SyntaxKind.Attribute);
+            Assert.Equal(SyntaxKind.Attribute, attribute.Kind());
             Assert.True(attribute.IsMissing);
 
             var identifierName = attribute.ChildNodesAndTokens()[0];
-            Assert.Equal(identifierName.Kind(), SyntaxKind.IdentifierName);
+            Assert.Equal(SyntaxKind.IdentifierName, identifierName.Kind());
             Assert.True(identifierName.IsMissing);
 
             var identifierToken = identifierName.ChildNodesAndTokens()[0];
-            Assert.Equal(identifierToken.Kind(), SyntaxKind.IdentifierToken);
+            Assert.Equal(SyntaxKind.IdentifierToken, identifierToken.Kind());
             Assert.True(identifierToken.IsMissing);
         }
 

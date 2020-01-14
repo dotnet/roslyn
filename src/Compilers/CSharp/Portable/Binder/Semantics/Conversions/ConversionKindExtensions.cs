@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ImplicitEnumeration:
                 case ImplicitThrow:
                 case ImplicitNullable:
-                case DefaultOrNullLiteral:
+                case NullLiteral:
+                case DefaultLiteral:
                 case ImplicitReference:
                 case Boxing:
                 case ImplicitDynamic:

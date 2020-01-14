@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
 {
@@ -465,7 +466,7 @@ class C
     IEnumerable<int> M()
     {
         var nums = new int[] { 1, 2, 3, 4 };
-        return nums.Where(x => x > 2).Select(x => x);
+        return nums.Where(x => x > 2);
     }
 }";
 
@@ -1327,6 +1328,44 @@ partial class C
             await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        [WorkItem(31784, "https://github.com/dotnet/roslyn/issues/31784")]
+        public async Task QueryWhichRequiresSelectManyWithIdentityLambda()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        [|foreach (var x in new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } })
+        {
+            foreach (var y in x)
+            {
+                yield return y;
+            }
+        }|]
+    }
+}
+";
+
+            var linqInvocationOutput = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    IEnumerable<int> M()
+    {
+        return (new[] { new[] { 1, 2, 3 }, new[] { 4, 5, 6 } }).SelectMany(x => x);
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(source, linqInvocationOutput, index: 1);
+        }
+
         #endregion
 
         #region In foreach
@@ -1612,7 +1651,7 @@ class C
 
     IEnumerable<C> Test()
     {
-        return (new[] { 1, 2, 3 }).Select(x => x);
+        return new[] { 1, 2, 3 };
     }
 }
 ";
@@ -1661,7 +1700,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -1707,7 +1746,7 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return nums.AsQueryable().Select(n1 => n1);
+        return nums.AsQueryable();
     }
 }";
 
@@ -3864,7 +3903,7 @@ class C
 {
     void M(IEnumerable<int> nums)
     {
-        int c = (nums.AsQueryable().Select(n1 => n1)).Count();
+        int c = (nums.AsQueryable()).Count();
     }
 }";
 
@@ -3920,16 +3959,16 @@ class C
         // 1
         from/* 3 *//* 2 *//* 4 */x /* 5 */ in/* 6 */nums/* 7 */// 8
                                                                // 9
-                                                               /* 10 */
+            /* 10 */
         from/* 12 *//* 11 */int /* 13 */ y /* 14 */ in/* 15 */nums/* 16 *//* 17 */// 18
                                                                                   // 19
-                                                                                  /*20 */
+    /*20 */
         where/* 21 *//* 22 */x > 2/* 23 */// 24
-                                          /* 26 *//* 27 *//* 28 */
+/* 26 *//* 27 *//* 28 */
         select x * y/* 29 *//* 31 */// 32
-                                    /* 33 */// 34
-                                            /* 35 *//* 36 */// 30
-                                                            /* 37 *//* 38 *//* 39*/// 40
+        /* 33 */// 34
+        /* 35 *//* 36 */// 30
+        /* 37 *//* 38 *//* 39*/// 40
         ;
     }
 }";
@@ -3944,21 +3983,21 @@ class C
     IEnumerable<int> M(IEnumerable<int> nums)
     {
         return nums /* 7 */.SelectMany(
-                      // 1
-                      /* 2 */// 25
-                             /* 4 */x /* 5 */ => nums /* 16 */.Where(
-               /*20 *//* 21 */// 19
-               y =>
+        // 1
+        /* 2 */// 25
+        /* 4 */x /* 5 */ => nums /* 16 */.Where(
+        /*20 *//* 21 */// 19
+        y =>
 /* 22 */x > 2/* 23 */// 24
-               ).Select(
-               // 9
-               /* 10 *//* 11 *//* 13 */y /* 14 */ =>
+        ).Select(
+        // 9
+        /* 10 *//* 11 *//* 13 */y /* 14 */ =>
 /* 26 *//* 27 *//* 28 */x * y/* 29 *//* 31 */// 32
-                                                                                                 /* 33 */// 34
-                                                                                                         /* 35 *//* 36 */// 30
-                                                                                                                         /* 37 *//* 38 *//* 39*/// 40
-                                                                                                                                                /* 12 *//* 15 *//* 17 */// 18
-               )/* 3 *//* 6 */// 8
+        /* 33 */// 34
+        /* 35 *//* 36 */// 30
+        /* 37 *//* 38 *//* 39*/// 40
+        /* 12 *//* 15 *//* 17 */// 18
+        )/* 3 *//* 6 */// 8
         );
     }
 }";
@@ -3995,11 +4034,11 @@ class C
     {
         /*29*/
         return /*30*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                                                  /*31*/
+/*31*/
 (
 /* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
-                                                                        /* 14 */// 15
-                                                                                /* 16 *//* 17 */
+                  /* 14 */// 15
+                  /* 16 *//* 17 */
               let y /* 18 */ = /* 19 */ x + 1/* 20 *///21
               select y/* 24 *//*27*///28
 ).ToList()/* 22 *//* 23 *//* 25 *///26
@@ -4042,10 +4081,10 @@ class C
     {
         /*23*/
         return /*24*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                                                  /*25*/
+/*25*/
 (
-          /* 14 */// 15
-                  /* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+/* 14 */// 15
+/* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
        select x + 1/* 18 *//*21*///22
 ).ToList()/* 16 *//* 17 *//* 19 *///20
 ; //26
@@ -4063,11 +4102,11 @@ class C
     {
         /*23*/
         return /*24*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                                                  /*25*/
+/*25*/
 (nums /* 12 */.Select(
-                                      /* 6 *//* 7 *//* 14 */// 15
-                                                            /* 9 */x /* 10 */ => x + 1/* 18 *//*21*///22
-                                                              /* 8 *//* 11 */// 13
+/* 6 *//* 7 *//* 14 */// 15
+/* 9 */x /* 10 */ => x + 1/* 18 *//*21*///22
+/* 8 *//* 11 */// 13
 )).ToList()/* 16 *//* 17 *//* 19 *///20
 ; //26
     }
@@ -4104,10 +4143,10 @@ class C
     {
         /*21*/
         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                                                  /*23*/
+/*23*/
 (
-          /* 14 */// 15
-                  /* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+/* 14 */// 15
+/* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
        select x/* 10 *//*19*///20
 ).Count()/* 16 *//* 17 *///18
 ; //24
@@ -4125,12 +4164,11 @@ class C
     {
         /*21*/
         return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
-                                                  /*23*/
-(nums /* 12 */.Select(
-                                      /* 6 *//* 7 *//* 14 */// 15
-                                                            /* 9 */x /* 10 */ => x/* 10 *//*19*///20
-                                                                          /* 8 *//* 11 */// 13
-)).Count()/* 16 *//* 17 *///18
+/*23*/
+(nums /* 12 *//* 6 *//* 7 *//* 14 */// 15
+/* 9 *//* 10 *//* 10 *//*19*///20
+/* 8 *//* 11 */// 13
+).Count()/* 16 *//* 17 *///18
 ; //24
     }
 }";
@@ -4167,8 +4205,8 @@ class C
     {
         foreach (var (a /* 12 */ , b /*16*/ ) in
 /* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
-                                                                                                            /* 8*/// 9
-                                                                                                                  /* 10 *//* 11 */
+                                                           /* 8*/// 9
+                                                           /* 10 *//* 11 */
                                                        let a /* 12 */ = /* 13 */ n1 + n1/* 14*//* 15 */
                                                        let b /*16*/ = /*17*/ n1 * n1/*18*///19
                                                        select (a /* 12 */ , b /*16*/ )/*22*//*23*/)
@@ -4215,13 +4253,13 @@ class C
     void M(IEnumerable<int> nums)
     {
         foreach (var n1 /* 4 */in
-                        /* 17 */// 18
-                                /* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
-                                                                            /* 8*/// 9
-                                                                                  /* 10 */
-                       where/* 11 *//* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
+        /* 17 */// 18
+        /* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
+           /* 8*/// 9
+           /* 10 */
+               where/* 11 *//* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
        select n1/* 4 *//* 21 */// 22
-                               /*23*//*24*/
+        /*23*//*24*/
                     )
         {
             /*19*/
@@ -4244,11 +4282,11 @@ class C
         /* 10 *//* 11 *//* 8*/// 9
         n1 =>
 /* 12 */n1 /* 13 */ > /* 14 */ 0/* 15 */// 16
-        ).Select(
-                                                    /* 1 *//* 2 *//* 17 */// 18
-                                                                          /* 3 */n1 /* 4 */=> n1/* 4 *//* 21 */// 22
-                                                                                         /*23*//*24*//* 5 */// 7
-        ))
+        )
+        /* 1 *//* 2 *//* 17 */// 18
+        /* 3 *//* 4 *//* 4 *//* 21 */// 22
+        /*23*//*24*//* 5 */// 7
+        )
         {
             /*19*/
             Console.WriteLine(n1);//20

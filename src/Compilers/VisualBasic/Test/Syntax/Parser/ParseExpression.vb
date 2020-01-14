@@ -255,6 +255,9 @@ Public Class ParseExpressionTest
         ParseExpression("TypeOf a is b")
         ParseExpression(<Text>TypeOf a is 
                                        b</Text>)
+        ParseExpression("TypeOf a isnot b")
+        ParseExpression(<Text>TypeOf a isnot 
+                                       b</Text>)
     End Sub
 
     <Fact>

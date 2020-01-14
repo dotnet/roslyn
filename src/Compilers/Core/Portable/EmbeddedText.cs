@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+#nullable enable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +10,9 @@ using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -49,8 +52,8 @@ namespace Microsoft.CodeAnalysis
 
         private EmbeddedText(string filePath, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> blob)
         {
-            Debug.Assert(filePath?.Length > 0);
-            Debug.Assert(Cci.DebugSourceDocument.IsSupportedAlgorithm(checksumAlgorithm));
+            Debug.Assert(filePath.Length > 0);
+            Debug.Assert(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
             Debug.Assert(!blob.IsDefault && blob.Length >= sizeof(int));
 
             FilePath = filePath;
@@ -208,9 +211,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static ImmutableArray<byte> CreateBlob(Stream stream)
         {
-            Debug.Assert(stream != null);
-            Debug.Assert(stream.CanRead);
-            Debug.Assert(stream.CanSeek);
+            RoslynDebug.Assert(stream != null);
+            RoslynDebug.Assert(stream.CanRead);
+            RoslynDebug.Assert(stream.CanSeek);
 
             long longLength = stream.Length;
             Debug.Assert(longLength >= 0);
@@ -261,7 +264,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> CreateBlob(ArraySegment<byte> bytes)
         {
-            Debug.Assert(bytes.Array != null);
+            RoslynDebug.Assert(bytes.Array != null);
 
             if (bytes.Count < CompressionThreshold)
             {
@@ -290,10 +293,10 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<byte> CreateBlob(SourceText text)
         {
-            Debug.Assert(text != null);
-            Debug.Assert(text.CanBeEmbedded);
-            Debug.Assert(text.Encoding != null);
-            Debug.Assert(text.PrecomputedEmbeddedTextBlob.IsDefault);
+            RoslynDebug.Assert(text != null);
+            RoslynDebug.Assert(text.CanBeEmbedded);
+            RoslynDebug.Assert(text.Encoding != null);
+            RoslynDebug.Assert(text.PrecomputedEmbeddedTextBlob.IsDefault);
 
             int maxByteCount;
             try

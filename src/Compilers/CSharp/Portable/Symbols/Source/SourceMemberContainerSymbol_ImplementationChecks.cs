@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfacePropertyOrEvent).Symbol;
+                implementingPropertyOrEvent = this.FindImplementationForInterfaceMemberInNonInterface(interfacePropertyOrEvent);
             }
 
             // If the property or event wasn't implemented, then we'd prefer to report diagnostics about that.
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     result = HasBaseTypeDeclaringInterfaceResult.ExactMatch;
                     return true;
                 }
-                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, TypeSymbol.EqualsIgnoringNullableComparer))
+                else if (result == HasBaseTypeDeclaringInterfaceResult.NoMatch && set.Contains(@interface, Symbols.SymbolEqualityComparer.IgnoringNullable))
                 {
                     result = HasBaseTypeDeclaringInterfaceResult.IgnoringNullableMatch;
                 }
@@ -634,15 +634,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNewModifier(Symbol symbol, bool isNew, DiagnosticBag diagnostics)
         {
-            // for error cases
-            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
-            {
-                return;
-            }
+            Debug.Assert(symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.NamedType);
 
             // Do not give warnings about missing 'new' modifier for implicitly declared members,
             // e.g. backing fields for auto-properties
             if (symbol.IsImplicitlyDeclared)
+            {
+                return;
+            }
+
+            if (symbol.ContainingType.IsInterface)
+            {
+                CheckNonOverrideMember(symbol, isNew,
+                                       OverriddenOrHiddenMembersHelpers.MakeInterfaceOverriddenOrHiddenMembers(symbol, memberIsFromSomeCompilation: true),
+                                       diagnostics, out _);
+                return;
+            }
+
+            // for error cases
+            if ((object)this.BaseTypeNoUseSiteDiagnostics == null)
             {
                 return;
             }
@@ -1048,7 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                              ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
                                                              location,
                                                              new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
-                                                     } :
+                                                     }
+                :
                                                      (Action<DiagnosticBag, MethodSymbol, MethodSymbol, ParameterSymbol, Location>)null,
                                                  overridingMemberLocation);
             }

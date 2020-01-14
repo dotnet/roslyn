@@ -39,17 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         private static string GetExpressionBodyPreferenceEditorConfigString(CodeStyleOption<ExpressionBodyPreference> value)
         {
-            Debug.Assert(value.Notification != null);
-
             var notificationString = value.Notification.ToEditorConfigString();
-            switch (value.Value)
+            return value.Value switch
             {
-                case ExpressionBodyPreference.Never: return $"false:{notificationString}";
-                case ExpressionBodyPreference.WhenPossible: return $"true:{notificationString}";
-                case ExpressionBodyPreference.WhenOnSingleLine: return $"when_on_single_line:{notificationString}";
-                default:
-                    throw new NotSupportedException();
-            }
+                ExpressionBodyPreference.Never => $"false:{notificationString}",
+                ExpressionBodyPreference.WhenPossible => $"true:{notificationString}",
+                ExpressionBodyPreference.WhenOnSingleLine => $"when_on_single_line:{notificationString}",
+                _ => throw new NotSupportedException(),
+            };
         }
 
         public static CodeStyleOption<AddImportPlacement> ParseUsingDirectivesPlacement(
@@ -62,15 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 // A notification value must be provided.
                 if (notificationOpt != null)
                 {
-                    switch (value)
+                    return value switch
                     {
-                        case "inside_namespace":
-                            return new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, notificationOpt);
-                        case "outside_namespace":
-                            return new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notificationOpt);
-                        default:
-                            throw new NotSupportedException();
-                    }
+                        "inside_namespace" => new CodeStyleOption<AddImportPlacement>(AddImportPlacement.InsideNamespace, notificationOpt),
+                        "outside_namespace" => new CodeStyleOption<AddImportPlacement>(AddImportPlacement.OutsideNamespace, notificationOpt),
+                        _ => throw new NotSupportedException(),
+                    };
                 }
             }
 
@@ -79,16 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static string GetUsingDirectivesPlacementEditorConfigString(CodeStyleOption<AddImportPlacement> value)
         {
-            Debug.Assert(value.Notification != null);
-
             var notificationString = value.Notification.ToEditorConfigString();
-            switch (value.Value)
+            return value.Value switch
             {
-                case AddImportPlacement.InsideNamespace: return $"inside_namespace:{notificationString}";
-                case AddImportPlacement.OutsideNamespace: return $"outside_namespace:{notificationString}";
-                default:
-                    throw new NotSupportedException();
-            }
+                AddImportPlacement.InsideNamespace => $"inside_namespace:{notificationString}",
+                AddImportPlacement.OutsideNamespace => $"outside_namespace:{notificationString}",
+                _ => throw new NotSupportedException(),
+            };
         }
 
         private static CodeStyleOption<PreferBracesPreference> ParsePreferBracesPreference(
@@ -121,23 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         private static string GetPreferBracesPreferenceEditorConfigString(CodeStyleOption<PreferBracesPreference> value)
         {
-            Debug.Assert(value.Notification != null);
-
             var notificationString = value.Notification.ToEditorConfigString();
-            switch (value.Value)
+            return value.Value switch
             {
-                case PreferBracesPreference.None:
-                    return $"false:{notificationString}";
-
-                case PreferBracesPreference.WhenMultiline:
-                    return $"when_multiline:{notificationString}";
-
-                case PreferBracesPreference.Always:
-                    return $"true:{notificationString}";
-
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
+                PreferBracesPreference.None => $"false:{notificationString}",
+                PreferBracesPreference.WhenMultiline => $"when_multiline:{notificationString}",
+                PreferBracesPreference.Always => $"true:{notificationString}",
+                _ => throw ExceptionUtilities.Unreachable,
+            };
         }
     }
 }

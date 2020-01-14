@@ -78,6 +78,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (symbol.Name, "", symbol.Name);
             }
 
+            if (symbol is ITypeSymbol typeSymbol)
+            {
+                // typeSymbol may be a symbol that is nullable if the place we are assigning to is null, for example
+                //
+                //     object? o = new |
+                //
+                // We strip the top-level nullability so we don't end up suggesting "new object?" here. Nested nullability would still
+                // be generated.
+                return base.GetDisplayAndSuffixAndInsertionText(typeSymbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated), context);
+            }
+
             return base.GetDisplayAndSuffixAndInsertionText(symbol, context);
         }
 

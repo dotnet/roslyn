@@ -23,7 +23,8 @@
           AfterTargets="Pack"
           DependsOnTargets="_CalculateInputsOutputs;ResolveProjectReferences"
           Inputs="$(MSBuildAllProjects);$(_DeploymentVsixPath)"
-          Outputs="$(_InstallerFilePath)">
+          Outputs="$(_InstallerFilePath)"
+          Condition="'$(DotNetBuildFromSource)' != 'true'">
     <ItemGroup>
       <_Files Include="$(MSBuildProjectDirectory)\tools\*.*" TargetDir="tools"/>
       <_Files Include="$(MSBuildProjectDirectory)\scripts\*.*" TargetDir=""/>

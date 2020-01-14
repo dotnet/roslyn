@@ -551,7 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddStatements(VisitList(node.SideEffects));
             builder.AddLocals(node.Locals);
             var value = VisitExpression(ref builder, node.Value);
-            value = Spill(builder, value);
             return builder.Update(value);
         }
 
@@ -840,6 +839,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion node)
         {
+            if (node.ConversionKind == ConversionKind.AnonymousFunction && node.Type.IsExpressionTree())
+            {
+                // Expression trees do not contain any code that requires spilling.
+                return node;
+            }
+
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
             return UpdateExpression(

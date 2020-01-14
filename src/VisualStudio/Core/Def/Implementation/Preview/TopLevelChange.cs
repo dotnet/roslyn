@@ -18,8 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
     {
         private readonly string _name;
         private readonly IComponentModel _componentModel;
-        private Solution _newSolution;
-        private Solution _oldSolution;
+        private readonly Solution _newSolution;
+        private readonly Solution _oldSolution;
         private readonly Glyph _glyph;
 
         public TopLevelChange(

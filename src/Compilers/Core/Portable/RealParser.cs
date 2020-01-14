@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis
                         if (mantissa == 0)
                         {
                             result = this.Zero;
-                            return Status.Undeflow;
+                            return Status.Underflow;
                         }
 
                         // When we round the mantissa, the result may be so large that the  
@@ -371,7 +373,7 @@ namespace Microsoft.CodeAnalysis
         {
             OK,
             NoDigits,
-            Undeflow,
+            Underflow,
             Overflow
         }
 
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis
                 // underflow (because the exponent cannot possibly be small enough),  
                 // so if we underflow here it is a true underflow and we return zero.  
                 result = type.Zero;
-                return Status.Undeflow;
+                return Status.Underflow;
             }
 
             BigInteger fractionalNumerator = AccumulateDecimalDigitsIntoBigInteger(data, fractionalFirstIndex, fractionalLastIndex);

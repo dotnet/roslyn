@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 => new Converter(semanticModel, semanticFacts, queryExpression, cancellationToken).TryConvert(out documentUpdateInfo);
 
         /// <summary>
-        /// Finds a node for the span and checks that it is either a QueryExpressionSyntax or a QueryExpressionSyntax argument within ArgumentSyntax.
+        /// Finds a QueryExpressionSyntax node for the span.
         /// </summary>
         protected override Task<QueryExpressionSyntax> FindNodeToRefactorAsync(CodeRefactoringContext context)
             => context.TryGetRelevantNodeAsync<QueryExpressionSyntax>();
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     return false;
                 }
 
-                // if there are more than one return in the method, convert to local funciton.
+                // if there are more than one return in the method, convert to local function.
                 if (memberDeclarationNode.DescendantNodes().OfType<ReturnStatementSyntax>().Count() == 1)
                 {
                     // before: return from a in b select a;

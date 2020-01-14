@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -89,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
                 sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
+
+                Assert.True(sequencePointMarkers.Count > 0, $"No sequence points found in:{Environment.NewLine}{actualPdb}");
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
         {
-            var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.OfType<IFieldSymbol>().Select(f => f.Name + ": " + f.Type);
+            var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
             AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
         }
 

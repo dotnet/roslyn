@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                     optionsService.UpdatedSignature = updatedSignature;
 
                     var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
-                    await TestActionAsync(workspace, expectedCode, refactoring.Actions[index],
+                    await TestActionAsync(workspace, expectedCode, refactoring.CodeActions[index].action,
                         conflictSpans: ImmutableArray<TextSpan>.Empty,
                         renameSpans: ImmutableArray<TextSpan>.Empty,
                         warningSpans: ImmutableArray<TextSpan>.Empty,

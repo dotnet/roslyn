@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsReservedTupleElementName(string elementName)
         {
-            return TupleTypeSymbol.IsElementNameReserved(elementName) != -1;
+            return NamedTypeSymbol.IsTupleElementNameReserved(elementName) != -1;
         }
 
         internal static bool HasAnyBody(this BaseMethodDeclarationSyntax declaration)

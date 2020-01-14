@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -7,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         /// If the token is the '=>' in a lambda, or the 'delegate' in an anonymous function,
         /// return the syntax for the lambda or anonymous function.
         /// </summary>
-        protected override bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found)
+        protected override bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
         {
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken)
                 && token.Parent.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression))
@@ -42,6 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return false;
         }
 
+        protected override bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
+        {
+            if (token.IsKind(SyntaxKind.CloseBracketToken, SyntaxKind.OpenBracketToken) &&
+                token.Parent?.Parent.IsKind(SyntaxKind.ElementAccessExpression) == true)
+            {
+                found = token.Parent.Parent;
+                return true;
+            }
+
+            found = null;
+            return false;
+        }
+
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         {
             return !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
@@ -50,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override ImmutableArray<TaggedText> TryGetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
         {
             // Anything less than C# 8 we just won't show anything, even if the compiler could theoretically give analysis
-            var parseOptions = (CSharpParseOptions)token.SyntaxTree.Options;
+            var parseOptions = (CSharpParseOptions)token.SyntaxTree!.Options;
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
             {
                 return default;
@@ -59,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             // If the user doesn't have nullable enabled, don't show anything. For now we're not trying to be more precise if the user has just annotations or just
             // warnings. If the user has annotations off then things that are oblivious might become non-null (which is a lie) and if the user has warnings off then
             // that probably implies they're not actually trying to know if their code is correct. We can revisit this if we have specific user scenarios.
-            if (semanticModel.GetNullableContext(token.SpanStart) != NullableContext.Enabled)
+            var nullableContext = semanticModel.GetNullableContext(token.SpanStart);
+            if (!nullableContext.WarningsEnabled() || !nullableContext.AnnotationsEnabled())
             {
                 return default;
             }
@@ -105,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return default;
             }
 
-            string messageTemplate = null;
+            string? messageTemplate = null;
 
             if (typeInfo.Nullability.FlowState == NullableFlowState.NotNull)
             {

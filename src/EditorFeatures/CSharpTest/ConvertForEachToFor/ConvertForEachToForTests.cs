@@ -606,7 +606,7 @@ class Test
         var array = new[] { new Struct() };
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            {|Warning:Struct a = array[i];|}
+            Struct a = array[i];
             _ = a.Property;
         }
     }
@@ -649,7 +649,7 @@ class Test
         var array = new[] { new Struct() };
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
-            {|Warning:Struct a = array[i];|}
+            Struct a = array[i];
             var b = a.Property;
         }
     }

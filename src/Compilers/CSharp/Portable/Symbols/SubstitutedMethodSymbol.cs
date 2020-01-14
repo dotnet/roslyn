@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyReturnType == null)
                 {
-                    var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnTypeWithAnnotations);
+                    var returnType = Map.SubstituteType(OriginalDefinition.ReturnTypeWithAnnotations);
                     Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
                 }
                 return _lazyReturnType.Value;

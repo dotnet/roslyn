@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // protected static readonly ImmutableArray<string> AllAbstractMemberNames = ImmutableArray<string>.Empty.AddRange(GetAbstractMemberNames(typeof(CompilationStartAnalysisScope)).Distinct());
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
+#pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
             new DiagnosticDescriptor("CA7777", "CA7777_AnalyzerTestDiagnostic", "I'm here for test purposes", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+#pragma warning restore RS1029 // Do not use reserved diagnostic IDs.
 
         private static ImmutableArray<T> GetAllEnumValues<T>()
         {

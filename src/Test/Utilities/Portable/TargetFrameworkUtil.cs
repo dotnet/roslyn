@@ -23,7 +23,7 @@ namespace Roslyn.Test.Utilities
 
         /// <summary>
         /// Eventually this will be deleted and replaced with NetStandard20. Short term this creates the "standard"
-        /// API set across destkop and coreclr 
+        /// API set across desktop and coreclr 
         /// </summary>
         Standard,
         StandardLatest,
@@ -90,7 +90,9 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef);
         public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlibRef, Net461.SystemRef, Net461.SystemCoreRef, Net461.SystemValueTupleRef, Net461.SystemRuntimeRef, Net461.netstandardRef);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemCoreRef, NetStandard20.SystemDynamicRuntimeRef);
-        public static ImmutableArray<MetadataReference> NetCoreApp30References => ImmutableArray.Create<MetadataReference>(NetCoreApp30.NetStandard, NetCoreApp30.MscorlibRef, NetCoreApp30.SystemRuntimeRef, NetCoreApp30.SystemCollectionsRef, NetCoreApp30.SystemCoreRef, NetCoreApp30.SystemDynamicRuntimeRef, NetCoreApp30.SystemConsoleRef, NetCoreApp30.SystemLinqRef, NetCoreApp30.SystemLinqExpressionsRef);
+        public static ImmutableArray<MetadataReference> NetCoreApp30References => ImmutableArray.Create<MetadataReference>(NetCoreApp30.NetStandard, NetCoreApp30.MscorlibRef, NetCoreApp30.SystemRuntimeRef, NetCoreApp30.SystemCollectionsRef, NetCoreApp30.SystemCoreRef,
+                                                                                                                           NetCoreApp30.SystemDynamicRuntimeRef, NetCoreApp30.SystemConsoleRef, NetCoreApp30.SystemLinqRef, NetCoreApp30.SystemLinqExpressionsRef,
+                                                                                                                           NetCoreApp30.SystemThreadingTasksRef, NetCoreApp30.SystemRuntimeInteropServicesWindowsRuntimeRef);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardLatestReferences => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp30References : Mscorlib46ExtendedReferences;
@@ -143,7 +145,7 @@ namespace Roslyn.Test.Utilities
 
             // Check to see if there are any duplicate references. This guards against tests inadvertently passing multiple copies of 
             // say System.Core to the tests and implicitly depending on the higher one to win. The few tests which actually mean to 
-            // pass multiple verisons of a DLL should manually construct the reference list and not use this helper.
+            // pass multiple versions of a DLL should manually construct the reference list and not use this helper.
             void checkForDuplicateReferences()
             {
                 var nameSet = new HashSet<string>(getNames(references), StringComparer.OrdinalIgnoreCase);

@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
                     if (types.Any(s_shouldInclude))
                     {
+#nullable disable // Can 'GetClassificationForType(types.First()' be null here?
                         result.Add(new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+#nullable enable
                     }
                 }
             }
@@ -55,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            var identifierName = identifier.Parent as IdentifierNameSyntax;
-            if (identifierName == null)
+            if (!(identifier.Parent is IdentifierNameSyntax identifierName))
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;

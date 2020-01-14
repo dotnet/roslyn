@@ -6549,7 +6549,44 @@ class C
         [Fact]
         [WorkItem(772311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task CommentAtTheEndOfLine()
+        public async Task LineCommentAtTheEndOfLine()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+                                        // that I would like to keep
+
+                // properly indented
+    }
+}
+";
+
+            var expected = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+                             // that I would like to keep
+
+        // properly indented
+    }
+}
+";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BlockCommentAtTheEndOfLine1()
         {
             var code = @"
 using System;
@@ -6574,13 +6611,70 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine(); /* this is a comment */
-                             // that I would like to keep
+        // that I would like to keep
 
         // properly indented
     }
 }
 ";
             await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BlockCommentAtTheEndOfLine2()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+                                        /* that I would like to keep */
+
+                // properly indented
+    }
+}
+";
+
+            var expected = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(); // this is a comment
+        /* that I would like to keep */
+
+        // properly indented
+    }
+}
+";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        [WorkItem(38224, "https://github.com/dotnet/roslyn/issues/38224")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task BlockCommentAtBeginningOfLine()
+        {
+            var code = @"
+using System;
+
+class Program
+{
+    static void Main(
+        int x, // Some comment
+        /*A*/ int y)
+    {
+    }
+}
+";
+            await AssertFormatAsync(code, code);
         }
 
         [Fact]
@@ -9404,5 +9498,27 @@ enum TestEnum
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(38895, "https://github.com/dotnet/roslyn/issues/38895")]
+        public async Task FormattingNbsp()
+        {
+            await AssertFormatAsync(
+                @"
+class C
+{
+    List<C> list = new List<C>
+    {
+new C()
+    };
+}",
+                @"
+class C
+{
+    List<C> list = new List<C>
+    {
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new&nbsp;C()
+    };
+}".Replace("&nbsp;", "\u00A0"));
+        }
     }
 }

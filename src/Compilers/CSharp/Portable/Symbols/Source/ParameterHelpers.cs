@@ -517,6 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 switch (expression.Kind)
                 {
+                    case BoundKind.DefaultLiteral:
                     case BoundKind.DefaultExpression:
                         return true;
                     case BoundKind.ObjectCreationExpression:

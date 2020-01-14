@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     3. Compilation level
         ///     4. Global warning level
         ///
-        /// Pragmas are considered seperately. If a diagnostic would not otherwise
+        /// Pragmas are considered separately. If a diagnostic would not otherwise
         /// be suppressed, but is suppressed by a pragma, <paramref name="hasPragmaSuppression"/>
         /// is true but the diagnostic is not reported as suppressed.
         /// </summary> 

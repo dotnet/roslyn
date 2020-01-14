@@ -208,8 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Note that in metadata, you can encounter methods that are static (shared) or non-virtual 
                     ' (for example TLBIMP VtblGap members), even though you can't define those in source.
                     Return sym.ContainingType.IsInterfaceType() AndAlso
-                           Not sym.IsShared AndAlso
-                           sym.IsMustOverride
+                           Not sym.IsShared AndAlso Not sym.IsNotOverridable AndAlso
+                           (sym.IsMustOverride OrElse sym.IsOverridable)
                 Case Else
                     Return False
             End Select
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         <Extension>
         Friend Function ContainingNonLambdaMember(member As Symbol) As Symbol
-            While member?.Kind = SymbolKind.Method AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
+            While (member?.Kind = SymbolKind.Method).GetValueOrDefault() AndAlso DirectCast(member, MethodSymbol).MethodKind = MethodKind.AnonymousFunction
                 member = member.ContainingSymbol
             End While
 

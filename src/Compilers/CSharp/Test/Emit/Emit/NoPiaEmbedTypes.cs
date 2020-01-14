@@ -5701,7 +5701,7 @@ class B : IA
                 Assert.Equal(ParameterAttributes.HasDefault, p.Flags);
                 Assert.Equal((object)0x0000000C, p.ExplicitDefaultConstantValue.Value);
                 Assert.False(p.HasExplicitDefaultValue);
-                Assert.Throws(typeof(InvalidOperationException), delegate
+                Assert.Throws<InvalidOperationException>(delegate
                     {
                         var tmp = p.ExplicitDefaultValue;
                     });
@@ -5770,7 +5770,7 @@ class B : IA
                 Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString());
                 Assert.Null(p.ExplicitDefaultConstantValue);
                 Assert.False(p.HasExplicitDefaultValue);
-                Assert.Throws(typeof(InvalidOperationException), delegate
+                Assert.Throws<InvalidOperationException>(delegate
                 {
                     var tmp = p.ExplicitDefaultValue;
                 });

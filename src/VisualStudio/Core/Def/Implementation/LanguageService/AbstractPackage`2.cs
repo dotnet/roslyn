@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
+            if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
             {
                 // start remote host
                 EnableRemoteHostClientService();
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
-                    if (await IsInIdeModeAsync(this.Workspace, CancellationToken.None).ConfigureAwait(true))
+                    if (await IsInIdeModeAsync(this.Workspace).ConfigureAwait(true))
                     {
                         DisableRemoteHostClientService();
 
@@ -171,12 +171,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             return Task.CompletedTask;
         }
 
-        private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
+        private async Task<bool> IsInIdeModeAsync(Workspace workspace)
         {
-            return workspace != null && !await IsInCommandLineModeAsync(cancellationToken).ConfigureAwait(true);
+            return workspace != null && !await IsInCommandLineModeAsync().ConfigureAwait(true);
         }
 
-        private async Task<bool> IsInCommandLineModeAsync(CancellationToken cancellationToken)
+        private async Task<bool> IsInCommandLineModeAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

@@ -25,7 +25,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.Telemetry
             InitializeComponent();
         }
 
+#pragma warning disable VSTHRD100 // Avoid async void methods
         private async void OnDump(object sender, RoutedEventArgs e)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             using (Disable(DumpButton))
             using (Disable(CopyButton))

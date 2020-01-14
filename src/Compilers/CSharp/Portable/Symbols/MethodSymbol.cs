@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this symbol requires an instance reference as the implicit reciever. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
+        /// Returns true if this symbol requires an instance reference as the implicit receiver. This is false if the symbol is static, or a <see cref="LocalFunctionSymbol"/>
         /// </summary>
         public virtual bool RequiresInstanceReceiver => !IsStatic;
 
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal bool IsConditional
+        public bool IsConditional
         {
             get
             {
@@ -676,7 +676,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this is an extension method that can be applied to a receiver of the given type,
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
         /// </summary>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType)
+        /// <param name="compilation">The compilation in which constraints should be checked.
+        /// Should not be null, but if it is null we treat constraints as we would in the latest
+        /// language version.</param>
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
         {
             if ((object)receiverType == null)
             {
@@ -688,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return ReducedExtensionMethodSymbol.Create(this, receiverType);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation);
         }
 
         /// <summary>
@@ -984,212 +987,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
-        #region IMethodSymbol Members
-
-        MethodKind IMethodSymbol.MethodKind
-        {
-            get
-            {
-                switch (this.MethodKind)
-                {
-                    case MethodKind.AnonymousFunction:
-                        return MethodKind.AnonymousFunction;
-                    case MethodKind.Constructor:
-                        return MethodKind.Constructor;
-                    case MethodKind.Conversion:
-                        return MethodKind.Conversion;
-                    case MethodKind.DelegateInvoke:
-                        return MethodKind.DelegateInvoke;
-                    case MethodKind.Destructor:
-                        return MethodKind.Destructor;
-                    case MethodKind.EventAdd:
-                        return MethodKind.EventAdd;
-                    case MethodKind.EventRemove:
-                        return MethodKind.EventRemove;
-                    case MethodKind.ExplicitInterfaceImplementation:
-                        return MethodKind.ExplicitInterfaceImplementation;
-                    case MethodKind.UserDefinedOperator:
-                        return MethodKind.UserDefinedOperator;
-                    case MethodKind.BuiltinOperator:
-                        return MethodKind.BuiltinOperator;
-                    case MethodKind.Ordinary:
-                        return MethodKind.Ordinary;
-                    case MethodKind.PropertyGet:
-                        return MethodKind.PropertyGet;
-                    case MethodKind.PropertySet:
-                        return MethodKind.PropertySet;
-                    case MethodKind.ReducedExtension:
-                        return MethodKind.ReducedExtension;
-                    case MethodKind.StaticConstructor:
-                        return MethodKind.StaticConstructor;
-                    case MethodKind.LocalFunction:
-                        return MethodKind.LocalFunction;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
-                }
-            }
-        }
-
-        ITypeSymbol IMethodSymbol.ReturnType
-        {
-            get
-            {
-                return this.ReturnType;
-            }
-        }
-
-        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => ReturnTypeWithAnnotations.ToPublicAnnotation();
-
-        ImmutableArray<ITypeSymbol> IMethodSymbol.TypeArguments
-        {
-            get
-            {
-                return this.TypeArgumentsWithAnnotations.SelectAsArray(a => (ITypeSymbol)a.Type);
-            }
-        }
-
-        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentNullableAnnotations =>
-            TypeArgumentsWithAnnotations.SelectAsArray(arg => arg.ToPublicAnnotation());
-
-        ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
-        {
-            get
-            {
-                return StaticCast<ITypeParameterSymbol>.From(this.TypeParameters);
-            }
-        }
-
-        ImmutableArray<IParameterSymbol> IMethodSymbol.Parameters
-        {
-            get
-            {
-                return StaticCast<IParameterSymbol>.From(this.Parameters);
-            }
-        }
-
-        IMethodSymbol IMethodSymbol.ConstructedFrom
-        {
-            get
-            {
-                return this.ConstructedFrom;
-            }
-        }
-
-        bool IMethodSymbol.IsReadOnly
-        {
-            get
-            {
-                return this.IsEffectivelyReadOnly;
-            }
-        }
-
-        IMethodSymbol IMethodSymbol.OriginalDefinition
-        {
-            get
-            {
-                return this.OriginalDefinition;
-            }
-        }
-
-        IMethodSymbol IMethodSymbol.OverriddenMethod
-        {
-            get
-            {
-                return this.OverriddenMethod;
-            }
-        }
-
-        ITypeSymbol IMethodSymbol.ReceiverType
-        {
-            get
-            {
-                return this.ReceiverType;
-            }
-        }
-
-        CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => ReceiverNullableAnnotation;
-
-        protected virtual CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
+        internal virtual CodeAnalysis.NullableAnnotation ReceiverNullableAnnotation =>
             RequiresInstanceReceiver ? CodeAnalysis.NullableAnnotation.NotAnnotated : CodeAnalysis.NullableAnnotation.None;
-
-        IMethodSymbol IMethodSymbol.ReducedFrom
-        {
-            get
-            {
-                return this.ReducedFrom;
-            }
-        }
-
-        ITypeSymbol IMethodSymbol.GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter)
-        {
-            return this.GetTypeInferredDuringReduction(reducedFromTypeParameter.EnsureCSharpSymbolOrNull<ITypeParameterSymbol, TypeParameterSymbol>(nameof(reducedFromTypeParameter)));
-        }
-
-        IMethodSymbol IMethodSymbol.ReduceExtensionMethod(ITypeSymbol receiverType)
-        {
-            return this.ReduceExtensionMethod(receiverType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(receiverType)));
-        }
-
-        ImmutableArray<IMethodSymbol> IMethodSymbol.ExplicitInterfaceImplementations
-        {
-            get
-            {
-                return this.ExplicitInterfaceImplementations.Cast<MethodSymbol, IMethodSymbol>();
-            }
-        }
-
-        ISymbol IMethodSymbol.AssociatedSymbol
-        {
-            get
-            {
-                return this.AssociatedSymbol;
-            }
-        }
-
-        bool IMethodSymbol.IsGenericMethod
-        {
-            get
-            {
-                return this.IsGenericMethod;
-            }
-        }
-
-        bool IMethodSymbol.IsAsync
-        {
-            get
-            {
-                return this.IsAsync;
-            }
-        }
-
-        bool IMethodSymbol.HidesBaseMethodsByName
-        {
-            get
-            {
-                return this.HidesBaseMethodsByName;
-            }
-        }
-
-        ImmutableArray<CustomModifier> IMethodSymbol.ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return this.ReturnTypeWithAnnotations.CustomModifiers;
-            }
-        }
-
-        ImmutableArray<CustomModifier> IMethodSymbol.RefCustomModifiers
-        {
-            get
-            {
-                return this.RefCustomModifiers;
-            }
-        }
-
-        ImmutableArray<AttributeData> IMethodSymbol.GetReturnTypeAttributes()
-        {
-            return this.GetReturnTypeAttributes().Cast<CSharpAttributeData, AttributeData>();
-        }
 
         /// <summary>
         /// Build and add synthesized return type attributes for this method symbol.
@@ -1220,64 +1019,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] typeArguments)
-        {
-            return Construct(ConstructTypeArguments(typeArguments));
-        }
-
-        IMethodSymbol IMethodSymbol.Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        {
-            return Construct(ConstructTypeArguments(typeArguments, typeArgumentNullableAnnotations));
-        }
-
-        IMethodSymbol IMethodSymbol.PartialImplementationPart
-        {
-            get
-            {
-                return PartialImplementationPart;
-            }
-        }
-
-        IMethodSymbol IMethodSymbol.PartialDefinitionPart
-        {
-            get
-            {
-                return PartialDefinitionPart;
-            }
-        }
-
-        INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        #endregion
 
         /// <summary>
-        /// Is this a method of a tuple type?
+        /// Returns true if locals are to be initialized
         /// </summary>
-        public virtual bool IsTupleMethod
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// If this is a method of a tuple type, return corresponding underlying method from the
-        /// tuple underlying type. Otherwise, null.
-        /// </summary>
-        public virtual MethodSymbol TupleUnderlyingMethod
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public abstract bool AreLocalsZeroed { get; }
 
         #region IMethodSymbolInternal
 
@@ -1285,20 +1031,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
+        IMethodSymbolInternal IMethodSymbolInternal.Construct(params ITypeSymbolInternal[] typeArguments)
         {
-            visitor.VisitMethod(this);
-        }
-
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitMethod(this);
+            return Construct((TypeSymbol[])typeArguments);
         }
 
         #endregion
+
+        protected sealed override ISymbol CreateISymbol()
+        {
+            return new PublicModel.MethodSymbol(this);
+        }
     }
 }

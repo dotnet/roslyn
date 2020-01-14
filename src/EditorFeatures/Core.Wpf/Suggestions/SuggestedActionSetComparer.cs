@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -8,70 +10,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal class SuggestedActionSetComparer : IComparer<SuggestedActionSet>
     {
-        private readonly SnapshotPoint? _targetPoint;
+        private readonly TextSpan? _targetSpan;
 
-        public SuggestedActionSetComparer(SnapshotPoint? targetPoint)
+        public SuggestedActionSetComparer(TextSpan? targetSpan)
         {
-            _targetPoint = targetPoint;
+            _targetSpan = targetSpan;
         }
 
-        private static int Distance(Span? textSpan, SnapshotPoint? targetPoint)
+        private static int Distance(Span? maybeA, TextSpan? maybeB)
         {
             // If we don't have a text span or target point we cannot calculate the distance between them
-            if (!textSpan.HasValue || !targetPoint.HasValue)
+            if (!maybeA.HasValue || !maybeB.HasValue)
             {
                 return int.MaxValue;
             }
 
-            var span = textSpan.Value;
-            var position = targetPoint.Value.Position;
+            var a = maybeA.Value;
+            var b = maybeB.Value;
 
-            if (position < span.Start)
-            {
-                return span.Start - position;
-            }
-            else if (position > span.End)
-            {
-                return position - span.End;
-            }
-            else
-            {
-                return 0;
-            }
+            // The distance of two spans is symetric sumation of:
+            // - the distance of a's start to b's start
+            // - the distance of a's end to b's end
+            //
+            // This particular metric has been chosen because it is both simple
+            // and uses the all the information in both spans. A weighting (i.e.
+            // the distance of starts is more important) could be added but it
+            // didn't seem necessary.
+            //
+            // E.g.: for spans [ ] and $ $ the distance is distanceOfStarts+distanceOfEnds:
+            // $ $ [  ] has distance 2+3
+            // $ [   ]$ has distance 1+0
+            // $[    ]$ has distance 0+0
+            // $ []   $ has distance 1+3
+            // $[]    $ has distance 0+4
+            var startsDistance = Math.Abs(a.Start - b.Start);
+            var endsDistance = Math.Abs(a.End - b.End);
+
+            return startsDistance + endsDistance;
         }
 
         public int Compare(SuggestedActionSet x, SuggestedActionSet y)
         {
-            if (!_targetPoint.HasValue || !x.ApplicableToSpan.HasValue || !y.ApplicableToSpan.HasValue)
+            if (!_targetSpan.HasValue || !x.ApplicableToSpan.HasValue || !y.ApplicableToSpan.HasValue)
             {
                 // Not enough data to compare, consider them equal
                 return 0;
             }
 
-            var distanceX = Distance(x.ApplicableToSpan, _targetPoint);
-            var distanceY = Distance(y.ApplicableToSpan, _targetPoint);
+            var distanceX = Distance(x.ApplicableToSpan, _targetSpan);
+            var distanceY = Distance(y.ApplicableToSpan, _targetSpan);
 
-            if (distanceX != 0 || distanceY != 0)
-            {
-                return distanceX.CompareTo(distanceY);
-            }
-
-            // This is the case when both actions sets' spans contain the trigger point.
-            // Now we compare first by start position then by end position. 
-            var targetPosition = _targetPoint.Value.Position;
-
-            var distanceToStartX = targetPosition - x.ApplicableToSpan.Value.Start;
-            var distanceToStartY = targetPosition - y.ApplicableToSpan.Value.Start;
-
-            if (distanceToStartX != distanceToStartY)
-            {
-                return distanceToStartX.CompareTo(distanceToStartY);
-            }
-
-            var distanceToEndX = x.ApplicableToSpan.Value.End - targetPosition;
-            var distanceToEndY = y.ApplicableToSpan.Value.End - targetPosition;
-
-            return distanceToEndX.CompareTo(distanceToEndY);
+            return distanceX.CompareTo(distanceY);
         }
     }
 }

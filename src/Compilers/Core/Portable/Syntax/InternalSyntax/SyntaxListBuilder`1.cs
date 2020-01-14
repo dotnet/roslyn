@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     internal struct SyntaxListBuilder<TNode> where TNode : GreenNode
@@ -37,11 +39,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public TNode this[int index]
+        public TNode? this[int index]
         {
             get
             {
-                return (TNode)_builder[index];
+                return (TNode?)_builder[index];
             }
 
             set
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return _builder.ToList();
         }
 
-        public GreenNode ToListNode()
+        public GreenNode? ToListNode()
         {
             return _builder.ToListNode();
         }

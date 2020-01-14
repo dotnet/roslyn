@@ -6,30 +6,29 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal partial class RenameCommandHandler :
-        VSCommanding.ICommandHandler<LineStartCommandArgs>, VSCommanding.ICommandHandler<LineEndCommandArgs>,
-        VSCommanding.ICommandHandler<LineStartExtendCommandArgs>, VSCommanding.ICommandHandler<LineEndExtendCommandArgs>
+        ICommandHandler<LineStartCommandArgs>, ICommandHandler<LineEndCommandArgs>,
+        ICommandHandler<LineStartExtendCommandArgs>, ICommandHandler<LineEndExtendCommandArgs>
     {
-        public VSCommanding.CommandState GetCommandState(LineStartCommandArgs args)
+        public CommandState GetCommandState(LineStartCommandArgs args)
         {
             return GetCommandState();
         }
 
-        public VSCommanding.CommandState GetCommandState(LineEndCommandArgs args)
+        public CommandState GetCommandState(LineEndCommandArgs args)
         {
             return GetCommandState();
         }
 
-        public VSCommanding.CommandState GetCommandState(LineStartExtendCommandArgs args)
+        public CommandState GetCommandState(LineStartExtendCommandArgs args)
         {
             return GetCommandState();
         }
 
-        public VSCommanding.CommandState GetCommandState(LineEndExtendCommandArgs args)
+        public CommandState GetCommandState(LineEndExtendCommandArgs args)
         {
             return GetCommandState();
         }

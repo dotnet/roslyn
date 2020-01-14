@@ -45,9 +45,10 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
-        public async Task TestOnIf()
+        [WorkItem(38136, "https://github.com/dotnet/roslyn/pull/38136")]
+        public async Task TestMissingOnIf()
         {
-            await TestInRegularAndScriptAsync(
+            await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class C
@@ -57,15 +58,6 @@ class C
         [|if|] (s == null)
             throw new ArgumentNullException(nameof(s));
         _s = s;
-    }
-}",
-@"using System;
-
-class C
-{
-    void M(string s)
-    {
-        _s = s ?? throw new ArgumentNullException(nameof(s));
     }
 }");
         }

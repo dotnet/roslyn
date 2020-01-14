@@ -505,7 +505,7 @@ class C
                     out error,
                     testData);
 
-                Assert.Equal(testData.GetExplicitlyDeclaredMethods().Length, 1);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
@@ -616,7 +616,7 @@ class C
 
                 // Expression with format specifiers with ';' as statement.
                 result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS1073: Unexpected token ','");
+                Assert.Equal("error CS1073: Unexpected token ','", error);
                 Assert.Null(result);
 
                 // Assignment without ';' as statement.
@@ -629,23 +629,23 @@ class C
 
                 // Statement without ';' as statement.
                 result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
 
                 // Neither statement nor expression as statement.
                 result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS1026: ) expected");
+                Assert.Equal("error CS1026: ) expected", error);
 
                 // Statement without ';' as expression.
                 result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
 
                 // Statement with ';' as expression.
                 result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
 
                 // Neither statement nor expression as expression.
                 result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-                Assert.Equal(error, "error CS1026: ) expected");
+                Assert.Equal("error CS1026: ) expected", error);
             });
         }
 
@@ -812,7 +812,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS0103: The name 'F' does not exist in the current context");
+                Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
             });
         }
 
@@ -837,7 +837,7 @@ class C
                     NoAliases,
                     out error);
 
-                Assert.Equal(error, "error CS0818: Implicitly-typed variables must be initialized");
+                Assert.Equal("error CS0818: Implicitly-typed variables must be initialized", error);
             });
         }
 
@@ -862,7 +862,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS0815: Cannot assign <null> to an implicitly-typed variable");
+                Assert.Equal("error CS0815: Cannot assign <null> to an implicitly-typed variable", error);
             });
         }
 
@@ -887,7 +887,7 @@ class C
                     NoAliases,
                     out error);
 
-                Assert.Equal(error, "error CS0815: Cannot assign void to an implicitly-typed variable");
+                Assert.Equal("error CS0815: Cannot assign void to an implicitly-typed variable", error);
             });
         }
 
@@ -1058,7 +1058,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS0841: Cannot use local variable 'y' before it is declared");
+                Assert.Equal("error CS0841: Cannot use local variable 'y' before it is declared", error);
             });
         }
 
@@ -1083,7 +1083,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "...");
+                Assert.Equal("...", error);
             });
         }
 
@@ -1109,7 +1109,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "...");
+                Assert.Equal("...", error);
             });
         }
 
@@ -1134,7 +1134,7 @@ class C
                     DkmEvaluationFlags.None,
                     ImmutableArray.Create(VariableAlias("z", typeof(int))),
                     out error);
-                Assert.Equal(error, "...");
+                Assert.Equal("...", error);
             });
         }
 
@@ -1159,7 +1159,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1525: Invalid expression term 'int'");
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
             });
         }
 
@@ -1333,7 +1333,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
 
                 // $exception
                 context.CompileExpression(
@@ -1341,7 +1341,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
 
                 // $ReturnValue
                 context.CompileExpression(
@@ -1349,7 +1349,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
 
                 // $x
                 context.CompileExpression(
@@ -1357,7 +1357,7 @@ class C
                     DkmEvaluationFlags.None,
                     NoAliases,
                     out error);
-                Assert.Equal(error, "error CS1056: Unexpected character '$'");
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
             });
         }
 
@@ -1435,10 +1435,10 @@ class C
                 string error;
                 var testData = new CompilationTestData();
                 context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+                Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
                 testData = new CompilationTestData();
                 context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
-                Assert.Equal(error, "error CS8092: Expression or declaration statement expected.");
+                Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
             });
         }
 

@@ -16,14 +16,22 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        protected static readonly IOperation s_unset = new EmptyOperation(null, null, null, default, isImplicit: true);
-        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(ImmutableArray<IOperation>.Empty, default, null, null, null, default, isImplicit: true);
-        protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, default, isImplicit: true);
-        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(null, null, null, null, null, default, isImplicit: true);
-        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(ImmutableArray<IOperation>.Empty, null, null, null, default, isImplicit: true);
-        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(null, null, null, null, isImplicit: true);
-        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(ImmutableArray<IVariableDeclarationOperation>.Empty, null, null, null, default, isImplicit: true);
-        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(null, null, null, null, default, isImplicit: true);
+        protected static readonly IOperation s_unset = new EmptyOperation(
+            semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IBlockOperation s_unsetBlock = new BlockOperation(
+            operations: ImmutableArray<IOperation>.Empty, locals: default, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IArrayInitializerOperation s_unsetArrayInitializer = new ArrayInitializerOperation(
+            elementValues: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IEventReferenceOperation s_unsetEventReference = new EventReferenceOperation(
+            @event: null, instance: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IObjectOrCollectionInitializerOperation s_unsetObjectOrCollectionInitializer = new ObjectOrCollectionInitializerOperation(
+            initializers: ImmutableArray<IOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IPatternOperation s_unsetPattern = new ConstantPatternOperation(
+            value: null, inputType: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IVariableDeclarationGroupOperation s_unsetVariableDeclarationGroup = new VariableDeclarationGroupOperation(
+            declarations: ImmutableArray<IVariableDeclarationOperation>.Empty, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: true);
+        protected static readonly IVariableInitializerOperation s_unsetVariableInitializer = new VariableInitializerOperation(
+            locals: ImmutableArray<ILocalSymbol>.Empty, value: null, semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
         private readonly SemanticModel _owningSemanticModelOpt;
 
         // this will be lazily initialized. this will be initialized only once
@@ -139,7 +147,9 @@ namespace Microsoft.CodeAnalysis
                 ((Operation)parent).OwningSemanticModel == null || OwningSemanticModel == null);
 
             // make sure given parent and one we already have is same if we have one already
-            Debug.Assert(result == s_unset || result == parent);
+            // This assert is violated in the presence of threading races, tracked by https://github.com/dotnet/roslyn/issues/35818
+            // As it's occasionally hitting in test runs, we're commenting out the assert pending fix.
+            //Debug.Assert(result == s_unset || result == parent);
         }
 
         public static T SetParentOperation<T>(T operation, IOperation parent) where T : IOperation

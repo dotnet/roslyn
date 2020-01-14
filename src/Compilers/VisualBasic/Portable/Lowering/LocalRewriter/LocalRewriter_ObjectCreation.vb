@@ -118,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' even if T is known to be a value type or reference type. This matches Dev10 VB.
 
             If _inExpressionLambda Then
-                ' NOTE: is we are in expression lambda, we want to keep BoundNewT 
-                ' NOTE: node, but we need to rewrite initializers if any
+                ' NOTE: If we are in expression lambda, we want to keep BoundNewT 
+                ' NOTE: node, but we need to rewrite initializers if any.
 
                 If node.InitializerOpt IsNot Nothing Then
                     Return VisitObjectCreationInitializer(node.InitializerOpt, node, node)

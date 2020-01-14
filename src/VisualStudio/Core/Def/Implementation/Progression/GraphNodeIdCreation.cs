@@ -368,8 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 return symbol.ContainingAssembly;
             }
 
-            var typeSymbol = symbol as ITypeSymbol;
-            if (typeSymbol == null)
+            if (!(symbol is ITypeSymbol typeSymbol))
             {
                 return null;
             }

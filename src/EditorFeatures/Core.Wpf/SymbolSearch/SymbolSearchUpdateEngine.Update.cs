@@ -39,12 +39,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
 
-        /// <summary>
-        /// Cancellation support for the task we use to keep the local database up to date.
-        /// When VS shuts down it will dispose us.  We'll cancel the task at that point.
-        /// </summary>
-        private readonly CancellationToken _updateCancellationToken;
-
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
@@ -59,11 +53,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text, _updateCancellationToken);
+        private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
 
-        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text, _updateCancellationToken);
+        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text);
 
         public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
+            => UpdateContinuouslyAsync(source, localSettingsDirectory, CancellationToken.None);
+
+        /// <param name="cancellationToken">
+        /// Cancellation support for the task we use to keep the local database up to date.
+        /// Currently used only in tests so we can shutdown gracefully.  In normal VS+OOP scenarios
+        /// we don't care about this and we just get torn down when the OOP process goes down.
+        /// </param>
+        internal Task UpdateContinuouslyAsync(string source, string localSettingsDirectory, CancellationToken cancellationToken)
         {
             // Only the first thread to try to update this source should succeed
             // and cause us to actually begin the update loop. 
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync();
+            return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken);
         }
 
         private class Updater
@@ -103,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             /// <summary>
             /// Internal for testing purposes.
             /// </summary>
-            internal async Task UpdateInBackgroundAsync()
+            internal async Task UpdateInBackgroundAsync(CancellationToken cancellationToken)
             {
                 // We only support this single source currently.
                 if (_source != NugetOrgSource)
@@ -112,15 +114,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
 
                 // Keep on looping until we're told to shut down.
-                while (!_service._updateCancellationToken.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     await _service.LogInfoAsync("Starting update").ConfigureAwait(false);
                     try
                     {
-                        var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
+                        var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync(cancellationToken).ConfigureAwait(false);
 
                         await _service.LogInfoAsync($"Waiting {delayUntilNextUpdate} until next update").ConfigureAwait(false);
-                        await Task.Delay(delayUntilNextUpdate, _service._updateCancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delayUntilNextUpdate, cancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             /// <returns>The timespan the caller should wait until calling this method again.</returns>
-            private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
+            private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync(CancellationToken cancellationToken)
             {
                 // Attempt to update the local db if we have one, or download a full db
                 // if we don't.  In the event of any error back off a minute and try 
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // disk.
                 try
                 {
-                    await CleanCacheDirectoryAsync().ConfigureAwait(false);
+                    await CleanCacheDirectoryAsync(cancellationToken).ConfigureAwait(false);
 
                     // If we have a local database, then see if it needs to be patched.
                     // Otherwise download the full database.
@@ -178,12 +180,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     if (_service._ioService.Exists(_databaseFileInfo))
                     {
                         await _service.LogInfoAsync("Local database file exists. Patching local database").ConfigureAwait(false);
-                        return await PatchLocalDatabaseAsync().ConfigureAwait(false);
+                        return await PatchLocalDatabaseAsync(cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         await _service.LogInfoAsync("Local database file does not exist. Downloading full database").ConfigureAwait(false);
-                        return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                        return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task CleanCacheDirectoryAsync()
+            private async Task CleanCacheDirectoryAsync(CancellationToken cancellationToken)
             {
                 await _service.LogInfoAsync("Cleaning cache directory").ConfigureAwait(false);
 
@@ -219,32 +221,32 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     await _service.LogInfoAsync("Cache directory created").ConfigureAwait(false);
                 }
 
-                _service._updateCancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
-            private async Task<TimeSpan> DownloadFullDatabaseAsync()
+            private async Task<TimeSpan> DownloadFullDatabaseAsync(CancellationToken cancellationToken)
             {
                 try
                 {
                     var title = string.Format(EditorFeaturesWpfResources.Downloading_IntelliSense_index_for_0, _source);
-                    await _service._progressService.OnDownloadFullDatabaseStartedAsync(title, _service._updateCancellationToken).ConfigureAwait(false);
+                    await _service._progressService.OnDownloadFullDatabaseStartedAsync(title).ConfigureAwait(false);
 
-                    var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync().ConfigureAwait(false);
+                    var (succeeded, delay) = await DownloadFullDatabaseWorkerAsync(cancellationToken).ConfigureAwait(false);
                     if (succeeded)
                     {
-                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync(_service._updateCancellationToken).ConfigureAwait(false);
+                        await _service._progressService.OnDownloadFullDatabaseSucceededAsync().ConfigureAwait(false);
                     }
                     else
                     {
                         await _service._progressService.OnDownloadFullDatabaseFailedAsync(
-                            EditorFeaturesWpfResources.Downloading_index_failed, _service._updateCancellationToken).ConfigureAwait(false);
+                            EditorFeaturesWpfResources.Downloading_index_failed).ConfigureAwait(false);
                     }
 
                     return delay;
                 }
                 catch (OperationCanceledException)
                 {
-                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync(_service._updateCancellationToken).ConfigureAwait(false);
+                    await _service._progressService.OnDownloadFullDatabaseCanceledAsync().ConfigureAwait(false);
                     throw;
                 }
                 catch (Exception e)
@@ -252,32 +254,32 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     var message = string.Format(
                         EditorFeaturesWpfResources.Downloading_index_failed_0,
                         "\r\n" + e.ToString());
-                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message, _service._updateCancellationToken).ConfigureAwait(false);
+                    await _service._progressService.OnDownloadFullDatabaseFailedAsync(message).ConfigureAwait(false);
                     throw;
                 }
             }
 
-            private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync()
+            private async Task<(bool succeeded, TimeSpan delay)> DownloadFullDatabaseWorkerAsync(CancellationToken cancellationToken)
             {
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
 
                 await _service.LogInfoAsync($"Downloading and processing full database: {serverPath}").ConfigureAwait(false);
 
-                var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
-                var result = await ProcessFullDatabaseXElementAsync(element).ConfigureAwait(false);
+                var element = await DownloadFileAsync(serverPath, cancellationToken).ConfigureAwait(false);
+                var result = await ProcessFullDatabaseXElementAsync(element, cancellationToken).ConfigureAwait(false);
 
                 await _service.LogInfoAsync("Downloading and processing full database completed").ConfigureAwait(false);
                 return result;
             }
 
-            private async Task<(bool succeeded, TimeSpan delay)> ProcessFullDatabaseXElementAsync(XElement element)
+            private async Task<(bool succeeded, TimeSpan delay)> ProcessFullDatabaseXElementAsync(XElement element, CancellationToken cancellationToken)
             {
                 await _service.LogInfoAsync("Processing full database element").ConfigureAwait(false);
 
                 // Convert the database contents in the XML to a byte[].
-                var result = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
+                var (succeeded, contentBytes) = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
 
-                if (!result.succeeded)
+                if (!succeeded)
                 {
                     // Something was wrong with the full database.  Trying again soon after won't
                     // really help.  We'll just get the same busted XML from the remote service
@@ -289,7 +291,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return (succeeded: false, failureDelay);
                 }
 
-                var bytes = result.contentBytes;
+                var bytes = contentBytes;
 
                 // Make a database out of that and set it to our in memory database that we'll be 
                 // searching.
@@ -311,14 +313,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // Write the file out to disk so we'll have it the next time we launch VS.  Do this
                 // after we set the in-memory instance so we at least have something to search while
                 // we're waiting to write.
-                await WriteDatabaseFile(bytes).ConfigureAwait(false);
+                await WriteDatabaseFile(bytes, cancellationToken).ConfigureAwait(false);
 
                 var delay = _service._delayService.UpdateSucceededDelay;
                 await _service.LogInfoAsync($"Processing full database element completed. Update again in {delay}").ConfigureAwait(false);
                 return (succeeded: true, delay);
             }
 
-            private async Task WriteDatabaseFile(byte[] bytes)
+            private async Task WriteDatabaseFile(byte[] bytes, CancellationToken cancellationToken)
             {
                 await _service.LogInfoAsync("Writing database file").ConfigureAwait(false);
 
@@ -364,12 +366,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                             // If this fails, that's unfortunately, but just proceed.
                             IOUtilities.PerformIO(() => _service._ioService.Delete(new FileInfo(tempFilePath)));
                         }
-                    }).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
 
                 await _service.LogInfoAsync("Writing database file completed").ConfigureAwait(false);
             }
 
-            private async Task<TimeSpan> PatchLocalDatabaseAsync()
+            private async Task<TimeSpan> PatchLocalDatabaseAsync(CancellationToken cancellationToken)
             {
                 await _service.LogInfoAsync("Patching local database").ConfigureAwait(false);
 
@@ -390,7 +392,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     await _service.LogExceptionAsync(e, "Error creating database from local copy. Downloading full database").ConfigureAwait(false);
-                    return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                    return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 var databaseVersion = database.DatabaseVersion;
@@ -400,8 +402,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 await _service.LogInfoAsync("Downloading and processing patch file: " + serverPath).ConfigureAwait(false);
 
-                var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
-                var delayUntilUpdate = await ProcessPatchXElementAsync(element, databaseBytes).ConfigureAwait(false);
+                var element = await DownloadFileAsync(serverPath, cancellationToken).ConfigureAwait(false);
+                var delayUntilUpdate = await ProcessPatchXElementAsync(element, databaseBytes, cancellationToken).ConfigureAwait(false);
 
                 await _service.LogInfoAsync("Downloading and processing patch file completed").ConfigureAwait(false);
                 await _service.LogInfoAsync("Patching local database completed").ConfigureAwait(false);
@@ -422,12 +424,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return database;
             }
 
-            private async Task<TimeSpan> ProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
+            private async Task<TimeSpan> ProcessPatchXElementAsync(
+                XElement patchElement, byte[] databaseBytes, CancellationToken cancellationToken)
             {
                 try
                 {
                     await _service.LogInfoAsync("Processing patch element").ConfigureAwait(false);
-                    var delayUntilUpdate = await TryProcessPatchXElementAsync(patchElement, databaseBytes).ConfigureAwait(false);
+                    var delayUntilUpdate = await TryProcessPatchXElementAsync(patchElement, databaseBytes, cancellationToken).ConfigureAwait(false);
                     if (delayUntilUpdate != null)
                     {
                         await _service.LogInfoAsync($"Processing patch element completed. Update again in {delayUntilUpdate.Value}").ConfigureAwait(false);
@@ -442,10 +445,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Fall through and download full database.
                 }
 
-                return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<TimeSpan?> TryProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
+            private async Task<TimeSpan?> TryProcessPatchXElementAsync(
+                XElement patchElement, byte[] databaseBytes, CancellationToken cancellationToken)
             {
                 ParsePatchElement(patchElement, out var upToDate, out var tooOld, out var patchBytes);
 
@@ -471,7 +475,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                 await CreateAndSetInMemoryDatabaseAsync(finalBytes).ConfigureAwait(false);
 
-                await WriteDatabaseFile(finalBytes).ConfigureAwait(false);
+                await WriteDatabaseFile(finalBytes, cancellationToken).ConfigureAwait(false);
 
                 return _service._delayService.UpdateSucceededDelay;
             }
@@ -512,7 +516,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return result;
             }
 
-            private async Task<XElement> DownloadFileAsync(string serverPath)
+            private async Task<XElement> DownloadFileAsync(string serverPath, CancellationToken cancellationToken)
             {
                 await _service.LogInfoAsync("Creating download client: " + serverPath).ConfigureAwait(false);
 
@@ -535,14 +539,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // Poll the client every minute until we get the file.
                 while (true)
                 {
-                    _service._updateCancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
                     if (resultOpt == null)
                     {
                         var delay = _service._delayService.CachePollDelay;
                         await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
-                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -587,12 +591,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return result;
             }
 
-            private async Task RepeatIOAsync(Func<Task> action)
+            private async Task RepeatIOAsync(Func<Task> action, CancellationToken cancellationToken)
             {
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
                 {
-                    _service._updateCancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     try
                     {
@@ -610,7 +614,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                         var delay = _service._delayService.FileWriteDelay;
                         await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}").ConfigureAwait(false);
-                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

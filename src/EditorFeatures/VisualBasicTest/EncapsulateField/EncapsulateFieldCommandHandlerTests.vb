@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
@@ -153,8 +154,11 @@ End Class
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of ITextBufferUndoManagerProvider),
-                                                                 workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)())
+                Dim handler = New EncapsulateFieldCommandHandler(
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of ITextBufferUndoManagerProvider),
+                    workspace.GetService(Of IAsynchronousOperationListenerProvider)())
+
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)
             End Using

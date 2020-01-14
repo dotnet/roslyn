@@ -52,27 +52,31 @@ namespace Microsoft.CodeAnalysis.AddImport
             ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
-            if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-                var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
-                    callbackTarget,
+                var callbackTarget = new RemoteSymbolSearchService(symbolSearchService);
+
+                var result = await client.TryRunRemoteAsync<IList<AddImportFixData>>(
+                    WellKnownServiceHubServices.CodeAnalysisService,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                    document.Project.Solution,
                     new object[]
                     {
-                    document.Id,
-                    span,
-                    diagnosticId,
-                    maxResults,
-                    placeSystemNamespaceFirst,
-                    searchReferenceAssemblies,
-                    packageSources
+                        document.Id,
+                        span,
+                        diagnosticId,
+                        maxResults,
+                        placeSystemNamespaceFirst,
+                        searchReferenceAssemblies,
+                        packageSources
                     },
+                    callbackTarget,
                     cancellationToken).ConfigureAwait(false);
 
-                if (result != null)
+                if (result.HasValue)
                 {
-                    return result.ToImmutableArray();
+                    return result.Value.ToImmutableArray();
                 }
             }
 
@@ -524,26 +528,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData, IPackageInstallerService installerService)
-        {
-            switch (fixData.Kind)
+            => fixData.Kind switch
             {
-                case AddImportFixKind.ProjectSymbol:
-                    return new ProjectSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.MetadataSymbol:
-                    return new MetadataSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.ReferenceAssemblySymbol:
-                    return new AssemblyReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.PackageSymbol:
-                    return !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
-                        ? new ParentInstallPackageCodeAction(document, fixData, installerService)
-                        : null;
-            }
-
-            throw ExceptionUtilities.Unreachable;
-        }
+                AddImportFixKind.ProjectSymbol => new ProjectSymbolReferenceCodeAction(document, fixData),
+                AddImportFixKind.MetadataSymbol => new MetadataSymbolReferenceCodeAction(document, fixData),
+                AddImportFixKind.ReferenceAssemblySymbol => new AssemblyReferenceCodeAction(document, fixData),
+                AddImportFixKind.PackageSymbol => !installerService.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                    ? new ParentInstallPackageCodeAction(document, fixData, installerService)
+                    : default(CodeAction),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
 
         private ITypeSymbol GetAwaitInfo(SemanticModel semanticModel, ISyntaxFactsService syntaxFactsService, SyntaxNode node)
         {

@@ -1,8 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports System.Collections.Generic
 Imports System.Console
+Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
 Imports System.Text
@@ -11,15 +10,14 @@ Imports System.Text
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
 ''' </summary>
 Friend Module Program
+    Const exitWithErrors = 1,
+          exitWithoutErrors = 0
 
     Public Function Main(args As String()) As Integer
-
-        Const exitWithErrors = 1,
-              exitWithoutErrors = 0
-
         Try
             Dim outputKind As String = Nothing
             Dim paths As New List(Of String)()
+            Dim grammar = False
 
             For Each arg In args
                 Dim c = arg.ToLowerInvariant()
@@ -32,6 +30,8 @@ Friend Module Program
                 ElseIf c = "/?" Then
                     PrintUsage()
                     Return exitWithErrors
+                ElseIf c = "/grammar" Then
+                    grammar = True
                 Else
                     paths.Add(arg)
                 End If
@@ -51,23 +51,45 @@ Friend Module Program
                 Return exitWithErrors
             End If
 
-            Dim definition As ParseTree = Nothing
-            If Not TryReadDefinition(inputFile, definition) Then
-                Return exitWithErrors
-            End If
-
-            Dim checksum = GetChecksum(inputFile)
-            WriteOutput(inputFile, outputFile, definition, outputKind, checksum)
-
-            Return exitWithoutErrors
-
+            Return If(grammar,
+                GenerateGrammar(inputFile, outputFile),
+                GenerateSource(outputKind, inputFile, outputFile))
         Catch ex As Exception
             Console.Error.WriteLine("FATAL ERROR: {0}", ex.Message)
             Console.Error.WriteLine(ex.StackTrace)
 
             Return exitWithErrors
         End Try
+    End Function
 
+    Private Function GenerateGrammar(inputFile As String, outputFile As String) As Integer
+        Dim definition As ParseTree = Nothing
+        If Not TryReadDefinition(inputFile, definition) Then
+            Return exitWithErrors
+        End If
+
+        Dim outputPath = outputFile.Trim(""""c)
+        Dim prefix = Path.GetFileName(inputFile)
+        Dim mainFile = Path.Combine(outputPath, $"VisualBasic.Grammar.g4")
+        Dim text = New GrammarGenerator(definition).Run()
+
+        Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
+            output.Write(text)
+        End Using
+
+        Return exitWithoutErrors
+    End Function
+
+    Private Function GenerateSource(outputKind As String, inputFile As String, outputFile As String) As Integer
+        Dim definition As ParseTree = Nothing
+        If Not TryReadDefinition(inputFile, definition) Then
+            Return exitWithErrors
+        End If
+
+        Dim checksum = GetChecksum(inputFile)
+        WriteOutput(inputFile, outputFile, definition, outputKind, checksum)
+
+        Return exitWithoutErrors
     End Function
 
     Private Function GetChecksum(filePath As String) As String
@@ -79,10 +101,11 @@ Friend Module Program
     End Function
 
     Private Sub PrintUsage()
-        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
+        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test] [/grammar]")
         WriteLine("  /source        Generates syntax model source code.")
         WriteLine("  /test          Generates syntax model unit tests.")
         WriteLine("  /gettext       Generates GetText method only.")
+        WriteLine("  /grammar       Generates grammar file only.")
     End Sub
 
     Public Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean

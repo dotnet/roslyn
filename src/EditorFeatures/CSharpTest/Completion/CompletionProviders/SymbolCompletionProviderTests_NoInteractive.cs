@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionItemFilter> matchingFilters)
+            string inlineDescription, List<CompletionFilter> matchingFilters)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
@@ -341,25 +342,23 @@ class C
         {
             Console.$$";//, @"Beep"
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
 
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-                var service = CompletionService.GetService(document);
-                var completions = await service.GetCompletionsAsync(document, position);
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var service = CompletionService.GetService(document);
+            var completions = await service.GetCompletionsAsync(document, position);
 
-                var item = completions.Items.First(i => i.DisplayText == "Beep");
-                var edit = testDocument.GetTextBuffer().CreateEdit();
-                edit.Delete(Span.FromBounds(position - 10, position));
-                edit.Apply();
+            var item = completions.Items.First(i => i.DisplayText == "Beep");
+            var edit = testDocument.GetTextBuffer().CreateEdit();
+            edit.Delete(Span.FromBounds(position - 10, position));
+            edit.Apply();
 
-                var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                Assert.NotEqual(currentDocument, document);
-                var description = service.GetDescriptionAsync(document, item);
-            }
+            Assert.NotEqual(currentDocument, document);
+            var description = service.GetDescriptionAsync(document, item);
         }
     }
 }

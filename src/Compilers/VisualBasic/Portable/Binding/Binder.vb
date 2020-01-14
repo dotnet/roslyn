@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _sourceModule As SourceModuleSymbol
         Private ReadOnly _isEarlyAttributeBinder As Boolean
         Private ReadOnly _ignoreBaseClassesInLookup As Boolean
-        Private ReadOnly _basesBeingResolved As ConsList(Of Symbol)
+        Private ReadOnly _basesBeingResolved As BasesBeingResolved
 
         Protected Sub New(containingBinder As Binder)
             m_containingBinder = containingBinder
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Protected Sub New(containingBinder As Binder, basesBeingResolved As ConsList(Of Symbol))
+        Protected Sub New(containingBinder As Binder, basesBeingResolved As BasesBeingResolved)
             Me.New(containingBinder)
             _basesBeingResolved = basesBeingResolved
         End Sub
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function CheckAccessibility(sym As Symbol,
                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                                        Optional accessThroughType As TypeSymbol = Nothing,
-                                                       Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
+                                                       Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             Return m_containingBinder.CheckAccessibility(sym, useSiteDiagnostics, accessThroughType, basesBeingResolved)
         End Function
 
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsAccessible(sym As Symbol,
                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
                                      Optional accessThroughType As TypeSymbol = Nothing,
-                                     Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As Boolean
+                                     Optional basesBeingResolved As BasesBeingResolved = Nothing) As Boolean
             Return CheckAccessibility(sym, useSiteDiagnostics, accessThroughType, basesBeingResolved) = AccessCheckResult.Accessible
         End Function
 
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' again to prevent/detect circular references.
         ''' </summary>
         ''' <returns>Nothing if no bases being resolved, otherwise the set of bases being resolved.</returns>
-        Public Function BasesBeingResolved() As ConsList(Of Symbol)
+        Public Function BasesBeingResolved() As BasesBeingResolved
             Return _basesBeingResolved
         End Function
 
@@ -895,10 +895,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Issue an error or warning for a symbol if it is Obsolete. If there is not enough
         ''' information to report diagnostics, then store the symbols so that diagnostics
         ''' can be reported at a later stage.
+        ''' Also, check runtime support for the symbol.
         ''' </summary>
-        Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As SyntaxNode)
+        Friend Sub ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics As DiagnosticBag, symbol As Symbol, node As SyntaxNode)
             If Not Me.SuppressObsoleteDiagnostics Then
                 ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
+            End If
+
+            If symbol.Kind <> SymbolKind.Property AndAlso
+               Compilation.SourceModule IsNot symbol.ContainingModule AndAlso
+               (symbol.ContainingType?.IsInterface).GetValueOrDefault() AndAlso
+               Not Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation Then
+
+                If Not symbol.IsShared AndAlso
+                   Not TypeOf symbol Is TypeSymbol AndAlso
+                   Not symbol.RequiresImplementation() Then
+                    ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation)
+                Else
+                    Select Case symbol.DeclaredAccessibility
+                        Case Accessibility.Protected,
+                             Accessibility.ProtectedOrInternal,
+                             Accessibility.ProtectedAndInternal
+
+                            ReportDiagnostic(diagnostics, node, ERRID.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember)
+                    End Select
+                End If
             End If
         End Sub
 

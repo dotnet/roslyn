@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         // For comparison, `x as T???y` is treated as `x as T ?? ? y`
         // rather than `x as T? ?? y`.
         [Fact]
-        public void Equals()
+        public void TestEquals()
         {
             UsingNode(
                 "o = o!==null",
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             {
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "o");
                 }
                 N(SyntaxKind.EqualsToken);
                 N(SyntaxKind.SimpleAssignmentExpression);
@@ -197,21 +197,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                     {
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "o");
                         }
                         N(SyntaxKind.ExclamationEqualsToken);
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken);
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.NullLiteralExpression);
-                        {
-                            N(SyntaxKind.NullKeyword);
-                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.NullLiteralExpression);
+                    {
+                        N(SyntaxKind.NullKeyword);
                     }
                 }
             }
+            EOF();
         }
 
         [Fact]

@@ -301,37 +301,38 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
         {
             symbol = symbol.OriginalDefinition;
-            var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             symbol = foundSymbol ?? symbol;
 
-            var callReferences = await FindCallReferencesAsync(solution, symbol, documents, cancellationToken).ConfigureAwait(false);
+            var references = await FindCallReferencesAsync(solution, symbol, documents, cancellationToken).ConfigureAwait(false);
 
-            var directReferences = callReferences.Where(
+            var directReference = references.Where(
                 r => SymbolEquivalenceComparer.Instance.Equals(symbol, r.Definition)).FirstOrDefault();
 
-            var indirectReferences = callReferences.WhereAsArray(r => r != directReferences);
+            var indirectReferences = references.WhereAsArray(r => r != directReference);
 
-            List<SymbolCallerInfo> results = null;
+            var results = new List<SymbolCallerInfo>();
 
-            if (directReferences != null)
+            if (directReference != null)
             {
-                foreach (var kvp in await directReferences.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    results ??= new List<SymbolCallerInfo>();
-                    results.Add(new SymbolCallerInfo(kvp.Key, symbol, kvp.Value, isDirect: true));
-                }
+                await AddReferencingSymbols(directReference, isDirect: true).ConfigureAwait(false);
             }
 
+            foreach (var indirectReference in indirectReferences)
             {
-                var indirectLocations = indirectReferences.SelectMany(r => r.Locations);
-                foreach (var kvp in await indirectLocations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    results ??= new List<SymbolCallerInfo>();
-                    results.Add(new SymbolCallerInfo(kvp.Key, symbol, kvp.Value, isDirect: false));
-                }
+                await AddReferencingSymbols(indirectReference, isDirect: false).ConfigureAwait(false);
             }
 
-            return results ?? SpecializedCollections.EmptyEnumerable<SymbolCallerInfo>();
+            return results;
+
+            async Task AddReferencingSymbols(ReferencedSymbol reference, bool isDirect)
+            {
+                var result = await reference.Locations.FindReferencingSymbolsAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var (callingSymbol, locations) in result)
+                {
+                    results.Add(new SymbolCallerInfo(callingSymbol, reference.Definition, locations, isDirect));
+                }
+            }
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindCallReferencesAsync(
@@ -416,11 +417,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
 
-            if (searchSymbol.Kind == SymbolKind.NamedType && symbolToMatch.IsConstructor())
-            {
-                return OriginalSymbolsMatch(searchSymbol, symbolToMatch.ContainingType, solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
-            }
-
             return false;
         }
 
@@ -459,26 +455,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //          forwarded from reference assembly A (version v2) to assembly B in compilation C2.
             //      (b) Otherwise, if no such named type pairs were encountered, symbols ARE equivalent.
 
-            using (var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject())
+            using var equivalentTypesWithDifferingAssemblies = SharedPools.Default<Dictionary<INamedTypeSymbol, INamedTypeSymbol>>().GetPooledObject();
+
+            // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
+            if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
             {
-                // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
-                if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies.Object))
-                {
-                    // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
-                    return false;
-                }
-
-                // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
-                if (equivalentTypesWithDifferingAssemblies.Object.Count > 0)
-                {
-                    // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
-                    return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
-                        solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
-                }
-
-                // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
-                return true;
+                // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
+                return false;
             }
+
+            // 3) If the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent if containing assemblies are NOT ignored.
+            if (equivalentTypesWithDifferingAssemblies.Object.Count > 0)
+            {
+                // Step 3a) Ensure that all pairs of named types in equivalentTypesWithDifferingAssemblies are indeed equivalent types.
+                return VerifyForwardedTypes(equivalentTypesWithDifferingAssemblies.Object, searchSymbol, symbolToMatch,
+                    solution, searchSymbolCompilation, symbolToMatchCompilation, cancellationToken);
+            }
+
+            // 3b) If no such named type pairs were encountered, symbols ARE equivalent.
+            return true;
         }
 
         private static bool NamespaceSymbolsMatch(

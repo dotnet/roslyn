@@ -29,8 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             Solution solution,
             INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
-            ISet<TypeKind> typeKinds,
-            CancellationToken cancellationToken)
+            ISet<TypeKind> typeKinds)
         {
             if (typeToGenerateIn == null)
             {

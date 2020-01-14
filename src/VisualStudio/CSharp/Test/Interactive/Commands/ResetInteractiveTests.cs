@@ -100,7 +100,7 @@ namespace ResetInteractiveTestsDocument
 
             if (buildSucceeds)
             {
-                Assert.Equal(true, testHost.Evaluator.ResetOptions.Is64Bit);
+                Assert.True(testHost.Evaluator.ResetOptions.Is64Bit);
             }
             else
             {

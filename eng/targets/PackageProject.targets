@@ -1,12 +1,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
   <!-- 
-    Include this targets file in project that build packages but no binaries.
+    Include this targets file in projects that build meta-packages.
   -->
   
   <!-- 
-    Projects in this directory do not produce useful binaries, they are only used to generate packages. 
-    Build target only needs to build their project dependencies (via ResolveProjectReferences).
+    Projects that import this targets file do not produce binaries, they are only used to generate packages. 
+    The Build target only needs to build the project's dependencies (via ResolveProjectReferences).
   -->
   <Target Name="CoreBuild" DependsOnTargets="ResolveProjectReferences">
     <MakeDir Directories="$(IntermediateOutputPath)" ContinueOnError="True"/>
@@ -14,5 +14,8 @@
 
   <PropertyGroup>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+
+    <!-- Remove once https://github.com/NuGet/Home/issues/8583 is fixed -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 </Project>

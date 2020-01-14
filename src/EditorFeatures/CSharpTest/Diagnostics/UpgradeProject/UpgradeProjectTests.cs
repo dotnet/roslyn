@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                var operations = await VerifyActionAndGetOperationsAsync(action, default);
+                var operations = await VerifyActionAndGetOperationsAsync(workspace, action, default);
 
                 var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
                 var oldSolution = appliedChanges.Item1;
@@ -55,13 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
             int index = 0)
         {
             var parameters = new TestParameters(parseOptions: parseOptions, index: index);
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, actionsToInvoke) = await GetCodeActionsAsync(workspace, parameters);
 
-                Assert.Empty(actions);
-                Assert.Null(actionsToInvoke);
-            }
+            Assert.Empty(actions);
+            Assert.Null(actionsToInvoke);
         }
 
         [Fact]

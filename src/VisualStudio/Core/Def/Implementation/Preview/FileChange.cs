@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var diffService = diffSelector.GetTextDifferencingService(
                 left.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType());
 
-            diffService = diffService ?? diffSelector.DefaultTextDifferencingService;
+            diffService ??= diffSelector.DefaultTextDifferencingService;
 
             var diff = ComputeDiffSpans(diffService, left, right, cancellationToken);
             if (diff.Differences.Count == 0)
@@ -184,11 +184,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             foreach (SpanChange child in Children.Changes)
             {
-                using (var edit = _buffer.CreateEdit())
-                {
-                    edit.Replace(child.GetSpan(), child.GetApplicableText());
-                    edit.ApplyAndLogExceptions();
-                }
+                using var edit = _buffer.CreateEdit();
+                edit.Replace(child.GetSpan(), child.GetApplicableText());
+                edit.ApplyAndLogExceptions();
             }
 
             return SourceText.From(_buffer.CurrentSnapshot.GetText(), _encoding);
@@ -248,21 +246,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             {
                 DifferenceType = StringDifferenceTypes.Line,
             });
-        }
-
-        private static bool ContainsBetterDiff(TextDocument left, TextDocument right, IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)
-        {
-            var textDiffCount = diffResult.Differences.Count;
-
-            var leftDocument = left as Document;
-            var rightDocument = right as Document;
-            if (leftDocument == null || rightDocument == null)
-            {
-                return false;
-            }
-
-            var syntaxDiffCount = rightDocument.GetTextChangesAsync(leftDocument, cancellationToken).WaitAndGetResult(cancellationToken).Count();
-            return syntaxDiffCount > textDiffCount;
         }
     }
 }

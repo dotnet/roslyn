@@ -34,9 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var initializedType = typeAndLocation.Item1 as INamedTypeSymbol;
             var initializerLocation = typeAndLocation.Item2;
-            if (initializedType == null)
+            if (!(typeAndLocation.Item1 is INamedTypeSymbol initializedType))
             {
                 return;
             }
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
 
             // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
-            IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType.WithoutNullability());
+            IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
             members = members.Where(m => IsInitializable(m, enclosing) &&
                                          m.CanBeReferencedByName &&
                                          IsLegalFieldOrProperty(m) &&

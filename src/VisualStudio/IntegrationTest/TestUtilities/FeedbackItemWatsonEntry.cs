@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     internal class FeedbackItemWatsonEntry
     {
         /// <summary>
-        /// The time the event happend (UTC)
+        /// The time the event happened (UTC)
         /// </summary>
         [DataMember(Name = "eventTime")]
         public DateTime EventTime { get; }

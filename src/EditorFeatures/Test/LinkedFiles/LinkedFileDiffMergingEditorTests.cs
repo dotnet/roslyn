@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             await TestActionOnLinkedFiles(
                 workspace,
                 expectedText: expectedCode,
-                action: codeIssueOrRefactoring.Actions[0],
+                action: codeIssueOrRefactoring.CodeActions[0].action,
                 expectedPreviewContents: expectedCode);
         }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
                     .WithDocumentText(linkedDocument.Id, (await linkedDocument.GetTextAsync()).Replace(0, 6, "private"));
 
 #pragma warning disable RS0005
-                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)));
+                context.RegisterRefactoring(CodeAction.Create("Description", (ct) => Task.FromResult(newSolution)), context.Span);
 #pragma warning restore RS0005
             }
         }

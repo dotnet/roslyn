@@ -29,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim codeGenerationSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(
                 CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    methodToReplicate,
-                    parameters:=methodToReplicate.Parameters.WithAttributesToBeCopied(destinationType)))
+                    methodToReplicate.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType)))
 
             Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
                                                                  destinationType,

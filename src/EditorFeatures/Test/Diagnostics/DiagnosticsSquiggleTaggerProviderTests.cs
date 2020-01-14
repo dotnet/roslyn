@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestWithMockDiagnosticService_TaggerProviderCreatedBeforeInitialDiagnosticsReported()
         {
             // This test produces diagnostics from a mock service so that we are disconnected from
-            // all teh asynchrony of hte actual async analyzer engine.  If this fails, then the 
+            // all the asynchrony of the actual async analyzer engine.  If this fails, then the 
             // issue is almost certainly in the DiagnosticsSquiggleTaggerProvider code.  If this
             // succeed, but other squiggle tests fail, then it is likely an issue with the 
             // diagnostics engine not actually reporting all diagnostics properly.
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             // Create the tagger before the first diagnostic event has been fired.
             var tagger = provider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
 
-            // Now product hte first diagnostic and fire the events.
+            // Now product the first diagnostic and fire the events.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();
             var span = TextSpan.FromBounds(0, 5);
             diagnosticService.CreateDiagnosticAndFireEvents(Location.Create(tree, span));
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public async Task TestWithMockDiagnosticService_TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
             // This test produces diagnostics from a mock service so that we are disconnected from
-            // all teh asynchrony of hte actual async analyzer engine.  If this fails, then the 
+            // all the asynchrony of the actual async analyzer engine.  If this fails, then the 
             // issue is almost certainly in the DiagnosticsSquiggleTaggerProvider code.  If this
             // succeed, but other squiggle tests fail, then it is likely an issue with the 
             // diagnostics engine not actually reporting all diagnostics properly.
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                 diagnosticService, workspace.GetService<IForegroundNotificationService>(), listenerProvider);
 
-            // Create and fire the diagnostic events before hte tagger is even made.
+            // Create and fire the diagnostic events before the tagger is even made.
             var tree = await workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxTreeAsync();
             var span = TextSpan.FromBounds(0, 5);
             diagnosticService.CreateDiagnosticAndFireEvents(Location.Create(tree, span));
@@ -222,9 +222,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             internal void CreateDiagnosticAndFireEvents(Location location)
             {
                 var document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
-                _diagnostic = DiagnosticData.Create(document,
-                    Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
-                    location: location));
+                _diagnostic = DiagnosticData.Create(Diagnostic.Create(DiagnosticId, "MockCategory", "MockMessage", DiagnosticSeverity.Error, DiagnosticSeverity.Error, isEnabledByDefault: true, warningLevel: 0,
+                    location: location),
+                    document);
 
                 DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     this, _workspace, _workspace.CurrentSolution,

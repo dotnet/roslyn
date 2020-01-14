@@ -27,11 +27,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             string localNameOpt,
-            SyntaxAnnotation statementAnnotation,
-            CancellationToken cancellationToken)
+            SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, parseOptions, containingType, symbols, localNameOpt, cancellationToken);
+                factory, compilation, parseOptions, containingType, symbols, localNameOpt);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -48,27 +47,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default,
-                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
+                parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object).WithNullableAnnotation(NullableAnnotation.Annotated), ObjName)),
                 statements: statements);
         }
 
-        public static IMethodSymbol CreateIEqutableEqualsMethod(
+        public static IMethodSymbol CreateIEquatableEqualsMethod(
             this SyntaxGenerator factory,
-            Compilation compilation,
+            SemanticModel semanticModel,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
-            SyntaxAnnotation statementAnnotation,
-            CancellationToken cancellationToken)
+            INamedTypeSymbol constructedEquatableType,
+            SyntaxAnnotation statementAnnotation)
         {
             var statements = CreateIEquatableEqualsMethodStatements(
-                factory, compilation, containingType, symbols, cancellationToken);
+                factory, semanticModel.Compilation, containingType, symbols);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
-            var equatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructed = equatableType.Construct(containingType);
-            var methodSymbol = constructed.GetMembers(EqualsName)
-                                          .OfType<IMethodSymbol>()
-                                          .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+            var methodSymbol = constructedEquatableType
+                .GetMembers(EqualsName)
+                .OfType<IMethodSymbol>()
+                .Single(m => containingType.Equals(m.Parameters.FirstOrDefault()?.Type));
+
+            var originalParameter = methodSymbol.Parameters.First();
+
+            // Replace `[AllowNull] Foo` with `Foo` or `Foo?` (no longer needed after https://github.com/dotnet/roslyn/issues/39256?)
+            var parameters = ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(
+                originalParameter,
+                type: constructedEquatableType.GetTypeArguments()[0],
+                attributes: ImmutableArray<AttributeData>.Empty));
 
             if (factory.RequiresExplicitImplementationForInterfaceMembers)
             {
@@ -76,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
                     explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
+                    parameters: parameters,
                     statements: statements);
             }
             else
@@ -83,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
+                    parameters: parameters,
                     statements: statements);
             }
         }
@@ -93,8 +101,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
-            string localNameOpt,
-            CancellationToken cancellationToken)
+            string localNameOpt)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -139,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      var myType = (MyType)obj;
 
-                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.CastExpression(containingType, objNameExpression));
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(
+                    containingType, localName, factory.CastExpression(containingType, objNameExpression));
 
                 statements.Add(ifStatement);
                 statements.Add(localDeclaration);
@@ -150,7 +158,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      var myType = obj as MyType;
 
-                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.TryCastExpression(objNameExpression, containingType));
+                var localDeclaration = factory.SimpleLocalDeclarationStatement(
+                    containingType, localName, factory.TryCastExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
 
@@ -161,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
             }
 
-            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType, cancellationToken))
+            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType))
             {
                 // If we're overriding something that also provided an overridden 'Equals',
                 // then ensure the base type thinks it is equals as well.
@@ -208,12 +217,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 var memberType = member.GetSymbolType();
 
-                if (IsPrimitiveValueType(memberType))
+                if (ShouldUseEqualityOperator(memberType))
                 {
-                    // If we have one of the well known primitive types, then just use '==' to compare
-                    // the values.
-                    //
-                    //      this.a == other.a
                     expressions.Add(factory.ValueEqualsExpression(thisSymbol, otherSymbol));
                     continue;
                 }
@@ -221,8 +226,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var valueIEquatable = memberType?.IsValueType == true && ImplementsIEquatable(memberType, iequatableType);
                 if (valueIEquatable || memberType?.IsTupleType == true)
                 {
-                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then 
-                    // just call directly into .Equals. This keeps the code simple and avoids an 
+                    // If it's a value type and implements IEquatable<T>, Or if it's a tuple, then
+                    // just call directly into .Equals. This keeps the code simple and avoids an
                     // unnecessary null check.
                     //
                     //      this.a.Equals(other.a)
@@ -249,8 +254,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGenerator factory,
             Compilation compilation,
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> members,
-            CancellationToken cancellationToken)
+            ImmutableArray<ISymbol> members)
         {
             var statements = ArrayBuilder<SyntaxNode>.GetInstance();
 
@@ -266,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      other != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, factory.NullLiteralExpression()));
-                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
+                if (HasExistingBaseEqualsMethod(containingType))
                 {
                     // If we're overriding something that also provided an overridden 'Equals',
                     // then ensure the base type thinks it is equals as well.
@@ -317,18 +321,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (iequatableType != null)
             {
-                // It's correct to throw out nullability here -- if you have a field of type Foo? and it implements IEquatable, it's still implementing IEquatable<Foo>.
-                var constructed = iequatableType.Construct(memberType.WithoutNullability());
-                return memberType.AllInterfaces.Contains(constructed);
+                // We compare ignoring nested nullability here, as it's possible the underlying object could have implemented IEquatable<Type>
+                // or IEquatable<Type?>. From the perspective of this, either is allowable.
+                var constructed = iequatableType.Construct(memberType);
+                return memberType.AllInterfaces.Contains(constructed, equalityComparer: SymbolEqualityComparer.Default);
             }
 
             return false;
         }
 
-        private static bool IsPrimitiveValueType(ITypeSymbol typeSymbol)
+        private static bool ShouldUseEqualityOperator(ITypeSymbol typeSymbol)
         {
             if (typeSymbol != null)
             {
+                if (typeSymbol.IsNullable(out var underlyingType))
+                {
+                    typeSymbol = underlyingType;
+                }
+
                 if (typeSymbol.IsEnumType())
                 {
                     return true;
@@ -350,7 +360,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     case SpecialType.System_Single:
                     case SpecialType.System_Double:
                     case SpecialType.System_String:
-                    case SpecialType.System_Nullable_T:
                     case SpecialType.System_DateTime:
                         return true;
                 }
@@ -372,16 +381,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static ITypeSymbol GetType(Compilation compilation, ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return field.Type;
-                case IPropertySymbol property: return property.Type;
-                default: return compilation.GetSpecialType(SpecialType.System_Object);
-            }
-        }
+                IFieldSymbol field => field.Type,
+                IPropertySymbol property => property.Type,
+                _ => compilation.GetSpecialType(SpecialType.System_Object),
+            };
 
-        private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType, CancellationToken cancellationToken)
+        private static bool HasExistingBaseEqualsMethod(INamedTypeSymbol containingType)
         {
             // Check if any of our base types override Equals.  If so, first check with them.
             var existingMethods =

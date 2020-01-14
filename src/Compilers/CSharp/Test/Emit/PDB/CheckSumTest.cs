@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 TestOptions.DebugDll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void ChecksumAlgorithms()
         {
             var source1 = "public class C1 { public C1() { } }";
@@ -188,10 +188,10 @@ class C1
                 Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus.cs"));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestPartialClassFieldInitializers()
         {
-            var text1 = @"
+            var text1 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int x = 1;
@@ -201,9 +201,9 @@ public partial class C
 
 #pragma checksum ""USED1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
 
-";
+");
 
-            var text2 = @"
+            var text2 = WithWindowsLineBreaks(@"
 public partial class C
 {
 #pragma checksum ""USED2.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
@@ -223,7 +223,7 @@ int y = 1;
 
     }
 }
-";
+");
             var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
             compilation.VerifyPdb("C.Main", @"
 <symbols>
@@ -232,6 +232,7 @@ int y = 1;
     <file id=""2"" name=""USED2.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
     <file id=""3"" name=""b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""C0-51-F0-6F-D3-ED-44-A2-11-4D-03-70-89-20-A6-05-11-62-14-BE"" />
     <file id=""4"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""F0-C4-23-63-A5-89-B9-29-AF-94-07-85-2F-3A-40-D3-70-14-8F-9B"" />
+    <file id=""5"" name=""UNUSED.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D9"" />
   </files>
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -286,7 +287,7 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NoResolver()
         {
             var comp = CSharpCompilation.Create(
@@ -305,6 +306,7 @@ class C { void M() { } }
 <symbols>
   <files>
     <file id=""1"" name=""a\..\a.cs"" language=""C#"" checksumAlgorithm=""406ea660-64cf-4c82-b6f0-42d48172a799"" checksum=""AB-00-7F-1D-23-D5"" />
+    <file id=""2"" name=""C:\a\..\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""36-39-3C-83-56-97-F2-F0-60-95-A4-A0-32-C6-32-C7-B2-4B-16-92"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -323,7 +325,7 @@ class C { void M() { } }
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_LineDirective()
         {
             var source = @"
@@ -380,7 +382,7 @@ class C
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_ChecksumDirective()
         {
             var source = @"
@@ -445,7 +447,7 @@ class C
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_NoBaseDirectory()
         {
             var source = @"

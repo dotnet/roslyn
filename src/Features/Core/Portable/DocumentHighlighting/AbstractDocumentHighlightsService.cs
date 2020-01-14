@@ -25,37 +25,32 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var (succeeded, highlights) = await GetDocumentHighlightsInRemoteProcessAsync(
-                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+            var solution = document.Project.Solution;
 
-            if (succeeded)
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                return highlights;
+                var result = await client.TryRunRemoteAsync<IList<SerializableDocumentHighlights>>(
+                    WellKnownServiceHubServices.CodeAnalysisService,
+                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
+                    solution,
+                    new object[]
+                    {
+                        document.Id,
+                        position,
+                        documentsToSearch.Select(d => d.Id).ToArray()
+                    },
+                    callbackTarget: null,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (result.HasValue)
+                {
+                    return result.Value.SelectAsArray(h => h.Rehydrate(solution));
+                }
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
                 document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
-        {
-            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableDocumentHighlights>>(
-                nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
-                new object[]
-                {
-                    document.Id,
-                    position,
-                    documentsToSearch.Select(d => d.Id).ToArray()
-                },
-                cancellationToken).ConfigureAwait(false);
-
-            if (result == null)
-            {
-                return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
-            }
-
-            return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
@@ -314,11 +309,9 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return !((INamedTypeSymbol)symbol).IsScriptClass;
 
                 case SymbolKind.Parameter:
-
                     // If it's an indexer parameter, we will have also cascaded to the accessor
                     // one that actually receives the references
-                    var containingProperty = symbol.ContainingSymbol as IPropertySymbol;
-                    if (containingProperty != null && containingProperty.IsIndexer)
+                    if (symbol.ContainingSymbol is IPropertySymbol containingProperty && containingProperty.IsIndexer)
                     {
                         return false;
                     }

@@ -595,13 +595,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.PointerToVoid:
 
                 // Added to spec in Roslyn timeframe.
-                case ConversionKind.DefaultOrNullLiteral: // updated to include "default" in C# 7.1
+                case ConversionKind.NullLiteral:
                 case ConversionKind.NullToPointer:
 
                 // Added for C# 7.
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitThrow:
+
+                // Added for C# 7.1
+                case ConversionKind.DefaultLiteral:
                     return true;
 
                 default:

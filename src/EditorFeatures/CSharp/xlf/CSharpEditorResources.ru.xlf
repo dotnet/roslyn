@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Complete_statement_on_semicolon">
         <source>Complete statement on ;</source>
-        <target state="new">Complete statement on ;</target>
+        <target state="translated">Завершить оператор на ;</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
         <source>Fix interpolated verbatim string</source>
-        <target state="translated">Исправить интерполированную строку verbatim</target>
+        <target state="translated">Исправить интерполированную буквальную строку</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">

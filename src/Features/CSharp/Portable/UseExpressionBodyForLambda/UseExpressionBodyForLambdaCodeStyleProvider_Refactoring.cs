@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -91,23 +92,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private async Task<ImmutableArray<CodeAction>> ComputeRefactoringsAsync(
             Document document, TextSpan span, ExpressionBodyPreference option, CancellationToken cancellationToken)
         {
-            if (span.Length > 0)
-            {
-                return ImmutableArray<CodeAction>.Empty;
-            }
-
-            var position = span.Start;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var lambdaNode = root.FindToken(position).Parent.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+            var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
             if (lambdaNode == null)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
 
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
             if (CanOfferUseExpressionBody(option, lambdaNode))
             {
                 result.Add(new MyCodeAction(
@@ -125,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                         document, root, lambdaNode, c)));
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<Document> UpdateDocumentAsync(

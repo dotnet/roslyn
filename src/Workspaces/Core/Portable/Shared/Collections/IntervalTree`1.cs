@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private static readonly TestInterval s_containsTest = Contains;
         private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
 
-        private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool =
-            new ObjectPool<Stack<(Node node, bool firstTime)>>(() => new Stack<(Node node, bool firstTime)>());
+        private static readonly ObjectPool<Stack<(Node node, bool firstTime)>> s_stackPool
+            = SharedPools.Default<Stack<(Node node, bool firstTime)>>();
 
         public IntervalTree()
         {
@@ -297,11 +297,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             candidates.Push((root, firstTime: true));
             while (candidates.Count != 0)
             {
-                var currentTuple = candidates.Pop();
-                var currentNode = currentTuple.node;
+                var (currentNode, firstTime) = candidates.Pop();
                 if (currentNode != null)
                 {
-                    if (currentTuple.firstTime)
+                    if (firstTime)
                     {
                         // First time seeing this node.  Mark that we've been seen and recurse
                         // down the left side.  The next time we see this node we'll yield it

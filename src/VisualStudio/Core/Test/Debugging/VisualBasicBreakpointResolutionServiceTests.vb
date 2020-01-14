@@ -3,12 +3,12 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Debugging
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
+Imports Microsoft.CodeAnalysis.VisualBasic.Debugging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 

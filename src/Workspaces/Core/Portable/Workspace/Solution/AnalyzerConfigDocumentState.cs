@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
-                this.sourceTextOpt,
+                this.sourceText,
                 newTextSource);
         }
     }

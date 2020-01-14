@@ -51,7 +51,7 @@ class A {
 
             var f = a.GetMember<MethodSymbol>("F");
             Assert.False(f.HasComplete(CompletionPart.StartMethodChecks));
-            Assert.Equal(false, f.ReturnsVoid);
+            Assert.False(f.ReturnsVoid);
             Assert.True(f.HasComplete(CompletionPart.StartMethodChecks));
             Assert.True(f.HasComplete(CompletionPart.FinishMethodChecks));
         }

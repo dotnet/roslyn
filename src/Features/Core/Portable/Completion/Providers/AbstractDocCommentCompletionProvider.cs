@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
                 { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
                 { IncludeElementName,                ($"<{IncludeElementName}",                $" {FileAttributeName}=\'", $"\' {PathAttributeName}=\'[@name=\"\"]\'", "/>") },
+                { InheritdocElementName,             ($"<{InheritdocElementName}",             $"",                         "",                                        "/>") },
                 { PermissionElementName,             ($"<{PermissionElementName}",             $" {CrefAttributeName}=\"",  "\"",                                      null) },
                 { SeeElementName,                    ($"<{SeeElementName}",                    $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
                 { SeeAlsoElementName,                ($"<{SeeAlsoElementName}",                $" {CrefAttributeName}=\"",  "\"",                                      "/>") },
@@ -53,7 +54,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { TypeParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { TypeParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { IncludeElementName, FileAttributeName, $"{FileAttributeName}=\"", "\"" },
-                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" }
+                new[] { IncludeElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" },
+                new[] { InheritdocElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { InheritdocElementName, PathAttributeName, $"{PathAttributeName}=\"", "\"" },
             };
 
         private static readonly ImmutableArray<string> s_listTypeValues = ImmutableArray.Create("bullet", "number", "table");
@@ -107,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems()
         {
-            return new[] { GetCDataItem(), GetCommentItem(), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
+            return new[] { GetCDataItem(), GetCommentItem(), GetItem(InheritdocElementName), GetItem(SeeElementName), GetItem(SeeAlsoElementName) };
         }
 
         private CompletionItem GetCommentItem()

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                 }
              */
             return new Tuple<DiagnosticAnalyzer, IConfigurationFixProvider>(
-                        new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider(performExperimentCheck: false));
+                        new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
         }
 
         public class UnusedLocalVariableConfigurationTests : EnumCodeStyleOptionConfigurationTests

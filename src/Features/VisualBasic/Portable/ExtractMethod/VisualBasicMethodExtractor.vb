@@ -15,10 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Inherits MethodExtractor
 
         Public Sub New(result As VisualBasicSelectionResult)
-            MyBase.New(result)
+            MyBase.New(result, localFunction:=False)
         End Sub
 
-        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
+        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As OptionSet, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
 
-                If Not Equals(currentType, vbType) Then
+                If Not SymbolEqualityComparer.Default.Equals(currentType, typeParameter) Then
                     Return New OperationStatus(OperationStatusFlag.BestEffort,
                         String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
                             typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
@@ -150,5 +150,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End Function
         End Class
+
+        Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(document As Document,
+                                                                                      methodName As SyntaxToken,
+                                                                                      methodDefinition As SyntaxNode,
+                                                                                      cancellationToken As CancellationToken) As Task(Of (document As Document, methodName As SyntaxToken, methodDefinition As SyntaxNode))
+            ' VB doesn't need to do any correction, so we just return the values untouched
+            Return Task.FromResult((document, methodName, methodDefinition))
+        End Function
     End Class
 End Namespace

@@ -57,12 +57,6 @@ namespace CSharpSyntaxGenerator
             _writer.Write(msg);
         }
 
-        protected void Write(string msg, params object[] args)
-        {
-            WriteIndentIfNeeded();
-            _writer.Write(msg, args);
-        }
-
         protected void WriteLine()
         {
             WriteLine("");
@@ -70,15 +64,12 @@ namespace CSharpSyntaxGenerator
 
         protected void WriteLine(string msg)
         {
-            WriteIndentIfNeeded();
-            _writer.WriteLine(msg);
-            _needIndent = true; //need an indent after each line break
-        }
+            if (msg != "")
+            {
+                WriteIndentIfNeeded();
+            }
 
-        protected void WriteLine(string msg, params object[] args)
-        {
-            WriteIndentIfNeeded();
-            _writer.WriteLine(msg, args);
+            _writer.WriteLine(msg);
             _needIndent = true; //need an indent after each line break
         }
 
@@ -91,16 +82,33 @@ namespace CSharpSyntaxGenerator
             }
         }
 
+        /// <summary>
+        /// Joins all the values together in <paramref name="values"/> into one string with each
+        /// value separated by a comma.  Values can be either <see cref="string"/>s or <see
+        /// cref="IEnumerable{T}"/>s of <see cref="string"/>.  All of these are flattened into a
+        /// single sequence that is joined. Empty strings are ignored.
+        /// </summary>
+        protected string CommaJoin(params object[] values)
+            => Join(", ", values);
+
+        protected string Join(string separator, params object[] values)
+            => string.Join(separator, values.SelectMany(v => (v switch
+            {
+                string s => new[] { s },
+                IEnumerable<string> ss => ss,
+                _ => throw new InvalidOperationException("Join must be passed strings or collections of strings")
+            }).Where(s => s != "")));
+
         protected void OpenBlock()
         {
             WriteLine("{");
             Indent();
         }
 
-        protected void CloseBlock()
+        protected void CloseBlock(string extra = "")
         {
             Unindent();
-            WriteLine("}");
+            WriteLine("}" + extra);
         }
 
         #endregion Output helpers
@@ -119,14 +127,32 @@ namespace CSharpSyntaxGenerator
 
         protected static string GetFieldType(Field field, bool green)
         {
-            if (IsAnyList(field.Type))
-            {
-                return green
-                    ? "GreenNode"
-                    : "SyntaxNode";
-            }
+            // Fields in red trees are lazily initialized, with null as the uninitialized value
+            return getNullableAwareType(field.Type, optionalOrLazy: IsOptional(field) || !green, green);
 
-            return field.Type;
+            static string getNullableAwareType(string fieldType, bool optionalOrLazy, bool green)
+            {
+                if (IsAnyList(fieldType))
+                {
+                    if (optionalOrLazy)
+                        return green ? "GreenNode?" : "SyntaxNode?";
+                    else
+                        return green ? "GreenNode?" : "SyntaxNode";
+                }
+
+                switch (fieldType)
+                {
+                    case var _ when !optionalOrLazy:
+                        return fieldType;
+
+                    case "bool":
+                    case "SyntaxToken" when !green:
+                        return fieldType;
+
+                    default:
+                        return fieldType + "?";
+                }
+            }
         }
 
         protected bool IsDerivedOrListOfDerived(string baseType, string derivedType)
@@ -146,7 +172,7 @@ namespace CSharpSyntaxGenerator
             return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
-        protected static bool IsAnyNodeList(string typeName)
+        public static bool IsAnyNodeList(string typeName)
         {
             return IsNodeList(typeName) || IsSeparatedNodeList(typeName);
         }
@@ -200,20 +226,17 @@ namespace CSharpSyntaxGenerator
         protected TreeType GetTreeType(string typeName)
             => _typeMap.TryGetValue(typeName, out var node) ? node : null;
 
+        private static bool IsTrue(string val)
+            => val != null && string.Compare(val, "true", true) == 0;
+
         protected static bool IsOptional(Field f)
-        {
-            return f.Optional != null && string.Compare(f.Optional, "true", true) == 0;
-        }
+            => IsTrue(f.Optional);
 
         protected static bool IsOverride(Field f)
-        {
-            return f.Override != null && string.Compare(f.Override, "true", true) == 0;
-        }
+            => IsTrue(f.Override);
 
         protected static bool IsNew(Field f)
-        {
-            return f.New != null && string.Compare(f.New, "true", true) == 0;
-        }
+            => IsTrue(f.New);
 
         protected static bool HasErrors(Node n)
         {
@@ -238,19 +261,13 @@ namespace CSharpSyntaxGenerator
             return name;
         }
 
-        protected string StripNode(string name)
-        {
-            return (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
-        }
+        protected string StripNode()
+            => (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root[0..^4] : _tree.Root;
 
         protected string StripRoot(string name)
         {
-            var root = StripNode(_tree.Root);
-            if (name.EndsWith(root, StringComparison.Ordinal))
-            {
-                return name.Substring(0, name.Length - root.Length);
-            }
-            return name;
+            var root = StripNode();
+            return name.EndsWith(root, StringComparison.Ordinal) ? name[0..^root.Length] : name;
         }
 
         protected static string StripPost(string name, string post)

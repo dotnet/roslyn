@@ -79,49 +79,52 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;</source>
-        <target state="needs-review-translation">Teşhis için kapalı dosyaları göster;
-Normal ifade renklendirmek; 
-İmleç altında ilişkili bileşenleri vurgulamak; 
-Rapor geçersiz normal ifadeler;
-Tam çözüm analiz izin verin;
-Dış işlem Düzenleyicisi özelliğini çözümlemesi;
-Gezinti decompiled kaynakları için etkinleştir;
-Yönergeleri kullanarak;
-Sistem yönergeleri usings sıralarken birincilik;
-Yönerge gruplarını kullanarak ayırın;
-Usings başvuru derlemelerinin türlerin öneririz;
-Usings NuGet paketlerinde türleri için öneririz;
-Vurgulayarak;
-İmleç altında sembol için başvurular vurgulamak;
-İmleç altında ilgili anahtar kelimeler vurgulayın;
-Anahat oluşturma;
-Dosyaları açtığınızda düzeylendirme modu girin;
-Yordam satır ayırıcıları göster;
-Bildirim düzey yapıları için anahat göster;
-Anahat kodu düzeyi yapıları için göstermek;
-Yorum ve Önişlemci bölgeler için anahat göster;
-Bölgeler ne zaman tanımlarına daraltma daraltma;
-Solan;
-Kullanılmayan usings fade;
-Ulaşılamaz kodu fade;
-Yapı kılavuzları engellemek;
-Bildirim düzey yapıları için kılavuzları göster;
-Kod düzeyi yapıları için kılavuzları göster;
-Editör Yardım;
-XML belgeleri yorum için / / / oluşturmak;
-Ekle * yazarken yeni satırları başlangıcında / * * / Yorumlar;
-İzleme yeniden adlandırma için Önizlemeyi göster;
-Split dize hazır bilgi tarih girin;
-Dizesinde geçersiz yer tutucuları rapor. Biçimi çağrıları;
-Yöntemi ayıklamak;
-Değil ürün kodu koymak veya özel yapı dışarı;
-Arabirim ya da soyut sınıf uygulamak;
-Özelliklerini, olaylarını ve yöntemlerini eklerken, yer onları;
-aynı diğer üyeleri ile;
-vasıl belgili tanımlık son;
-Özellik oluşturma sırasında;
-özellikleri atma tercih;
-otomatik özellikleri tercih;</target>
+        <target state="translated">Kapatılan dosyalara ilişkin tanılamaları göster;
+Normal ifadeyi renklendir; 
+İmlecin altında ilgili bileşenleri vurgula; 
+Geçersiz normal ifadeleri bildir;
+Tam çözüm analizini etkinleştir;
+Dış işlemde düzenleyici özellik analizi gerçekleştir;
+Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
+Using yönergeleri;
+using deyimlerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
+using yönerge gruplarını ayır;
+Başvuru bütünleştirilmiş kodlarında türler için using öner;
+NuGet paketlerinde türler için using öner;
+Vurgulama;
+İmlecin altındaki sembole yönelik başvuruları vurgula;
+İmlecin altında ilgili anahtar sözcükleri vurgula;
+Ana Hat Oluşturma;
+Dosyalar açılırken ana hat oluşturma moduna gir;
+Yordam satır ayırıcılarını göster;
+Bildirim düzeyinde yapılar için ana hattı göster;
+Kod düzeyinde yapılar için ana hattı göster;
+Açıklamalar ve ön işlemci bölgeleri için ana hattı göster;
+Tanımlara daraltırken bölgeleri daralt;
+Soluklaştırma;
+Kullanılmayan using deyimlerini soluklaştır;
+Erişilemeyen kodu soluklaştır;
+Blok Yapısı Kılavuzları;
+Bildirim düzeyinde yapılar için kılavuzları göster;
+Kod düzeyinde yapılar için kılavuzları göster;
+Düzenleyici Yardımı;
+/// için XML belge açıklamaları oluştur;
+/* */ açıklamaları yazarken her yeni satırın başına * ekle;
+Yeniden adlandırma izlemesi için önizleme göster;
+Enter tuşuna basıldığında dize sabit değerlerini böl;
+string.Format çağrılarındaki geçersiz yer tutucuları bildir;
+Ayıklama Metodu;
+Özel yapıya ref veya out koyma;
+Arabirim veya Soyut Sınıfı Uygula;
+Özellik, olay ve metot eklerken, bunları;
+aynı türden başka üyelerle birlikte;
+sona yerleştir;
+Özellik oluştururken;
+oluşturma özelliklerini tercih et;
+otomatik özellikleri tercih et;
+normal ifade;
+normal ifade;
+Gelişmiş renkleri kullan;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -130,11 +133,11 @@ Automatically format statement on semicolon ;
 Automatically format block on end brace;
 Automatically format on return;
 Automatically format on paste;</source>
-        <target state="translated">Ne zaman tipik biçimi otomatik olarak;
-Otomatik olarak noktalı virgül ekstresinde biçimi;
-Otomatik biçimlendirme blok sonu küme ayracı;
-Otomatik olarak biçimi dönüşünde;
-Formatı yapıştırırken otomatik olarak;</target>
+        <target state="translated">Yazarken otomatik biçimlendir;
+Noktalı virgül girildiğinde deyimi otomatik biçimlendir;
+Kapama küme ayracı girildiğinde otomatik biçimlendir
+Return tuşuna basıldığında otomatik biçimlendir;
+Yapıştırma sonrasında otomatik biçimlendir;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -147,15 +150,15 @@ label indentation;
 place goto labels in leftmost column; 
 indent labels normally; 
 place goto labels one indent less than current;</source>
-        <target state="translated">Girinti bloğu içeriği; 
-açma ve kapama ayraçları girinti; 
-girinti servis talebi içeriğini; 
-girinti servis talebi içeriğini (ne zaman blok); 
-girinti durum etiketi; 
-etiket girinti; 
-goto etiket en soldaki sütuna getirin; 
-Etiketleri normal girinti; 
-goto etiket bir girinti az geçerli yerleştirin;</target>
+        <target state="translated">Blok içeriğini girintile; 
+açma ve kapama küme ayraçlarını girintile; 
+case içeriğini girintile; 
+case içeriğini girintile (engelliyken); 
+case etiketlerini girintile; 
+etiket girintileme; 
+goto etiketlerini en soldaki sütuna yerleştir; 
+etiketleri normal şekilde girintile; 
+goto etiketlerinin girintisi geçerli düzeyden bir düzey az olsun;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -176,23 +179,23 @@ New line options for expression;
 Place members in object initializers on new line;
 Place members in anonymous types on new line;
 Place query expression clauses on new line;</source>
-        <target state="translated">Yeni satır biçimlendirme seçeneği Diş teline; Yeni satır biçimlendirme seçenekleri anahtar kelimeler için; Yeni satırı seçenekleri Diş teline;
-Açık küme ayracı türleri için yeni satıra yerleştirin;
-Yöntemleri ve yerel işlevler için yeni satırda yer açık küme ayracı;
-Özellikleri, Dizin oluşturucular ve olaylar için yeni satırda yer açık küme ayracı;
-Açık küme ayracı özelliği, Dizin Oluşturucusu ve olay erişimcileri için yeni satıra yerleştirin;
-Anonim yöntemler için yeni satırda yer açık küme ayracı;
-Denetim blokları için yeni satırda yer açık küme ayracı;
-Anonim türler için yeni satırda yer açık küme ayracı;
-Açık küme ayracı nesne, koleksiyon ve dizi başlatıcı için yeni satıra yerleştirin;
-Anahtar kelimeler için yeni satırı seçenekleri;
-Başka yeni satıra yerleştirin;
-Yer üstünde yeni içini kaplamak yakalamak;
-Sonunda yer yeni satıra;
-Yeni satırı seçenekleri ifade için;
-Üye nesnesi başlatıcıları yeni satıra yerleştirin;
-Üye anonim türler yeni satıra yerleştirin;
-Sorgu ifade yan tümceleri yeni satıra yerleştirin;</target>
+        <target state="translated">Küme ayraçları için yeni satır biçimlendirme seçeneği;Anahtar sözcükler için yeni satır biçimlendirme seçenekleri;Küme ayraçları için yeni satır seçenekleri;
+Türler için yeni satıra açma küme ayracı yerleştir;
+Metotlar ve yerel işlemler için yeni satıra açma küme ayracı yerleştir;
+Özellikler, dizin oluşturucular ve olaylar için yeni satıra açma küme ayracı yerleştir;
+Özellik, dizin oluşturucusu ve olay erişimcileri için yeni satıra açma küme ayracı yerleştir;
+Anonim metotlar için yeni satıra açma küme ayracı yerleştir;
+Denetim blokları için yeni satıra açma küme ayracı yerleştir;
+Anonim türler için yeni satıra açma küme ayracı yerleştir;
+Nesne, koleksiyon ve dizi başlatıcıları için yeni satıra açma küme ayracı yerleştir;
+Anahtar sözcükler için yeni satır seçenekleri;
+Else anahtar sözcüğünü yeni satıra yerleştir;
+Catch anahtar sözcüğünü yeni satıra yerleştir;
+Finally anahtar sözcüğünü yeni satıra yerleştir;
+İfade için yeni satır seçenekleri;
+Nesne başlatıcısındaki üyeleri yeni satıra yerleştir;
+Anonim türlerdeki üyeleri yeni satıra yerleştir;
+Sorgu ifadesi yan tümcelerini yeni satıra yerleştir;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -227,37 +230,37 @@ Set spacing for operators;
 Ignore spaces around binary operators;
 Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
-        <target state="translated">Aralığı için yöntem bildirimleri ayarlama;
-Yöntem adı ve onun açma parantezi arasında boşluk;
-Parametre liste parantez içindeki boşluk ekleyin;
-Boş parametre liste parantez içindeki boşluk ekleyin;
-Yöntem çağrıları için aralığı ayarlama;
-Bağımsız değişken listesi parantez içindeki boşluk ekleyin;
-Boş bağımsız değişken listesi parantez içindeki boşluk ekleyin;
-Diğer aralığı seçenekleri ayarlayın;
-Denetim akış deyimleri anahtar kelimeler sonra boşluk Ekle;
-Parantez içindeki ifadeler boşluk;
-Türü yayınları parantez içindeki boşluk ekleyin;
-Parantez içindeki alanlarda denetim akış deyimleri ekleyin;
-Döküm sonra boşluk;
-Bildirim deyimleri içinde boşluklar göz ardı;
-Köşeli ayraç aralığı ayarlama;
-Açık köşeli ayraç önce boşluk Ekle;
-Boş köşeli ayraç içindeki boşluk ekleyin;
-Köşeli ayraçlar içinde boşluk Ekle;
-Sınırlayıcılar aralığını ayarla;
-Kolon Bankası veya arayüz türü bildirimindeki sonra boşluk Ekle;
-Virgülden sonra boşluk;
-Sonra nokta boşluk;
-For ifadesinin içinde noktalı sonra boşluk Ekle;
-Kolon Bankası veya arayüz önce boşluk tür bildiriminde;
-Virgül önce boşluk Ekle;
-Nokta önce boşluk Ekle;
-İçinde noktalı virgül deyim için önce boşluk Ekle;
-Operatörler için aralığı ayarlama;
-İkili işleçler sonra boşluk yok saymak;
-Önce ve sonra ikili işleçler boşlukları kaldırma;
-Önce ve sonra ikili işleçler boşluk ekleyin;</target>
+        <target state="translated">Metot bildirimleri için boşlukları ayarla;
+Metot adı ile metodun açma ayracı arasına boşluk ekle;
+Parametre listesi ayraçları içine boşluk ekle;
+Boş parametre listesi ayraçları içine boşluk ekle;
+Metot çağrıları için boşlukları ayarla;
+Bağımsız değişken listesi ayraçları içine boşluk ekle;
+Boş bağımsız değişken listesi ayraçları içine boşluk ekle;
+Diğer boşluk seçeneklerini ayarla;
+Denetim akışı deyimlerinde anahtar sözcüklerden sonra boşluk ekle;
+İfadelerin ayraçları içine boşluk ekle;
+Tür atamalarının ayraçları içine boşluk ekle;
+Denetim akışı deyimlerinin ayraçları içine boşluk ekle;
+Atamadan sonra boşluk ekle;
+Bildirim deyimlerindeki boşlukları yoksay;
+Köşeli ayraçlar için boşlukları ayarla;
+Açma köşeli ayracından önce boşluk ekle;
+Boş köşeli ayraçların içine boşluk ekle;
+Köşeli ayraçlar içine boşluk ekle;
+Sınırlayıcılar için boşlukları ayarla;
+Tür bildiriminde base veya interface için iki noktadan sonra boşluk ekle;
+Virgülden sonra boşluk ekle;
+Noktadan sonra boşluk ekle;
+for deyiminde noktalı virgülden sonra boşluk ekle;
+Tür bildiriminde base veya interface için iki noktadan önce boşluk ekle;
+Virgülden önce boşluk ekle;
+Noktadan önce boşluk ekle;
+for deyiminde noktalı virgülden önce boşluk ekle;
+İşleçler için boşlukları ayarla;
+İkili işleçlerin çevresindeki boşlukları yoksay;
+İkili işleçlerden önceki ve sonraki boşlukları kaldır;
+İkili işleçlerden önce ve sonra boşluk ekle;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
@@ -280,20 +283,20 @@ Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;</source>
-        <target state="translated">Tamamlama liste ayarlarını değiştirme; Önceden select en son üye kullanılan; Tamamlama listeleri;
-Bir karakter yazılır sonra tamamlanma listesi göstermek;
-Bir karakter silindikten sonra tamamlanma listesinde göster;
-Tamamlama liste öğelerini eşleşen kısımlarını vurgulamak;
-Tamamlama madde filtreleri göster;
-Parçacıkları davranış;
-Asla parçacıkları içerir;
-Her zaman parçacıkları içerir;
-Parçacıkları içerir zaman?-sekmesini sonra bir tanımlayıcı; yazılan
-Tuşuna basıldığında girin;
-Asla yeni bir satır ekleyin hadi girin;
-Sadece yeni bir satır ekleyin üzerinde tam olarak yazılı kelime; bitiminden sonra girin
-Her zaman yeni bir satır ekleyin hadi girin;
-Adı önerilerini göster;</target>
+        <target state="translated">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma listesi;
+Bir karakter yazıldıktan sonra tamamlanma listesini göster;
+Bir karakter silindikten sonra tamamlanma listesini göster;
+Tamamlanma listesi öğelerinin eşleşen kısımlarını vurgula;
+Tamamlanma öğe filtrelerini göster;
+Kod parçacığı davranışı;
+Kod parçacıklarını hiçbir zaman dahil etme;
+Kod parçacıklarını her zaman dahil et;
+Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et;
+Enter tuşu davranışı;
+Enter tuşuna basıldığında hiçbir zaman yeni satır ekleme;
+Enter tuşuna basıldığında yalnızca tam bir kelime yazılmışsa sonuna yeni satır ekle;
+Enter tuşuna basıldığında her zaman yeni satır ekle;
+Ad önerilerini göster;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
@@ -328,12 +331,12 @@ Adı önerilerini göster;</target>
       </trans-unit>
       <trans-unit id="2358">
         <source>C# Editor</source>
-        <target state="needs-review-translation">CSharp Düzenleyici</target>
+        <target state="translated">C# Düzenleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>C# Editor with Encoding</source>
-        <target state="needs-review-translation">Encoding ile CSharp Düzenleyici</target>
+        <target state="translated">Kodlamalı C# Düzenleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
@@ -373,12 +376,12 @@ Adı önerilerini göster;</target>
       </trans-unit>
       <trans-unit id="An_empty_CSharp_script_file">
         <source>An empty C# script file.</source>
-        <target state="new">An empty C# script file.</target>
+        <target state="translated">Boş C# betik dosyası.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_CSharp_Script">
         <source>Visual C# Script</source>
-        <target state="new">Visual C# Script</target>
+        <target state="translated">Visual C# Betiği</target>
         <note />
       </trans-unit>
     </body>

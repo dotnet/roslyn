@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
 {
     public class DocCommentFormattingTests
     {
-        private CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
-        private VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
+        private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
+        private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();
 
         private void TestFormat(string xmlFragment, string expectedCSharp, string expectedVB)
         {

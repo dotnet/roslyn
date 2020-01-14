@@ -2,6 +2,7 @@
 
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -51,6 +52,11 @@ namespace Roslyn.Utilities
             {
                 return items.ToImmutableArrayOrEmpty();
             }
+        }
+
+        internal static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
+        {
+            return new ConcatImmutableArray<T>(first, second);
         }
     }
 }

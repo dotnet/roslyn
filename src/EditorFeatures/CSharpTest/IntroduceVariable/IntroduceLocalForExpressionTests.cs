@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable
@@ -92,6 +93,33 @@ class C
     void M()
     {
         DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task IntroduceLocal_Inside_Expression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        new TimeSpan() +[||] new TimeSpan();
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        TimeSpan {|Rename:timeSpan|} = new TimeSpan() + new TimeSpan();
     }
 }");
         }
@@ -198,6 +226,23 @@ class C
     void M()
     {
         DateTime {|Rename:dateTime|} = new DateTime();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
+        public async Task MissingOnAssignmentExpressionStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        int a = 42;
+        [||]a = 42;
     }
 }");
         }

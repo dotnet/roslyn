@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public void Dispose()
         {
             var pooledObject = _pooledObject;
-            if (pooledObject != default)
+            if (pooledObject != null)
             {
                 pooledObject.Free();
                 _pooledObject = default;

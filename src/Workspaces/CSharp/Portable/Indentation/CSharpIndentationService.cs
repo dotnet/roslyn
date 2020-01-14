@@ -169,8 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
-                var section = node as SwitchSectionSyntax;
-                if (section == null || section.Statements.Count == 0)
+                if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
                 {
                     return;
                 }

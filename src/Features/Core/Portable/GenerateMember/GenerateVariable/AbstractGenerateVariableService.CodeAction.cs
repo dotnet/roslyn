@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var syntaxFactory = _semanticDocument.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 var throwStatement = CodeGenerationHelpers.GenerateThrowStatement(
-                    syntaxFactory, _semanticDocument, "System.NotImplementedException", cancellationToken);
+                    syntaxFactory, _semanticDocument, "System.NotImplementedException");
 
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)

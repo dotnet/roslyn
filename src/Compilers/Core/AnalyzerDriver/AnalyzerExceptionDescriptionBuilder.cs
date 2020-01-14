@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -30,19 +29,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string GetExceptionMessage(Exception exception)
         {
-            var fileNotFoundException = exception as FileNotFoundException;
-            if (fileNotFoundException == null)
-            {
-                return exception.ToString();
-            }
-
-            var fusionLog = DesktopShim.FileNotFoundExceptionShim.TryGetFusionLog(fileNotFoundException);
+            var fusionLog = (exception as FileNotFoundException)?.FusionLog;
             if (fusionLog == null)
             {
                 return exception.ToString();
             }
 
-            return string.Join(s_separator, fileNotFoundException.Message, fusionLog);
+            return string.Join(s_separator, exception.Message, fusionLog);
         }
     }
 }

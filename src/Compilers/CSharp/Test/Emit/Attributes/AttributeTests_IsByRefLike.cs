@@ -1003,7 +1003,7 @@ namespace System
             {
                 Assert.NotNull(obsoleteAttribute);
                 Assert.Equal("Types with embedded references are not supported in this version of your compiler.", obsoleteAttribute.Message);
-                Assert.Equal(true, obsoleteAttribute.IsError);
+                Assert.True(obsoleteAttribute.IsError);
             }
             else
             {

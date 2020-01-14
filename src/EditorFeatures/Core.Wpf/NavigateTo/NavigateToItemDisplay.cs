@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 return new List<DescriptionItem>().AsReadOnly();
             }
 
-            var sourceText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var sourceText = document.GetTextSynchronously(CancellationToken.None);
 
             var items = new List<DescriptionItem>
                     {

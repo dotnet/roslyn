@@ -173,7 +173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 binary = DirectCast(child, BinaryExpressionSyntax)
             Loop
 
-            Dim compoundStringLength As Integer = 0
             Dim left As BoundExpression = BindValue(child, diagnostics, propagateIsOperandOfConditionalBranch)
 
             Do
@@ -184,8 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 left = BindBinaryOperator(binary, left, right, binary.OperatorToken.Kind,
                                           OverloadResolution.MapBinaryOperatorKind(binary.Kind),
                                           If(binary Is node, isOperandOfConditionalBranch, propagateIsOperandOfConditionalBranch),
-                                          diagnostics,
-                                          compoundStringLength:=compoundStringLength)
+                                          diagnostics)
 
                 child = binary
             Loop While child IsNot node
@@ -201,8 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             preliminaryOperatorKind As BinaryOperatorKind,
             isOperandOfConditionalBranch As Boolean,
             diagnostics As DiagnosticBag,
-            Optional isSelectCase As Boolean = False,
-            <[In], Out> Optional ByRef compoundStringLength As Integer = 0
+            Optional isSelectCase As Boolean = False
         ) As BoundExpression
 
             Debug.Assert(left.IsValue)
@@ -322,7 +319,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operatorResultType As TypeSymbol = operandType
 
             Dim forceToBooleanType As TypeSymbol = Nothing
-            Dim applyIsTrue As Boolean = False
 
             Select Case preliminaryOperatorKind
 
@@ -355,13 +351,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  ErrorFactory.ErrorInfo(
                                                      If(preliminaryOperatorKind = BinaryOperatorKind.Equals,
                                                         ERRID.WRN_EqualToLiteralNothing, ERRID.WRN_NotEqualToLiteralNothing)))
-                            End If
-
-                            If isOperandOfConditionalBranch Then
-                                ' TODO: I believe the IsTrue is just an optimization to prevent Nullable from unnecessary bubbling up the tree.
-                                ' Perhaps we can do this optimization as a rewrite.
-                                applyIsTrue = True
-                                forceToBooleanType = booleanType
                             End If
                         Else
                             If Not operatorResultType.IsObjectType() Then
@@ -498,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not (left.HasErrors OrElse right.HasErrors) Then
                 Dim integerOverflow As Boolean = False
                 Dim divideByZero As Boolean = False
-                Dim compoundLengthOutOfLimit As Boolean = False
+                Dim lengthOutOfLimit As Boolean = False
 
                 value = OverloadResolution.TryFoldConstantBinaryOperator(operatorKind,
                                                                          left,
@@ -506,16 +495,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          operatorResultType,
                                                                          integerOverflow,
                                                                          divideByZero,
-                                                                         compoundLengthOutOfLimit,
-                                                                         compoundStringLength)
+                                                                         lengthOutOfLimit)
 
                 If value IsNot Nothing Then
                     If divideByZero Then
                         Debug.Assert(value.IsBad)
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ZeroDivide))
-                    ElseIf compoundLengthOutOfLimit Then
+                    ElseIf lengthOutOfLimit Then
                         Debug.Assert(value.IsBad)
-                        ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstantStringTooLong))
+                        ReportDiagnostic(diagnostics, right.Syntax, ErrorFactory.ErrorInfo(ERRID.ERR_ConstantStringTooLong))
                     ElseIf (value.IsBad OrElse integerOverflow) Then
                         ' Overflows are reported regardless of the value of OptionRemoveIntegerOverflowChecks, Dev10 behavior.
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ExpressionOverflow1, operatorResultType))
@@ -528,16 +516,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind, left, right, CheckOverflow, value, operatorResultType, hasError)
-
-            Debug.Assert(Not applyIsTrue OrElse forceToBooleanType IsNot Nothing)
+            Dim result As BoundExpression = New BoundBinaryOperator(node, operatorKind Or If(isOperandOfConditionalBranch, BinaryOperatorKind.IsOperandOfConditionalBranch, Nothing),
+                                                                    left, right, CheckOverflow, value, operatorResultType, hasError)
 
             If forceToBooleanType IsNot Nothing Then
                 Debug.Assert(forceToBooleanType.IsBooleanType())
-
-                If applyIsTrue Then
-                    Return ApplyNullableIsTrueOperator(result, forceToBooleanType)
-                End If
 
                 result = ApplyConversion(node, forceToBooleanType, result, isExplicit:=True, diagnostics:=diagnostics)
             End If

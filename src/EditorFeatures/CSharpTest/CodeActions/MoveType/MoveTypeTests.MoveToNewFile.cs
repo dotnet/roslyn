@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 @"[|clas|]s Class1 { }
  class Class2 { }";
 
-            await TestMissingInRegularAndScriptAsync(code);
+            await TestActionCountAsync(code, count: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -99,7 +99,7 @@ class Class2 { }
 @"[|class Class1|] { }
 class Class2 { }";
 
-            await TestMissingInRegularAndScriptAsync(code);
+            await TestActionCountAsync(code, count: 3);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]

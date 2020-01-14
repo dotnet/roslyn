@@ -351,8 +351,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim instance As IInstanceReferenceOperation = CreateAnonymousTypePropertyAccessImplicitReceiverOperation([property], expression.Syntax)
                     target = New PropertyReferenceOperation(
                         [property],
-                        instance,
                         ImmutableArray(Of IArgumentOperation).Empty,
+                        instance,
                         _semanticModel,
                         value.Syntax,
                         [property].Type,
@@ -370,7 +370,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New SimpleAssignmentOperation(target, isRef, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
+                Dim assignment = New SimpleAssignmentOperation(isRef, target, value, _semanticModel, syntax, type, constantValue, isImplicitAssignment)
                 builder.Add(assignment)
             Next i
 

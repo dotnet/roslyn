@@ -22619,11 +22619,57 @@ End Class
                 Assert.True(tuple.IsTupleType)
                 Assert.False(tuple.TupleUnderlyingType.IsErrorType())
             Else
-                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", IEnumerable.ToTestDisplayString())
+                Assert.Equal("System.Collections.Generic.IEnumerable(Of Container(Of System.ValueTuple(Of System.Int32, System.Int32))[missing].Contained(Of System.ValueTuple(Of System.Int32, System.Int32))[missing])", iEnumerable.ToTestDisplayString())
                 Assert.Equal("System.ValueTuple(Of System.Int32, System.Int32)", tuple.ToTestDisplayString())
                 Assert.False(tuple.IsTupleType)
             End If
         End Sub
+
+        <Theory>
+        <InlineData(True)>
+        <InlineData(False)>
+        <WorkItem(40430, "https://github.com/dotnet/roslyn/issues/40430")>
+        Public Sub MissingTypeArgumentInBase_ValueTuple(useImageReference As Boolean)
+            Dim lib_vb = "
+Public Class ClassWithTwoTypeParameters(Of T1, T2)
+End Class
+
+Public Class SelfReferencingClassWithTuple
+    Inherits ClassWithTwoTypeParameters(Of SelfReferencingClassWithTuple, (A As String, B As Integer))
+
+    Sub New()
+        System.Console.Write(""ran"")
+    End Sub
+End Class
+"
+            Dim library = CreateCompilationWithMscorlib40(lib_vb, references:=s_valueTupleRefs)
+            library.VerifyDiagnostics()
+            Dim libraryRef = If(useImageReference, library.EmitToImageReference(), library.ToMetadataReference())
+
+            Dim source_vb = "
+Public Class TriggerStackOverflowException
+    Public Shared Sub Method()
+        Dim x = New SelfReferencingClassWithTuple()
+    End Sub
+End Class
+"
+            Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={libraryRef})
+            comp.VerifyEmitDiagnostics()
+
+            Dim executable_vb = "
+Public Class C
+    Public Shared Sub Main()
+        TriggerStackOverflowException.Method()
+    End Sub
+End Class
+"
+            Dim executableComp = CreateCompilationWithMscorlib40(executable_vb,
+                references:={comp.EmitToImageReference(), libraryRef, SystemRuntimeFacadeRef, ValueTupleRef},
+                options:=TestOptions.DebugExe)
+            CompileAndVerify(executableComp, expectedOutput:="ran")
+
+        End Sub
+
     End Class
 
 End Namespace

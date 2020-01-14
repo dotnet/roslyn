@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NoResults,
 
         /// <summary>
-        /// One or more errors occured while performing the lookup
+        /// One or more errors occurred while performing the lookup
         /// </summary>
         ResultHasErrors
     }

@@ -25,12 +25,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Private Class MyCodeRefactoringProvider : Inherits CodeRefactoringProvider
             Public NotOverridable Overrides Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
                 Dim codeAction = New MyCodeAction(context.Document)
-                context.RegisterRefactoring(codeAction)
+                context.RegisterRefactoring(codeAction, context.Span)
                 Return Task.CompletedTask
             End Function
 
             Private Class MyCodeAction : Inherits CodeAction
-                Private _oldDocument As Document
+                Private ReadOnly _oldDocument As Document
 
                 Public Sub New(oldDocument As Document)
                     Me._oldDocument = oldDocument

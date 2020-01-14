@@ -59,7 +59,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var typeName = methodSymbol.ContainingType.Name;
 
-            bool tokensMatch(SyntaxToken t)
+            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
+            if (semanticModel.Language == LanguageNames.VisualBasic)
+            {
+                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
+            }
+
+            return FindReferencesInTokens(
+                 methodSymbol,
+                 document,
+                 semanticModel,
+                 tokens,
+                 TokensMatch,
+                 cancellationToken);
+
+            // local functions
+            bool TokensMatch(SyntaxToken t)
             {
                 if (syntaxFactsService.IsBaseConstructorInitializer(t))
                 {
@@ -78,20 +93,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
                 return false;
             }
-
-            var tokens = await document.GetConstructorInitializerTokensAsync(semanticModel, cancellationToken).ConfigureAwait(false);
-            if (semanticModel.Language == LanguageNames.VisualBasic)
-            {
-                tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync(semanticModel, "New", cancellationToken).ConfigureAwait(false)).Distinct();
-            }
-
-            return await FindReferencesInTokensAsync(
-                 methodSymbol,
-                 document,
-                 semanticModel,
-                 tokens,
-                 tokensMatch,
-                 cancellationToken).ConfigureAwait(false);
         }
     }
 }

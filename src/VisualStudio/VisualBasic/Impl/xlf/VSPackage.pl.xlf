@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="1012">
         <source>Visual Basic Editor with Encoding</source>
-        <target state="needs-review-translation">Edytor strony kodowej Microsoft Visual Basic</target>
+        <target state="translated">Edytor Visual Basic z kodowaniem</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
         <source>Visual Basic Editor</source>
-        <target state="needs-review-translation">Edytor Microsoft Visual Basic</target>
+        <target state="translated">Edytor Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Automatyczne wstawianie konstrukcji końcowych;Zmień ustawienia formatowania kodu;Zmień tryb konspektu;Automatyczne wstawianie składowych Interface i MustOverride;Pokaż lub ukryj separatory wierszy procedury;Włącz lub wyłącz sugestie dotyczące poprawy błędów;Włącz lub wyłącz wyróżnianie odwołań i słów kluczowych;Wyrażenie regularne;Koloruj wyrażenia regularne;Wyróżnij powiązane składniki pod kursorem;Zgłoś nieprawidłowe wyrażenia regularne</target>
+        <target state="translated">Automatyczne wstawianie konstrukcji końcowych;Zmień ustawienia formatowania kodu;Zmień tryb konspektu;Automatyczne wstawianie składowych Interface i MustOverride;Pokaż lub ukryj separatory wierszy procedury;Włącz lub wyłącz sugestie dotyczące poprawy błędów;Włącz lub wyłącz wyróżnianie odwołań i słów kluczowych;Wyrażenie regularne;Koloruj wyrażenia regularne;Wyróżnij pokrewne składniki wskazane przez kursor;Zgłaszaj nieprawidłowe wyrażenia regularne;wyrażenie regularne;wyrażenie regularne</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">Pusty plik skryptu języka Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Skrypt języka Visual Basic</target>
         <note />
       </trans-unit>
     </body>

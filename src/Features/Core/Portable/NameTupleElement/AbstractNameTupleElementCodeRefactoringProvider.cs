@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
-            var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
+            var (_, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)
             {
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             context.RegisterRefactoring(
                 new MyCodeAction(
                     string.Format(FeaturesResources.Add_tuple_element_name_0, elementName),
-                    c => AddNamedElementAsync(document, span, cancellationToken)));
+                    c => AddNamedElementAsync(document, span, cancellationToken)),
+                argument.Span);
         }
 
         private async Task<(SyntaxNode root, TArgumentSyntax argument, string argumentName)> TryGetArgumentInfo(
@@ -54,8 +55,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var tuple = (TTupleExpressionSyntax)argument.Parent;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType as INamedTypeSymbol;
-            if (tupleType == null)
+            if (!(semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol tupleType))
             {
                 return default;
             }

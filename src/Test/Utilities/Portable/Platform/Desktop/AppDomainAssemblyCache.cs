@@ -79,7 +79,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 // Validate the loaded assembly matches the value that we now have in the cache. 
                 if (!cache.TryGetValue(moduleData.Mvid, out assembly))
                 {
-                    throw new Exception("Explicit assembly load didn't update the proper cache");
+                    throw new Exception($"Explicit assembly load didn't update the proper cache: '{moduleData.SimpleName}' ({moduleData.Mvid})");
                 }
 
                 if (loadedAssembly != assembly)

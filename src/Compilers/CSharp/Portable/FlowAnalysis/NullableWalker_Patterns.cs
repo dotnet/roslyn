@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
             Visit(node.DeclaredType);
-            VisitAll(node.Deconstruction);
-            VisitAll(node.Properties);
+            VisitAndUnsplitAll(node.Deconstruction);
+            VisitAndUnsplitAll(node.Properties);
             Visit(node.VariableAccess);
             return null;
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            VisitAll(node.Subpatterns);
+            VisitAndUnsplitAll(node.Subpatterns);
             return null;
         }
 
@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="inputType">Type type of the input expression (before nullable analysis).
         /// Used to determine which types can contain null.</param>
-        /// <returns>true if there is a top-level explicit null check</returns>
         private void LearnFromAnyNullPatterns(
             int inputSlot,
             TypeSymbol inputType,
@@ -98,7 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool isExplicitNullCheck = cp.Value.ConstantValue == ConstantValue.Null;
                     if (isExplicitNullCheck)
                     {
-                        LearnFromNullTest(inputSlot, inputType, ref this.State);
+                        // Since we're not branching on this null test here, we just infer the top level
+                        // nullability.  We'll branch on it later.
+                        LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
                     }
                     break;
                 case BoundDeclarationPattern _:
@@ -107,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break; // nothing to learn
                 case BoundRecursivePattern rp:
                     {
+                        if (rp.IsExplicitNotNullTest)
+                        {
+                            LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
+                        }
+
                         // for positional part: we only learn from tuples (not Deconstruct)
                         if (rp.DeconstructMethod is null && !rp.Deconstruction.IsDefault)
                         {
@@ -142,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
-            int slot = MakeSlot(node.Expression);
+            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
             if (slot > 0)
             {
                 var originalInputType = node.Expression.Type;
@@ -158,8 +164,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // visit switch header
             var expressionState = VisitRvalueWithState(node.Expression);
             LocalState initialState = this.State.Clone();
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref initialState);
 
+            DeclareLocals(node.InnerLocals);
+            foreach (var section in node.SwitchSections)
+            {
+                // locals can be alive across jumps in the switch sections, so we declare them early.
+                DeclareLocals(section.Locals);
+            }
+
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, ref initialState);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -275,8 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 break;
                                         }
                                         State[outputSlot] = NullableFlowState.NotNull;
-                                        var outputType = TypeWithState.Create(e.Type, inputState);
-                                        addToTempMap(output, outputSlot, outputType.Type);
+                                        addToTempMap(output, outputSlot, e.Type);
                                         break;
                                     }
                                 case BoundDagFieldEvaluation e:
@@ -343,6 +355,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagNonNullTest t:
                                     if (inputSlot > 0)
                                     {
+                                        MarkDependentSlotsNotNull(inputSlot, inputType, ref this.StateWhenFalse);
+                                        if (t.IsExplicitTest)
+                                        {
+                                            LearnFromNullTest(inputSlot, inputType, ref this.StateWhenFalse, markDependentSlotsNotNull: false);
+                                        }
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
@@ -351,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagExplicitNullTest t:
                                     if (inputSlot > 0)
                                     {
-                                        LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue);
+                                        LearnFromNullTest(inputSlot, inputType, ref this.StateWhenTrue, markDependentSlotsNotNull: true);
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenFalse);
                                     }
                                     gotoNode(p.WhenTrue, this.StateWhenTrue, nodeBelievedReachable);
@@ -385,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(foundTemp);
                             var (tempSlot, tempType) = tempSlotAndType;
                             var tempState = this.State[tempSlot];
-                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol { IsVar: true } local })
+                            if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol local })
                             {
                                 var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))
@@ -473,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
-            bool inferType = node.NaturalTypeOpt is object && node.NaturalTypeOpt.Equals(node.Type, TypeCompareKind.ConsiderEverything);
+            bool inferType = !node.WasTargetTyped;
             VisitSwitchExpressionCore(node, inferType);
             return null;
         }
@@ -487,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitSwitchExpressionCore(BoundSwitchExpression node, bool inferType)
         {
             // first, learn from any null tests in the patterns
-            int slot = MakeSlot(node.Expression);
+            int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
             if (slot > 0)
             {
                 var originalInputType = node.Expression.Type;
@@ -554,6 +571,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
             var resultType = TypeWithState.Create(inferredType, inferredState);
             inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
+            if (resultType.State == NullableFlowState.MaybeDefault)
+            {
+                inferredTypeWithAnnotations = inferredTypeWithAnnotations.AsAnnotated();
+            }
 
             for (int i = 0; i < numSwitchArms; i++)
             {

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithModuleName()
         {
             // ModuleName
-            Assert.Equal(null, TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
+            Assert.Null(TestOptions.ReleaseDll.WithModuleName(null).ModuleName);
             TestOptions.ReleaseDll.WithModuleName("").VerifyErrors(
                 // error CS7087: Invalid module name: Name cannot be empty.
                 Diagnostic(ErrorCode.ERR_BadModuleName).WithArguments("Name cannot be empty.").WithLocation(1, 1)

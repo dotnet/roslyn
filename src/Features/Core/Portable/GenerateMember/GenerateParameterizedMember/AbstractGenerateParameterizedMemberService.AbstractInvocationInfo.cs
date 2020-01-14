@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     // a generic method if the expression 'x' captured any method type variables.
                     var capturedTypeParameters = GetCapturedTypeParameters(cancellationToken);
                     var availableTypeParameters = State.TypeToGenerateIn.GetAllTypeParameters();
-                    var result = capturedTypeParameters.Except<ITypeParameterSymbol>(availableTypeParameters, AllNullabilityIgnoringSymbolComparer.Instance).ToImmutableArray();
+                    var result = capturedTypeParameters.Except<ITypeParameterSymbol>(availableTypeParameters, SymbolEqualityComparer.Default).ToImmutableArray();
                     return result;
                 }
                 else
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var classTypes = constraints.Where(ts => ts.TypeKind == TypeKind.Class).ToList();
                 var nonClassTypes = constraints.Where(ts => ts.TypeKind != TypeKind.Class).ToList();
 
-                classTypes = MergeClassTypes(classTypes, cancellationToken);
+                classTypes = MergeClassTypes(classTypes);
                 constraints = classTypes.Concat(nonClassTypes).ToList();
                 if (constraints.SequenceEqual(typeParameter.ConstraintTypes))
                 {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     hasNotNullConstraint: typeParameter.HasNotNullConstraint);
             }
 
-            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes, CancellationToken cancellationToken)
+            private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes)
             {
                 var compilation = Document.SemanticModel.Compilation;
                 for (var i = classTypes.Count - 1; i >= 0; i--)

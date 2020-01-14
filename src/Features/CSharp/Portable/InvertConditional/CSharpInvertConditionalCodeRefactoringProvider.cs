@@ -4,6 +4,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.InvertConditional;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
 {
@@ -17,11 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertConditional
         {
         }
 
-        // Show the feature in the condition of the conditional up through the ? token.
-        // Don't offer if the conditional is missing the colon and the conditional is
-        // too incomplete.
-        protected override bool ShouldOffer(ConditionalExpressionSyntax conditional, int position)
-            => position <= conditional.QuestionToken.Span.End &&
-               !conditional.ColonToken.IsMissing;
+        // Don't offer if the conditional is missing the colon and the conditional is too incomplete.
+        protected override bool ShouldOffer(ConditionalExpressionSyntax conditional)
+            => !conditional.ColonToken.IsMissing;
     }
 }

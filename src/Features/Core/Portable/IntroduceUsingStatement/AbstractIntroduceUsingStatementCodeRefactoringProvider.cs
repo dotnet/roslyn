@@ -38,9 +38,11 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
             if (declarationSyntax != null)
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    CodeActionTitle,
-                    cancellationToken => IntroduceUsingStatementAsync(document, span, cancellationToken)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        CodeActionTitle,
+                        cancellationToken => IntroduceUsingStatementAsync(document, declarationSyntax, cancellationToken)),
+                    declarationSyntax.Span);
             }
         }
 
@@ -113,11 +115,9 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
 
         private async Task<Document> IntroduceUsingStatementAsync(
             Document document,
-            TextSpan span,
+            TLocalDeclarationSyntax declarationStatement,
             CancellationToken cancellationToken)
         {
-            var declarationStatement = await FindDisposableLocalDeclaration(document, span, cancellationToken).ConfigureAwait(false);
-
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

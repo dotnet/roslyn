@@ -9,12 +9,11 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.PasteTracking
 {
     [Export]
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.PasteTrackingPaste)]
     // By registering to run prior to FormatDocument and deferring until it has completed we
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
             _pasteTrackingService = pasteTrackingService;
         }
 
-        public VSCommanding.CommandState GetCommandState(PasteCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler)
+        public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
         {
             return nextCommandHandler();
         }

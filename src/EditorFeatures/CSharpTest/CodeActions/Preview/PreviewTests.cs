@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             public sealed override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
             {
                 var codeAction = new MyCodeAction(context.Document);
-                context.RegisterRefactoring(codeAction);
+                context.RegisterRefactoring(codeAction, context.Span);
                 return Task.CompletedTask;
             }
 

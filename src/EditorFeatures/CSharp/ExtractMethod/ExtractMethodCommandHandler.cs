@@ -2,13 +2,14 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
+    [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ExtractMethod)]
     [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
@@ -17,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod
     {
         [ImportingConstructor]
         public ExtractMethodCommandHandler(
+            IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
             IInlineRenameService renameService)
-            : base(undoManager, editorOperationsFactoryService, renameService)
+            : base(threadingContext, undoManager, renameService)
         {
         }
     }

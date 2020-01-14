@@ -9,7 +9,6 @@
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
     <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
-    <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
@@ -26,7 +25,6 @@
     <Compile Include="..\..\Shared\BuildClient.cs" />
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\Shared\DesktopBuildClient.cs" />
     <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
     <Compile Include="..\..\Shared\Csc.cs" />

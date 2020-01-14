@@ -12,7 +12,6 @@ Option Strict On
 Option Explicit On
 
 Imports System
-Imports System.Reflection
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources
     
@@ -23,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources
         Friend ReadOnly Property ResourceManager() As Global.System.Resources.ResourceManager
             Get
                 If Object.ReferenceEquals(resourceMan, Nothing) Then
-                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBWorkspaceResources", GetType(VBWorkspaceResources).GetTypeInfo.Assembly)
+                    Dim temp As Global.System.Resources.ResourceManager = New Global.System.Resources.ResourceManager("VBWorkspaceResources", GetType(VBWorkspaceResources).Assembly)
                     resourceMan = temp
                 End If
                 Return resourceMan
@@ -267,6 +266,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to R&amp;emove and Sort Imports.
+        '''</summary>
+        Friend ReadOnly Property Remove_and_Sort_Imports() As String
+            Get
+                Return ResourceManager.GetString("Remove_and_Sort_Imports", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Removes the association between an event and an event handler or delegate at run time..
         '''</summary>
         Friend ReadOnly Property Removes_the_association_between_an_event_and_an_event_handler_or_delegate_at_run_time() As String
@@ -330,6 +338,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBWorkspaceResources
             Get
                 Return ResourceManager.GetString("Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_"& _ 
                         "namespace_prefix", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &amp;Sort Imports.
+        '''</summary>
+        Friend ReadOnly Property Sort_Imports() As String
+            Get
+                Return ResourceManager.GetString("Sort_Imports", resourceCulture)
             End Get
         End Property
         

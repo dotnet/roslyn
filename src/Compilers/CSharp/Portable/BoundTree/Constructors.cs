@@ -132,9 +132,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(arguments.IsDefaultOrEmpty || (object)receiverOpt != (object)arguments[0]);
 
-            return new BoundCall(node, receiverOpt, method, arguments, namedArguments,
-                refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
-                resultKind: resultKind, originalMethods, binderOpt: binder, type: method.ReturnType, hasErrors: true);
+            return new BoundCall(
+                syntax: node,
+                receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
+                method: method,
+                arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),
+                argumentNamesOpt: namedArguments,
+                argumentRefKindsOpt: refKinds,
+                isDelegateCall: isDelegateCall,
+                expanded: false,
+                invokedAsExtensionMethod: invokedAsExtensionMethod,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                resultKind: resultKind,
+                originalMethodsOpt: originalMethods,
+                binderOpt: binder,
+                type: method.ReturnType,
+                hasErrors: true);
         }
 
         public BoundCall Update(ImmutableArray<BoundExpression> arguments)
@@ -605,12 +618,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundDefaultExpression
+    internal sealed partial class BoundDefaultExpression
     {
         public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
             : this(syntax, targetType: null, type?.GetDefaultValue(), type, hasErrors)
         {
         }
+
+        public override ConstantValue ConstantValue => ConstantValueOpt;
     }
 
     internal partial class BoundTryStatement

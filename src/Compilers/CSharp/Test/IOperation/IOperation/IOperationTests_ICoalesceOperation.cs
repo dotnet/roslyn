@@ -952,7 +952,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'null 
   Expression: 
     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
   ValueConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-    (DefaultOrNullLiteral)
+    (NullLiteral)
   WhenNull: 
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative')
 ");
@@ -962,7 +962,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0] [2]
@@ -972,10 +971,8 @@ Block[B0] - Entry
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
               Value: 
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'result')
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [1]
@@ -985,13 +982,11 @@ Block[B0] - Entry
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'null')
                   Value: 
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-
             Jump if True (Regular) to Block[B4]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'null')
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
                 Leaving: {R2}
-
             Next (Regular) Block[B3]
         Block[B3] - Block [UnReachable]
             Predecessors: [B2]
@@ -1000,21 +995,18 @@ Block[B0] - Entry
                   Value: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: 'null')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (DefaultOrNullLiteral)
+                        (NullLiteral)
                       Operand: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, Constant: null, IsImplicit) (Syntax: 'null')
-
             Next (Regular) Block[B5]
                 Leaving: {R2}
     }
-
     Block[B4] - Block
         Predecessors: [B2]
         Statements (1)
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'alternative')
               Value: 
                 IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative')
-
         Next (Regular) Block[B5]
     Block[B5] - Block
         Predecessors: [B3] [B4]
@@ -1026,11 +1018,9 @@ Block[B0] - Entry
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'result')
                   Right: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'null ?? alternative')
-
         Next (Regular) Block[B6]
             Leaving: {R1}
 }
-
 Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)

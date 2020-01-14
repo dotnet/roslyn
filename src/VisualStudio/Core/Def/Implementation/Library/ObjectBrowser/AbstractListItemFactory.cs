@@ -241,8 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem == null)
+            if (!(parentListItem is TypeListItem parentTypeItem))
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -410,8 +409,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem == null)
+            if (!(parentListItem is TypeListItem parentTypeItem))
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }

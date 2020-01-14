@@ -79,15 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
         {
-            if (diagnostic.CustomTags.Count <= 1)
+            if (diagnostic.Severity == DiagnosticSeverity.Error &&
+                diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
             {
-                return null;
-            }
-
-            switch (diagnostic.CustomTags[0])
-            {
-                case WellKnownDiagnosticTags.EditAndContinue:
-                    return EditAndContinueErrorTypeDefinition.Name;
+                return EditAndContinueErrorTypeDefinition.Name;
             }
 
             return null;

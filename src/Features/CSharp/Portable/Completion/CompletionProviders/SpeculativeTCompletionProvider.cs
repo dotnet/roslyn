@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                    syntaxTree.IsStatementContext(position, token, cancellationToken) ||
                    syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                    syntaxTree.IsGlobalStatementContext(position, cancellationToken) ||
-                   syntaxTree.IsDelegateReturnTypeContext(position, token, cancellationToken);
+                   syntaxTree.IsDelegateReturnTypeContext(position, token);
         }
 
         private static int WalkOutOfGenericType(SyntaxTree syntaxTree, int position, SemanticModel semanticModel, CancellationToken cancellationToken)

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
-            var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
 
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes);
@@ -77,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(syntaxTree);
 
             var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
             classificationService.AddSyntacticClassifications(syntaxTree, textSpan, temp, cancellationToken);

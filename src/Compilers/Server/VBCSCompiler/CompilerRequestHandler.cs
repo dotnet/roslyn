@@ -15,7 +15,7 @@ using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal struct RunRequest
+    internal readonly struct RunRequest
     {
         public string Language { get; }
         public string CurrentDirectory { get; }
@@ -33,29 +33,37 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal abstract class CompilerServerHost : ICompilerServerHost
+    internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public abstract IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
+        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; } = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
 
-        public abstract Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
+        public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
+
+        /// <summary>
+        /// The caching metadata provider used by the C# and VB compilers
+        /// </summary>
+        private Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; } = SharedAssemblyReferenceProvider;
 
         /// <summary>
         /// Directory that contains the compiler executables and the response files. 
         /// </summary>
-        public string ClientDirectory { get; }
+        private string ClientDirectory { get; }
 
         /// <summary>
         /// Directory that contains mscorlib.  Can be null when the host is executing in a CoreCLR context.
         /// </summary>
-        public string SdkDirectory { get; }
+        private string SdkDirectory { get; }
 
-        protected CompilerServerHost(string clientDirectory, string sdkDirectory)
+        internal CompilerServerHost(string clientDirectory, string sdkDirectory)
         {
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
         }
 
-        public abstract bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
+        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
+        {
+            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader);
+        }
 
         public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
         {

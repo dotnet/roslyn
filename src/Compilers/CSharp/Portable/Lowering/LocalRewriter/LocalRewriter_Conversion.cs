@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -214,7 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.DefaultOrNullLiteral:
+                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultLiteral:
                     if (!_inExpressionLambda || !explicitCastInCode)
                     {
                         return new BoundDefaultExpression(syntax, rewrittenType);
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
-                type.StrippedType().EnumUnderlyingType().SpecialType;
+                type.StrippedType().EnumUnderlyingTypeOrSelf().SpecialType;
 
             bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
                 low <= type && type <= high;
@@ -644,28 +644,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool explicitCastInCode,
             NamedTypeSymbol rewrittenType)
         {
-            var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
+            var destElementTypes = rewrittenType.TupleElementTypesWithAnnotations;
             var numElements = destElementTypes.Length;
 
-            TypeSymbol srcType = rewrittenOperand.Type;
-
-            TupleTypeSymbol tupleTypeSymbol;
-            if (srcType.IsTupleType)
-            {
-                tupleTypeSymbol = (TupleTypeSymbol)srcType;
-            }
-            else
-            {
-                // The following codepath should be very uncommon (if reachable at all)
-                // we should generally not see tuple compatible types in bound trees and 
-                // see actual tuple types instead.
-                Debug.Assert(srcType.IsTupleCompatible());
-
-                // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
-                //       in the type symbols that can actually be tuple compatible
-                tupleTypeSymbol = TupleTypeSymbol.Create((NamedTypeSymbol)srcType);
-            }
-
+            var tupleTypeSymbol = (NamedTypeSymbol)rewrittenOperand.Type;
             var srcElementFields = tupleTypeSymbol.TupleElements;
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
@@ -689,29 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A sequence of side effects with an always-null expression as its value
             // CONSIDER: can be optimized also. Should we?
 
-            if (!expression.Type.IsNullableType())
-            {
-                return false;
-            }
-
-            return nullableNeverHasValue(expression);
-
-            static bool nullableNeverHasValue(BoundExpression expression)
-            {
-                Debug.Assert(expression.Type.IsNullableType());
-                switch (expression)
-                {
-                    case { ConstantValue: { Discriminator: ConstantValueTypeDiscriminator.Null } }:
-                    case BoundConversion { Conversion: { Kind: ConversionKind.DefaultOrNullLiteral } }:
-                    case BoundObjectCreationExpression { Arguments: { Length: 0 } }: // new int?() never has a value if there is no argument.
-                    case BoundDefaultExpression _:
-                        return true;
-                    case BoundConversion { Conversion: { IsNullable: true }, Operand: var operand } when operand.Type.IsNullableType():
-                        return nullableNeverHasValue(operand);
-                    default:
-                        return false;
-                }
-            }
+            return expression.NullableNeverHasValue();
         }
 
         /// <summary>

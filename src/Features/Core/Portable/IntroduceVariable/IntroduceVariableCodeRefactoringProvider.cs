@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var action = await service.IntroduceVariableAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             if (action != null)
             {
-                context.RegisterRefactoring(action);
+                context.RegisterRefactoring(action, textSpan);
             }
         }
     }

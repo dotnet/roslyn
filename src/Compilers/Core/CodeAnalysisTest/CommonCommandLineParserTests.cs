@@ -402,15 +402,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source);
             Assert.Contains("CA1012", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1012"], ReportDiagnostic.Error);
+            Assert.Equal(ReportDiagnostic.Error, ruleSet.SpecificDiagnosticOptions["CA1012"]);
             Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1013"], ReportDiagnostic.Warn);
+            Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1013"]);
             Assert.Contains("CA1014", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1014"], ReportDiagnostic.Suppress);
+            Assert.Equal(ReportDiagnostic.Suppress, ruleSet.SpecificDiagnosticOptions["CA1014"]);
             Assert.Contains("CA1015", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1015"], ReportDiagnostic.Info);
+            Assert.Equal(ReportDiagnostic.Info, ruleSet.SpecificDiagnosticOptions["CA1015"]);
             Assert.Contains("CA1016", ruleSet.SpecificDiagnosticOptions.Keys);
-            Assert.Equal(ruleSet.SpecificDiagnosticOptions["CA1016"], ReportDiagnostic.Hidden);
+            Assert.Equal(ReportDiagnostic.Hidden, ruleSet.SpecificDiagnosticOptions["CA1016"]);
         }
 
         [Fact]
@@ -443,8 +443,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source);
             Assert.True(ruleSet.Includes.Count() == 1);
-            Assert.Equal(ruleSet.Includes.First().Action, ReportDiagnostic.Default);
-            Assert.Equal(ruleSet.Includes.First().IncludePath, "goo.ruleset");
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.Includes.First().Action);
+            Assert.Equal("goo.ruleset", ruleSet.Includes.First().IncludePath);
         }
 
 #pragma warning disable CA2243 // Attribute string literals should parse correctly

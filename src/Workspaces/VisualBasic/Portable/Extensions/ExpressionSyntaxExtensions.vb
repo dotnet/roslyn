@@ -799,9 +799,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             issueSpan = Nothing
 
             ' Failfast Conditions
-            If Not optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration) OrElse
-                variableDeclarator.AsClause Is Nothing OrElse
-                Not variableDeclarator.Parent.IsKind(
+            If variableDeclarator.AsClause Is Nothing OrElse
+               Not variableDeclarator.Parent.IsKind(
                     SyntaxKind.LocalDeclarationStatement,
                     SyntaxKind.UsingStatement,
                     SyntaxKind.ForStatement,
@@ -923,7 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
-            Return expression.TrySimplify(semanticModel, optionSet, replacementNode, issueSpan)
+            Return expression.TrySimplify(semanticModel, replacementNode, issueSpan)
         End Function
 
         <Extension()>
@@ -989,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If Not memberAccess.IsRightSideOfDot() Then
                     Dim aliasReplacement As IAliasSymbol = Nothing
 
-                    If memberAccess.TryReplaceWithAlias(semanticModel, aliasReplacement, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification)) Then
+                    If memberAccess.TryReplaceWithAlias(semanticModel, aliasReplacement) Then
                         Dim identifierToken = SyntaxFactory.Identifier(
                                 memberAccess.GetLeadingTrivia(),
                                 aliasReplacement.Name,
@@ -1047,10 +1046,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return True
                 End If
 
-                If optionSet.GetOption(SimplificationOptions.PreferOmittingModuleNamesInQualification) Then
-                    If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
-                        Return True
-                    End If
+                If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
+                    Return True
                 End If
             End If
 
@@ -1224,10 +1221,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If symbol.Kind = SymbolKind.Method AndAlso name.Kind = SyntaxKind.GenericName Then
-                    If Not optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInference) Then
-                        Return False
-                    End If
-
                     Dim genericName = DirectCast(name, GenericNameSyntax)
                     replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier).WithLeadingTrivia(genericName.GetLeadingTrivia()).WithTrailingTrivia(genericName.GetTrailingTrivia())
 
@@ -1256,7 +1249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If Not name.IsRightSideOfDot() Then
 
                     Dim aliasReplacement As IAliasSymbol = Nothing
-                    If name.TryReplaceWithAlias(semanticModel, aliasReplacement, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification)) Then
+                    If name.TryReplaceWithAlias(semanticModel, aliasReplacement) Then
                         Dim identifierToken = SyntaxFactory.Identifier(
                                 name.GetLeadingTrivia(),
                                 aliasReplacement.Name,
@@ -1304,7 +1297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             ' check if the alias name ends with an Attribute suffix that can be omitted.
                             Dim replacementNodeWithoutAttributeSuffix As ExpressionSyntax = Nothing
                             Dim issueSpanWithoutAttributeSuffix As TextSpan = Nothing
-                            If TryReduceAttributeSuffix(name, identifierToken, semanticModel, aliasReplacement IsNot Nothing, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
+                            If TryReduceAttributeSuffix(name, identifierToken, semanticModel, aliasReplacement IsNot Nothing, replacementNodeWithoutAttributeSuffix, issueSpanWithoutAttributeSuffix, cancellationToken) Then
                                 If name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken) Then
                                     replacementNode = replacementNode.CopyAnnotationsTo(replacementNodeWithoutAttributeSuffix)
                                     issueSpan = issueSpanWithoutAttributeSuffix
@@ -1421,15 +1414,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             Return True
                         End If
 
-                        If optionSet.GetOption(SimplificationOptions.PreferOmittingModuleNamesInQualification) Then
-                            If TryOmitModuleName(qualifiedName, semanticModel, replacementNode, issueSpan, cancellationToken) Then
-                                Return True
-                            End If
+                        If TryOmitModuleName(qualifiedName, semanticModel, replacementNode, issueSpan, cancellationToken) Then
+                            Return True
                         End If
 
                     Case SyntaxKind.IdentifierName
                         Dim identifier = DirectCast(name, IdentifierNameSyntax).Identifier
-                        TryReduceAttributeSuffix(name, identifier, semanticModel, False, optionSet.GetOption(SimplificationOptions.PreferAliasToQualification), replacementNode, issueSpan, cancellationToken)
+                        TryReduceAttributeSuffix(name, identifier, semanticModel, False, replacementNode, issueSpan, cancellationToken)
                 End Select
             End If
 
@@ -1476,7 +1467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If name.IsKind(SyntaxKind.GenericName) Then
                 If (name.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="Nullable(Of T)"
                    (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="System.Nullable(Of T)"
-                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
+                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso (name.Parent?.IsParentKind(SyntaxKind.QualifiedName)).GetValueOrDefault() AndAlso name.Parent.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
                     ' Unfortunately, unlike in corresponding C# case, we need syntax based checking to detect these cases because of bugs in the VB SemanticModel.
                     ' See https://github.com/dotnet/roslyn/issues/2196, https://github.com/dotnet/roslyn/issues/2197
                     Return False
@@ -1502,7 +1493,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             identifierToken As SyntaxToken,
             semanticModel As SemanticModel,
             isIdentifierNameFromAlias As Boolean,
-            preferAliasToQualification As Boolean,
             <Out()> ByRef replacementNode As ExpressionSyntax,
             <Out()> ByRef issueSpan As TextSpan,
             cancellationToken As CancellationToken
@@ -1511,8 +1501,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 ' When the replacement is an Alias we don't want the "Attribute" Suffix to be removed because this will result in symbol change
                 Dim aliasSymbol = semanticModel.GetAliasInfo(name, cancellationToken)
-                If (aliasSymbol IsNot Nothing AndAlso preferAliasToQualification AndAlso
-                    String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0) Then
+                If aliasSymbol IsNot Nothing AndAlso
+                   String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0 Then
                     Return False
                 End If
 
@@ -1605,7 +1595,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function TrySimplify(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
             <Out()> ByRef replacementNode As ExpressionSyntax,
             <Out()> ByRef issueSpan As TextSpan
         ) As Boolean
@@ -1617,7 +1606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If True Then
                         Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                         Dim newLeft As ExpressionSyntax = Nothing
-                        If TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, optionSet, newLeft, issueSpan) Then
+                        If TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, newLeft, issueSpan) Then
                             ' replacement node might not be in it's simplest form, so add simplify annotation to it.
                             replacementNode = memberAccess.Update(memberAccess.Kind, newLeft, memberAccess.OperatorToken, memberAccess.Name).WithAdditionalAnnotations(Simplifier.Annotation)
 
@@ -1632,7 +1621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If True Then
                         Dim qualifiedName = DirectCast(expression, QualifiedNameSyntax)
                         Dim newLeft As ExpressionSyntax = Nothing
-                        If TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, optionSet, newLeft, issueSpan) Then
+                        If TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, newLeft, issueSpan) Then
                             If Not TypeOf newLeft Is NameSyntax Then
                                 Contract.Fail("QualifiedName Left = " + qualifiedName.Left.ToString() + " and QualifiedName Right = " + qualifiedName.Right.ToString() + " . Left is tried to be replaced with the PredefinedType " + replacementNode.ToString())
                             End If
@@ -1661,7 +1650,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             left As ExpressionSyntax,
             right As ExpressionSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
             <Out()> ByRef replacementNode As ExpressionSyntax,
             <Out()> ByRef issueSpan As TextSpan
         ) As Boolean
@@ -1686,13 +1674,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                         If containingType IsNot Nothing AndAlso Not containingType.Equals(leftSymbol) Then
 
                             Dim namedType = TryCast(leftSymbol, INamedTypeSymbol)
-                            If namedType IsNot Nothing Then
-                                If ((namedType.GetBaseTypes().Contains(containingType) AndAlso
-                                    Not optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) OrElse
-                                    (Not optionSet.GetOption(SimplificationOptions.AllowSimplificationToGenericType) AndAlso
-                                    containingType.TypeArguments.Count() <> 0)) Then
-                                    Return False
-                                End If
+                            If namedType IsNot Nothing AndAlso
+                               containingType.TypeArguments.Length <> 0 Then
+                                Return False
                             End If
 
                             ' We have a static member access or a nested type member access using a more derived type.
@@ -1710,10 +1694,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Private Function TryReplaceWithAlias(
-        node As ExpressionSyntax,
-        semanticModel As SemanticModel,
-        <Out> ByRef aliasReplacement As IAliasSymbol,
-        Optional preferAliasToQualifiedName As Boolean = False) As Boolean
+            node As ExpressionSyntax,
+            semanticModel As SemanticModel,
+            <Out> ByRef aliasReplacement As IAliasSymbol) As Boolean
             aliasReplacement = Nothing
 
             If Not node.IsAliasReplaceableExpression() Then
@@ -1759,6 +1742,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If symbol Is Nothing OrElse Not TypeOf (symbol) Is INamespaceOrTypeSymbol Then
                 Return False
             End If
+
+            Dim preferAliasToQualifiedName = True
 
             If TypeOf node Is QualifiedNameSyntax Then
                 Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)

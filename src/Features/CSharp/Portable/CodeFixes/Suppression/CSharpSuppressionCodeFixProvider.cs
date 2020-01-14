@@ -39,15 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         private SyntaxTriviaList CreatePragmaDirectiveTrivia(
             SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine)
         {
-            var id = SyntaxFactory.IdentifierName(diagnostic.Id);
+            var diagnosticId = GetOrMapDiagnosticId(diagnostic, out var includeTitle);
+            var id = SyntaxFactory.IdentifierName(diagnosticId);
             var ids = new SeparatedSyntaxList<ExpressionSyntax>().Add(id);
             var pragmaDirective = SyntaxFactory.PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
             pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective);
             var pragmaDirectiveTrivia = SyntaxFactory.Trivia(pragmaDirective);
-            var endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
+            var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
             var triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia);
 
-            var title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+            var title = includeTitle ? diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture) : null;
             if (!string.IsNullOrWhiteSpace(title))
             {
                 var titleComment = SyntaxFactory.Comment(string.Format(" // {0}", title)).WithAdditionalAnnotations(Formatter.Annotation);
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         }
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
+            => trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
 
         protected override bool IsEndOfFileToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.EndOfFileToken;

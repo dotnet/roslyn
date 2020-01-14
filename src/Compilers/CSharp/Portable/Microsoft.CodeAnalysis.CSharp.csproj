@@ -28,11 +28,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="BoundTree\BoundNodes.xml" />
+    <None Include="Generated\CSharp.Generated.g4" />
     <None Include="Syntax\Syntax.xml" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
-    <None Include="Symbols\PublicSymbolTable.cd" />
     <None Include="..\CSharpCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>

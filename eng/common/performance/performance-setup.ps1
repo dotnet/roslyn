@@ -1,6 +1,7 @@
 Param(
     [string] $SourceDirectory=$env:BUILD_SOURCESDIRECTORY,
     [string] $CoreRootDirectory,
+    [string] $BaselineCoreRootDirectory,
     [string] $Architecture="x64",
     [string] $Framework="netcoreapp5.0",
     [string] $CompilationMode="Tiered",
@@ -12,11 +13,13 @@ Param(
     [string] $Csproj="src\benchmarks\micro\MicroBenchmarks.csproj",
     [string] $Kind="micro",
     [switch] $Internal,
+    [switch] $Compare,
     [string] $Configurations="CompilationMode=$CompilationMode"
 )
 
-$RunFromPerformanceRepo = ($Repository -eq "dotnet/performance")
+$RunFromPerformanceRepo = ($Repository -eq "dotnet/performance") -or ($Repository -eq "dotnet-performance")
 $UseCoreRun = ($CoreRootDirectory -ne [string]::Empty)
+$UseBaselineCoreRun = ($BaselineCoreRootDirectory -ne [string]::Empty)
 
 $PayloadDirectory = (Join-Path $SourceDirectory "Payload")
 $PerformanceDirectory = (Join-Path $PayloadDirectory "performance")
@@ -29,7 +32,13 @@ $HelixSourcePrefix = "pr"
 $Queue = "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
 
 if ($Framework.StartsWith("netcoreapp")) {
-    $Queue = "Windows.10.Amd64.ClientRS4.Open"
+    $Queue = "Windows.10.Amd64.ClientRS5.Open"
+}
+
+if ($Compare) {
+    $Queue = "Windows.10.Amd64.19H1.Tiger.Perf.Open"
+    $PerfLabArguments = ""
+    $ExtraBenchmarkDotNetArguments = ""
 }
 
 if ($Internal) {
@@ -40,7 +49,8 @@ if ($Internal) {
     $HelixSourcePrefix = "official"
 }
 
-$CommonSetupArguments="--frameworks $Framework --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
+# FIX ME: This is a workaround until we get this from the actual pipeline
+$CommonSetupArguments="--channel master --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
 $SetupArguments = "--repository https://github.com/$Repository --branch $Branch --get-perf-hash --commit-sha $CommitSha $CommonSetupArguments"
 
 if ($RunFromPerformanceRepo) {
@@ -55,6 +65,10 @@ else {
 if ($UseCoreRun) {
     $NewCoreRoot = (Join-Path $PayloadDirectory "Core_Root")
     Move-Item -Path $CoreRootDirectory -Destination $NewCoreRoot
+}
+if ($UseBaselineCoreRun) {
+    $NewBaselineCoreRoot = (Join-Path $PayloadDirectory "Baseline_Core_Root")
+    Move-Item -Path $BaselineCoreRootDirectory -Destination $NewBaselineCoreRoot
 }
 
 $DocsDir = (Join-Path $PerformanceDirectory "docs")
@@ -80,7 +94,9 @@ Write-PipelineSetVariable -Name 'TargetCsproj' -Value "$Csproj" -IsMultiJobVaria
 Write-PipelineSetVariable -Name 'Kind' -Value "$Kind" -IsMultiJobVariable $false
 Write-PipelineSetVariable -Name 'Architecture' -Value "$Architecture" -IsMultiJobVariable $false
 Write-PipelineSetVariable -Name 'UseCoreRun' -Value "$UseCoreRun" -IsMultiJobVariable $false
+Write-PipelineSetVariable -Name 'UseBaselineCoreRun' -Value "$UseBaselineCoreRun" -IsMultiJobVariable $false
 Write-PipelineSetVariable -Name 'RunFromPerfRepo' -Value "$RunFromPerformanceRepo" -IsMultiJobVariable $false
+Write-PipelineSetVariable -Name 'Compare' -Value "$Compare" -IsMultiJobVariable $false
 
 # Helix Arguments
 Write-PipelineSetVariable -Name 'Creator' -Value "$Creator" -IsMultiJobVariable $false

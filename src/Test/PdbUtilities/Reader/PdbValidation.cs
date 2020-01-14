@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
-            bool testWindowsPdb = format == 0 || format == DebugInformationFormat.Pdb;
+            bool testWindowsPdb = (format == 0 || format == DebugInformationFormat.Pdb) && ExecutionConditionUtil.IsWindows;
             bool testPortablePdb = format == 0 || format == DebugInformationFormat.PortablePdb;
             bool testConversion = (options & PdbValidationOptions.SkipConversionValidation) == 0;
             var pdbToXmlOptions = options.ToPdbToXmlOptions();
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IMethodSymbol debugEntryPoint = null,
             PdbValidationOptions options = PdbValidationOptions.Default,
             string qualifiedMethodName = "",
-            bool portable = false)
+            bool portable = true)
         {
             var peStream = new MemoryStream();
             var pdbStream = new MemoryStream();

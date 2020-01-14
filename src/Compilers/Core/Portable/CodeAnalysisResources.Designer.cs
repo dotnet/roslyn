@@ -332,6 +332,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing the version of an assembly reference is not allowed during debugging: &apos;{0}&apos; changed version to &apos;{1}&apos;..
+        /// </summary>
+        internal static string ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging {
+            get {
+                return ResourceManager.GetString("ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to class.
         /// </summary>
         internal static string Class1 {
@@ -1010,6 +1019,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Module has invalid attributes..
+        /// </summary>
+        internal static string ModuleHasInvalidAttributes {
+            get {
+                return ResourceManager.GetString("ModuleHasInvalidAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to NOTE: Elapsed time may be less than analyzer execution time because analyzers can run concurrently..
         /// </summary>
         internal static string MultithreadedAnalyzerExecutionNote {
@@ -1451,7 +1469,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Diagnostic &apos;{0}: {1}&apos; was programmatically suppressed by a DiagnosticSuppressor with suppresion ID &apos;{2}&apos; and justification &apos;{3}&apos;.
+        ///   Looks up a localized string similar to Diagnostic &apos;{0}: {1}&apos; was programmatically suppressed by a DiagnosticSuppressor with suppression ID &apos;{2}&apos; and justification &apos;{3}&apos;.
         /// </summary>
         internal static string SuppressionDiagnosticDescriptorMessage {
             get {
@@ -1609,6 +1627,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TypeParameter {
             get {
                 return ResourceManager.GetString("TypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine specific cause of the failure..
+        /// </summary>
+        internal static string UnableToDetermineSpecificCauseOfFailure {
+            get {
+                return ResourceManager.GetString("UnableToDetermineSpecificCauseOfFailure", resourceCulture);
             }
         }
         

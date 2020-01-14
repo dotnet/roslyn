@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRefactoringHelpersService
-        Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax)
+        Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax)
 
         Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
             For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)
@@ -33,6 +33,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
                 Dim forStatement = CType(node, ForStatementSyntax)
                 Yield forStatement.Parent
             End If
+
+            If TypeOf node Is VariableDeclaratorSyntax Then
+                Dim declarator = CType(node, VariableDeclaratorSyntax)
+                If TypeOf declarator.Parent Is LocalDeclarationStatementSyntax Then
+                    Dim localDeclarationStatement = CType(declarator.Parent, LocalDeclarationStatementSyntax)
+                    ' Only return the whole localDeclarationStatement if there's just one declarator with just one name
+                    If localDeclarationStatement.Declarators.Count = 1 And localDeclarationStatement.Declarators.First().Names.Count = 1 Then
+                        Yield localDeclarationStatement
+                    End If
+                End If
+            End If
+
         End Function
 
         Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean

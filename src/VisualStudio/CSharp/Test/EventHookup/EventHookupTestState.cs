@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
     internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
     {
         private readonly EventHookupCommandHandler _commandHandler;
-        private Mutex _testSessionHookupMutex;
+        private readonly Mutex _testSessionHookupMutex;
 
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
-            : base(workspaceElement, excludedTypes: null, GetExtraParts())
+            : base(workspaceElement, GetExtraParts())
         {
             _commandHandler = new EventHookupCommandHandler(
                 Workspace.ExportProvider.GetExportedValue<IThreadingContext>(),

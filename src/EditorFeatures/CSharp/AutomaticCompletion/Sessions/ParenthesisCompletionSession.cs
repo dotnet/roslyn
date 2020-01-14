@@ -32,16 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             // now check whether parser think whether there is already counterpart closing parenthesis
-            var pair = token.Parent.GetParentheses();
+            var (openBrace, closeBrace) = token.Parent.GetParentheses();
 
             // if pair is on the same line, then the closing parenthesis must belong to other tracker.
             // let it through
-            if (snapshot.GetLineNumberFromPosition(pair.openBrace.SpanStart) == snapshot.GetLineNumberFromPosition(pair.closeBrace.Span.End))
+            if (snapshot.GetLineNumberFromPosition(openBrace.SpanStart) == snapshot.GetLineNumberFromPosition(closeBrace.Span.End))
             {
                 return true;
             }
 
-            return (int)pair.closeBrace.Kind() != ClosingTokenKind || pair.closeBrace.Span.Length == 0;
+            return (int)closeBrace.Kind() != ClosingTokenKind || closeBrace.Span.Length == 0;
         }
     }
 }

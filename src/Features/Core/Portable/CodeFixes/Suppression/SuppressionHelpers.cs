@@ -18,6 +18,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
         }
 
+        public static bool CanBeSuppressedWithAttribute(Diagnostic diagnostic)
+        {
+            if (IsCompilerDiagnostic(diagnostic))
+            {
+                return false;
+            }
+
+            // IDE0055 cannot be suppressed with an attribute because the formatter implementation only adheres to
+            // pragma-based source suppressions.
+            return diagnostic.Id != IDEDiagnosticIds.FormattingDiagnosticId;
+        }
+
         public static bool CanBeUnsuppressed(Diagnostic diagnostic)
         {
             return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: false);

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal Diagnostic ToDiagnostic(SyntaxTree tree)
         {
-            var descriptor = RudeEditDiagnosticDescriptors.GetDescriptor(Kind);
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(Kind);
             return Diagnostic.Create(descriptor, tree.GetLocation(Span), Arguments);
         }
     }

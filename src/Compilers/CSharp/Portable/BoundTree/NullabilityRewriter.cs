@@ -51,15 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
-#pragma warning disable IDE0055 // Fix formatting
-                // https://github.com/dotnet/roslyn/issues/35031: We'll need to update the symbols for the internal methods/operators used in the binary operators
                 currentBinary = currentBinary switch
-                    {
-                        BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
-                        BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
-                        _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
-                    };
-#pragma warning restore IDE0055 // Fix formatting
+                {
+                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, GetUpdatedSymbol(binary, binary.MethodOpt), binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
+                };
 
                 if (foundInfo)
                 {
@@ -74,23 +72,123 @@ namespace Microsoft.CodeAnalysis.CSharp
             return currentBinary!;
         }
 
-        public override BoundNode? VisitCall(BoundCall node)
+        private T GetUpdatedSymbol<T>(BoundNode expr, T sym) where T : Symbol?
         {
-            BoundExpression? receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
-            ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
-            BoundCall updatedNode;
+            if (sym is null) return sym;
 
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType) &&
-                _updatedMethodSymbols.TryGetValue(node, out MethodSymbol updatedMethodSymbol))
+            Symbol? updatedSymbol = null;
+            if (_snapshotManager?.TryGetUpdatedSymbol(expr, sym, out updatedSymbol) != true)
             {
-                updatedNode = node.Update(receiverOpt, updatedMethodSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.OriginalMethodsOpt, node.BinderOpt, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
+                updatedSymbol = sym;
+            }
+            RoslynDebug.Assert(updatedSymbol is object);
+
+            switch (updatedSymbol)
+            {
+                case LambdaSymbol lambda:
+                    return (T)remapLambda((BoundLambda)expr, lambda);
+
+                case SourceLocalSymbol local:
+                    return (T)remapLocal(local);
+
+                case ParameterSymbol param:
+                    if (_remappedSymbols.TryGetValue(param, out var updatedParam))
+                    {
+                        return (T)updatedParam;
+                    }
+                    break;
+            }
+
+            return (T)updatedSymbol;
+
+            Symbol remapLambda(BoundLambda boundLambda, LambdaSymbol lambda)
+            {
+                var updatedDelegateType = _snapshotManager?.GetUpdatedDelegateTypeForLambda(lambda);
+
+                if (!_remappedSymbols.TryGetValue(lambda.ContainingSymbol, out Symbol? updatedContaining) && updatedDelegateType is null)
+                {
+                    return lambda;
+                }
+
+                LambdaSymbol updatedLambda;
+                if (updatedDelegateType is null)
+                {
+                    Debug.Assert(updatedContaining is object);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, lambda.RefKind);
+                }
+                else
+                {
+                    Debug.Assert(updatedDelegateType is object);
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedDelegateType, updatedContaining ?? lambda.ContainingSymbol);
+                }
+
+                _remappedSymbols.Add(lambda, updatedLambda);
+
+                Debug.Assert(lambda.ParameterCount == updatedLambda.ParameterCount);
+                for (int i = 0; i < lambda.ParameterCount; i++)
+                {
+                    _remappedSymbols.Add(lambda.Parameters[i], updatedLambda.Parameters[i]);
+                }
+
+                return updatedLambda;
+            }
+
+            Symbol remapLocal(SourceLocalSymbol local)
+            {
+                if (_remappedSymbols.TryGetValue(local, out var updatedLocal))
+                {
+                    return updatedLocal;
+                }
+
+                var updatedType = _snapshotManager?.GetUpdatedTypeForLocalSymbol(local);
+
+                if (!_remappedSymbols.TryGetValue(local.ContainingSymbol, out Symbol? updatedContaining) && !updatedType.HasValue)
+                {
+                    // Map the local to itself so we don't have to search again in the future
+                    _remappedSymbols.Add(local, local);
+                    return local;
+                }
+
+                updatedLocal = new UpdatedContainingSymbolAndNullableAnnotationLocal(local, updatedContaining ?? local.ContainingSymbol, updatedType ?? local.TypeWithAnnotations);
+                _remappedSymbols.Add(local, updatedLocal);
+                return updatedLocal;
+            }
+        }
+
+        private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?
+        {
+            if (symbols.IsDefaultOrEmpty)
+            {
+                return symbols;
+            }
+
+            var builder = ArrayBuilder<T>.GetInstance(symbols.Length);
+            bool foundUpdate = false;
+            foreach (var originalSymbol in symbols)
+            {
+                T updatedSymbol = null!;
+                if (originalSymbol is object)
+                {
+                    updatedSymbol = GetUpdatedSymbol(expr, originalSymbol);
+                    Debug.Assert(updatedSymbol is object);
+                    if ((object)originalSymbol != updatedSymbol)
+                    {
+                        foundUpdate = true;
+                    }
+                }
+
+                builder.Add(updatedSymbol);
+            }
+
+            if (foundUpdate)
+            {
+                return builder.ToImmutableAndFree();
             }
             else
             {
-                updatedNode = node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.OriginalMethodsOpt, node.BinderOpt, node.Type);
+                builder.Free();
+                return symbols;
             }
-            return updatedNode;
         }
     }
 }

@@ -616,5 +616,68 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "A");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation_AssignedNull()
+        {
+            var markup =
+@"#nullable enable
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            object? o = null;
+            o = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableTypeCreation_NestedNull()
+        {
+            var markup =
+@"#nullable enable
+
+using System.Collections.Generic;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {
+        void M()
+        {
+            List<object?> l;
+            l = new $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "List<object?>");
+        }
     }
 }

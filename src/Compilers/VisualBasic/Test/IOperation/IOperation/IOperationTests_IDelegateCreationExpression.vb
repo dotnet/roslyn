@@ -3779,7 +3779,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub DelegateCreationExpression_DelegateCreationAdressOfArgument_MultipleArgumentsToConstructor()
+        Public Sub DelegateCreationExpression_DelegateCreationAddressOfArgument_MultipleArgumentsToConstructor()
             Dim source = <![CDATA[
 Option Strict On
 Imports System

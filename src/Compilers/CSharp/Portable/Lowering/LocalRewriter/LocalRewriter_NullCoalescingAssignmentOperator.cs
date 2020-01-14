@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the standard ??= case because it only uses lhsRead once.
                 if (lhsRead.Kind == BoundKind.Call)
                 {
-                    var lhsTemp = _factory.StoreToTemp(lhsRead, out var store, kind: SynthesizedLocalKind.Spill);
+                    var lhsTemp = _factory.StoreToTemp(lhsRead, out var store);
                     stores.Add(store);
                     temps.Add(lhsTemp.LocalSymbol);
                     lhsRead = lhsTemp;
@@ -94,8 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // tmp = lhsRead.GetValueOrDefault();
                 var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, getValueOrDefault),
-                                               out var getValueOrDefaultStore,
-                                               kind: SynthesizedLocalKind.Spill);
+                                               out var getValueOrDefaultStore);
 
                 stores.Add(getValueOrDefaultStore);
                 temps.Add(tmp.LocalSymbol);

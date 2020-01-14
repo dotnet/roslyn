@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
     internal abstract partial class CSharpTypeStyleHelper
     {
-        protected abstract bool IsStylePreferred(
-            SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken);
+        protected abstract bool IsStylePreferred(in State state);
 
         public virtual TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
@@ -65,9 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return default;
             }
 
-            var state = State.Generate(
+            var state = new State(
                 declaration, semanticModel, optionSet, cancellationToken);
-            var isStylePreferred = this.IsStylePreferred(semanticModel, optionSet, state, cancellationToken);
+            var isStylePreferred = this.IsStylePreferred(in state);
             var severity = state.GetDiagnosticSeverityPreference();
 
             return new TypeStyleResult(
@@ -83,23 +82,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             Debug.Assert(node.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
-            switch (node)
+            return node switch
             {
-                case VariableDeclarationSyntax variableDeclaration:
-                    return ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken)
-                        ? variableDeclaration.Type
-                        : null;
-                case ForEachStatementSyntax forEachStatement:
-                    return ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken)
-                        ? forEachStatement.Type
-                        : null;
-                case DeclarationExpressionSyntax declarationExpression:
-                    return ShouldAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken)
-                        ? declarationExpression.Type
-                        : null;
-            }
-
-            return null;
+                VariableDeclarationSyntax variableDeclaration => ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken)
+                    ? variableDeclaration.Type
+                    : null,
+                ForEachStatementSyntax forEachStatement => ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken)
+                    ? forEachStatement.Type
+                    : null,
+                DeclarationExpressionSyntax declarationExpression => ShouldAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken)
+                    ? declarationExpression.Type
+                    : null,
+                _ => null,
+            };
         }
 
         protected virtual bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)

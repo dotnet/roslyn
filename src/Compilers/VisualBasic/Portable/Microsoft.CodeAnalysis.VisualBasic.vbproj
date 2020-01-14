@@ -43,11 +43,10 @@
     <Compile Remove="Symbols\EmbeddedSymbols\VbMyTemplateText.vb" />
   </ItemGroup>
   <ItemGroup>
-    <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
-      <SubType>Designer</SubType>
-    </BoundTreeDefinition>
+    <None Include="BoundTree\BoundNodes.xml" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <None Include="Generated\VisualBasic.Grammar.g4" />
     <None Include="Symbols\SymbolsAndNoPia.docx" />
     <None Include="Syntax\Syntax.xml" />
     <None Include="Errors\Errors.vb" />

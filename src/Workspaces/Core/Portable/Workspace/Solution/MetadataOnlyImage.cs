@@ -42,40 +42,38 @@ namespace Microsoft.CodeAnalysis
                 {
                     // TODO: make it to use SerializableBytes.WritableStream rather than MemoryStream so that
                     //       we don't allocate anything for skeleton assembly.
-                    using (var stream = SerializableBytes.CreateWritableStream())
+                    using var stream = SerializableBytes.CreateWritableStream();
+                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
+                    // * REVIEW * is cloning clone p2p reference compilation as well?
+                    var emitResult = compilation.Clone().Emit(stream, options: s_emitOptions, cancellationToken: cancellationToken);
+
+                    if (emitResult.Success)
                     {
-                        // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                        // * REVIEW * is cloning clone p2p reference compilation as well?
-                        var emitResult = compilation.Clone().Emit(stream, options: s_emitOptions, cancellationToken: cancellationToken);
+                        workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                        var storage = service.CreateTemporaryStreamStorage(cancellationToken);
 
-                        if (emitResult.Success)
+                        stream.Position = 0;
+                        storage.WriteStream(stream, cancellationToken);
+
+                        return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                    }
+                    else
+                    {
+                        workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+
+                        foreach (var diagnostic in emitResult.Diagnostics)
                         {
-                            workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
-                            var storage = service.CreateTemporaryStreamStorage(cancellationToken);
-
-                            stream.Position = 0;
-                            storage.WriteStream(stream, cancellationToken);
-
-                            return new MetadataOnlyImage(storage, compilation.AssemblyName);
+                            workspace.LogTestMessage("  " + diagnostic.GetMessage());
                         }
-                        else
+
+                        // log emit failures so that we can improve most common cases
+                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
                         {
-                            workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
-
-                            foreach (var diagnostic in emitResult.Diagnostics)
-                            {
-                                workspace.LogTestMessage("  " + diagnostic.GetMessage());
-                            }
-
-                            // log emit failures so that we can improve most common cases
-                            Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
-                            {
-                                // log errors in the format of
-                                // CS0001:1;CS002:10;...
-                                var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
-                                m["Errors"] = string.Join(";", groups);
-                            }));
-                        }
+                            // log errors in the format of
+                            // CS0001:1;CS002:10;...
+                            var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                            m["Errors"] = string.Join(";", groups);
+                        }));
                     }
                 }
             }
@@ -103,10 +101,9 @@ namespace Microsoft.CodeAnalysis
 
             // first see whether we can use native memory directly.
             var stream = _storage.ReadStream();
-            var supportNativeMemory = stream as ISupportDirectMemoryAccess;
             AssemblyMetadata metadata;
 
-            if (supportNativeMemory != null)
+            if (stream is ISupportDirectMemoryAccess supportNativeMemory)
             {
                 // this is unfortunate that if we give stream, compiler will just re-copy whole content to 
                 // native memory again. this is a way to get around the issue by we getting native memory ourselves and then

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         event EventHandler<ProgressData> ProgressChanged;
     }
 
-    internal struct ProgressData
+    internal readonly struct ProgressData
     {
         public ProgressStatus Status { get; }
 
@@ -46,6 +46,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         Paused,
         PendingItemCountUpdated,
         Evaluating,
-        Stoped
+        Stopped
     }
 }

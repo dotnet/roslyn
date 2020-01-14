@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
-        /// namespce to be changed. If this reference is the right side of a qualified name, the new node returned would
+        /// namespace to be changed. If this reference is the right side of a qualified name, the new node returned would
         /// be the entire qualified name. Depends on whether <paramref name="newNamespaceParts"/> is provided, the name 
         /// in the new node might be qualified with this new namespace instead.
         /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated 
+        /// <param name="reference">A reference to a type declared inside the namespace to be changed, which is calculated 
         /// based on results from `SymbolFinder.FindReferencesAsync`.</param>
         /// <param name="newNamespaceParts">If specified, the namespace of original reference will be replaced with given 
         /// namespace in the replacement node.</param>
@@ -85,6 +85,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         private static bool IsValidContainer(SyntaxNode container)
             => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
+
+        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+            => parts.Length == 1 && parts[0].Length == 0;
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 // After changing documents, we still need to remove unnecessary imports related to our change.
                 // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
-                // just ones that fully matche the old/new namespace. Because it's hard to get it right and will almost 
+                // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
                 // certainly cause perf issue.
                 // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
                 // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
@@ -188,7 +191,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ImmutableArray.Create(declaredNamespace, targetNamespace),
                     cancellationToken).ConfigureAwait(false);
 
-                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                var mergedSolution = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                (_, mergedSolution) = await mergedSolution.ExcludeDisallowedDocumentTextChangesAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                return mergedSolution;
             }
             finally
             {
@@ -281,7 +287,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // TODO: figure out how to properly determine if and how a document is linked using project system.
 
-            // If we found a linked document which is part of a project with differenct project file,
+            // If we found a linked document which is part of a project with different project file,
             // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
             if (linkedDocumentIds.Any(id =>
                     !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
@@ -376,7 +382,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // Separating references to declaredSymbols into two groups based on wheter it's located in the same 
+            // Separating references to declaredSymbols into two groups based on whether it's located in the same 
             // document as the namespace declaration. This is because code change required for them are different.
             var refLocationsInCurrentDocument = new List<LocationForAffectedSymbol>();
             var refLocationsInOtherDocuments = new List<LocationForAffectedSymbol>();
@@ -783,7 +789,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 

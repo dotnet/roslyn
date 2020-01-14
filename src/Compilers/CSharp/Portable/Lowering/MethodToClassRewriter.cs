@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly DiagnosticBag Diagnostics;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
 
+        private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
+
         protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
@@ -56,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
             this.slotAllocatorOpt = slotAllocatorOpt;
+            this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
         }
 
         /// <summary>
@@ -356,16 +359,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.VisitLocal(node);
         }
 
-        public override BoundNode VisitAwaitExpression(BoundAwaitExpression node)
+        public override BoundNode VisitAwaitableInfo(BoundAwaitableInfo node)
         {
-            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            TypeSymbol type = this.VisitType(node.Type);
+            var awaitablePlaceholder = node.AwaitableInstancePlaceholder;
+            if (awaitablePlaceholder is null)
+            {
+                return node;
+            }
 
-            AwaitableInfo info = node.AwaitableInfo;
-            return node.Update(
-                expression,
-                info.Update(VisitMethodSymbol(info.GetAwaiter), VisitPropertySymbol(info.IsCompleted), VisitMethodSymbol(info.GetResult)),
-                type);
+            var rewrittenPlaceholder = awaitablePlaceholder.Update(awaitablePlaceholder.ValEscape, VisitType(awaitablePlaceholder.Type));
+            _placeholderMap.Add(awaitablePlaceholder, rewrittenPlaceholder);
+
+            var getAwaiter = (BoundExpression)this.Visit(node.GetAwaiter);
+            var isCompleted = VisitPropertySymbol(node.IsCompleted);
+            var getResult = VisitMethodSymbol(node.GetResult);
+
+            _placeholderMap.Remove(awaitablePlaceholder);
+
+            return node.Update(rewrittenPlaceholder, node.IsDynamic, getAwaiter, isCompleted, getResult);
+        }
+
+        public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return _placeholderMap[node];
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -504,39 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (method.IsTupleMethod)
-            {
-                //  Method of a tuple type
-                var oldType = method.ContainingType;
-                var constructedFrom = method.ConstructedFrom;
-                Debug.Assert(oldType.IsTupleType);
-
-                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(oldType).AsTypeSymbolOnly();
-                if ((object)newType == oldType)
-                {
-                    //  tuple type symbol was not rewritten
-                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
-                }
-
-                Debug.Assert(newType.IsTupleType);
-                Debug.Assert(oldType.TupleElementTypesWithAnnotations.Length == newType.TupleElementTypesWithAnnotations.Length);
-
-                //  get a new method by position
-                var oldMembers = oldType.GetMembers();
-                var newMembers = newType.GetMembers();
-                Debug.Assert(oldMembers.Length == newMembers.Length);
-
-                for (int i = 0; i < oldMembers.Length; i++)
-                {
-                    if ((object)constructedFrom == oldMembers[i])
-                    {
-                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArgumentsWithAnnotations));
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable;
-            }
-            else if (method.ContainingType.IsAnonymousType)
+            if (method.ContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();

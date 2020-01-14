@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,7 @@ namespace Roslyn.Utilities
         /// unnecessary boxing operations.  Unfortunately, we can't constrain
         /// T to "non-enum", so we'll use a more restrictive constraint.
         /// </summary>
-        internal static int Combine<T>(T newKeyPart, int currentKey) where T : class
+        internal static int Combine<T>(T newKeyPart, int currentKey) where T : class?
         {
             int hash = unchecked(currentKey * (int)0xA5555529);
 
@@ -40,7 +42,7 @@ namespace Roslyn.Utilities
             return hash;
         }
 
-        internal static int CombineValues<T>(IEnumerable<T> values, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues<T>(IEnumerable<T>? values, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
             {
@@ -66,7 +68,7 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-        internal static int CombineValues<T>(T[] values, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues<T>(T[]? values, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
             {
@@ -116,7 +118,7 @@ namespace Roslyn.Utilities
             return hashCode;
         }
 
-        internal static int CombineValues(IEnumerable<string> values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
+        internal static int CombineValues(IEnumerable<string?>? values, StringComparer stringComparer, int maxItemsToHash = int.MaxValue)
         {
             if (values == null)
             {
@@ -223,22 +225,32 @@ namespace Roslyn.Utilities
         /// fit into 8-bits and, therefore, the algorithm will retain its desirable traits
         /// for generating hash codes.
         /// </summary>
+        internal static int GetFNVHashCode(ReadOnlySpan<char> data)
+        {
+            int hashCode = Hash.FnvOffsetBias;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                hashCode = unchecked((hashCode ^ data[i]) * Hash.FnvPrime);
+            }
+
+            return hashCode;
+        }
+
+        /// <summary>
+        /// Compute the hashcode of a sub-string using FNV-1a
+        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+        /// Note: FNV-1a was developed and tuned for 8-bit sequences. We're using it here
+        /// for 16-bit Unicode chars on the understanding that the majority of chars will
+        /// fit into 8-bits and, therefore, the algorithm will retain its desirable traits
+        /// for generating hash codes.
+        /// </summary>
         /// <param name="text">The input string</param>
         /// <param name="start">The start index of the first character to hash</param>
         /// <param name="length">The number of characters, beginning with <paramref name="start"/> to hash</param>
         /// <returns>The FNV-1a hash code of the substring beginning at <paramref name="start"/> and ending after <paramref name="length"/> characters.</returns>
         internal static int GetFNVHashCode(string text, int start, int length)
-        {
-            int hashCode = Hash.FnvOffsetBias;
-            int end = start + length;
-
-            for (int i = start; i < end; i++)
-            {
-                hashCode = unchecked((hashCode ^ text[i]) * Hash.FnvPrime);
-            }
-
-            return hashCode;
-        }
+            => GetFNVHashCode(text.AsSpan(start, length));
 
         internal static int GetCaseInsensitiveFNVHashCode(string text)
         {

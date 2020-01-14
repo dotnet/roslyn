@@ -437,7 +437,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="ImportsClauses" optional="true" list="true" separator-kind="CommaToken" separator-name="Commas" kind="@ImportsClauseSyntax">
+      <child name="ImportsClauses" optional="true" list="true" separator-kind="CommaToken" separator-name="Commas" kind="@ImportsClauseSyntax" min-count="1">
         <description>A list of one or more import clauses. Each clause is either an alias, namespace or XML namespace import.</description>
         <lm-equiv name="Imports"></lm-equiv>
         <native-equiv name="Imports"></native-equiv>
@@ -771,7 +771,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "Inherits" keyword.</description>
       </child>
 
-      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayTypeName">
+      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayTypeName" min-count="1">
         <description>A list of the types being inherited.</description>
       </child>
     </node-structure>
@@ -787,7 +787,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "Implements" keyword.</description>
       </child>
 
-      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayTypeName">
+      <child name="Types" list="true" separator-kind="CommaToken" separator-name="Commas" kind="NonArrayTypeName" min-count="1">
         <description>A list of the types being implemented.</description>
       </child>
     </node-structure>
@@ -990,7 +990,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="GenericOf"></native-equiv>
       </child>
 
-      <child name="Parameters" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="TypeParameter">
+      <child name="Parameters" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="TypeParameter" min-count="1">
         <description>A list of the type parameters. There must be at least one type parameter in the list.</description>
         <lm-equiv name="GenericParameters"></lm-equiv>
         <native-equiv name="GenericParameters"></native-equiv>
@@ -1093,7 +1093,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="LeftBrace"></native-equiv>
       </child>
 
-      <child name="Constraints" list="true" separator-kind="CommaToken" separator-name="Commas" kind="@ConstraintSyntax">
+      <child name="Constraints" list="true" separator-kind="CommaToken" separator-name="Commas" kind="@ConstraintSyntax" min-count="1">
         <description>A list of the supplied constraints. If no constraints were supplied, an empty list is returned.</description>
         <lm-equiv name="Constraints"></lm-equiv>
         <native-equiv name="Constraints"></native-equiv>
@@ -1943,7 +1943,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="MethodDeclarationStatement.HandlesOrImplements"></native-equiv>
       </child>
 
-      <child name="Events" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="HandlesClauseItem">
+      <child name="Events" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="HandlesClauseItem" min-count="1">
         <description>The list of event members being handled.</description>
         <lm-equiv name="MethodNode.Handles"></lm-equiv>
         <native-equiv name="MethodDeclarationStatement.Handles"></native-equiv>
@@ -2112,7 +2112,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Specifiers"></native-equiv>
       </child>
 
-      <child name="Declarators" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="VariableDeclarator">
+      <child name="Declarators" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="VariableDeclarator" min-count="1">
         <description>
           The list of variable declarator. Each declarator specifies one or more variable names along
           with a type and/or initializer.
@@ -2143,7 +2143,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="VariableDeclaration.Opcodes.WithNew"></native-equiv>
       </node-kind>
 
-      <child name="Names" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="ModifiedIdentifier">
+      <child name="Names" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="ModifiedIdentifier" min-count="1">
         <description>The names of the variables being declared. Each name might have a "?" or "()" modifier(s) attached.</description>
         <lm-equiv name="Declarators"></lm-equiv>
         <native-equiv name="Variable"></native-equiv>
@@ -2565,7 +2565,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Attributes" optional="true" separator-kind="CommaToken" separator-name="CommaTokens" list="true" kind="Attribute">
+      <child name="Attributes" optional="true" separator-kind="CommaToken" separator-name="CommaTokens" list="true" kind="Attribute" min-count="1">
         <description>A comma separated list of attribute declarations in this attribute list.</description>
         <lm-equiv name="Attributes"></lm-equiv>
         <native-equiv name="Values"></native-equiv>
@@ -2864,7 +2864,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Specifiers"></native-equiv>
       </child>
 
-      <child name="Declarators" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="VariableDeclarator">
+      <child name="Declarators" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="VariableDeclarator" min-count="1">
         <description>
           The list of variable declarator. Each declarator specifies one or more variable names along
           with a type and/or initializer.
@@ -3895,7 +3895,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Cases" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@CaseClauseSyntax">
+      <child name="Cases" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@CaseClauseSyntax" min-count="1">
         <description>
           A list of clauses associated with this Case. If Kind=CaseElse, then this list has exactly one child,
           which is a ElseCaseClause.
@@ -4911,7 +4911,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Expressions" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ExpressionSyntax">
+      <child name="Expressions" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@ExpressionSyntax" min-count="1">
         <description>A list of expressions denoting the arrays to erase.</description>
         <lm-equiv name="Arrays"></lm-equiv>
         <native-equiv name="Arrays"></native-equiv>
@@ -5049,7 +5049,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "(" token</description>
       </child>
 
-      <child name="Arguments" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@SimpleArgumentSyntax">
+      <child name="Arguments" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@SimpleArgumentSyntax" min-count="2">
         <description>The list of tuple arguments.</description>
       </child>
       
@@ -5072,7 +5072,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "(" token</description>
       </child>
 
-      <child name="Elements" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TupleElementSyntax">
+      <child name="Elements" optional="false" list="true" optional-elements="false" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TupleElementSyntax" min-count="2">
         <description>The list of tuple elements.</description>
       </child>
       
@@ -6591,7 +6591,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="CollectionRangeVariable">
+      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="CollectionRangeVariable" min-count="1">
         <description>The list of collection variables declared by this From operator.</description>
         <lm-equiv name="Items"></lm-equiv>
         <native-equiv name="FromItems"></native-equiv>
@@ -6622,7 +6622,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="ExpressionRangeVariable">
+      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="ExpressionRangeVariable" min-count="1">
         <description>The list of expression range variable being defined by the Let operator.</description>
         <lm-equiv name="Items"></lm-equiv>
         <native-equiv name="FromItems"></native-equiv>
@@ -6650,7 +6650,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="CollectionRangeVariable">
+      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="CollectionRangeVariable" min-count="1">
         <description>The list of collection range variables declared by this Aggregate operator.</description>
         <lm-equiv name="Items"></lm-equiv>
         <native-equiv name="FromItems"></native-equiv>
@@ -6666,7 +6666,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="AggregationVariables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="AggregationRangeVariable">
+      <child name="AggregationVariables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="AggregationRangeVariable" min-count="1">
         <description>The list of new variables being defined by the aggregation. </description>
         <lm-equiv name="Projection"></lm-equiv>
         <native-equiv name="Projection"></native-equiv>
@@ -6819,7 +6819,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Items" list="true" optional="true" separator-kind="CommaToken" separator-name="ItemCommas" kind="ExpressionRangeVariable">
+      <child name="Items" list="true" optional="true" separator-kind="CommaToken" separator-name="ItemCommas" kind="ExpressionRangeVariable" min-count="1">
         <description>The optional list of variables being grouped; the contents of the Group clause. If none were specified, an empty list is returned.</description>
         <lm-equiv name="Items"></lm-equiv>
         <native-equiv name="Element"></native-equiv>
@@ -6832,7 +6832,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="HaveBy"></native-equiv>
       </child>
 
-      <child name="Keys" list="true" separator-kind="CommaToken" separator-name="KeyCommas" kind="ExpressionRangeVariable">
+      <child name="Keys" list="true" separator-kind="CommaToken" separator-name="KeyCommas" kind="ExpressionRangeVariable" min-count="1">
         <description>The key values being used for grouping.</description>
         <lm-equiv name="Keys"></lm-equiv>
         <native-equiv name="Key"></native-equiv>
@@ -6844,7 +6844,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="AggregationVariables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="AggregationRangeVariable">
+      <child name="AggregationVariables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="AggregationRangeVariable" min-count="1">
         <description>The list of new variables that calculate aggregations. </description>
         <lm-equiv name="Projection"></lm-equiv>
         <native-equiv name="Projection"></native-equiv>
@@ -6863,7 +6863,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="JoinedVariables" order="1" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="CollectionRangeVariable">
+      <child name="JoinedVariables" order="1" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="CollectionRangeVariable" min-count="1">
         <description>Defines the collection range variables being joined to. </description>
         <lm-equiv name="JoinTo"></lm-equiv>
         <native-equiv name="JoinTo"></native-equiv>
@@ -6882,7 +6882,7 @@ Unify Enum declarations with other block type declarations.
       </child>
 
       <!-- We need separatedSyntaxList to have Token separators.-->
-      <child name="JoinConditions" order="1" list="true" separator-kind="AndKeyword" kind="JoinCondition">
+      <child name="JoinConditions" order="1" list="true" separator-kind="AndKeyword" kind="JoinCondition" min-count="1">
         <description>
           The conditions indicating what expressions to compare during the join. Each condition is a JoinCondition, and
           the separators are "And" keywords.
@@ -6959,7 +6959,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="Into"></native-equiv>
       </child>
 
-      <child name="AggregationVariables" order="2" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="AggregationRangeVariable">
+      <child name="AggregationVariables" order="2" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="AggregationRangeVariable" min-count="1">
         <description>The list of new variables that calculate aggregations. </description>
         <lm-equiv name="Projection"></lm-equiv>
         <native-equiv name="Projection"></native-equiv>
@@ -6993,7 +6993,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Orderings" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@OrderingSyntax">
+      <child name="Orderings" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@OrderingSyntax" min-count="1">
         <description>The list of OrderExpression's to sort by.</description>
         <lm-equiv name="Items"></lm-equiv>
         <native-equiv name="OrderByItems"></native-equiv>
@@ -7059,7 +7059,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="ExpressionRangeVariable">
+      <child name="Variables" list="true" separator-kind="CommaToken" separator-name="VariableCommas" kind="ExpressionRangeVariable" min-count="1">
         <description>The list of expression range variables being defined by the Select query operator.</description>
         <lm-equiv name="Projection"></lm-equiv>
         <native-equiv name="Projection"></native-equiv>
@@ -7629,7 +7629,7 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="OfKeyword"></lm-equiv>
         <native-equiv name=""></native-equiv>
       </child>
-      <child name="Arguments" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TypeSyntax">
+      <child name="Arguments" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TypeSyntax" min-count="1">
         <description>A list of all the type arguments.</description>
         <lm-equiv name="Arguments"></lm-equiv>
         <native-equiv name="Arguments"></native-equiv>

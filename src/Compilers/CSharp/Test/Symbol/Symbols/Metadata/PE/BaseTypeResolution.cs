@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             foreach (var arg in varCorTypes_Derived.BaseType().TypeArguments())
             {
-                Assert.IsType<MissingMetadataTypeSymbol>(arg);
+                Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(arg);
             }
         }
 

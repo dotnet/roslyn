@@ -51,6 +51,49 @@ class MyClass
         }
 
         [Fact]
+        public async Task TestNeedsIndentationButSuppressed()
+        {
+            var testCode = @"
+class MyClass
+{
+  $$void MyMethod1()
+  $${
+  $$}
+
+#pragma warning disable format
+		void MyMethod2()
+  {
+  }
+#pragma warning restore format
+
+  void MyMethod3()
+  $${
+  $$}
+}
+";
+            var fixedCode = @"
+class MyClass
+{
+    void MyMethod1()
+    {
+    }
+
+#pragma warning disable format
+		void MyMethod2()
+  {
+  }
+#pragma warning restore format
+
+  void MyMethod3()
+    {
+    }
+}
+";
+
+            await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+        }
+
+        [Fact]
         public async Task TestWhitespaceBetweenMethods1()
         {
             var testCode = @"

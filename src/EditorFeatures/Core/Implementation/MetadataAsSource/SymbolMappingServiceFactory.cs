@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             public Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
             {
-                var workspace = document.Project.Solution.Workspace as MetadataAsSourceWorkspace;
-                if (workspace == null)
+                if (!(document.Project.Solution.Workspace is MetadataAsSourceWorkspace workspace))
                 {
                     throw new ArgumentException(EditorFeaturesResources.Document_must_be_contained_in_the_workspace_that_created_this_service, nameof(document));
                 }

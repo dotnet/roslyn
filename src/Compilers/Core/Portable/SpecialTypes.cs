@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] s_emittedNames = new string[]
+        private static readonly string?[] s_emittedNames = new string?[]
         {
             // The following things should be in sync:
             // 1) SpecialType enum
@@ -81,8 +83,10 @@ namespace Microsoft.CodeAnalysis
 
             for (i = 1; i < s_emittedNames.Length; i++)
             {
-                Debug.Assert(s_emittedNames[i].IndexOf('+') < 0); // Compilers aren't prepared to lookup for a nested special type.
-                s_nameToTypeIdMap.Add(s_emittedNames[i], (SpecialType)i);
+                string? name = s_emittedNames[i];
+                RoslynDebug.Assert(name is object);
+                Debug.Assert(name.IndexOf('+') < 0); // Compilers aren't prepared to lookup for a nested special type.
+                s_nameToTypeIdMap.Add(name, (SpecialType)i);
             }
 
             s_typeIdToTypeCodeMap = new Microsoft.Cci.PrimitiveTypeCode[(int)SpecialType.Count + 1];
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the name of the special type as it would appear in metadata.
         /// </summary>
-        public static string GetMetadataName(this SpecialType id)
+        public static string? GetMetadataName(this SpecialType id)
         {
             return s_emittedNames[(int)id];
         }

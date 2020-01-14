@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     {
                         case ExpressionSyntax expression:
                             // If we reached here, it means we have a sub-expression that
-                            // does not garantee definite assignment. We should make sure that
+                            // does not guarantee definite assignment. We should make sure that
                             // the pattern variable is not used outside of the expression boundaries.
                             return CheckExpression(expression);
 

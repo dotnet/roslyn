@@ -84,18 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
                         document, root, declaration, helper,
-                        useExpressionBody: true, cancellationToken: c)));
+                        useExpressionBody: true, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 
             var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
             if (canOffer)
             {
-                context.RegisterRefactoring(new MyCodeAction(
-                    helper.UseBlockBodyTitle.ToString(),
-                    c => UpdateDocumentAsync(
-                        document, root, declaration, helper,
-                        useExpressionBody: false, cancellationToken: c)));
+                context.RegisterRefactoring(
+                    new MyCodeAction(
+                        helper.UseBlockBodyTitle.ToString(),
+                        c => UpdateDocumentAsync(
+                            document, root, declaration, helper,
+                            useExpressionBody: false, cancellationToken: c)),
+                    declaration.Span);
                 succeeded = true;
             }
 

@@ -23,5 +23,6 @@ src/Setup/ @dotnet/roslyn-infrastructure
 src/Tools/ @dotnet/roslyn-infrastructure
 src/Tools/Source/CompilerGeneratorTools/ @dotnet/roslyn-compiler
 src/VisualStudio/ @dotnet/roslyn-ide
+src/VisualStudio/LiveShare @dotnet/roslyn-ide @daytonellwanger @srivatsn @aletsdelarosa
 src/Workspaces/ @dotnet/roslyn-ide
 

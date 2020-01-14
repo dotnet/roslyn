@@ -202,7 +202,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     visited.Type.Equals(node.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
                     IsUnusedDeconstruction(node));
 
-            if (visited != null && visited != node)
+            if (visited != null &&
+                visited != node &&
+                node.Kind != BoundKind.ImplicitReceiver &&
+                node.Kind != BoundKind.ObjectOrCollectionValuePlaceholder)
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -284,8 +287,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node)
+        {
+            if (_inExpressionLambda)
+            {
+                // Expression trees do not include the 'this' argument for members.
+                return node;
+            }
             return PlaceholderReplacement(node);
         }
 
@@ -563,23 +581,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
-                // array[Index] is compiled to:
-                // array[Index.GetOffset(array.Length)]
+                // array[Index] is treated like a pattern-based System.Index indexing
+                // expression, except that array indexers don't actually exist (they
+                // don't have symbols)
 
                 var arrayLocal = F.StoreToTemp(
                     VisitExpression(node.Expression),
                     out BoundAssignmentOperator arrayAssign);
+
+                var indexOffsetExpr = MakePatternIndexOffsetExpression(
+                    node.Indices[0],
+                    F.ArrayLength(arrayLocal),
+                    out _);
 
                 resultExpr = F.Sequence(
                     ImmutableArray.Create(arrayLocal.LocalSymbol),
                     ImmutableArray.Create<BoundExpression>(arrayAssign),
                     F.ArrayAccess(
                         arrayLocal,
-                        ImmutableArray.Create<BoundExpression>(
-                            F.Call(
-                                VisitExpression(node.Indices[0]),
-                                WellKnownMember.System_Index__GetOffset,
-                                F.ArrayLength(arrayLocal)))));
+                        ImmutableArray.Create(indexOffsetExpr)));
             }
             else if (TypeSymbol.Equals(
                 indexType,
@@ -845,13 +865,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+            public override BoundNode VisitDefaultLiteral(BoundDefaultLiteral node)
             {
                 Fail(node);
                 return null;
             }
 
-            public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+            public override BoundNode VisitUsingStatement(BoundUsingStatement node)
             {
                 Fail(node);
                 return null;

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (ExecutionConditionUtil.IsWindowsDesktop)
             {
-                // The destkop ilasm is still necessary because a number of our tests depend on being able to 
+                // The desktop ilasm is still necessary because a number of our tests depend on being able to 
                 // emit PDB files for net modules. That feature is not available on coreclr ilasm.
                 return Path.Combine(
                     Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),

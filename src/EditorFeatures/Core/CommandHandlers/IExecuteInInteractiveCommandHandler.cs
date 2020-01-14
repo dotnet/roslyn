@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     /// without actually being instantiated as all other command handlers.
     /// </summary>
     internal interface IExecuteInInteractiveCommandHandler
-        : VSCommanding.ICommandHandler<ExecuteInInteractiveCommandArgs>
+        : ICommandHandler<ExecuteInInteractiveCommandArgs>
     {
     }
 }

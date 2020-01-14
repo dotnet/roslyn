@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     {
         public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken, cancellationToken))
+            if (context.SyntaxTree.IsTypeParameterConstraintContext(position, context.LeftToken))
             {
                 return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("notnull")));
             }

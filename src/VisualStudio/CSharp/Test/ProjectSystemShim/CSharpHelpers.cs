@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -62,7 +63,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         public static unsafe void SetOption(this CSharpProjectShim csharpProject, CompilerOptions optionID, object value)
         {
-            Assert.Equal(8 + 2 * IntPtr.Size, sizeof(HACK_VariantStructure));
+            Assert.Equal(sizeof(HACK_VariantStructure), 8 + 2 * IntPtr.Size);
             Assert.Equal(8, (int)Marshal.OffsetOf<HACK_VariantStructure>("_booleanValue"));
 
             HACK_VariantStructure variant = default;
@@ -133,7 +134,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         private class MockCSharpProjectRoot : ICSharpProjectRoot
         {
-            private IVsHierarchy _hierarchy;
+            private readonly IVsHierarchy _hierarchy;
 
             public MockCSharpProjectRoot(IVsHierarchy hierarchy)
             {

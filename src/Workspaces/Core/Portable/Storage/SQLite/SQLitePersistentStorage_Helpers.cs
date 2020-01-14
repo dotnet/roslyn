@@ -33,13 +33,15 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return (Array.Empty<byte>(), length: 0, fromPool: false);
             }
 
-            using (var stream = SerializableBytes.CreateWritableStream())
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
                 checksumOpt.WriteTo(writer);
-                stream.Position = 0;
-                return GetBytes(stream);
             }
+
+            stream.Position = 0;
+            return GetBytes(stream);
         }
 
         private static (byte[] bytes, int length, bool fromPool) GetBytes(Stream stream)

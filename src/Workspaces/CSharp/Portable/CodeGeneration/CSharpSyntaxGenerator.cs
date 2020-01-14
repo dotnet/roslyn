@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -1716,18 +1717,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
         }
 
-        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
-            => declaration switch
+        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations)
+            => WithAccessibility(declaration switch
             {
-                MethodDeclarationSyntax methodDeclaration => WithAccessibility(
-                       methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                       Accessibility.NotApplicable),
+                MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                PropertyDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                EventDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
                 _ => declaration,
-            };
+            }, Accessibility.NotApplicable);
 
-        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
-            => SyntaxFactory.ExplicitInterfaceSpecifier(
-                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
+        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
+            => SyntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
 
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
         {
@@ -1929,8 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.Attribute:
-                    var parentList = declaration.Parent as AttributeListSyntax;
-                    if (parentList == null || parentList.Attributes.Count > 1)
+                    if (!(declaration.Parent is AttributeListSyntax parentList) || parentList.Attributes.Count > 1)
                     {
                         return DeclarationKind.Attribute;
                     }
@@ -2295,7 +2294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var list = GetParameterList(declaration);
             return list != null
                 ? list.Parameters
-                : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                : declaration is SimpleLambdaExpressionSyntax simpleLambda
+                    ? new[] { simpleLambda.Parameter }
+                    : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
         public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
@@ -2385,8 +2386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxKind.DestructorDeclaration => ((DestructorDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.IndexerDeclaration => ((IndexerDeclarationSyntax)declaration).ParameterList,
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.SimpleLambdaExpression => SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(((SimpleLambdaExpressionSyntax)declaration).Parameter)),
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
+                SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
                 _ => (BaseParameterListSyntax)null,
             };
 
@@ -3138,8 +3139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.Attribute:
                     var attr = (AttributeSyntax)declaration;
-                    var attrList = attr.Parent as AttributeListSyntax;
-                    if (attrList != null && attrList.Attributes.Count == 1)
+                    if (attr.Parent is AttributeListSyntax attrList && attrList.Attributes.Count == 1)
                     {
                         // remove entire list if only one attribute
                         return this.RemoveNodeInternal(root, attrList, options);
@@ -3164,8 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.SimpleBaseType:
-                    var baseList = declaration.Parent as BaseListSyntax;
-                    if (baseList != null && baseList.Types.Count == 1)
+                    if (declaration.Parent is BaseListSyntax baseList && baseList.Types.Count == 1)
                     {
                         // remove entire base list if this is the only base type.
                         return this.RemoveNodeInternal(root, baseList, options);
@@ -3252,6 +3251,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         internal override bool SupportsThrowExpression() => true;
+
+        /// <summary>
+        /// C# always requires a type to be present with a local declaration.  (Even if that type is
+        /// <c>var</c>).
+        /// </summary>
+        internal override bool RequiresLocalDeclarationType() => true;
 
         public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null)
         {
@@ -3393,6 +3398,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
             => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
+
+        internal override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
+            => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
+
+        internal override SyntaxNode InterpolationFormatClause(string format)
+            => SyntaxFactory.InterpolationFormatClause(
+                    SyntaxFactory.Token(SyntaxKind.ColonToken),
+                    SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
         internal override SyntaxToken NumericLiteralToken(string text, ulong value)
             => SyntaxFactory.Literal(text, value);

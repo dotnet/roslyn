@@ -374,6 +374,52 @@ cla$$ss C
             Assert.NotNull(testState.NotificationMessage)
         End Sub
 
+        <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub TestDisplayErrorWhenNotOnMemberCS2()
+            Dim input =
+    <Workspace>
+        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+            <Document>
+class CC
+{
+    C$$C Goo()
+    {
+        return null;
+    }
+}
+        </Document>
+        </Project>
+    </Workspace>
+            Dim testState = CallHierarchyTestState.Create(input)
+            Dim root = testState.GetRoot()
+            Assert.Null(root)
+            Assert.NotNull(testState.NotificationMessage)
+        End Sub
+
+        <WorkItem(38303, "https://github.com/dotnet/roslyn/issues/38303")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        Public Sub TestDisplayErrorWhenNotOnMemberCS3()
+            Dim input =
+    <Workspace>
+        <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+            <Document>
+class CC
+{
+    CC Goo(C$$C c)
+    {
+        return null;
+    }
+}
+        </Document>
+        </Project>
+    </Workspace>
+            Dim testState = CallHierarchyTestState.Create(input)
+            Dim root = testState.GetRoot()
+            Assert.Null(root)
+            Assert.NotNull(testState.NotificationMessage)
+        End Sub
+
         <WorkItem(1098507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1098507")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub TestDisplayErrorWhenNotOnMemberVB()

@@ -114,7 +114,7 @@ unsafe public struct DevDivBugs70194
         {
             var testObject = GetCodeVariable("A", "intB");
 
-            Assert.Equal(null, testObject.InitExpression);
+            Assert.Null(testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -132,7 +132,7 @@ unsafe public struct DevDivBugs70194
         {
             var testObject = GetCodeVariable("DevDivBugs70194", "buffer");
 
-            Assert.Equal(null, testObject.InitExpression);
+            Assert.Null(testObject.InitExpression);
         }
 
         [ConditionalWpfFact(typeof(x86))]

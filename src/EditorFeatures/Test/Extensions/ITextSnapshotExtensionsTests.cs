@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             var span = snapshot.GetSpan(0, 2, 1, 1);
 
             // column 0, index 2 = (0 * 5) + 2 = 2
-            Assert.Equal(span.Start, 2);
+            Assert.Equal(2, span.Start);
 
             // column 1, index 1 = (1 * 5) + 1 = 6
-            Assert.Equal(span.End, 6);
+            Assert.Equal(6, span.End);
         }
 
         [Fact]

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -327,6 +328,36 @@ namespace Microsoft.CodeAnalysis
                     var chunk = SharedPools.ByteArray.Allocate();
                     Array.Clear(chunk, 0, chunk.Length);
                     chunks.Add(chunk);
+                }
+            }
+
+            public override void SetLength(long value)
+            {
+                EnsureCapacity(value);
+
+                if (value < length)
+                {
+                    // truncate the stream
+
+                    var chunkIndex = GetChunkIndex(value);
+                    var chunkOffset = GetChunkOffset(value);
+
+                    Array.Clear(chunks[chunkIndex], chunkOffset, chunks[chunkIndex].Length - chunkOffset);
+
+                    var trimIndex = chunkIndex + 1;
+                    for (int i = trimIndex; i < chunks.Count; i++)
+                    {
+                        SharedPools.ByteArray.Free(chunks[i]);
+                    }
+
+                    chunks.RemoveRange(trimIndex, chunks.Count - trimIndex);
+                }
+
+                length = value;
+
+                if (position > value)
+                {
+                    position = value;
                 }
             }
 

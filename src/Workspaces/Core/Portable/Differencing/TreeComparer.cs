@@ -2,7 +2,10 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+
+#nullable enable
 
 namespace Microsoft.CodeAnalysis.Differencing
 {
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Returns a match map of <paramref name="oldRoot"/> descendants to <paramref name="newRoot"/> descendants.
         /// </summary>
-        public Match<TNode> ComputeMatch(TNode oldRoot, TNode newRoot, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches = null)
+        public Match<TNode> ComputeMatch(TNode oldRoot, TNode newRoot, IEnumerable<KeyValuePair<TNode, TNode>>? knownMatches = null)
         {
             return new Match<TNode>(oldRoot, newRoot, this, knownMatches);
         }
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// May return null if the <paramref name="node"/> is a leaf.
         /// </summary>
-        protected internal abstract IEnumerable<TNode> GetChildren(TNode node);
+        protected internal abstract IEnumerable<TNode>? GetChildren(TNode node);
 
         /// <summary>
         /// Enumerates all descendant nodes of the given node in depth-first prefix order.
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Returns a parent for the specified node.
         /// </summary>
-        protected internal abstract bool TryGetParent(TNode node, out TNode parent);
+        protected internal abstract bool TryGetParent(TNode node, [MaybeNullWhen(false)] out TNode parent);
 
         internal TNode GetParent(TNode node)
         {

@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            if (symbol.Equals(newSymbol))
+            if (symbol.Equals(newSymbol, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }

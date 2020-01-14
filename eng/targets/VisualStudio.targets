@@ -11,6 +11,10 @@
       command line length for Windows. These projects must manually specify references to avoid this overflow.
     -->
     <DisableTransitiveProjectReferences Condition="'$(IsVsixProject)' == 'true'">true</DisableTransitiveProjectReferences>
+
+    <!-- Setting this to the same as CreateVsixContainer ensures that the VS SDK doesn't try to look for a source.extension.vsixmanifest
+         when we don't have one. -->
+    <CopyVsixManifestToOutput>$(CreateVsixContainer)</CopyVsixManifestToOutput>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
@@ -125,4 +129,19 @@
       </ReferencePath>
     </ItemGroup>
   </Target>
+
+  <!-- Add License and Third Party Notices files into each VSIX. -->
+  <ItemGroup Condition="'$(CreateVsixContainer)' == 'true'">
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.VsixLicense\EULA.rtf">
+      <Link>EULA.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(MSBuildThisFileDirectory)\..\..\src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf">
+      <Link>ThirdPartyNotices.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
+  </ItemGroup>
+
 </Project>

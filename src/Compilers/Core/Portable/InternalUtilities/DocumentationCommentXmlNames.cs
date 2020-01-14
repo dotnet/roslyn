@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 
 namespace Roslyn.Utilities
@@ -16,6 +18,7 @@ namespace Roslyn.Utilities
         public const string ExampleElementName = "example";
         public const string ExceptionElementName = "exception";
         public const string IncludeElementName = "include";
+        public const string InheritdocElementName = "inheritdoc";
         public const string ItemElementName = "item";
         public const string ListElementName = "list";
         public const string ListHeaderElementName = "listheader";

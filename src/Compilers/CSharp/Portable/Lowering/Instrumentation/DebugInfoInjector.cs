@@ -229,7 +229,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForEachStatement(BoundForEachStatement original, BoundStatement rewritten)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
-            BoundSequencePointWithSpan foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, forEachSyntax.ForEachKeyword.Span);
+            var span = forEachSyntax.AwaitKeyword != default
+                ? TextSpan.FromBounds(forEachSyntax.AwaitKeyword.Span.Start, forEachSyntax.ForEachKeyword.Span.End)
+                : forEachSyntax.ForEachKeyword.Span;
+
+            var foreachKeywordSequencePoint = new BoundSequencePointWithSpan(forEachSyntax, null, span);
             return new BoundStatementList(forEachSyntax,
                                             ImmutableArray.Create<BoundStatement>(foreachKeywordSequencePoint,
                                                                                 base.InstrumentForEachStatement(original, rewritten)));

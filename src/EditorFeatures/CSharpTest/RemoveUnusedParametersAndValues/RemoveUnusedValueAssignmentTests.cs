@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -6405,6 +6406,148 @@ class C
 }", options: PreferDiscard);
         }
 
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationConstant()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        for (int [|i|] = 0; ; ) 
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        for (; ; ) 
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int GetValue() => 0;
+
+    void M()
+    {
+        for (int [|i|] = GetValue(); ; )
+        {
+        }
+    }
+}",
+@"class C
+{
+    int GetValue() => 0;
+
+    void M()
+    {
+        for (int _ = GetValue(); ; )
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationStaticMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    static int GetValue() => 0;
+
+    void M()
+    {
+        for (int [|i|] = GetValue(); ; )
+        {
+        }
+    }
+}",
+@"class C
+{
+    static int GetValue() => 0;
+
+    void M()
+    {
+        for (int _ = GetValue(); ; )
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUsedLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            for (int [|i|] = 0; ; )
+            {
+            }
+        };
+        a();
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            for (; ; )
+            {
+            }
+        };
+        a();
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_ForStatementVariableDeclarationInsideUnusedLambda()
+        {
+            //NOTE: Currently the diagnostic is only reported on the outer unused variable a. 
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action a = () =>
+        {
+            for (int [|i|] = 0; ; )
+            {
+            }
+        };
+    }
+}");
+        }
+
         [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task NullCoalesceAssignment_01()
@@ -7041,6 +7184,343 @@ class C : IDisposable
     }
 }", options: PreferDiscard,
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        public async Task RefParameter_WrittenBeforeThrow()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public void DoSomething(ref bool p)
+    {
+        if (p)
+        {
+            [|p|] = false;
+            throw new ArgumentException(string.Empty);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37709, "https://github.com/dotnet/roslyn/issues/37709")]
+        public async Task OutParameter_WrittenBeforeThrow()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    public void DoSomething(out bool p, bool x)
+    {
+        if (x)
+        {
+            [|p|] = false;
+            throw new ArgumentException(string.Empty);
+        }
+        else
+        {
+            p = true;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        public async Task RefParameter_RefAssignmentFollowedByAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    delegate ref int UnsafeAdd(ref int source, int elementOffset);
+    static UnsafeAdd MyUnsafeAdd;
+    
+    static void T1(ref int param)
+    {
+        [|param|] = ref MyUnsafeAdd(ref param, 1);
+        param = default;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(37871, "https://github.com/dotnet/roslyn/issues/37871")]
+        public async Task RefParameter_RefConditionalAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    delegate ref int UnsafeAdd(ref int source, int elementOffset);
+    static UnsafeAdd MyUnsafeAdd;
+
+    static void T1(ref int param, bool flag)
+    {
+        [|param|] = flag ? ref MyUnsafeAdd(ref param, 1) : ref MyUnsafeAdd(ref param, 2);
+        param = default;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task LocalFunction_OutParameter_UsedInCaller()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+public class C
+{
+    public void M()
+    {
+        if (GetVal(out var [|value|]))
+        {
+            var x = value;
+        }
+
+        bool GetVal(out string val)
+        {
+            val = string.Empty;
+            return true;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TupleMember_UsedAfterContinueBranch()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System;
+using System.Collections.Generic;
+
+public class Test
+{
+    void M(List<(int, int)> list)
+    {
+        foreach (var (x, [|y|]) in list)
+        {
+            if (x != 0)
+            {
+                continue;
+            }
+
+            Console.Write(y);
+        }
+    }
+}");
+        }
+
+        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchExpressionArm_UsedLocal()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int [|p2|] => p2.ToString(),
+            _ => ""NoMatch""
+        };
+    }
+}", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferUnusedLocal()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int [|p2|] => ""Int"",
+            _ => ""NoMatch""
+        };
+    }
+}", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int [|p2|] => ""Int"",
+            _ => ""NoMatch""
+        };
+    }
+}",
+@"class C
+{
+    string M(object obj)
+    {
+        return obj switch
+        {
+            int _ => ""Int"",
+            _ => ""NoMatch""
+        };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(39344, "https://github.com/dotnet/roslyn/issues/39344")]
+        public async Task AssignmentInTry_UsedInFinally_NoDiagnostic()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        bool b = false;
+        try
+        {
+            if (i == 0)
+            {
+                [|b|] = true;
+            }
+        }
+        finally
+        {
+            if (!b)
+            {
+                Console.WriteLine(i);
+            }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        public async Task AssignmentInTry_UsedInFinally_NoDiagnostic_02()
+        {
+            await TestDiagnosticMissingAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        IntPtr a = (IntPtr)1;
+        try
+        {
+            var b = a;
+
+            if (Some(a))
+                [|a|] = IntPtr.Zero;
+        }
+        finally
+        {
+            if (a != IntPtr.Zero)
+            {
+
+            }
+        }
+    }
+
+    bool Some(IntPtr a) => true;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(39755, "https://github.com/dotnet/roslyn/issues/39755")]
+        public async Task AssignmentInTry_NotUsedInFinally_Diagnostic()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        bool b = false;
+        try 
+        { 
+            if (i == 0)
+            {
+                [|b|] = true;
+            }
+        }
+        finally 
+        {
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(int i)
+    {
+        bool b = false;
+        try 
+        { 
+            if (i == 0)
+            {
+            }
+        }
+        finally 
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixTitleForBlockBodyRedundantCompoundAssignmentReturn()
+        {
+            var source = @"
+class C
+{
+    C M(C x)
+    {
+        return [|x ??= M2()|];
+    }
+
+    C M2() => new C();
+}
+";
+
+            await TestExactActionSetOfferedAsync(source, new[] { FeaturesResources.Remove_redundant_assignment });
+        }
+
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixTitleForExpressionBodyRedundantCompoundAssignmentReturn()
+        {
+            var source = @"
+class C
+{
+    C M(C x) => [|x ??= M2()|];
+
+    C M2() => new C();
+}
+";
+            await TestExactActionSetOfferedAsync(source, new[] { FeaturesResources.Remove_redundant_assignment });
         }
     }
 }

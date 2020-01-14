@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var nameSyntax = typeSyntax as NameSyntax;
-            if (nameSyntax == null)
+            if (!(typeSyntax is NameSyntax nameSyntax))
             {
                 return false;
             }
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static TypeSyntax GenerateReturnTypeSyntax(this IMethodSymbol method)
         {
-            var returnType = method.ReturnType.WithNullability(method.ReturnNullableAnnotation);
+            var returnType = method.ReturnType;
 
             if (method.ReturnsByRef)
             {

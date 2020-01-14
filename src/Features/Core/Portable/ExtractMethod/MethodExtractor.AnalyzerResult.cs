@@ -26,12 +26,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 ITypeSymbol returnType,
                 bool awaitTaskReturn,
                 bool instanceMemberIsUsed,
+                bool shouldBeReadOnly,
                 bool endOfSelectionReachable,
                 OperationStatus status)
             {
                 var semanticModel = document.SemanticModel;
 
                 UseInstanceMember = instanceMemberIsUsed;
+                ShouldBeReadOnly = shouldBeReadOnly;
                 EndOfSelectionReachable = endOfSelectionReachable;
                 AwaitTaskReturn = awaitTaskReturn;
                 SemanticDocument = document;
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     ReturnType,
                     AwaitTaskReturn,
                     UseInstanceMember,
+                    ShouldBeReadOnly,
                     EndOfSelectionReachable,
                     Status);
             }
@@ -67,6 +70,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             /// used to determine whether static can be used
             /// </summary>
             public bool UseInstanceMember { get; }
+
+            /// <summary>
+            /// Indicates whether the extracted method should have a 'readonly' modifier.
+            /// </summary>
+            public bool ShouldBeReadOnly { get; }
 
             /// <summary>
             /// used to determine whether "return" statement needs to be inserted

@@ -62,7 +62,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Function GetFilters() As ImmutableArray(Of CompletionFilterWithState)
-            Return _filters
+            Return _filters.WhereAsArray(Function(state) TypeOf state.Filter IsNot CompletionExpander)
+        End Function
+
+        Public Sub SetExpander(isSelected As Boolean)
+            _filters = _filters.Select(Function(n) If(TypeOf n.Filter Is CompletionExpander, n.WithSelected(isSelected), n)).ToImmutableArray()
+            RaiseEvent FiltersChanged(Me, New CompletionFilterChangedEventArgs(_filters))
+        End Sub
+
+        Public Function GetExpander() As CompletionFilterWithState
+            Return _filters.SingleOrDefault(Function(state) TypeOf state.Filter Is CompletionExpander)
         End Function
 
         Public Sub TriggerFiltersChanged(sender As Object, args As CompletionFilterChangedEventArgs)

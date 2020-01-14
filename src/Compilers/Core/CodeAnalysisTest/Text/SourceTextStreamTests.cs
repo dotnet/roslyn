@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
                 for (int i = 0; i < max; i++)
                 {
                     var local = i;
-                    Assert.Throws(typeof(ArgumentException), () => stream.Read(buffer, 0, local));
+                    Assert.Throws<ArgumentException>(() => stream.Read(buffer, 0, local));
                 }
             }
         }

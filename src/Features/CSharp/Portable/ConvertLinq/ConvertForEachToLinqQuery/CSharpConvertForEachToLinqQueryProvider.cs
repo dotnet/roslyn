@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             var currentLeadingTokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             var current = forEachStatement.Statement;
-            // Traverse descentants of the forEachStatement.
+            // Traverse descendants of the forEachStatement.
             // If a statement traversed can be converted into a query clause, 
             //  a. Add it to convertingNodesBuilder.
             //  b. set the current to its nested statement and proceed.

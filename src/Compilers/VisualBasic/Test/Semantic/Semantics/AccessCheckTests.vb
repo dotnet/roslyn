@@ -374,17 +374,8 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(c,
 <expected>
 BC30389: 'A.iField' is not accessible in this context because it is 'Protected'.
-                Dim z As Integer = cc.iField
-                                   ~~~~~~~~~
-BC30389: 'A.iField' is not accessible in this context because it is 'Protected'.
                 Dim q As Integer = dd.iField
                                    ~~~~~~~~~
-BC30389: 'A.iField' is not accessible in this context because it is 'Protected'.
-                Dim s As Integer = ee.iField
-                                   ~~~~~~~~~
-BC30389: 'A.iField' is not accessible in this context because it is 'Protected'.
-            Dim u As Integer = cc.iField
-                               ~~~~~~~~~
 BC30389: 'A.iField' is not accessible in this context because it is 'Protected'.
             Dim v As Integer = dd.iField
                                ~~~~~~~~~
@@ -399,7 +390,7 @@ BC30389: 'A.iField' is not accessible in this context because it is 'Protected'.
         End Sub
 
         <Fact>
-        Public Sub Bug4685()
+        Public Sub Bug4685_01()
 
             Dim compilationDef =
 <compilation name="Bug4685">
@@ -410,6 +401,59 @@ Class A
     End Function
  
     Protected Sub Goo(x As String)
+    End Sub
+End Class
+ 
+Class B
+    Inherits A
+
+    Shared Sub Test()
+        Dim x As C = New C()
+        x.Bar(New D())
+    End Sub
+
+    Class C
+        Sub Bar(y As D)
+            Dim z As String = y.Goo("").ToLower()
+            System.Console.WriteLine(z)
+        End Sub
+    End Class
+End Class
+ 
+Class D
+    Inherits B
+End Class
+
+Module Module1
+    Sub Main()
+        B.Test()
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30491: Expression does not produce a value.
+            Dim z As String = y.Goo("").ToLower()
+                              ~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub Bug4685_02()
+
+            Dim compilationDef =
+<compilation name="Bug4685">
+    <file name="a.vb">
+Class A
+    Public Function Goo(x As String) As String
+        Return "ABC"
+    End Function
+ 
+    Protected Sub Goo(x As Object)
     End Sub
 End Class
  

@@ -1,16 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Linq
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
 
     Public Class ImplicitVariableTests : Inherits FlowTestBase
@@ -23,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 |]
             ]]>,
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
+            definitelyAssignedOnExit:={},
             readInside:={"x"})
         End Sub
 
@@ -34,6 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 |]
             ]]>,
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
+            definitelyAssignedOnExit:={},
             readInside:={"x"})
         End Sub
 
@@ -49,6 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             capturedInside:={"x"},
             variablesDeclared:={"f"},
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
+            definitelyAssignedOnExit:={"f", "x"},
             readInside:={"x"},
             writtenInside:={"f", "x"})
         End Sub
@@ -64,6 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
             ]]>,
             alwaysAssigned:={"x"},
             dataFlowsIn:={"x"},
+            definitelyAssignedOnEntry:={},
+            definitelyAssignedOnExit:={"x"},
             readInside:={"x"},
             writtenInside:={"x"},
             writtenOutside:={"x"})
@@ -78,6 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
               [|x = 1|]
             ]]>,
             alwaysAssigned:={"x"},
+            definitelyAssignedOnEntry:={"x"},
+            definitelyAssignedOnExit:={"x"},
             readOutside:={"x"},
             writtenInside:={"x"},
             writtenOutside:={"x"})
@@ -91,6 +90,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 Optional captured() As String = Nothing,
                 Optional dataFlowsIn() As String = Nothing,
                 Optional dataFlowsOut() As String = Nothing,
+                Optional definitelyAssignedOnEntry() As String = Nothing,
+                Optional definitelyAssignedOnExit() As String = Nothing,
                 Optional readInside() As String = Nothing,
                 Optional readOutside() As String = Nothing,
                 Optional variablesDeclared() As String = Nothing,
@@ -103,6 +104,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                                    captured,
                                    dataFlowsIn,
                                    dataFlowsOut,
+                                   definitelyAssignedOnEntry,
+                                   definitelyAssignedOnExit,
                                    readInside,
                                    readOutside,
                                    variablesDeclared,

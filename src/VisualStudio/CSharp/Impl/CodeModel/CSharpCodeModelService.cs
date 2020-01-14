@@ -1406,8 +1406,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            var docElement = xmlDocument.FirstNode as XElement;
-            if (docElement == null ||
+            if (!(xmlDocument.FirstNode is XElement docElement) ||
                 docElement.Name.ToString().ToLower() != "doc")
             {
                 throw Exceptions.ThrowEInvalidArg();
@@ -1900,9 +1899,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind)
         {
-            var parameter = node as ParameterSyntax;
-
-            if (parameter == null)
+            if (!(node is ParameterSyntax parameter))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2013,8 +2010,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            var member = memberNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(memberNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2252,8 +2248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            var member = memberNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(memberNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2274,8 +2269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                          memberNode is BasePropertyDeclarationSyntax ||
                          memberNode is EventFieldDeclarationSyntax);
 
-            var member = memberNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(memberNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2390,8 +2384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(typeNode is ClassDeclarationSyntax);
 
-            var member = typeNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(typeNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2532,8 +2525,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            var member = memberNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(memberNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2562,8 +2554,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return true;
             }
 
-            var member = GetNodeWithModifiers(variableNode) as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(GetNodeWithModifiers(variableNode) is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2586,8 +2577,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return variableNode;
             }
 
-            var member = variableNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(variableNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2615,8 +2605,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(propertyNode is BasePropertyDeclarationSyntax);
 
-            var property = propertyNode as BasePropertyDeclarationSyntax;
-            if (property == null)
+            if (!(propertyNode is BasePropertyDeclarationSyntax property))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2634,8 +2623,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            var member = GetNodeWithModifiers(memberNode) as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(GetNodeWithModifiers(memberNode) is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2656,8 +2644,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             Debug.Assert(memberNode is MemberDeclarationSyntax ||
                          memberNode is VariableDeclaratorSyntax);
 
-            var member = GetNodeWithModifiers(memberNode) as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(GetNodeWithModifiers(memberNode) is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2669,8 +2656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            var member = memberNode as MemberDeclarationSyntax;
-            if (member == null)
+            if (!(memberNode is MemberDeclarationSyntax member))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3715,11 +3701,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override bool AddBlankLineToMethodBody(SyntaxNode node, SyntaxNode newNode)
         {
-            var newMethodDeclaration = newNode as MethodDeclarationSyntax;
-
             return node is MethodDeclarationSyntax methodDeclaration
                 && methodDeclaration.Body == null
-                && newMethodDeclaration != null
+                && newNode is MethodDeclarationSyntax newMethodDeclaration
                 && newMethodDeclaration.Body != null;
         }
 

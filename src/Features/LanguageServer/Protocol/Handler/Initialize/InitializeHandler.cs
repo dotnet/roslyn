@@ -16,24 +16,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Capabilities = new ServerCapabilities
             {
                 DefinitionProvider = true,
-                ReferencesProvider = true,
                 ImplementationProvider = true,
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
-                HoverProvider = true,
                 SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
-                CodeActionProvider = true,
                 DocumentSymbolProvider = true,
                 WorkspaceSymbolProvider = true,
                 DocumentFormattingProvider = true,
                 DocumentRangeFormattingProvider = true,
                 DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } },
                 DocumentHighlightProvider = true,
-                RenameProvider = true,
-                ExecuteCommandProvider = new ExecuteCommandOptions()
             }
         };
 
-        public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext = false)
+        public Task<InitializeResult> HandleRequestAsync(Solution solution, InitializeParams request, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
             => Task.FromResult(s_initializeResult);
     }
 }

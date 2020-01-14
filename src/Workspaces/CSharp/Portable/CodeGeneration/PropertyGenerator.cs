@@ -112,9 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
            IPropertySymbol property, CodeGenerationDestination destination,
            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            var initializerNode = CodeGenerationPropertyInfo.GetInitializer(property) as ExpressionSyntax;
-
-            var initializer = initializerNode != null
+            var initializer = CodeGenerationPropertyInfo.GetInitializer(property) is ExpressionSyntax initializerNode
                 ? SyntaxFactory.EqualsValueClause(initializerNode)
                 : default;
 
@@ -141,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static TypeSyntax GenerateTypeSyntax(IPropertySymbol property)
         {
-            var returnType = property.Type.WithNullability(property.NullableAnnotation);
+            var returnType = property.Type;
 
             if (property.ReturnsByRef)
             {

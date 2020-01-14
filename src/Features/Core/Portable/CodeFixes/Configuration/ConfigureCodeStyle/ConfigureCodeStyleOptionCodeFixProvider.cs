@@ -22,22 +22,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 {
     [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
-
-        private readonly bool _performExperimentCheck;
-
-        public ConfigureCodeStyleOptionCodeFixProvider()
-            : this(performExperimentCheck: true)
-        {
-        }
-
-        // Internal for test purpose.
-        internal ConfigureCodeStyleOptionCodeFixProvider(bool performExperimentCheck)
-        {
-            _performExperimentCheck = performExperimentCheck;
-        }
 
         public bool IsFixableDiagnostic(Diagnostic diagnostic)
         {
@@ -60,16 +48,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
             => null;
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(document.Project, diagnostics, _performExperimentCheck, cancellationToken));
+            => Task.FromResult(GetConfigurations(document.Project, diagnostics, cancellationToken));
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
-            => Task.FromResult(GetConfigurations(project, diagnostics, _performExperimentCheck, cancellationToken));
+            => Task.FromResult(GetConfigurations(project, diagnostics, cancellationToken));
 
-        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, bool performExperimentCheck, CancellationToken cancellationToken)
+        private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             // Bail out if NativeEditorConfigSupport experiment is not enabled.
-            if (performExperimentCheck &&
-                !EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
+            if (!EditorConfigDocumentOptionsProviderFactory.ShouldUseNativeEditorConfigSupport(project.Solution.Workspace))
             {
                 return ImmutableArray<CodeFix>.Empty;
             }
@@ -90,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 var nestedActions = ArrayBuilder<CodeAction>.GetInstance();
                 var optionSet = project.Solution.Workspace.Options;
                 var hasMultipleOptions = codeStyleOptions.Length > 1;
-                foreach (var (optionKey, codeStyleOption, editorConfigLocation) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
+                foreach (var (optionKey, codeStyleOption, editorConfigLocation, perLanguageOption) in codeStyleOptions.OrderBy(t => t.optionKey.Option.Name))
                 {
-                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, optionSet, hasMultipleOptions);
+                    var topLevelAction = GetCodeActionForCodeStyleOption(optionKey, codeStyleOption, editorConfigLocation, diagnostic, perLanguageOption, optionSet, hasMultipleOptions);
                     if (topLevelAction != null)
                     {
                         nestedActions.Add(topLevelAction);
@@ -120,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                 ICodeStyleOption codeStyleOption,
                 IEditorConfigStorageLocation2 editorConfigLocation,
                 Diagnostic diagnostic,
+                bool isPerLanguage,
                 OptionSet optionSet,
                 bool hasMultiplOptions)
             {
@@ -175,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             new SolutionChangeAction(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, project, cancellationToken)));
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, parts.optionSeverity, diagnostic, isPerLanguage, project, cancellationToken)));
                     }
                 }
             }

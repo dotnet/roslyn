@@ -508,10 +508,10 @@ public class Ref<T> where T : Entity
             var testObject = (CodeVariable)GetCodeElement("C", "DynamicField");
 
             var returnType = testObject.Type;
-            Assert.Equal(returnType.AsFullName, "dynamic");
-            Assert.Equal(returnType.AsString, "dynamic");
-            Assert.Equal(returnType.CodeType.FullName, "System.Object");
-            Assert.Equal(returnType.TypeKind, vsCMTypeRef.vsCMTypeRefOther);
+            Assert.Equal("dynamic", returnType.AsFullName);
+            Assert.Equal("dynamic", returnType.AsString);
+            Assert.Equal("System.Object", returnType.CodeType.FullName);
+            Assert.Equal(vsCMTypeRef.vsCMTypeRefOther, returnType.TypeKind);
         }
 
         [ConditionalWpfFact(typeof(x86))]
@@ -521,10 +521,10 @@ public class Ref<T> where T : Entity
             var testObject = GetCodeFunction("C", "DynamicMethod");
 
             var returnType = ((CodeParameter)testObject.Parameters.Item(1)).Type;
-            Assert.Equal(returnType.AsFullName, "dynamic");
-            Assert.Equal(returnType.AsString, "dynamic");
-            Assert.Equal(returnType.CodeType.FullName, "System.Object");
-            Assert.Equal(returnType.TypeKind, vsCMTypeRef.vsCMTypeRefOther);
+            Assert.Equal("dynamic", returnType.AsFullName);
+            Assert.Equal("dynamic", returnType.AsString);
+            Assert.Equal("System.Object", returnType.CodeType.FullName);
+            Assert.Equal(vsCMTypeRef.vsCMTypeRefOther, returnType.TypeKind);
         }
 
         [ConditionalWpfFact(typeof(x86))]

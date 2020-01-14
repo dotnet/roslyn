@@ -149,6 +149,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return _style;
         }
 
+        // For screen readers
+        public override string ToString() => ItemName;
+
         public class CapitalizationDisplay
         {
             public Capitalization Capitalization { get; set; }

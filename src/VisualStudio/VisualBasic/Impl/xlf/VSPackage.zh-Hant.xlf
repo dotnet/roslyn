@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="1012">
         <source>Visual Basic Editor with Encoding</source>
-        <target state="needs-review-translation">Microsoft Visual Basic 字碼頁編輯器</target>
+        <target state="translated">具備編碼功能的 Visual Basic 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
         <source>Visual Basic Editor</source>
-        <target state="needs-review-translation">Microsoft Visual Basic 編輯器</target>
+        <target state="translated">Visual Basic 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
         <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">結束建構的自動插入;變更美化排列設定;變更大綱模式;Interface 和 MustOverride 成員的自動插入;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考和關鍵字的醒目提式;Regex;將規則運算式標上顏色;醒目提示游標下的相關元件;報告無效的規則運算式</target>
+        <target state="translated">自動插入 End 建構;變更美化排列設定;變更大綱模式;自動插入 Interface 和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤修正建議;開啟或關閉參考及關鍵字的醒目提示;Regex;以顏色標示規則運算式;為資料指標下的相關元件加上醒目提示;回報無效的規則運算式;regex;規則運算式;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -104,12 +104,12 @@
       </trans-unit>
       <trans-unit id="An_empty_Visual_Basic_script_file">
         <source>An empty Visual Basic script file.</source>
-        <target state="new">An empty Visual Basic script file.</target>
+        <target state="translated">空白的 Visual Basic 指令碼檔。</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_Script">
         <source>Visual Basic Script</source>
-        <target state="new">Visual Basic Script</target>
+        <target state="translated">Visual Basic 指令碼</target>
         <note />
       </trans-unit>
     </body>

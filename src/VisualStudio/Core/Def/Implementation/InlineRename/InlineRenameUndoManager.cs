@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
 
             private class RedoPrimitive : RenameUndoPrimitive
             {
-                private IOleUndoManager _undoManager;
+                private readonly IOleUndoManager _undoManager;
 
                 public RedoPrimitive(IOleUndoManager undoManager, string replacementText) : base(replacementText)
                 {

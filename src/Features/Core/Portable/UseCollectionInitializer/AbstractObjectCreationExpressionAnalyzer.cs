@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 return false;
             }
 
-            var containingDeclarator = _objectCreationExpression.Parent.Parent as TVariableDeclaratorSyntax;
-            if (containingDeclarator == null)
+            if (!(_objectCreationExpression.Parent.Parent is TVariableDeclaratorSyntax containingDeclarator))
             {
                 return false;
             }

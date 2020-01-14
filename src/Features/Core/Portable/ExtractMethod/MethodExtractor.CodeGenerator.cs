@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -31,7 +32,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly SelectionResult SelectionResult;
             protected readonly AnalyzerResult AnalyzerResult;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult)
+            protected readonly OptionSet Options;
+            protected readonly bool LocalFunction;
+
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, OptionSet options = null, bool localFunction = false)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -40,6 +44,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 SelectionResult = selectionResult;
                 AnalyzerResult = analyzerResult;
+
+                Options = options;
+                LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
                 CallSiteAnnotation = new SyntaxAnnotation();
@@ -51,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken);
+            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -72,29 +79,53 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public async Task<GeneratedCode> GenerateAsync(CancellationToken cancellationToken)
             {
                 var root = SemanticDocument.Root;
-
                 // should I check venus hidden position check here as well?
                 root = root.ReplaceNode(GetOutermostCallSiteContainerToProcess(cancellationToken), await GenerateBodyForCallSiteContainerAsync(cancellationToken).ConfigureAwait(false));
                 var callSiteDocument = await SemanticDocument.WithSyntaxRootAsync(root, cancellationToken).ConfigureAwait(false);
 
                 var newCallSiteRoot = callSiteDocument.Root;
-                var previousMemberNode = GetPreviousMember(callSiteDocument);
-
-                // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
-                var destination = (previousMemberNode.Parent == null) ? previousMemberNode : previousMemberNode.Parent;
 
                 var codeGenerationService = SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
+                var result = GenerateMethodDefinition(LocalFunction, cancellationToken);
 
-                var result = GenerateMethodDefinition(cancellationToken);
-                var newContainer = codeGenerationService.AddMethod(
-                    destination, result.Data,
-                    new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
-                    cancellationToken);
+                SyntaxNode destination, newContainer;
+                if (LocalFunction)
+                {
+                    destination = InsertionPoint.With(callSiteDocument).GetContext();
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(
+                        method: result.Data,
+                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: this.Options, parseOptions: destination?.SyntaxTree.Options));
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
+                }
+                else
+                {
+                    var previousMemberNode = GetPreviousMember(callSiteDocument);
+
+                    // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
+                    destination = previousMemberNode.Parent ?? previousMemberNode;
+                    newContainer = codeGenerationService.AddMethod(
+                        destination, result.Data,
+                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: this.Options),
+                        cancellationToken);
+                }
 
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newCallSiteRoot.ReplaceNode(destination, newContainer));
                 newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
-                var finalDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+
+                // For nullable reference types, we can provide a better experience by reducing use 
+                // of nullable reference types after a method is done being generated. If we can
+                // determine that the method never returns null, for example, then we can
+                // make the signature into a non-null reference type even though
+                // the original type was nullable. This allows our code generation to
+                // follow our recommendation of only using nullable when necessary.
+                // This is done after method generation instead of at analyzer time because it's purely
+                // based on the resulting code, which the generator can modify as needed. If return statements
+                // are added, the flow analysis could change to indicate something different. It's cleaner to rely
+                // on flow analysis of the final resulting code than to try and predict from the analyzer what 
+                // will happen in the generator. 
+                var finalDocument = await UpdateMethodAfterGenerationAsync(generatedDocument, result, cancellationToken).ConfigureAwait(false);
                 var finalRoot = finalDocument.Root;
 
                 var methodDefinition = finalRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault();
@@ -113,6 +144,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return await CreateGeneratedCodeAsync(result.Status, finalDocument, cancellationToken).ConfigureAwait(false);
             }
+
+            protected virtual Task<SemanticDocument> UpdateMethodAfterGenerationAsync(
+                SemanticDocument originalDocument,
+                OperationStatus<IMethodSymbol> methodSymbolResult,
+                CancellationToken cancellationToken)
+                => Task.FromResult(originalDocument);
 
             protected virtual Task<GeneratedCode> CreateGeneratedCodeAsync(OperationStatus status, SemanticDocument newDocument, CancellationToken cancellationToken)
             {
@@ -136,8 +173,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return variables[0];
             }
 
-            protected IEnumerable<TStatement> AddReturnIfUnreachable(
-                IEnumerable<TStatement> statements, CancellationToken cancellationToken)
+            protected IEnumerable<TStatement> AddReturnIfUnreachable(IEnumerable<TStatement> statements)
             {
                 if (AnalyzerResult.EndOfSelectionReachable)
                 {
@@ -268,7 +304,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return new HashSet<SyntaxAnnotation>(annotations.Select(t => t.Item2));
             }
 
-            protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters(CancellationToken cancellationToken)
+            protected ImmutableArray<ITypeParameterSymbol> CreateMethodTypeParameters()
             {
                 if (AnalyzerResult.MethodTypeParametersInDeclaration.Count == 0)
                 {
@@ -287,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     }
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
-                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(),
+                        parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(), parameter.NullableAnnotation,
                         parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
                         parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
                 }

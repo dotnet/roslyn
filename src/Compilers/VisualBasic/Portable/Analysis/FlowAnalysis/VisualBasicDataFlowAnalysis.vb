@@ -1,13 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -25,6 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _variablesDeclared As ImmutableArray(Of ISymbol)
         Private _unassignedVariables As HashSet(Of Symbol)
         Private _dataFlowsIn As ImmutableArray(Of ISymbol)
+        Private _definitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
+        Private _definitelyAssignedOnExit As ImmutableArray(Of ISymbol)
         Private _dataFlowsOut As ImmutableArray(Of ISymbol)
         Private _alwaysAssigned As ImmutableArray(Of ISymbol)
         Private _readInside As ImmutableArray(Of ISymbol)
@@ -81,6 +78,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _dataFlowsIn
             End Get
         End Property
+
+        Public Overrides ReadOnly Property DefinitelyAssignedOnEntry As ImmutableArray(Of ISymbol)
+            Get
+                Return ComputeDefinitelyAssignedValues().onEntry
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property DefinitelyAssignedOnExit As ImmutableArray(Of ISymbol)
+            Get
+                Return ComputeDefinitelyAssignedValues().onExit
+            End Get
+        End Property
+
+        Private Function ComputeDefinitelyAssignedValues() As (onEntry As ImmutableArray(Of ISymbol), onExit As ImmutableArray(Of ISymbol))
+            ' Check for _definitelyAssignedOnExit as that's the last thing we write to. If it's not
+            ' Default, then we'll have written to both variables and can safely read from either of
+            ' them.
+            If _definitelyAssignedOnExit.IsDefault Then
+                Dim entry = ImmutableArray(Of ISymbol).Empty
+                Dim ex = ImmutableArray(Of ISymbol).Empty
+
+                Dim discarded = DataFlowsIn
+                If Not Me._context.Failed Then
+                    Dim tuple = DefinitelyAssignedWalker.Analyze(_context.AnalysisInfo, _context.RegionInfo)
+                    entry = Normalize(tuple.entry)
+                    ex = Normalize(tuple.ex)
+                End If
+
+                ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnEntry, entry)
+                ImmutableInterlocked.InterlockedInitialize(_definitelyAssignedOnExit, ex)
+            End If
+
+            Return (_definitelyAssignedOnEntry, _definitelyAssignedOnExit)
+        End Function
 
         ''' <summary>
         ''' A collection of the local variables for which a value assigned inside the region may be used outside the region.

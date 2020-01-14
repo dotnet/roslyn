@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         // refresh on the UI thread.  If we hear about project changes, we only refresh that
         // project.  If we hear about a solution level change, we'll refresh all projects.
         private bool _solutionChanged;
-        private HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
+        private readonly HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
 
         private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
             new ConcurrentDictionary<ProjectId, ProjectState>();

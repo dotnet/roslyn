@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Collections
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class AssemblySymbol
         Inherits Symbol
-        Implements IAssemblySymbolInternal
+        Implements IAssemblySymbol, IAssemblySymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -89,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Get the name of this assembly.
         ''' </summary>
-        Public MustOverride ReadOnly Property Identity As AssemblyIdentity Implements IAssemblySymbol.Identity
+        Public MustOverride ReadOnly Property Identity As AssemblyIdentity Implements IAssemblySymbol.Identity, IAssemblySymbolInternal.Identity
 
         Public MustOverride ReadOnly Property AssemblyVersionPattern As Version Implements IAssemblySymbolInternal.AssemblyVersionPattern
 
@@ -331,6 +332,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overridable ReadOnly Property KeepLookingForDeclaredSpecialTypes As Boolean
             Get
                 Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Figure out if the target runtime supports default interface implementation.
+        ''' </summary>
+        Friend ReadOnly Property RuntimeSupportsDefaultInterfaceImplementation As Boolean
+            Get
+                Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) IsNot Nothing
             End Get
         End Property
 

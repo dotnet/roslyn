@@ -977,7 +977,7 @@ class Test
         #endregion
 
         // The object could be created inside the "using" statement 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void ObjectCreateInsideUsing()
         {
             var source = @"
@@ -1004,24 +1004,30 @@ class Program
   // Code size       25 (0x19)
   .maxstack  1
   .locals init (Program.MyManagedClass V_0) //mnObj
+  // sequence point: MyManagedClass mnObj = new MyManagedClass()
   IL_0000:  newobj     ""Program.MyManagedClass..ctor()""
   IL_0005:  stloc.0
   .try
   {
+    // sequence point: mnObj.Use();
     IL_0006:  ldloc.0
     IL_0007:  callvirt   ""void Program.MyManagedClass.Use()""
+    // sequence point: }
     IL_000c:  leave.s    IL_0018
   }
   finally
   {
+    // sequence point: <hidden>
     IL_000e:  ldloc.0
     IL_000f:  brfalse.s  IL_0017
     IL_0011:  ldloc.0
     IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
+    // sequence point: <hidden>
     IL_0017:  endfinally
   }
+  // sequence point: }
   IL_0018:  ret
-}");
+}", sequencePoints: "Program.Main", source: source);
         }
 
         [Fact]

@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public string TypeName { get; set; }
             public string DocumentNameWithoutExtension { get; set; }
             public bool IsDocumentNameAValidIdentifier { get; set; }
-            public bool IsSelectionOnTypeHeader { get; set; }
 
             private State(SemanticDocument document)
             {
@@ -28,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             internal static State Generate(
                 SemanticDocument document, TTypeDeclarationSyntax typeDeclaration,
-                bool isSelectionOnTypeHeader, CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 var state = new State(document);
-                if (!state.TryInitialize(typeDeclaration, isSelectionOnTypeHeader, cancellationToken))
+                if (!state.TryInitialize(typeDeclaration, cancellationToken))
                 {
                     return null;
                 }
@@ -41,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             private bool TryInitialize(
                 TTypeDeclarationSyntax typeDeclaration,
-                bool isSelectionOnTypeHeader,
                 CancellationToken cancellationToken)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -53,20 +51,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 var root = SemanticDocument.Root;
                 var syntaxFacts = SemanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
 
-                var typeSymbol = SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
 
                 // compiler declared types, anonymous types, types defined in metadata should be filtered out.
-                if (typeSymbol == null ||
+                if (!(SemanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is INamedTypeSymbol typeSymbol) ||
                     typeSymbol.Locations.Any(loc => loc.IsInMetadata) ||
                     typeSymbol.IsAnonymousType ||
-                    typeSymbol.IsImplicitlyDeclared)
+                    typeSymbol.IsImplicitlyDeclared ||
+                    typeSymbol.Name == string.Empty)
                 {
                     return false;
                 }
 
                 TypeNode = typeDeclaration;
                 TypeName = typeSymbol.Name;
-                IsSelectionOnTypeHeader = isSelectionOnTypeHeader;
                 DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(SemanticDocument.Document.Name);
                 IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
 

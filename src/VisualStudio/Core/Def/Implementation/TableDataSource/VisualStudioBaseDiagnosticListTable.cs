@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             StandardTableColumnDefinitions.BuildTool,
             StandardTableColumnDefinitions.ErrorSource,
             StandardTableColumnDefinitions.DetailsExpander,
-            SuppressionStateColumnDefinition.ColumnName
+            StandardTableColumnDefinitions.SuppressionState
         };
 
         protected VisualStudioBaseDiagnosticListTable(Workspace workspace, ITableManagerProvider provider) :
@@ -47,43 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 DiagnosticSeverity.Info => __VSERRORCATEGORY.EC_MESSAGE,
                 _ => Contract.FailWithReturn<__VSERRORCATEGORY>(),
             };
-        }
-
-        public static string GetHelpLink(Workspace workspace, DiagnosticData data)
-        {
-            if (BrowserHelper.TryGetUri(data.HelpLink, out var link))
-            {
-                return link.AbsoluteUri;
-            }
-
-            if (!string.IsNullOrWhiteSpace(data.Id))
-            {
-                return BrowserHelper.CreateBingQueryUri(workspace, data).AbsoluteUri;
-            }
-
-            return null;
-        }
-
-        public static string GetHelpLinkToolTipText(Workspace workspace, DiagnosticData item)
-        {
-            var isBing = false;
-            if (!BrowserHelper.TryGetUri(item.HelpLink, out var helpUri) && !string.IsNullOrWhiteSpace(item.Id))
-            {
-                helpUri = BrowserHelper.CreateBingQueryUri(workspace, item);
-                isBing = true;
-            }
-
-            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
-            if (helpUri != null)
-            {
-                var prefix = isBing
-                    ? string.Format(ServicesVSResources.Get_help_for_0_from_Bing, item.Id)
-                    : string.Format(ServicesVSResources.Get_help_for_0, item.Id);
-
-                return $"{prefix}\r\n{helpUri}";
-            }
-
-            return null;
         }
 
         protected abstract class DiagnosticTableEntriesSource : AbstractTableEntriesSource<DiagnosticTableItem>

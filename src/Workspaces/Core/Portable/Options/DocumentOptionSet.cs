@@ -35,6 +35,14 @@ namespace Microsoft.CodeAnalysis.Options
             return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
         }
 
+        /// <summary>
+        /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
+        /// </summary>
+        public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
+        {
+            return (DocumentOptionSet)WithChangedOption(option, _language, value);
+        }
+
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
         {
             return _backingOptionSet.GetChangedOptions(optionSet);

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 return ImmutableArray<UpdatedEventArgs>.Empty;
             }
 
-            return analyzer.GetTodoItemsUpdatedEventArgs(workspace, cancellationToken);
+            return analyzer.GetTodoItemsUpdatedEventArgs(workspace);
         }
 
         private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)

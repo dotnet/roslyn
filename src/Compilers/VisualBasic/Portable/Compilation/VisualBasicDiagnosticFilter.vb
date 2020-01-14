@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' to turn a diagnostic into a warning, and the global option was Suppress, the diagnostic
         ''' would be suppressed.
         '''
-        ''' Pragmas are considered seperately. If a diagnostic would not otherwise
+        ''' Pragmas are considered separately. If a diagnostic would not otherwise
         ''' be suppressed, but is suppressed by a pragma,
         ''' <paramref name="hasDisableDirectiveSuppression"/>
         ''' is true but the diagnostic is not reported as suppressed.

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
                 if (!service.ValidateTypeToGenerateIn(
-                    document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes, cancellationToken))
+                        document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var typeInference = semanticDocument.Document.GetLanguageService<ITypeInferenceService>();
                 var inferredType = typeInference.InferType(
                     semanticDocument.SemanticModel, SimpleNameOrMemberAccessExpressionOpt, objectAsDefault: true,
-                    nameOpt: IdentifierToken.ValueText, cancellationToken: cancellationToken);
+                    name: IdentifierToken.ValueText, cancellationToken: cancellationToken);
 
                 var compilation = semanticDocument.SemanticModel.Compilation;
                 inferredType = inferredType.SpecialType == SpecialType.System_Void

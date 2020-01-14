@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,9 +20,9 @@ namespace Microsoft.CodeAnalysis
         public ProjectId ProjectId { get; }
         public Guid Id { get; }
 
-        private readonly string _debugName;
+        private readonly string? _debugName;
 
-        private DocumentId(ProjectId projectId, Guid guid, string debugName)
+        private DocumentId(ProjectId projectId, Guid guid, string? debugName)
         {
             this.ProjectId = projectId;
             this.Id = guid;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="projectId">The project id this document id is relative to.</param>
         /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
-        public static DocumentId CreateNewId(ProjectId projectId, string debugName = null)
+        public static DocumentId CreateNewId(ProjectId projectId, string? debugName = null)
         {
             if (projectId == null)
             {
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, Guid.NewGuid(), debugName);
         }
 
-        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string debugName = null)
+        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string? debugName = null)
         {
             if (projectId == null)
             {
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis
             return new DocumentId(projectId, id, debugName);
         }
 
-        internal string DebugName => _debugName;
+        internal string? DebugName => _debugName;
 
         internal string GetDebuggerDisplay()
         {
@@ -69,12 +71,12 @@ namespace Microsoft.CodeAnalysis
             return GetDebuggerDisplay();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as DocumentId);
         }
 
-        public bool Equals(DocumentId other)
+        public bool Equals(DocumentId? other)
         {
             // Technically, we don't need to check project id.
             return
@@ -88,12 +90,12 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.ProjectId, this.Id.GetHashCode());
         }
 
-        public static bool operator ==(DocumentId left, DocumentId right)
+        public static bool operator ==(DocumentId? left, DocumentId? right)
         {
-            return EqualityComparer<DocumentId>.Default.Equals(left, right);
+            return EqualityComparer<DocumentId?>.Default.Equals(left, right);
         }
 
-        public static bool operator !=(DocumentId left, DocumentId right)
+        public static bool operator !=(DocumentId? left, DocumentId? right)
         {
             return !(left == right);
         }

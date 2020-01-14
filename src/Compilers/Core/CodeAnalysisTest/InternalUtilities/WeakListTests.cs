@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             e.AssertReleased();
 
             Assert.Equal(5, list.WeakCount);
-            Assert.Same(null, list.GetWeakReference(0).GetTarget());
+            Assert.Null(list.GetWeakReference(0).GetTarget());
             Assert.Same(b.GetReference(), list.GetWeakReference(1).GetTarget());
-            Assert.Same(null, list.GetWeakReference(2).GetTarget());
-            Assert.Same(null, list.GetWeakReference(3).GetTarget());
-            Assert.Same(null, list.GetWeakReference(4).GetTarget());
+            Assert.Null(list.GetWeakReference(2).GetTarget());
+            Assert.Null(list.GetWeakReference(3).GetTarget());
+            Assert.Null(list.GetWeakReference(4).GetTarget());
 
             var array = list.ToArray();
 

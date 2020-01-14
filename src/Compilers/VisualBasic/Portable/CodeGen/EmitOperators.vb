@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitBinaryOperatorExpression(expression As BoundBinaryOperator, used As Boolean)
 
-            Dim operationKind = expression.OperatorKind
+            Dim operationKind = expression.OperatorKind And BinaryOperatorKind.OpMask
             Dim shortCircuit As Boolean = operationKind = BinaryOperatorKind.AndAlso OrElse operationKind = BinaryOperatorKind.OrElse
 
             If Not used AndAlso Not shortCircuit AndAlso Not OperatorHasSideEffects(expression) Then

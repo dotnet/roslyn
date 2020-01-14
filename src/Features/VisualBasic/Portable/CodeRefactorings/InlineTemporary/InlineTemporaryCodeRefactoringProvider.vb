@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -24,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
         Public Overloads Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
             Dim document = context.Document
-            Dim textSpan = context.Span
             Dim cancellationToken = context.CancellationToken
 
             Dim workspace = document.Project.Solution.Workspace
@@ -32,30 +30,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Return
             End If
 
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim modifiedIdentifier = Await context.TryGetRelevantNodeAsync(Of ModifiedIdentifierSyntax)().ConfigureAwait(False)
 
-            Dim token = DirectCast(root, SyntaxNode).FindToken(textSpan.Start)
-
-            If Not token.Span.Contains(textSpan) Then
-                Return
-            End If
-
-            Dim node = token.Parent
-
-            If Not node.IsKind(SyntaxKind.ModifiedIdentifier) OrElse
-               Not node.IsParentKind(SyntaxKind.VariableDeclarator) OrElse
-               Not node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) Then
+            If Not modifiedIdentifier.IsParentKind(SyntaxKind.VariableDeclarator) OrElse
+               Not modifiedIdentifier.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) Then
 
                 Return
             End If
 
-            Dim modifiedIdentifier = DirectCast(node, ModifiedIdentifierSyntax)
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclarationStatement = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
 
-            If modifiedIdentifier.Identifier <> token OrElse
-               Not variableDeclarator.HasInitializer() Then
-
+            If Not variableDeclarator.HasInitializer() Then
                 Return
             End If
 
@@ -69,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End If
 
             context.RegisterRefactoring(
-                New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)))
+                New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
         End Function
 
         Private Async Function GetReferencesAsync(

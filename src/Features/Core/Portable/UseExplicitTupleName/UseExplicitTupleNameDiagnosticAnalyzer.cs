@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             var field = fieldReferenceOperation.Field;
             if (field.ContainingType.IsTupleType)
             {
-                if (field.CorrespondingTupleField.Equals(field))
+                if (field.CorrespondingTupleField?.Equals(field) == true)
                 {
                     var namedField = GetNamedField(field.ContainingType, field, cancellationToken);
                     if (namedField != null)

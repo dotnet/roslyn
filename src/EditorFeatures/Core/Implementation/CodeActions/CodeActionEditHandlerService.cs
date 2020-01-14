@@ -186,8 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return null;
             }
 
-            var applyOperation = operationsList.Single() as ApplyChangesOperation;
-            if (applyOperation == null)
+            if (!(operationsList.Single() is ApplyChangesOperation applyOperation))
             {
                 return null;
             }
@@ -295,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
                 var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
-                                             .FirstOrNullable();
+                                             .FirstOrNull();
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
@@ -304,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
 
                 var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind)
-                                         .FirstOrNullable();
+                                         .FirstOrNull();
 
                 if (renameTokenOpt.HasValue)
                 {

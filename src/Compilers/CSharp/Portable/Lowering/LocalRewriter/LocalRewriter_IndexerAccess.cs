@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitIndexOrRangePatternIndexerAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundExpression VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
+        private BoundSequence VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node, bool isLeftOfAssignment)
         {
             if (TypeSymbol.Equals(
                 node.Argument.Type,
@@ -192,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitIndexPatternIndexerAccess(
+
+        private BoundSequence VisitIndexPatternIndexerAccess(
             SyntaxNode syntax,
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             locals.Add(indexLocal.LocalSymbol);
             sideEffects.Add(indexStore);
 
-            return F.Sequence(
+            return (BoundSequence)F.Sequence(
                 locals.ToImmutable(),
                 sideEffects.ToImmutable(),
                 MakeIndexerAccess(
@@ -253,9 +254,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isLeftOfAssignment));
         }
 
+        /// <summary>
+        /// Used to construct a pattern index offset expression, of the form
+        ///     `unloweredExpr.GetOffset(lengthAccess)`
+        /// where unloweredExpr is an expression of type System.Index and the
+        /// lengthAccess retrieves the length of the indexing target.
+        /// </summary>
+        /// <param name="unloweredExpr">The unlowered argument to the indexing expression</param>
+        /// <param name="lengthAccess">
+        /// An expression accessing the length of the indexing target. This should
+        /// be a non-side-effecting operation.
+        /// </param>
+        /// <param name="usedLength">
+        /// True if we were able to optimize the <paramref name="unloweredExpr"/>
+        /// to use the <paramref name="lengthAccess"/> operation directly on the receiver, instead of
+        /// using System.Index helpers.
+        /// </param>
         private BoundExpression MakePatternIndexOffsetExpression(
             BoundExpression unloweredExpr,
-            BoundLocal lengthAccess,
+            BoundExpression lengthAccess,
             out bool usedLength)
         {
             Debug.Assert(TypeSymbol.Equals(
@@ -290,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitRangePatternIndexerAccess(
+        private BoundSequence VisitRangePatternIndexerAccess(
             BoundExpression receiver,
             PropertySymbol lengthOrCountProperty,
             MethodSymbol sliceMethod,
@@ -419,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rangeSizeExpr = rangeSizeLocal;
             }
 
-            return F.Sequence(
+            return (BoundSequence)F.Sequence(
                 localsBuilder.ToImmutableAndFree(),
                 sideEffectsBuilder.ToImmutableAndFree(),
                 F.Call(receiverLocal, sliceMethod, startExpr, rangeSizeExpr));

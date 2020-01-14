@@ -28,5 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Overrides ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement
         Public Overrides ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement
         Public Overrides ReadOnly Property HashToken As Integer = SyntaxKind.HashToken
+
+        Public Overrides ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement
     End Class
 End Namespace

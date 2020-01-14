@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 Debug.Assert((object)this.Type != null);
-                return new DiscardSymbol(this.Type);
+                return new DiscardSymbol(TypeWithAnnotations.Create(this.Type, this.TopLevelNullability.Annotation.ToInternalAnnotation()));
             }
         }
     }

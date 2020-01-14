@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         .GroupBy(d => d.ProjectId)
                         .OrderBy(g => _topologicallySortedProjects.IndexOf(g.Key));
 
-                    _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key), _cancellationToken);
+                    _replacementTextValid = IsIdentifierValid_Worker(baseSolution, _replacementText, documentsGroupedByTopologicallySortedProjectId.Select(g => g.Key));
                     var renamedSpansTracker = new RenamedSpansTracker();
                     var conflictResolution = new ConflictResolution(baseSolution, renamedSpansTracker, _replacementText, _replacementTextValid);
 
@@ -246,6 +246,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         }
                     }
 
+                    // Step 6: Drop changes made in unchangeable documents
+                    var (containsDisallowedChange, updatedSolution) = await conflictResolution.NewSolution.ExcludeDisallowedDocumentTextChangesAsync(conflictResolution.OldSolution, _cancellationToken).ConfigureAwait(false);
+                    if (containsDisallowedChange)
+                    {
+                        conflictResolution.UpdateCurrentSolution(updatedSolution);
+                    }
+
                     return conflictResolution;
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -318,12 +325,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var syntaxRoot = await newDocument.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
 
                             var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(documentId, syntaxRoot);
-                            foreach (var nodeOrToken in nodesOrTokensWithConflictCheckAnnotations)
+                            foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
-                                if (nodeOrToken.annotation.IsRenameLocation)
+                                if (annotation.IsRenameLocation)
                                 {
                                     conflictResolution.AddRelatedLocation(new RelatedLocation(
-                                        nodeOrToken.annotation.OriginalSpan, documentId, RelatedLocationType.UnresolvedConflict));
+                                        annotation.OriginalSpan, documentId, RelatedLocationType.UnresolvedConflict));
                                 }
                             }
                         }
@@ -351,10 +358,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             .Where(t => t.DocumentId == documentId)
                             .Select(t => t.OriginalIdentifierSpan).ToSet();
 
-                        foreach (var nodeAndAnnotation in nodesOrTokensWithConflictCheckAnnotations)
+                        foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                         {
-                            var tokenOrNode = nodeAndAnnotation.syntax;
-                            var conflictAnnotation = nodeAndAnnotation.annotation;
+                            var tokenOrNode = syntax;
+                            var conflictAnnotation = annotation;
                             reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                             var originalLocation = conflictAnnotation.OriginalSpan;
                             IEnumerable<ISymbol> newReferencedSymbols = null;
@@ -434,10 +441,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var baseSyntaxTree = await baseDocument.GetSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
 
                             var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(unprocessedDocumentIdWithPotentialDeclarationConflicts, syntaxRoot);
-                            foreach (var nodeAndAnnotation in nodesOrTokensWithConflictCheckAnnotations)
+                            foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
-                                var tokenOrNode = nodeAndAnnotation.syntax;
-                                var conflictAnnotation = nodeAndAnnotation.annotation;
+                                var tokenOrNode = syntax;
+                                var conflictAnnotation = annotation;
                                 reverseMappedLocations[tokenOrNode.GetLocation()] = baseSyntaxTree.GetLocation(conflictAnnotation.OriginalSpan);
                             }
                         }
