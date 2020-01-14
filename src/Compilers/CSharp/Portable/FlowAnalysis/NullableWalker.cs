@@ -7105,6 +7105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
                         TypeWithState result = sourceState;
+                        var isVar = node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } };
                         if (iterationVariable.IsRef)
                         {
                             // foreach (ref DestinationType variable in collection)
@@ -7114,7 +7115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
                             }
                         }
-                        else if (node.Syntax is ForEachStatementSyntax { Type: { IsVar: true } })
+                        else if (isVar)
                         {
                             // foreach (var variable in collection)
                             _variableTypes[iterationVariable] = sourceState.ToTypeWithAnnotations();
@@ -7143,7 +7144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
-                        SetAnalyzedNullability(node.IterationVariableType, new VisitResult(result, destinationType), isLvalue: true);
+                        SetAnalyzedNullability(node.IterationVariableType, new VisitResult(isVar ? result : destinationType.ToTypeWithState(), destinationType), isLvalue: true);
                         state = result.State;
                     }
 

@@ -3821,20 +3821,28 @@ class B2 : A<int?>
         {
             var source = @"
 #nullable enable
+using System.Collections.Generic;
 namespace N
 {
-    class C    
-    {    
-        void M(C x)    
-        {    
-            global::N.C c1 = x;    
-            global::N.C? c2 = x;    
-            N.C c3 = x;    
-            N.C? c4 = x;    
-            C c5 = x;    
-            C? c6 = x;    
-        }    
-    }    
+    class C
+    {
+        void M(C x)
+        {
+            global::N.C c1 = x;
+            global::N.C? c2 = x;
+            N.C c3 = x;
+            N.C? c4 = x;
+            C c5 = x;
+            C? c6 = x;
+            M2(out C c7);
+            M2(out C? c8);
+            foreach (C c9 in M3()) {}
+            foreach (C? c10 in M3()) {}
+        }
+
+        void M2(out C c) => throw null!;
+        IEnumerable<C> M3() => throw null!;
+    }
 }
 ";
             var comp = CreateCompilation(source);
@@ -3847,8 +3855,16 @@ namespace N
             for (int i = 0; i < 6; i += 2)
             {
                 Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(identifiers[i].Type).Type.NullableAnnotation);
-                Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(((NullableTypeSyntax)identifiers[i + 1].Type).ElementType).Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(identifiers[i + 1].Type).Type.NullableAnnotation);
             }
+
+            var outVars = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToList();
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(outVars[0].Type).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(outVars[1].Type).Type.NullableAnnotation);
+
+            var foreaches = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToList();
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, model.GetTypeInfo(foreaches[0].Type).Type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.Annotated, model.GetTypeInfo(foreaches[1].Type).Type.NullableAnnotation);
         }
     }
 }
