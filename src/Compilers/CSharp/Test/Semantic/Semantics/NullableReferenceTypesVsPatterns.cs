@@ -1201,6 +1201,17 @@ class Program
             var source = @"
 class Program
 {
+    void M0(object o)
+    {
+        var t = (o, o);
+        _ = t switch
+        {
+            (null, null) => 1,
+            (null, {}) => 2,
+            ({}, null) => 3,
+            ({}, {}) => 4,
+        };
+    }
     void M1(object o)
     {
         var t = (o, o);
@@ -1213,7 +1224,7 @@ class Program
     void M2(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 2 not exhaustive
         {
             (1, 2) => 1,
             ({}, {}) => 2,
@@ -1222,7 +1233,7 @@ class Program
     void M3(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 3 not exhaustive
         {
             (null, 2) => 1,
             ({}, {}) => 2,
@@ -1232,7 +1243,7 @@ class Program
     void M4(object o)
     {
         var t = (o, o);
-        _ = t switch // 2 not exhaustive
+        _ = t switch // 4 not exhaustive
         {
             { Item1: null, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1241,7 +1252,7 @@ class Program
     void M5(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 5 not exhaustive
         {
             { Item1: 1, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1250,7 +1261,7 @@ class Program
     void M6(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 6 not exhaustive
         {
             { Item1: null, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1259,7 +1270,7 @@ class Program
     }
     void M7(object o, bool b)
     {
-        _ = o switch // 3 not exhaustive
+        _ = o switch // 7 not exhaustive
         {
             null when b => 1,
             {} => 2,
@@ -1278,15 +1289,27 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                // (18,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
                 //         _ = t switch // 1 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(7, 15),
-                // (35,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(18, 15),
+                // (27,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
                 //         _ = t switch // 2 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(35, 15),
-                // (62,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
-                //         _ = o switch // 3 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(62, 15));
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(27, 15),
+                // (36,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 3 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(36, 15),
+                // (46,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 4 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(46, 15),
+                // (55,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 5 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(55, 15),
+                // (64,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 6 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(64, 15),
+                // (73,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = o switch // 7 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(73, 15));
         }
 
         [Fact]
