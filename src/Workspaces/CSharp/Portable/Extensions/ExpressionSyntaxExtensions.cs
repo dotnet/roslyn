@@ -792,18 +792,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
             {
                 var memberAccess = (MemberAccessExpressionSyntax)expression;
-                return TryReduce(memberAccess, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
 
             if (expression is NameSyntax name)
             {
-                return TryReduce(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                return TryReduceName(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
 
             return false;
         }
 
-        private static bool TryReduce(
+        private static bool TryReduceMemberAccessExpression(
             MemberAccessExpressionSyntax memberAccess,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (!memberAccess.IsRightSideOfDot())
             {
                 // Check if we need to replace this syntax with an alias identifier
-                if (TryReplaceWithAlias(memberAccess, semanticModel, cancellationToken, out var aliasReplacement))
+                if (TryReplaceExpressionWithAlias(memberAccess, semanticModel, cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
                     var text = aliasReplacement.Name;
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
-        private static bool TryReplaceWithAlias(ExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
+        private static bool TryReplaceExpressionWithAlias(ExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
 
@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return -1;
         }
 
-        private static bool TryReduce(
+        private static bool TryReduceName(
             NameSyntax name,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
@@ -1517,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (!name.IsRightSideOfDotOrColonColon())
                 {
-                    if (TryReplaceWithAlias(name, semanticModel, cancellationToken, out var aliasReplacement))
+                    if (TryReplaceExpressionWithAlias(name, semanticModel, cancellationToken, out var aliasReplacement))
                     {
                         // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
