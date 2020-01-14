@@ -216,20 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
-            => expression != null && expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression;
+            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) &&
+               memberAccess.Expression == expression;
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
-        {
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                (expression.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
-        }
+            => IsLeftSideOfQualifiedName(expression) ||
+               (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-        {
-            return
-                expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Left == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
 
         public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
