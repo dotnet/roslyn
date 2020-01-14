@@ -268,13 +268,14 @@ class C { }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
+            var expectedException = new NotImplementedException();
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var suppressor = new DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions();
+            var suppressor = new DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions(expectedException);
             var exceptions = new List<Exception>();
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
                 (sender, e) =>
                 {
-                    if (e.Exception is NotImplementedException)
+                    if (e.Exception == expectedException)
                     {
                         exceptions.Add(e.Exception);
                     }
@@ -312,13 +313,14 @@ class C { }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
+            var expectedException = new NotImplementedException();
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var suppressor = new DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(analyzer.Descriptor.Id);
+            var suppressor = new DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(analyzer.Descriptor.Id, expectedException);
             var exceptions = new List<Exception>();
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
                 (sender, e) =>
                 {
-                    if (e.Exception is NotImplementedException)
+                    if (e.Exception == expectedException)
                     {
                         exceptions.Add(e.Exception);
                     }
@@ -371,7 +373,8 @@ class C { }";
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
                 (sender, e) =>
                 {
-                    if (e.Exception is ArgumentException)
+                    if (e.Exception is ArgumentException
+                        && e.Exception.Message == exceptionMessage)
                     {
                         exceptions.Add(e.Exception);
                     }
@@ -421,7 +424,8 @@ class C { }";
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
                 (sender, e) =>
                 {
-                    if (e.Exception is ArgumentException)
+                    if (e.Exception is ArgumentException
+                        && e.Exception.Message == exceptionMessage)
                     {
                         exceptions.Add(e.Exception);
                     }
@@ -471,7 +475,8 @@ class C { }";
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException =
                 (sender, e) =>
                 {
-                    if (e.Exception is ArgumentException)
+                    if (e.Exception is ArgumentException
+                        && e.Exception.Message == exceptionMessage)
                     {
                         exceptions.Add(e.Exception);
                     }

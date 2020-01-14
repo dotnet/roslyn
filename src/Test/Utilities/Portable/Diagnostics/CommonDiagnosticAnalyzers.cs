@@ -1814,8 +1814,15 @@ namespace Microsoft.CodeAnalysis
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions : DiagnosticSuppressor
         {
+            private readonly NotImplementedException _exception;
+
+            public DiagnosticSuppressorThrowsExceptionFromSupportedSuppressions(NotImplementedException exception)
+            {
+                _exception = exception;
+            }
+
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
-                => throw new NotImplementedException();
+                => throw _exception;
 
             public override void ReportSuppressions(SuppressionAnalysisContext context)
             {
@@ -1826,12 +1833,15 @@ namespace Microsoft.CodeAnalysis
         public sealed class DiagnosticSuppressorThrowsExceptionFromReportedSuppressions : DiagnosticSuppressor
         {
             private readonly SuppressionDescriptor _descriptor;
-            public DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(string suppressedDiagnosticId)
+            private readonly NotImplementedException _exception;
+
+            public DiagnosticSuppressorThrowsExceptionFromReportedSuppressions(string suppressedDiagnosticId, NotImplementedException exception)
             {
                 _descriptor = new SuppressionDescriptor(
                     "SPR0001",
                     suppressedDiagnosticId,
                     $"Suppress {suppressedDiagnosticId}");
+                _exception = exception;
             }
 
             public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
@@ -1839,7 +1849,7 @@ namespace Microsoft.CodeAnalysis
 
             public override void ReportSuppressions(SuppressionAnalysisContext context)
             {
-                throw new NotImplementedException();
+                throw _exception;
             }
         }
 

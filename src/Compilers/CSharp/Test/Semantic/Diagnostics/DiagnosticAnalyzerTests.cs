@@ -916,7 +916,8 @@ public class B
 
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
             {
-                if (e.Exception is ArgumentException)
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
                 {
                     analyzerException = e.Exception;
                 }
@@ -952,7 +953,8 @@ public class B
 
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
             {
-                if (e.Exception is ArgumentException)
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
                 {
                     analyzerException = e.Exception;
                 }
@@ -1068,7 +1070,8 @@ SyntaxTree: ";
 
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
             {
-                if (e.Exception is ArgumentException)
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
                 {
                     analyzerException = e.Exception;
                 }
@@ -1138,7 +1141,8 @@ SyntaxTree: ")}
 
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
             {
-                if (e.Exception is ArgumentException)
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
                 {
                     analyzerException = e.Exception;
                 }
@@ -1175,7 +1179,8 @@ SyntaxTree: ")}
 
             EventHandler<FirstChanceExceptionEventArgs> firstChanceException = (sender, e) =>
             {
-                if (e.Exception is ArgumentException)
+                if (e.Exception is ArgumentException
+                    && e.Exception.Message == message)
                 {
                     analyzerException = e.Exception;
                 }
