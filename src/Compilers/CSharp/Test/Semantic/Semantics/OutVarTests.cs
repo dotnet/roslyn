@@ -4856,9 +4856,6 @@ public class X
                 // (39,13): error CS0128: A local variable named 'x5' is already defined in this scope
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(39, 13),
-                // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
                 // (59,79): error CS0128: A local variable named 'x8' is already defined in this scope
                 //         Dummy(TakeOutParam(true, out var x8), x8, TakeOutParam(false, out var x8), x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 79),
@@ -13156,9 +13153,6 @@ public class X
                 // (39,9): warning CS0162: Unreachable code detected
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
-                // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
                 // (59,86): error CS0128: A local variable named 'x8' is already defined in this scope
                 //         return Dummy(TakeOutParam(true, out var x8), x8, TakeOutParam(false, out var x8), x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 86),
@@ -15077,9 +15071,6 @@ public class X
                 // (39,9): warning CS0162: Unreachable code detected
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
-                // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
                 // (59,85): error CS0128: A local variable named 'x8' is already defined in this scope
                 //         throw Dummy(TakeOutParam(true, out var x8), x8, TakeOutParam(false, out var x8), x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 85),
@@ -16921,9 +16912,6 @@ public class X
                 // (41,13): error CS0128: A local variable named 'x5' is already defined in this scope
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(41, 13),
-                // (41,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(41, 13),
                 // (61,92): error CS0128: A local variable named 'x8' is already defined in this scope
                 //         yield return Dummy(TakeOutParam(true, out var x8), x8, TakeOutParam(false, out var x8), x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(61, 92),
@@ -17334,9 +17322,6 @@ a:      Dummy(TakeOutParam(true, out var x12), x12);
                 // (38,1): warning CS0164: This label has not been referenced
                 // a:      Dummy(TakeOutParam(true, out var x5), x5);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(38, 1),
-                // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
                 // (59,79): error CS0128: A local variable named 'x8' is already defined in this scope
                 // a:      Dummy(TakeOutParam(true, out var x8), x8, TakeOutParam(false, out var x8), x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 79),
@@ -19614,9 +19599,6 @@ public class Cls
                 // (9,9): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
                 //         var x = default(System.ArgIterator);
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.ArgIterator").WithLocation(9, 9),
-                // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
                 // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async void Test()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)

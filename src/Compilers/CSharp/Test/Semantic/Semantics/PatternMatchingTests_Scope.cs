@@ -184,9 +184,6 @@ public class X
     // (39,13): error CS0128: A local variable named 'x5' is already defined in this scope
     //         var x5 = 11;
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(39, 13),
-    // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-    //         var x5 = 11;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
     // (59,48): error CS0128: A local variable named 'x8' is already defined in this scope
     //         Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 48),
@@ -566,9 +563,6 @@ public class X
     // (39,9): warning CS0162: Unreachable code detected
     //         var x5 = 11;
     Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
-    // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-    //         var x5 = 11;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
     // (59,55): error CS0128: A local variable named 'x8' is already defined in this scope
     //         return Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 55),
@@ -836,9 +830,6 @@ public class X
     // (39,9): warning CS0162: Unreachable code detected
     //         var x5 = 11;
     Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(39, 9),
-    // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-    //         var x5 = 11;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
     // (59,54): error CS0128: A local variable named 'x8' is already defined in this scope
     //         throw Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 54),
@@ -10069,9 +10060,6 @@ public class X
     // (41,13): error CS0128: A local variable named 'x5' is already defined in this scope
     //         var x5 = 11;
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(41, 13),
-    // (41,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-    //         var x5 = 11;
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(41, 13),
     // (61,61): error CS0128: A local variable named 'x8' is already defined in this scope
     //         yield return Dummy(true is var x8, x8, false is var x8, x8);
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(61, 61),
@@ -10566,9 +10554,6 @@ a:      Dummy(true is var x12, x12);
                 // (38,1): warning CS0164: This label has not been referenced
                 // a:      Dummy(true is var x5, x5);
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(38, 1),
-                // (39,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(39, 13),
                 // (59,48): error CS0128: A local variable named 'x8' is already defined in this scope
                 // a:      Dummy(true is var x8, x8, false is var x8, x8);
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(59, 48),
@@ -13921,9 +13906,6 @@ public class X
                 // (37,13): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(37, 13),
-                // (37,13): warning CS0219: The variable 'x5' is assigned but its value is never used
-                //         var x5 = 11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(37, 13),
                 // (38,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x5] _9;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x5]").WithLocation(38, 12),
