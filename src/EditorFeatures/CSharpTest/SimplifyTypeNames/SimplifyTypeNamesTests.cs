@@ -4353,17 +4353,33 @@ class Base
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
         [InlineData("Int16")]
         [InlineData("UInt16")]
         [InlineData("Int32")]
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|global::System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System;
@@ -4564,6 +4580,36 @@ class C
 ");
         }
 
+        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyPredefinedTypeInUsingDirective1()
+        {
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
+
+namespace N
+{
+    using Alias1 = [|System|].Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}",
+
+@"using System;
+
+namespace N
+{
+    using Alias1 = Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestSimplifyTopLevelOfCrefOnly1()
         {
@@ -4697,19 +4743,35 @@ namespace N
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
         [InlineData("Int16")]
         [InlineData("UInt16")]
         [InlineData("Int32")]
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
+        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType2(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 $@"using System;
 namespace N
 {{
