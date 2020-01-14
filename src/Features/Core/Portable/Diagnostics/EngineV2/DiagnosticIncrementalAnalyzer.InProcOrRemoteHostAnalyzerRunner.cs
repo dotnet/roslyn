@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var result = await session.Connection.InvokeAsync(
                     nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                     new object[] { argument },
-                    (s, c) => ReadCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
+                    (stream, cancellationToken) => ReadCompilerAnalysisResultAsync(stream, analyzerMap, project, cancellationToken), cancellationToken).ConfigureAwait(false);
 
                 ReportAnalyzerExceptions(project, result.Exceptions);
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // handling of cancellation and exception
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                using var reader = ObjectReader.TryGetReader(stream);
+                using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
                 // We only get a reader for data transmitted between live processes.
                 // This data should always be correct as we're never persisting the data between sessions.
