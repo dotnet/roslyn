@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. Any changes made to this file while debugging won&apos;t be applied until its content matches the built source..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -4053,6 +4053,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unable_to_load_Analyzer_assembly_0_colon_1 {
             get {
                 return ResourceManager.GetString("Unable_to_load_Analyzer_assembly_0_colon_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to read source file &apos;{0}&apos; or the PDB built for the containing project. Any changes made to this file while debugging won&apos;t be applied until its content matches the built source..
+        /// </summary>
+        internal static string UnableToReadSourceFileOrPdb {
+            get {
+                return ResourceManager.GetString("UnableToReadSourceFileOrPdb", resourceCulture);
             }
         }
         
