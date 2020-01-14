@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan);
         }
 
-        public static bool TryReduceExplicitName(
+        private static bool TryReduceExplicitName(
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInMemberAccessContext(this ExpressionSyntax expression) =>
             expression?.Parent is MemberAccessExpressionSyntax;
 
-        public static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
+        private static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
         {
             if (expression.Kind() == SyntaxKind.IdentifierName ||
                 expression.Kind() == SyntaxKind.QualifiedName ||
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public static bool IsPartOfNamespaceDeclarationName(SyntaxNode node)
+        private static bool IsPartOfNamespaceDeclarationName(SyntaxNode node)
         {
             var parent = node;
 
