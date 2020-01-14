@@ -52,6 +52,11 @@
         <target state="translated">문서가 구문 트리를 지원하지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">식 수준 기본 설정</target>
@@ -1345,6 +1350,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access">
         <source>Adding imports will bring an extension method into scope with the same name as '{0}'</source>
         <target state="translated">가져오기를 추가하면 '{0}'과(와) 같은 이름으로 확장 메서드가 범위에 포함됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="new">Workspace error</target>
         <note />
       </trans-unit>
       <trans-unit id="Workspace_is_not_empty">

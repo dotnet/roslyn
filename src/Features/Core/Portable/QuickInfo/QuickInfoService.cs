@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -16,13 +18,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// <summary>
         /// Gets the appropriate <see cref="QuickInfoService"/> for the specified document.
         /// </summary>
-        public static QuickInfoService GetService(Document document)
+        public static QuickInfoService? GetService(Document? document)
             => document?.GetLanguageService<QuickInfoService>();
 
         /// <summary>
         /// Gets the <see cref="QuickInfoItem"/> associated with position in the document.
         /// </summary>
-        public virtual Task<QuickInfoItem> GetQuickInfoAsync(
+        public virtual Task<QuickInfoItem?> GetQuickInfoAsync(
             Document document,
             int position,
             CancellationToken cancellationToken = default)
