@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpUpgradeMSBuildWorkspaceAnalyzer : UpgradeMSBuildWorkspaceAnalyzer
     {
-        private CSharpUpgradeMSBuildWorkspaceAnalyzer(bool performAssemblyChecks)
+        private protected CSharpUpgradeMSBuildWorkspaceAnalyzer(bool performAssemblyChecks)
             : base(performAssemblyChecks)
         {
         }
@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             : this(performAssemblyChecks: true)
         {
         }
-
-        internal static CSharpUpgradeMSBuildWorkspaceAnalyzer CreateForTests()
-            => new CSharpUpgradeMSBuildWorkspaceAnalyzer(performAssemblyChecks: false);
 
         protected override void RegisterIdentifierAnalysis(CompilationStartAnalysisContext context)
         {

@@ -14,6 +14,10 @@ namespace Test.Utilities
             .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0")));
 
+        public static ReferenceAssemblies DefaultWithoutRoslynSymbols { get; } = ReferenceAssemblies.Default
+            .AddAssemblies(ImmutableArray.Create("System.Xml.Data"))
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.CodeAnalysis.Workspaces.Common", "3.0.0")));
+
         public static ReferenceAssemblies DefaultWithSystemWeb { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Web", "System.Web.Extensions"));
 

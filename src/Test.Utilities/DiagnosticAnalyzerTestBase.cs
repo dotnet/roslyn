@@ -5,271 +5,53 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Test.Utilities
 {
     public abstract class DiagnosticAnalyzerTestBase
     {
-        [Flags]
-        protected enum ReferenceFlags
-        {
-            None = 0b000,
-            RemoveCodeAnalysis = 0b001,
-            AddTestReferenceAssembly = 0b1000,
-        }
-
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
-        protected static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         internal const string DefaultFilePathPrefix = "Test";
         internal const string CSharpDefaultFileExt = "cs";
-        internal const string VisualBasicDefaultExt = "vb";
         protected static readonly string CSharpDefaultFilePath = DefaultFilePathPrefix + 0 + "." + CSharpDefaultFileExt;
-        protected static readonly string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
 
         private const string TestProjectName = "TestProject";
 
-        protected const TestValidationMode DefaultTestValidationMode = TestValidationMode.AllowCompileWarnings;
-
-        public DiagnosticAnalyzerTestBase(ITestOutputHelper output)
-        {
-            this.Output = output;
-        }
-
-        public DiagnosticAnalyzerTestBase()
-            : this(null)
+        protected DiagnosticAnalyzerTestBase()
         {
         }
 
-        protected ITestOutputHelper Output { get; }
-
-        /// <summary>
-        /// Return the C# diagnostic analyzer to get analyzer diagnostics.
-        /// This may return null when used in context of verifying a code fix for compiler diagnostics.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer();
-
-        /// <summary>
-        /// Return the VB diagnostic analyzer to get analyzer diagnostics.
-        /// This may return null when used in context of verifying a code fix for compiler diagnostics.
-        /// </summary>
-        /// <returns></returns>
-        protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
-
-        // It is assumed to be of the format, Get<RuleId>CSharpResultAt(line: {0}, column: {1}, message: {2})
-        private string ExpectedDiagnosticsAssertionTemplate { get; set; }
-
-        protected static DiagnosticResult GetBasicResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        protected static Project CreateProject(string[] sources)
         {
-            return GetResultAt(VisualBasicDefaultFilePath, lineColumnPairs, rule, messageArguments);
+            return CreateProject(sources.ToFileAndSource());
         }
 
-        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
-        {
-            return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
-        }
-
-        private static DiagnosticResult GetResultAt(string path, IEnumerable<(int line, int column)> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
-        {
-            DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments);
-            foreach (var (line, column) in lineColumnPairs)
-            {
-                result = result.WithLocation(path, line, column);
-            }
-
-            return result;
-        }
-
-        protected void VerifyCSharp(string source, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string source, TestValidationMode validationMode, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string source, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), referenceFlags, DefaultTestValidationMode, compilationOptions: null, parseOptions: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string source, ReferenceFlags referenceFlags, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
-        {
-            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), referenceFlags, validationMode, compilationOptions: null, parseOptions: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string[] sources, params DiagnosticResult[] expected)
-        {
-            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string[] sources, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, referenceFlags, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string[] sources, FileAndSource additionalFile, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            var additionalFiles = new[] { GetAdditionalTextFile(additionalFile.FilePath, additionalFile.Source) };
-            Verify(sources.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), DefaultTestValidationMode, referenceFlags, compilationOptions: null, parseOptions: null, additionalFiles: additionalFiles, expected: expected);
-        }
-
-        protected void VerifyCSharpAcrossTwoAssemblies(string dependencySource, string source, params DiagnosticResult[] expected)
-        {
-            VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.CSharp, additionalFileOpt: null, expected);
-        }
-
-        protected void VerifyBasic(string source, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyBasic(string source, TestValidationMode validationMode, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), validationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyBasic(string source, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
-        {
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), referenceFlags, DefaultTestValidationMode, compilationOptions: null, parseOptions: null, expected: expected);
-        }
-
-        protected void VerifyBasic(string source, ReferenceFlags referenceFlags, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
-        {
-            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), referenceFlags, validationMode, compilationOptions: null, parseOptions: null, expected: expected);
-        }
-
-        protected void VerifyBasic(string[] sources, params DiagnosticResult[] expected)
-        {
-            Verify(sources.ToFileAndSource(), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), DefaultTestValidationMode, ReferenceFlags.None, compilationOptions: null, parseOptions: null, additionalFiles: null, expected: expected);
-        }
-
-        protected void VerifyBasicAcrossTwoAssemblies(string dependencySource, string source, params DiagnosticResult[] expected)
-        {
-            VerifyAcrossTwoAssemblies(dependencySource, source, LanguageNames.VisualBasic, additionalFileOpt: null, expected);
-        }
-
-        private void Verify(string source, string language, DiagnosticAnalyzer analyzer, ReferenceFlags referenceFlags, TestValidationMode validationMode, CompilationOptions compilationOptions, ParseOptions parseOptions, params DiagnosticResult[] expected)
-        {
-            var diagnostics = GetSortedDiagnostics(new[] { source }.ToFileAndSource(), language, analyzer, compilationOptions, parseOptions, referenceFlags: referenceFlags, validationMode: validationMode);
-            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
-        }
-
-        private void Verify(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, TestValidationMode validationMode, ReferenceFlags referenceFlags, CompilationOptions compilationOptions, ParseOptions parseOptions, IEnumerable<TestAdditionalDocument> additionalFiles, params DiagnosticResult[] expected)
-        {
-            var diagnostics = GetSortedDiagnostics(sources, language, analyzer, compilationOptions, parseOptions, validationMode, referenceFlags: referenceFlags, additionalFiles: additionalFiles);
-            diagnostics.Verify(analyzer, this.Output, ExpectedDiagnosticsAssertionTemplate, GetDefaultPath(language), expected);
-        }
-
-        private void VerifyAcrossTwoAssemblies(string dependencySource, string source, string language, FileAndSource? additionalFileOpt, params DiagnosticResult[] expected)
-        {
-            VerifyAcrossTwoAssemblies(dependencySource, source, language, language, additionalFileOpt, expected);
-        }
-
-        protected void VerifyAcrossTwoAssemblies(string dependencySource, string source, string dependencyLanguage, string language, FileAndSource? additionalFileOpt, params DiagnosticResult[] expected)
-        {
-            Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
-
-            var dependencyProject = CreateProject(new[] { dependencySource }, language: dependencyLanguage, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, projectName: "DependencyProject");
-            var project =
-                CreateProject(new[] { source }, language: language, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, addToSolution: dependencyProject.Solution)
-                    .AddProjectReference(new ProjectReference(dependencyProject.Id));
-
-            IEnumerable<TestAdditionalDocument> additionalFiles = null;
-            if (additionalFileOpt.HasValue)
-            {
-                var additionalFile = GetAdditionalTextFile(additionalFileOpt.Value.FilePath, additionalFileOpt.Value.Source);
-                additionalFiles = new[] { additionalFile };
-                project = project.AddAdditionalDocument(additionalFileOpt.Value.FilePath, additionalFileOpt.Value.Source).Project;
-            }
-
-            var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
-            GetSortedDiagnostics(analyzer, project.Documents.ToArray(), additionalFiles: additionalFiles).Verify(analyzer, GetDefaultPath(language), expected);
-        }
-
-        protected static string GetDefaultPath(string language) =>
-            language == LanguageNames.CSharp ? CSharpDefaultFilePath : VisualBasicDefaultFilePath;
-
-        protected TestAdditionalDocument GetAdditionalTextFile(string fileName, string text) =>
-            new TestAdditionalDocument(fileName, text);
-
-        private static (Document[] documents, bool useSpans, TextSpan?[] spans) GetDocumentsAndSpans(FileAndSource[] sources, string language, CompilationOptions compilationOptions, ParseOptions parseOptions, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName)
-        {
-            Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
-
-            var spans = new TextSpan?[sources.Length];
-            bool useSpans = false;
-
-            for (int i = 0; i < sources.Length; i++)
-            {
-                MarkupTestFile.GetPositionAndSpan(sources[i].Source, out string source, out _, out TextSpan? span);
-
-                sources[i].Source = source;
-                spans[i] = span;
-
-                if (span != null)
-                {
-                    useSpans = true;
-                }
-            }
-
-            Project project = CreateProject(sources, language, referenceFlags, null, projectName, compilationOptions: compilationOptions, parseOptions: parseOptions);
-            Document[] documents = project.Documents.ToArray();
-            Assert.Equal(sources.Length, documents.Length);
-
-            return (documents, useSpans, spans);
-        }
-
-        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, ReferenceFlags referenceFlags = ReferenceFlags.None, Solution addToSolution = null, string projectName = TestProjectName)
-        {
-            return CreateProject(sources.ToFileAndSource(), language, referenceFlags, addToSolution, projectName);
-        }
-
-        private static Project CreateProject(
-            FileAndSource[] sources,
-            string language = LanguageNames.CSharp,
-            ReferenceFlags referenceFlags = ReferenceFlags.None,
-            Solution addToSolution = null,
-            string projectName = TestProjectName,
-            CompilationOptions compilationOptions = null,
-            ParseOptions parseOptions = null)
+        private static Project CreateProject(FileAndSource[] sources)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
-            string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
-            CompilationOptions options = compilationOptions ??
-                (language == LanguageNames.CSharp
-                    ? s_CSharpDefaultOptions :
-                      s_visualBasicDefaultOptions);
+            string fileExt = CSharpDefaultFileExt;
+            CompilationOptions options = s_CSharpDefaultOptions;
 
-            ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
+            ProjectId projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
             var defaultReferences = ReferenceAssemblies.NetFramework.Net48.Default;
-            var references = Task.Run(() => defaultReferences.ResolveAsync(language, CancellationToken.None)).GetAwaiter().GetResult();
+            var references = Task.Run(() => defaultReferences.ResolveAsync(LanguageNames.CSharp, CancellationToken.None)).GetAwaiter().GetResult();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
-            Project project = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
+            Project project = new AdhocWorkspace().CurrentSolution
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                .AddProject(projectId, projectName, projectName, language)
+                .AddProject(projectId, TestProjectName, TestProjectName, LanguageNames.CSharp)
                 .AddMetadataReferences(projectId, references)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.CodeAnalysisReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
@@ -280,28 +62,20 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebExtensions)
                 .WithProjectCompilationOptions(projectId, options)
-                .WithProjectParseOptions(projectId, parseOptions)
+                .WithProjectParseOptions(projectId, null)
                 .GetProject(projectId);
 
             // Enable Flow-Analysis feature on the project
-            parseOptions = project.ParseOptions.WithFeatures(
+            var parseOptions = project.ParseOptions.WithFeatures(
                 project.ParseOptions.Features.Concat(
                     new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
             project = project.WithParseOptions(parseOptions);
 
-            if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
-            {
-                MetadataReference symbolsReference = language == LanguageNames.CSharp ? AdditionalMetadataReferences.CSharpSymbolsReference : AdditionalMetadataReferences.VisualBasicSymbolsReference;
-                project = project.AddMetadataReference(symbolsReference);
-            }
+            MetadataReference symbolsReference = AdditionalMetadataReferences.CSharpSymbolsReference;
+            project = project.AddMetadataReference(symbolsReference);
 
             project = project.AddMetadataReference(AdditionalMetadataReferences.SystemCollectionsImmutableReference);
             project = project.AddMetadataReference(AdditionalMetadataReferences.SystemXmlDataReference);
-
-            if ((referenceFlags & ReferenceFlags.AddTestReferenceAssembly) == ReferenceFlags.AddTestReferenceAssembly)
-            {
-                project = project.AddMetadataReference(AdditionalMetadataReferences.TestReferenceAssembly);
-            }
 
             int count = 0;
             foreach (FileAndSource source in sources)
@@ -312,71 +86,6 @@ namespace Test.Utilities
             }
 
             return project;
-        }
-
-        protected static Diagnostic[] GetSortedDiagnostics(FileAndSource[] sources, string language, DiagnosticAnalyzer analyzer, CompilationOptions compilationOptions, ParseOptions parseOptions, TestValidationMode validationMode = DefaultTestValidationMode, ReferenceFlags referenceFlags = ReferenceFlags.None, string projectName = TestProjectName, IEnumerable<TestAdditionalDocument> additionalFiles = null)
-        {
-            var (documents, useSpans, spans) = GetDocumentsAndSpans(sources, language, compilationOptions, parseOptions, referenceFlags, projectName);
-            return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null, validationMode, additionalFiles);
-        }
-
-        protected static Diagnostic[] GetSortedDiagnostics(DiagnosticAnalyzer analyzerOpt, Document[] documents, TextSpan?[] spans = null, TestValidationMode validationMode = DefaultTestValidationMode, IEnumerable<TestAdditionalDocument> additionalFiles = null)
-        {
-            if (analyzerOpt == null)
-            {
-                return Array.Empty<Diagnostic>();
-            }
-
-            var projects = new HashSet<Project>();
-            foreach (Document document in documents)
-            {
-                projects.Add(document.Project);
-            }
-
-            var analyzerOptions = additionalFiles != null ? new AnalyzerOptions(additionalFiles.ToImmutableArray<AdditionalText>()) : null;
-            List<Diagnostic> diagnostics = new List<Diagnostic>();
-            foreach (Project project in projects)
-            {
-                Compilation compilation = project.GetCompilationAsync().Result;
-                compilation = EnableAnalyzer(analyzerOpt, compilation);
-                List<MetadataReference> l = compilation.References.ToList();
-
-                ImmutableArray<Diagnostic> diags = compilation.GetAnalyzerDiagnostics(new[] { analyzerOpt }, validationMode, analyzerOptions);
-                if (spans == null)
-                {
-                    diagnostics.AddRange(diags);
-                }
-                else
-                {
-                    Debug.Assert(spans.Length == documents.Length);
-                    foreach (Diagnostic diag in diags)
-                    {
-                        if (diag.Location == Location.None || diag.Location.IsInMetadata)
-                        {
-                            diagnostics.Add(diag);
-                        }
-                        else
-                        {
-                            for (int i = 0; i < documents.Length; i++)
-                            {
-                                Document document = documents[i];
-                                SyntaxTree tree = document.GetSyntaxTreeAsync().Result;
-                                if (tree == diag.Location.SourceTree)
-                                {
-                                    TextSpan? span = spans[i];
-                                    if (span == null || span.Value.Contains(diag.Location.SourceSpan))
-                                    {
-                                        diagnostics.Add(diag);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Diagnostic[] results = diagnostics.AsEnumerable().OrderBy(d => d.Location.SourceSpan.Start).ToArray();
-            return results;
         }
 
         protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
@@ -469,18 +178,6 @@ namespace Test.Utilities
             }
 
             return null;
-        }
-
-        private static Compilation EnableAnalyzer(DiagnosticAnalyzer analyzer, Compilation compilation)
-        {
-            return compilation.WithOptions(
-                compilation
-                    .Options
-                    .WithSpecificDiagnosticOptions(
-                        analyzer
-                            .SupportedDiagnostics
-                            .Select(x => new KeyValuePair<string, ReportDiagnostic>(x.Id, ReportDiagnostic.Default))
-                            .ToImmutableDictionary()));
         }
 
         public static FileAndSource GetEditorConfigAdditionalFile(string source)
