@@ -4615,6 +4615,44 @@ class Base
 ");
         }
 
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyAliasToGeneric3()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|List<System.Int32>|] Goo;
+}
+",
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public MyList Goo;
+}
+");
+        }
+
+        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotSimplifyIncorrectInstantiation()
+        {
+            await TestMissingAsync(
+@"using System.Collections.Generic;
+using MyList = System.Collections.Generic.List<int>;
+
+class Base
+{
+    public [|List<string>|] Goo;
+}
+");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyMemberAccessOffOfObjectKeyword()
         {
@@ -4865,44 +4903,6 @@ enum E
 {
     Goo = 1,
 }");
-        }
-
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task SimplifyAliasToGeneric3()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.Collections.Generic;
-using MyList = System.Collections.Generic.List<int>;
-
-class Base
-{
-    public [|List<System.Int32>|] Goo;
-}
-",
-@"using System.Collections.Generic;
-using MyList = System.Collections.Generic.List<int>;
-
-class Base
-{
-    public MyList Goo;
-}
-");
-        }
-
-        [WorkItem(40649, "https://github.com/dotnet/roslyn/issues/40649")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DoNotSimplifyIncorrectInstantiation()
-        {
-            await TestMissingAsync(
-@"using System.Collections.Generic;
-using MyList = System.Collections.Generic.List<int>;
-
-class Base
-{
-    public [|List<string>|] Goo;
-}
-");
         }
 
         [WorkItem(40663, "https://github.com/dotnet/roslyn/issues/40663")]
