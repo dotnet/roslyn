@@ -1290,33 +1290,6 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(content);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task TestMissingOnInstanceMemberAccessOfOtherValue()
-        {
-            var content =
-@"
-using System;
-
-internal struct BitVector : IEquatable<BitVector>
-{
-    public bool Equals(BitVector other)
-    {
-    }
-
-    public override bool Equals(object obj)
-    {
-        return obj is BitVector other && Equals(other);
-    }
-
-    public static bool operator ==(BitVector left, BitVector right)
-    {
-        return [|left|].Equals(right);
-    }
-}";
-
-            await TestMissingInRegularAndScriptAsync(content);
-        }
-
         [WorkItem(538727, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538727")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task SimplifyAlias2()
@@ -5706,6 +5679,33 @@ namespace N
         }
     }
 }", options: PreferIntrinsicTypeEverywhere);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestMissingOnInstanceMemberAccessOfOtherValue()
+        {
+            var content =
+@"
+using System;
+
+internal struct BitVector : IEquatable<BitVector>
+{
+    public bool Equals(BitVector other)
+    {
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is BitVector other && Equals(other);
+    }
+
+    public static bool operator ==(BitVector left, BitVector right)
+    {
+        return [|left|].Equals(right);
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(content);
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
