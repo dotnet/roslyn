@@ -1279,22 +1279,22 @@ class C : System.IDisposable
     void M(C? x, C x2)
     {
         var /*T:C?*/ y = x;
-        var /*T:C!*/ y2 = x2;
+        var /*T:C?*/ y2 = x2;
         
         using var /*T:C?*/ y3 = x;
-        using var /*T:C!*/ y4 = x2;
+        using var /*T:C?*/ y4 = x2;
         
         using (var /*T:C?*/ y5 = x) { }
-        using (var /*T:C!*/ y6 = x2) { }
+        using (var /*T:C?*/ y6 = x2) { }
         
         ref var/*T:C?*/ y7 = ref x;
-        ref var/*T:C!*/ y8 = ref x2;
+        ref var/*T:C?*/ y8 = ref x2;
         
         if (x == null) 
             return;
-        var /*T:C!*/ y9 = x;
-        using var /*T:C!*/ y10 = x;
-        ref var /*T:C!*/ y11 = ref x;
+        var /*T:C?*/ y9 = x;
+        using var /*T:C?*/ y10 = x;
+        ref var /*T:C?*/ y11 = ref x;
         
         x = null;
         var /*T:C?*/ y12 = x;
@@ -1310,7 +1310,7 @@ class C : System.IDisposable
     void M2(List<C?> l1, List<C> l2)
     {
         foreach (var /*T:C?*/ x in l1) { }
-        foreach (var /*T:C!*/ x in l2) { }
+        foreach (var /*T:C?*/ x in l2) { }
     }
 
     public void Dispose() { }
@@ -1670,16 +1670,22 @@ class C
 
             var declarations = root.DescendantNodes().OfType<VariableDeclaratorSyntax>().ToList();
 
-            assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[2], PublicNullableAnnotation.Annotated);
-            assertAnnotation(declarations[3], PublicNullableAnnotation.Annotated);
+            assertAnnotation(declarations[0]);
+            assertAnnotation(declarations[1]);
+            assertAnnotation(declarations[2]);
+            assertAnnotation(declarations[3]);
 
-            void assertAnnotation(VariableDeclaratorSyntax variable, PublicNullableAnnotation expectedAnnotation)
+            void assertAnnotation(VariableDeclaratorSyntax variable)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
-                Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
-                Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+
+                var typeInfo = model.GetTypeInfo(((VariableDeclarationSyntax)variable.Parent).Type);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.ConvertedNullability.FlowState);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
             }
         }
 
@@ -2010,12 +2016,17 @@ class C
             assertAnnotation(declarations[0], PublicNullableAnnotation.Annotated);
             assertAnnotation(declarations[1], PublicNullableAnnotation.Annotated);
 
-
             void assertAnnotation(SingleVariableDesignationSyntax variable, PublicNullableAnnotation expectedAnnotation)
             {
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+
+                var typeInfo = model.GetTypeInfo(((DeclarationExpressionSyntax)variable.Parent).Type);
+                Assert.Equal("System.Object?", typeInfo.Type.ToTestDisplayString());
+                Assert.Equal("System.Object?", typeInfo.ConvertedType.ToTestDisplayString());
+                Assert.Equal(PublicNullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
             }
         }
 
@@ -2278,6 +2289,16 @@ class C
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(variable);
                 Assert.Equal(expectedAnnotation, symbol.NullableAnnotation);
                 Assert.Equal(expectedAnnotation, symbol.Type.NullableAnnotation);
+
+                var type = ((DeclarationExpressionSyntax)variable.Parent).Type;
+                if (type.IsVar)
+                {
+                    var typeInfo = model.GetTypeInfo(type);
+                    Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.Nullability.FlowState);
+                    Assert.Equal(PublicNullableFlowState.MaybeNull, typeInfo.ConvertedNullability.FlowState);
+                    Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.Nullability.Annotation);
+                    Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, typeInfo.ConvertedNullability.Annotation);
+                }
             }
         }
 

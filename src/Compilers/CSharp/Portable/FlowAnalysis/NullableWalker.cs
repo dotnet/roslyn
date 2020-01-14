@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.DeclaredTypeOpt != null)
                 {
-                    SetAnalyzedNullability(node.DeclaredTypeOpt, new VisitResult(valueType, type), true);
+                    SetAnalyzedNullability(node.DeclaredTypeOpt, new VisitResult(type.ToTypeWithState(), type), true);
                 }
             }
 
@@ -7153,6 +7153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         TypeWithAnnotations destinationType = iterationVariable.TypeWithAnnotations;
                         TypeWithState result = sourceState;
+                        TypeWithState resultForType = sourceState;
                         if (iterationVariable.IsRef)
                         {
                             // foreach (ref DestinationType variable in collection)
@@ -7167,6 +7168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // foreach (var variable in collection)
                             destinationType = sourceState.ToAnnotatedTypeWithAnnotations();
                             _variableTypes[iterationVariable] = destinationType;
+                            resultForType = destinationType.ToTypeWithState();
                         }
                         else
                         {
@@ -7192,7 +7194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // In non-error cases we'll only run this loop a single time. In error cases we'll set the nullability of the VariableType multiple times, but at least end up with something
-                        SetAnalyzedNullability(node.IterationVariableType, new VisitResult(result, destinationType), isLvalue: true);
+                        SetAnalyzedNullability(node.IterationVariableType, new VisitResult(resultForType, destinationType), isLvalue: true);
                         state = result.State;
                     }
 
