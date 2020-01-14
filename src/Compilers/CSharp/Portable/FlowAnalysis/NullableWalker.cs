@@ -1789,7 +1789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     PopulateOneSlot(ref this.State, slot);
-                    InheritDefaultState(_variableTypes.TryGetValue(local, out var typeWithAnootations) ? typeWithAnootations.Type : local.Type, slot);
+                    InheritDefaultState(_variableTypes.TryGetValue(local, out var typeWithAnnotations) ? typeWithAnnotations.Type : local.Type, slot);
                 }
             }
         }
