@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 {
@@ -21,174 +23,68 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         // change theme colors it will be reflected in the editor.
         private sealed class ForegroundColorDefaulter : ForegroundThreadAffinitizedObject
         {
+            private readonly ColorSchemeSettings _settings;
+            private readonly ImmutableArray<ImmutableDictionary<Guid, ImmutableDictionary<string, uint?>>> _colorSchemes;
+
             private readonly IVsFontAndColorStorage _fontAndColorStorage;
             private readonly IVsFontAndColorStorage3 _fontAndColorStorage3;
             private readonly IVsFontAndColorUtilities _fontAndColorUtilities;
 
-            // Default colors have a special meaning in VS. They will evaluate to the
-            // VS Theme's registered color for the particular classification.
-            private const uint DefaultForegroundColor = 0x01000000u;
-            private const uint DefaultBackgroundColor = 0x01000001u;
+            private static readonly Guid TextEditorMEFItemsColorCategory = new Guid("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
-            // Colors are in 0x00BBGGRR
-
-            // These colors should match the colors in the Visual Studio 2017.xml and Enhanced.xml scheme files.
+            // These classification colors (0x00BBGGRR) should match the VS\EditorColors.xml file.
             private const uint DarkThemePlainText = 0x00DCDCDCu;
             private const uint DarkThemeIdentifier = DarkThemePlainText;
             private const uint DarkThemeOperator = 0x00B4B4B4u;
             private const uint DarkThemeKeyword = 0x00D69C56u;
-            private const uint DarkThemeClass = 0x00B0C94Eu;
-            private const uint DarkThemeEnum = 0x00A3D7B8;
-            private const uint DarkThemeLocal = 0x00FEDC9Cu;
-            private const uint DarkThemeMethod = 0x00AADCDCu;
-            private const uint DarkThemeControlKeyword = 0x00DFA0D8u;
-            private const uint DarkThemeStruct = 0x0091C686u;
 
             private const uint LightThemePlainText = 0x00000000u;
             private const uint LightThemeIdentifier = LightThemePlainText;
             private const uint LightThemeOperator = LightThemePlainText;
             private const uint LightThemeKeyword = 0x00FF0000u;
-            private const uint LightThemeClass = 0x00AF912Bu;
-            private const uint LightThemeLocal = 0x007F371Fu;
-            private const uint LightThemeMethod = 0x001F5374u;
-            private const uint LightThemeControlKeyword = 0x00C4088Fu;
-
-            private const uint AdditionalContrastThemeClass = 0x00556506u;
 
             private const string PlainTextClassificationTypeName = "plain text";
 
-            private static readonly Guid TextEditorMEFItemsColorCategory = new Guid("75a05685-00a8-4ded-bae5-e7a50bfa929a");
-
-            // Dark Theme
-
-            // These classification colors should match the Visual Studio 2017.xml scheme file.
-            private static ImmutableDictionary<string, uint> DarkThemeClassicForeground =>
+            // Dark Theme Core Classifications
+            private static ImmutableDictionary<string, uint> DarkThemeForeground =>
                 new Dictionary<string, uint>()
                 {
                     [PlainTextClassificationTypeName] = DarkThemePlainText,
-                    [ClassificationTypeNames.ClassName] = DarkThemeClass,
-                    [ClassificationTypeNames.ConstantName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.ControlKeyword] = DarkThemeKeyword,
-                    [ClassificationTypeNames.DelegateName] = DarkThemeClass,
-                    [ClassificationTypeNames.EnumMemberName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.EnumName] = DarkThemeEnum,
-                    [ClassificationTypeNames.EventName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.ExtensionMethodName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.FieldName] = DarkThemeIdentifier,
                     [ClassificationTypeNames.Identifier] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.InterfaceName] = DarkThemeEnum,
                     [ClassificationTypeNames.Keyword] = DarkThemeKeyword,
-                    [ClassificationTypeNames.LabelName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.LocalName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.MethodName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.ModuleName] = DarkThemeClass,
-                    [ClassificationTypeNames.NamespaceName] = DarkThemeIdentifier,
                     [ClassificationTypeNames.Operator] = DarkThemeOperator,
-                    [ClassificationTypeNames.OperatorOverloaded] = DarkThemeOperator,
-                    [ClassificationTypeNames.ParameterName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.PropertyName] = DarkThemeIdentifier,
-                    [ClassificationTypeNames.StructName] = DarkThemeClass,
-                    [ClassificationTypeNames.TypeParameterName] = DarkThemeEnum,
                 }.ToImmutableDictionary();
 
-            // This represents the changes in classification colors between Visual Studio 2017.xml and Enhanced.xml scheme files.
-            private static ImmutableDictionary<string, uint> DarkThemeEnhancedForegroundChanges =>
-                new Dictionary<string, uint>()
-                {
-                    [ClassificationTypeNames.ControlKeyword] = DarkThemeControlKeyword,
-                    [ClassificationTypeNames.ExtensionMethodName] = DarkThemeMethod,
-                    [ClassificationTypeNames.LocalName] = DarkThemeLocal,
-                    [ClassificationTypeNames.MethodName] = DarkThemeMethod,
-                    [ClassificationTypeNames.OperatorOverloaded] = DarkThemeMethod,
-                    [ClassificationTypeNames.ParameterName] = DarkThemeLocal,
-                    [ClassificationTypeNames.StructName] = DarkThemeStruct,
-                }.ToImmutableDictionary();
-
-            // Light or Blue themes
-
-            // These classification colors should match the Visual Studio 2017.xml scheme file.
-            private static ImmutableDictionary<string, uint> BlueLightThemeClassicForeground =>
+            // Light, Blue, or AdditionalContrast Theme Core Classifications
+            private static ImmutableDictionary<string, uint> BlueLightThemeForeground =>
                 new Dictionary<string, uint>()
                 {
                     [PlainTextClassificationTypeName] = LightThemePlainText,
-                    [ClassificationTypeNames.ClassName] = LightThemeClass,
-                    [ClassificationTypeNames.ConstantName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.ControlKeyword] = LightThemeKeyword,
-                    [ClassificationTypeNames.DelegateName] = LightThemeClass,
-                    [ClassificationTypeNames.EnumMemberName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.EnumName] = LightThemeClass,
-                    [ClassificationTypeNames.EventName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.ExtensionMethodName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.FieldName] = LightThemeIdentifier,
                     [ClassificationTypeNames.Identifier] = LightThemeIdentifier,
-                    [ClassificationTypeNames.InterfaceName] = LightThemeClass,
                     [ClassificationTypeNames.Keyword] = LightThemeKeyword,
-                    [ClassificationTypeNames.LabelName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.LocalName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.MethodName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.ModuleName] = LightThemeClass,
-                    [ClassificationTypeNames.NamespaceName] = LightThemeIdentifier,
                     [ClassificationTypeNames.Operator] = LightThemeOperator,
-                    [ClassificationTypeNames.OperatorOverloaded] = LightThemeOperator,
-                    [ClassificationTypeNames.ParameterName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.PropertyName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.StructName] = LightThemeClass,
-                    [ClassificationTypeNames.TypeParameterName] = LightThemeClass,
                 }.ToImmutableDictionary();
 
-            // This represents the changes in classification colors between Visual Studio 2017.xml and Enhanced.xml scheme files.
-            private static ImmutableDictionary<string, uint> BlueLightThemeEnhancedForegroundChanges =>
-                new Dictionary<string, uint>()
-                {
-                    [ClassificationTypeNames.ControlKeyword] = LightThemeControlKeyword,
-                    [ClassificationTypeNames.ExtensionMethodName] = LightThemeMethod,
-                    [ClassificationTypeNames.LocalName] = LightThemeLocal,
-                    [ClassificationTypeNames.MethodName] = LightThemeMethod,
-                    [ClassificationTypeNames.OperatorOverloaded] = LightThemeMethod,
-                    [ClassificationTypeNames.ParameterName] = LightThemeLocal,
-                }.ToImmutableDictionary();
-
-            // AdditionalContrast Theme
-
-            // These classification colors should match the Visual Studio 2017.xml scheme file. The changes for Enhanced.xml are
-            // captured in the `BlueLightThemeEnhancedForegroundChanges` dictionary.
-            private static ImmutableDictionary<string, uint> AdditionalContrastThemeClassicForeground =>
-                new Dictionary<string, uint>()
-                {
-                    [PlainTextClassificationTypeName] = LightThemePlainText,
-                    [ClassificationTypeNames.ClassName] = AdditionalContrastThemeClass,
-                    [ClassificationTypeNames.ConstantName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.ControlKeyword] = LightThemeKeyword,
-                    [ClassificationTypeNames.DelegateName] = AdditionalContrastThemeClass,
-                    [ClassificationTypeNames.EnumMemberName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.EnumName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.EventName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.ExtensionMethodName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.FieldName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.Identifier] = LightThemeIdentifier,
-                    [ClassificationTypeNames.InterfaceName] = AdditionalContrastThemeClass,
-                    [ClassificationTypeNames.Keyword] = LightThemeKeyword,
-                    [ClassificationTypeNames.LabelName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.LocalName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.MethodName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.ModuleName] = AdditionalContrastThemeClass,
-                    [ClassificationTypeNames.NamespaceName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.Operator] = LightThemeOperator,
-                    [ClassificationTypeNames.OperatorOverloaded] = LightThemeOperator,
-                    [ClassificationTypeNames.ParameterName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.PropertyName] = LightThemeIdentifier,
-                    [ClassificationTypeNames.StructName] = AdditionalContrastThemeClass,
-                    [ClassificationTypeNames.TypeParameterName] = AdditionalContrastThemeClass,
-                }.ToImmutableDictionary();
 
             // The High Contrast theme is not included because we do not want to make changes when the user is in High Contrast mode.
 
-            // When we build our classification map we will need to look at all the classifications with foreground color.
-            private static ImmutableArray<string> Classifications => DarkThemeClassicForeground.Keys.ToImmutableArray();
+            private ImmutableArray<string> Classifications { get; }
 
-            public ForegroundColorDefaulter(IThreadingContext threadingContext, IServiceProvider serviceProvider)
-                : base(threadingContext)
+            public ForegroundColorDefaulter(IThreadingContext threadingContext, IServiceProvider serviceProvider, ColorSchemeSettings settings, ImmutableDictionary<string, ColorScheme> colorSchemes)
+                : base(threadingContext, assertIsForeground: true)
             {
+                _settings = settings;
+                _colorSchemes = colorSchemes.Values.Select(
+                    scheme => scheme.Themes.ToImmutableDictionary(
+                        theme => theme.Guid,
+                        theme => theme.Category.Colors.ToImmutableDictionary(
+                            color => color.Name,
+                            color => color.Foreground)))
+                    .ToImmutableArray();
+
+                var colorSchemeClassifications = _colorSchemes.SelectMany(scheme => scheme.Values.SelectMany(theme => theme.Keys)).Distinct();
+                Classifications = DarkThemeForeground.Keys.Concat(colorSchemeClassifications).ToImmutableArray();
+
                 _fontAndColorStorage = serviceProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
                 // IVsFontAndColorStorage3 has methods to default classifications but does not include the methods defined in IVsFontAndColorStorage
                 _fontAndColorStorage3 = (IVsFontAndColorStorage3)_fontAndColorStorage;
@@ -198,135 +94,184 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             /// <summary>
             /// Determines if all Classification foreground colors are DefaultColor or can be safely reverted to DefaultColor.
             /// </summary>
-            public bool AreForegroundColorsDefaultable(Guid themeId)
+            public bool AreClassificationsDefaultable(Guid themeId)
             {
                 AssertIsForeground();
 
-                // Make no changes when in high contast mode.
-                if (SystemParameters.HighContrast || !IsKnownTheme(themeId))
+                // Make no changes when in high contast mode or in unknown theme.
+                if (SystemParameters.HighContrast || !IsSupportedTheme(themeId))
                 {
                     return false;
                 }
 
-                var themeClassicForeground =
-                    (themeId == KnownColorThemes.Dark) ? DarkThemeClassicForeground
-                    : (themeId == KnownColorThemes.AdditionalContrast) ? AdditionalContrastThemeClassicForeground
-                    : BlueLightThemeClassicForeground;
-
-                var themeEnhancedForegroundChanges = (themeId == KnownColorThemes.Dark)
-                    ? DarkThemeEnhancedForegroundChanges
-                    : BlueLightThemeEnhancedForegroundChanges;
-
-                // Open Text Editor category for readonly access
+                // Open Text Editor category for readonly access and do not load items if they are defaulted.
                 if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) != VSConstants.S_OK)
                 {
                     // We were unable to access color information.
                     return false;
                 }
 
-                var allDefaulted = true;
+                try
+                {
+                    foreach (var scheme in _colorSchemes)
+                    {
+                        var schemeThemeColors = scheme[themeId];
 
+                        if (AreClassificationsDefaultableToScheme(themeId, schemeThemeColors))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                finally
+                {
+                    _fontAndColorStorage.CloseCategory();
+                }
+
+                return false;
+            }
+
+            private bool AreClassificationsDefaultableToScheme(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors)
+            {
                 foreach (var classification in Classifications)
                 {
                     var colorItems = new ColorableItemInfo[1];
-                    _fontAndColorStorage.GetItem(classification, colorItems);
+
+                    if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
+                    {
+                        // Classifications that are still defaulted will not have entries.
+                        continue;
+                    }
 
                     var colorItem = colorItems[0];
 
-                    // If a colorItem is not DefaultColor and cannot be defaulted, then the classifications cannot be 
-                    // considered Defaulted.
-                    if (!IsItemForegroundTheDefaultColor(colorItem)
-                        && !CanItemBeSetToDefaultColors(colorItem, classification, themeClassicForeground, themeEnhancedForegroundChanges))
+                    if (!IsClassificationDefaultable(themeId, schemeThemeColors, colorItem, classification))
                     {
-                        allDefaulted = false;
-                        break;
+                        return false;
                     }
                 }
 
-                _fontAndColorStorage.CloseCategory();
-
-                return allDefaulted;
+                return true;
             }
 
-            private bool IsItemForegroundTheDefaultColor(ColorableItemInfo colorInfo)
+            private bool IsClassificationDefaultable(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors, ColorableItemInfo colorItem, string classification)
             {
-                // Since we are primarily concerned with the foreground color, return early
-                // if the setting isn't populated or is defaulted.
-                return colorInfo.bForegroundValid == 0
-                    || colorInfo.crForeground == DefaultForegroundColor;
+                if (_fontAndColorUtilities.GetColorType(colorItem.crForeground, out var foregroundColorType) != VSConstants.S_OK)
+                {
+                    // Without being able to check color type, we cannot make a determination.
+                    return false;
+                }
+
+                return foregroundColorType switch
+                {
+                    (int)__VSCOLORTYPE.CT_AUTOMATIC => true,
+                    (int)__VSCOLORTYPE.CT_RAW => CanItemBeDefaulted(themeId, schemeThemeColors, colorItem, classification),
+                    _ => false
+                };
             }
 
             /// <summary>
             /// Determines if the ColorableItemInfo can be reverted to its default state. This requires checking both color and font configuration,
             /// since reverting will reset all information for the item.
             /// </summary>
-            private bool CanItemBeSetToDefaultColors(ColorableItemInfo colorInfo,
-                string classification,
-                ImmutableDictionary<string, uint> themeClassicForeground,
-                ImmutableDictionary<string, uint> themeEnhancedForegroundChanges)
+            private bool CanItemBeDefaulted(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors, ColorableItemInfo colorItem, string classification)
             {
-                var foregroundColorRef = colorInfo.crForeground;
-                _fontAndColorUtilities.GetColorType(foregroundColorRef, out var foregroundColorType);
-
-                // Check if the color is an RGB. If the color has been changed to a system color or other, then we won't treat it as defaultable.
-                if (foregroundColorType != (int)__VSCOLORTYPE.CT_RAW)
+                if (_fontAndColorUtilities.GetColorType(colorItem.crBackground, out var backgroundColorType) != VSConstants.S_OK)
                 {
+                    // Without being able to check color type, we cannot make a determination.
                     return false;
                 }
 
-                var classicColor = themeClassicForeground[classification];
-                var enhancedColor = themeEnhancedForegroundChanges.ContainsKey(classification)
-                    ? themeEnhancedForegroundChanges[classification]
-                    : classicColor; // Use the classic color since there is not an enhanced color for this classification
+                return IsForegroundTheSchemeColor(themeId, schemeThemeColors, classification, colorItem.crForeground)
+                    && backgroundColorType == (int)__VSCOLORTYPE.CT_AUTOMATIC
+                    && colorItem.dwFontFlags == (uint)FONTFLAGS.FF_DEFAULT;
+            }
 
-                var foregroundIsDefault = foregroundColorRef == classicColor || foregroundColorRef == enhancedColor;
+            private bool IsForegroundTheSchemeColor(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors, string classification, uint foregroundColorRef)
+            {
+                var coreThemeColors = (themeId == KnownColorThemes.Dark)
+                    ? DarkThemeForeground
+                    : BlueLightThemeForeground;
 
-                var backgroundColorRef = colorInfo.crBackground;
-                var backgroundAndFontIsDefault = backgroundColorRef == DefaultBackgroundColor
-                    && colorInfo.dwFontFlags == (uint)FONTFLAGS.FF_DEFAULT;
+                if (coreThemeColors.TryGetValue(classification, out var coreColor))
+                {
+                    return foregroundColorRef == coreColor;
+                }
 
-                return foregroundIsDefault && backgroundAndFontIsDefault;
+                if (schemeThemeColors.TryGetValue(classification, out var schemeColor) && schemeColor.HasValue)
+                {
+                    return foregroundColorRef == schemeColor.Value;
+                }
+
+                // Since Classification inheritance isn't represented in the scheme files,
+                // this switch case will handle the 3 cases we expect.
+                var fallbackColor = classification switch
+                {
+                    ClassificationTypeNames.OperatorOverloaded => coreThemeColors[ClassificationTypeNames.Operator],
+                    ClassificationTypeNames.ControlKeyword => coreThemeColors[ClassificationTypeNames.Keyword],
+                    _ => coreThemeColors[ClassificationTypeNames.Identifier]
+                };
+
+                return foregroundColorRef == fallbackColor;
             }
 
             /// <summary>
-            /// Reverts Classification to DefaultColors if Foreground is not DefaultColor.
+            /// Reverts Classifications to their default state.
             /// </summary>
-            public bool TrySetForegroundColorsToDefault(Guid themeId)
+            public void DefaultClassifications()
             {
                 AssertIsForeground();
 
-                // Make no changes when in high contast mode.
-                if (SystemParameters.HighContrast || !IsKnownTheme(themeId))
+                var themeId = _settings.GetThemeId();
+
+                // Make no changes when in high contast mode, in unknown theme, or if theme has been defaulted.
+                if (SystemParameters.HighContrast || !IsSupportedTheme(themeId) || _settings.GetHasThemeBeenDefaulted(themeId))
                 {
-                    return false;
+                    return;
                 }
 
                 // Open Text Editor category for read/write.
                 if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES) != VSConstants.S_OK)
                 {
                     // We were unable to access color information.
-                    return false;
+                    return;
                 }
 
-                // Try to default any items that are not the DefaultColor but are already the default theme color.
-                foreach (var classification in Classifications)
+                try
                 {
-                    var colorItems = new ColorableItemInfo[1];
-                    _fontAndColorStorage.GetItem(classification, colorItems);
-
-                    var colorItem = colorItems[0];
-
-                    if (IsItemForegroundTheDefaultColor(colorItem))
+                    foreach (var classification in Classifications)
                     {
-                        continue;
+                        DefaultClassification(classification);
                     }
-
-                    _fontAndColorStorage3.RevertItemToDefault(classification);
+                }
+                finally
+                {
+                    _fontAndColorStorage.CloseCategory();
                 }
 
-                _fontAndColorStorage.CloseCategory();
+                _settings.SetHasThemeBeenDefaulted(themeId);
+            }
 
-                return true;
+            private void DefaultClassification(string classification)
+            {
+                var colorItems = new ColorableItemInfo[1];
+                if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
+                {
+                    // Classifications that are still defaulted will not have entries.
+                    return;
+                }
+
+                var colorItem = colorItems[0];
+
+                // If the foreground is the automatic color then no need to default the classification,
+                // since it will pull in the theme's color.
+                if (_fontAndColorUtilities.GetColorType(colorItem.crForeground, out var foregroundColorType) == VSConstants.S_OK
+                    && foregroundColorType == (int)__VSCOLORTYPE.CT_AUTOMATIC)
+                {
+                    return;
+                }
+
+                _fontAndColorStorage3.RevertItemToDefault(classification);
             }
         }
     }
