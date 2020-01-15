@@ -6609,7 +6609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
                 {
                     MethodSymbol method = node.Operator.Method;
-                    VisitArguments(node, ImmutableArray.Create<BoundExpression>(node.Left, right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default,
+                    VisitArguments(node, ImmutableArray.Create(node.Left, right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default,
                         expanded: true, invokedAsExtensionMethod: false, method);
                 }
 
