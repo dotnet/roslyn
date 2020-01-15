@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
 
             if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, optionSet, symbol))
+                !SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(semanticModel, optionSet, symbol))
             {
                 return false;
             }

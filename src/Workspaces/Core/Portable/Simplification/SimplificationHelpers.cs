@@ -101,11 +101,14 @@ namespace Microsoft.CodeAnalysis.Simplification
             return symbol != null && !symbol.IsErrorType();
         }
 
-        internal static bool ShouldSimplifyMemberAccessExpression(
+        internal static bool ShouldSimplifyThisOrMeMemberAccessExpression(
             SemanticModel semanticModel, OptionSet optionSet, ISymbol symbol)
         {
+            // If we're accessing a static member off of this/me then we should always consider this
+            // simplifiable.  Note: in C# this isn't even legal to access a static off of `this`,
+            // but in VB it is legal to access a static off of `me`.
             if (symbol.IsStatic)
-                return false;
+                return true;
 
             if ((symbol.IsKind(SymbolKind.Field) && optionSet.GetOption(CodeStyleOptions.QualifyFieldAccess, semanticModel.Language).Value ||
                 (symbol.IsKind(SymbolKind.Property) && optionSet.GetOption(CodeStyleOptions.QualifyPropertyAccess, semanticModel.Language).Value) ||
