@@ -127,11 +127,6 @@
         <target state="translated">Die Änderung von "{0}" in "{1}" verhindert, dass die Debugsitzung fortgesetzt wird, weil sich dadurch die Form des Zustandsautomaten verändert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Codequalität</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>
@@ -1676,16 +1671,6 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Schnittstelle mit Dispose-Muster implementieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Compiler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Stil</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">
