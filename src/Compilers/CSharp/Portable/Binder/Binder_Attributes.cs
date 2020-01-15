@@ -105,9 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
         {
-            var binder = this.GetBinder(node);
-            RoslynDebug.Assert(binder is object);
-            return binder.BindAttributeCore(node, attributeType, diagnostics);
+            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, diagnostics);
         }
 
         private Binder SkipSemanticModelBinder()
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundAttribute BindAttributeCore(AttributeSyntax node, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
         {
-            Debug.Assert(this.SkipSemanticModelBinder() == this.GetBinder(node)!.SkipSemanticModelBinder());
+            Debug.Assert(this.SkipSemanticModelBinder() == this.GetRequiredBinder(node).SkipSemanticModelBinder());
 
             // If attribute name bound to an error type with a single named type
             // candidate symbol, we want to bind the attribute constructor
@@ -1034,7 +1032,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Validate Statement 1) of the spec comment above.
 
-                var typedConstantKind = node.Type!.GetAttributeParameterTypedConstantKind(_binder.Compilation);
+                RoslynDebug.Assert(node.Type is object);
+                var typedConstantKind = node.Type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
 
                 return VisitExpression(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors || typedConstantKind == TypedConstantKind.Error);
             }
