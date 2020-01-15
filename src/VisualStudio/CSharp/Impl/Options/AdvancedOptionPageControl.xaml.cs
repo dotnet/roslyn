@@ -84,16 +84,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
         // we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
-        protected override void OnRender(DrawingContext drawingContext)
+        internal override void OnLoad()
         {
-            var isKnownTheme = _colorSchemeApplier.IsKnownTheme();
+            var isKnownTheme = _colorSchemeApplier.IsSupportedTheme();
             var isThemeCustomized = _colorSchemeApplier.IsThemeCustomized();
 
             Editor_color_scheme.Visibility = isKnownTheme ? Visibility.Visible : Visibility.Collapsed;
             Customized_Theme_Warning.Visibility = isKnownTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
             Custom_VS_Theme_Warning.Visibility = isKnownTheme ? Visibility.Collapsed : Visibility.Visible;
 
-            base.OnRender(drawingContext);
+            base.OnLoad();
         }
     }
 }
