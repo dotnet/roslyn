@@ -3465,7 +3465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Fix a TypeWithAnnotations based on Allow/DisallowNull annotations prior to a conversion or assignment.
         /// Note this does not work for nullable value types, so an additional check with <see cref="CheckDisallowedNullAssignment"/> may be required.
         /// </summary>
-        internal static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
+        private static TypeWithAnnotations ApplyLValueAnnotations(TypeWithAnnotations declaredType, FlowAnalysisAnnotations flowAnalysisAnnotations)
         {
             if ((flowAnalysisAnnotations & FlowAnalysisAnnotations.DisallowNull) == FlowAnalysisAnnotations.DisallowNull)
             {
@@ -3909,6 +3909,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasNoNonNullableCounterpart(TypeSymbol type)
             {
+                if (type is null)
+                {
+                    return false;
+                }
+
                 // Some types that could receive a maybe-null value have a NotNull counterpart:
                 // [NotNull]string? -> string
                 // [NotNull]string -> string
@@ -3920,7 +3925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // [NotNull]TNullable -> X
                 // [NotNull]TStruct? -> X
                 // [NotNull]TOpen -> X
-                return type is null || (type.Kind == SymbolKind.TypeParameter && !type.IsReferenceType) || type.IsNullableTypeOrTypeParameter();
+                return (type.Kind == SymbolKind.TypeParameter && !type.IsReferenceType) || type.IsNullableTypeOrTypeParameter();
             }
         }
 
@@ -6129,7 +6134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        FlowAnalysisAnnotations ToInwardAnnotations(FlowAnalysisAnnotations outwardAnnotations)
+        private static FlowAnalysisAnnotations ToInwardAnnotations(FlowAnalysisAnnotations outwardAnnotations)
         {
             var annotations = FlowAnalysisAnnotations.None;
             if ((outwardAnnotations & FlowAnalysisAnnotations.MaybeNull) != 0)
