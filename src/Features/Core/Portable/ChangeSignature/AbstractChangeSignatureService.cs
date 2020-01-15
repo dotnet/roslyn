@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
 
+        protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
+
         public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -598,9 +600,63 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return parameters.Count - 1;
         }
 
+        protected (IEnumerable<T>, IEnumerable<SyntaxToken>) PermuteDeclarationBase<T>(
+            SeparatedSyntaxList<T> list,
+            SignatureChange updatedSignature,
+            Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
+        {
+            var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
+            var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
+
+            int numAddedParameters = 0;
+
+            var newParameters = new List<T>();
+            for (var index = 0; index < reorderedParameters.Count; index++)
+            {
+                var newParam = reorderedParameters[index];
+                var pos = originalParameters.IndexOf(p => p.Symbol == newParam.Symbol);
+
+                if (pos == -1)
+                {
+                    // Added parameter
+                    numAddedParameters++;
+                    var newParameter = createNewParameterMethod(newParam as AddedParameter);
+                    newParameters.Add(newParameter);
+                }
+                else
+                {
+                    var param = list[pos];
+
+                    // copy whitespace trivia from original position
+                    param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
+                    newParameters.Add(param);
+                }
+            }
+
+            int numSeparatorsToSkip;
+            if (originalParameters.Count == 0)
+            {
+                // () 
+                // Adding X parameters, need to add X-1 separators.
+                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1;
+            }
+            else
+            {
+                // (a,b,c)
+                // Adding X parameters, need to add X separators.
+                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
+            }
+
+            return (newParameters, GetSeparators(list, numSeparatorsToSkip));
+        }
+
         protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
+            if (numSeparatorsToSkip < 0)
+            {
+                numSeparatorsToSkip = 0;
+            }
 
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {

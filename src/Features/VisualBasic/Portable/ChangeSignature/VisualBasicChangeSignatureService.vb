@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Utilities
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -438,37 +439,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                                                                parameterList As SeparatedSyntaxList(Of T),
                                                                updatedSignature As SignatureChange,
                                                                createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
-            Dim originalParameterSymbols = updatedSignature.OriginalConfiguration.ToListOfParameters().Select(Function(p) p.Symbol).ToArray()
-            Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
-            Dim numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count
-
-            ' The parameter list could be empty if dealing with delegates.
-            If parameterList.IsEmpty() Then
-                Return SyntaxFactory.SeparatedList(parameterList, GetSeparators(parameterList, numSeparatorsToSkip))
-            End If
-
-            Dim numAddedParameters = 0
-
-            Dim newParameters = New List(Of T)
-            For Each newParam In reorderedParameters
-                Dim existingParam = TryCast(newParam, ExistingParameter)
-                If existingParam IsNot Nothing Then
-                    Dim pos = originalParameterSymbols.IndexOf(existingParam.Symbol)
-                    Dim param = parameterList(pos)
-                    newParameters.Add(param)
-                Else
-                    ' Added parameter
-                    numAddedParameters += 1
-                    Dim newParameter = createNewParameterMethod(DirectCast(newParam, AddedParameter))
-                    newParameters.Add(newParameter)
-                End If
-            Next
-
-            Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(parameterList, numSeparatorsToSkip))
-        End Function
-
-        Private Shared Function CreateNewArgumentSyntax(addedParameter As AddedParameter) As ArgumentSyntax
-            Return SyntaxFactory.SimpleArgument(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(addedParameter.TypeName)))
+            Dim basePermuteDeclaration = PermuteDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
+            Return SyntaxFactory.SeparatedList(basePermuteDeclaration.Item1, basePermuteDeclaration.Item2)
         End Function
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax
@@ -623,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     SyntaxFactory.List(extraNodeList.AsEnumerable()))
                 extraDocComments = extraDocComments.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
                     WithTrailingTrivia(node.GetTrailingTrivia()).
-                WithTrailingTrivia(SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp)),
+                    WithTrailingTrivia(SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp)),
                 lastWhiteSpaceTrivia)
 
                 Dim newTrivia = SyntaxFactory.Trivia(extraDocComments)
@@ -696,5 +668,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         Protected Overrides Function CreateSeparatorSyntaxToken() As SyntaxToken
             Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
         End Function
+
+        Protected Overrides Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T
+            Return newArgument
+        End Function
+
     End Class
 End Namespace
