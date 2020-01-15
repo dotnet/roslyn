@@ -2,20 +2,19 @@
 
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class StartActionWithOnlyEndActionRuleTests : DiagnosticAnalyzerTestBase
+    public class StartActionWithOnlyEndActionRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnostic()
         {
             var source = @"
 using System;
@@ -68,11 +67,11 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(40, 52, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.None, expected: expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnostic()
         {
             var source = @"
 Imports System
@@ -121,11 +120,11 @@ End Class
                 GetBasicExpectedDiagnostic(36, 51, parameterName: "operationBlockContext", kind: StartActionKind.OperationBlockStartAction)
             };
 
-            VerifyBasic(source, referenceFlags: ReferenceFlags.None, expected: expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -177,11 +176,11 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases_2()
+        public async Task CSharp_NoDiagnosticCases_2()
         {
             var source = @"
 using System;
@@ -226,11 +225,11 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -277,11 +276,11 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases_2()
+        public async Task VisualBasic_NoDiagnosticCases_2()
         {
             var source = @"
 Imports System
@@ -324,17 +323,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpRegisterActionAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicRegisterActionAnalyzer();
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
