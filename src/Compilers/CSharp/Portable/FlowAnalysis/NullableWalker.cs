@@ -1057,6 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (value == null ||
+                value.WasCompilerGenerated ||
                 !targetType.HasType ||
                 targetType.Type.IsValueType)
             {
@@ -1458,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // If the return has annotations, we perform an additional check for nullable value types
-                CheckDisallowedNullAssignment(returnState, returnAnnotations, node.Syntax.Location, forReturn: true);
+                CheckDisallowedNullAssignment(returnState, ToInwardAnnotations(returnAnnotations), node.Syntax.Location, boundValueOpt: expr);
             }
             else
             {
@@ -3893,11 +3894,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
         }
 
-        private void CheckDisallowedNullAssignment(TypeWithState state, FlowAnalysisAnnotations annotations, Location location, bool forReturn = false)
+        private void CheckDisallowedNullAssignment(TypeWithState state, FlowAnalysisAnnotations annotations, Location location, BoundExpression boundValueOpt = null)
         {
-            if (forReturn)
+            if (boundValueOpt is object && boundValueOpt.WasCompilerGenerated)
             {
-                annotations = ToInwardAnnotations(annotations);
+                // We need to skip `return backingField;` in auto-prop getters
+                return;
             }
 
             // We do this extra check for types whose non-nullable version cannot be represented
