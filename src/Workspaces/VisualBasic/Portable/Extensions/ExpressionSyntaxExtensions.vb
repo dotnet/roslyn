@@ -979,6 +979,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
+            ' See https//github.com/dotnet/roslyn/issues/40974
+            '
+            ' To be very safe, we only support simplifying code that bound to a symbol without any
+            ' sort of problems.  We could potentially relax this in the future.  However, we would
+            ' need to be very careful about the implications of us offering to fixup 'broken' code 
+            ' in a manner that might end up making things worse Or confusing the user.
             Dim symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess)
             If symbol Is Nothing Then
                 Return False
