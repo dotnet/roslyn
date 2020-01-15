@@ -460,6 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         fieldSym = DirectCast(sym, FieldSymbol)
                         fieldOrPropType = fieldSym.Type
                         isReadOnly = fieldSym.IsReadOnly
+                        ReportUseSite(diagnostics, identifierName.Identifier, sym)
 
                     Case SymbolKind.Property
                         propertySym = DirectCast(sym, PropertySymbol)
@@ -471,6 +472,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         isReadOnly = setMethod Is Nothing
 
                         If setMethod IsNot Nothing Then
+                            ReportUseSite(diagnostics, identifierName.Identifier, setMethod)
+
                             If setMethod.ParameterCount <> 1 Then
                                 ReportDiagnostic(diagnostics, identifierName, ERRID.ERR_NoNonIndexProperty1, sym.Name)
                                 hasErrors = True

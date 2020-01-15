@@ -1039,7 +1039,8 @@ namespace System.Runtime.CompilerServices
                 source.GetSyntaxTrees(parseOptions, sourceFileName),
                 references,
                 options);
-            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            ValidateCompilation(createCompilationLambda);
+
             var compilation = createCompilationLambda();
             // 'skipUsesIsNullable' may need to be set for some tests, particularly those that want to verify
             // symbols are created lazily, since 'UsesIsNullableVisitor' will eagerly visit all members.
@@ -1048,15 +1049,22 @@ namespace System.Runtime.CompilerServices
                 VerifyUsesOfNullability(createCompilationLambda().SourceModule.GlobalNamespace, expectedUsesOfNullable: ImmutableArray<string>.Empty);
             }
 
-#if false // PROTOTYPE(UsedAssemblyReferences): Temporary test hook
-            VerifyUsedAssemblyReferences(createCompilationLambda);
-#endif
             return compilation;
         }
 
-#if false // PROTOTYPE(UsedAssemblyReferences): Temporary test hook
+        private static void ValidateCompilation(Func<CSharpCompilation> createCompilationLambda)
+        {
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            VerifyUsedAssemblyReferences(createCompilationLambda);
+        }
+
         private static void VerifyUsedAssemblyReferences(Func<CSharpCompilation> createCompilationLambda)
         {
+            if (!CompilationExtensions.EnableVerifyUsedAssemblies)
+            {
+                return;
+            }
+
             var comp = createCompilationLambda();
             var used = comp.GetUsedAssemblyReferences();
 
@@ -1107,7 +1115,6 @@ namespace System.Runtime.CompilerServices
                 }
             }
         }
-#endif
 
         internal static bool IsNullableEnabled(CSharpCompilation compilation)
         {
@@ -1147,7 +1154,7 @@ namespace System.Runtime.CompilerServices
             var trees = (source == null) ? null : source.Select(s => Parse(s, options: parseOptions)).ToArray();
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
-            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            ValidateCompilation(createCompilationLambda);
             var c = createCompilationLambda();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
@@ -1172,7 +1179,7 @@ namespace System.Runtime.CompilerServices
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
-            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            ValidateCompilation(createCompilationLambda);
             return createCompilationLambda();
         }
 
@@ -1195,7 +1202,7 @@ namespace System.Runtime.CompilerServices
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
-            CompilationExtensions.ValidateIOperations(createCompilationLambda);
+            ValidateCompilation(createCompilationLambda);
             return createCompilationLambda();
         }
 

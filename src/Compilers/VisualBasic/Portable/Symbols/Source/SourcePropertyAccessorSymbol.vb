@@ -203,8 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     sourceModule.AtomicStoreReferenceAndDiagnostics(
                         _lazyReturnType,
                         retType,
-                        diagBag,
-                        CompilationStage.Declare)
+                        diagBag)
 
                     diagBag.Free()
 
@@ -265,8 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     sourceModule.AtomicStoreArrayAndDiagnostics(
                         _lazyParameters,
                         params,
-                        diagBag,
-                        CompilationStage.Declare)
+                        diagBag)
 
                     diagBag.Free()
 

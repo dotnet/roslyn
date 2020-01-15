@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Interlocked.CompareExchange(_lazyDuplicateAttributeIndices, attributeIndicesToSkip, Nothing)
                 End If
 
-                SourceModule.AtomicStoreReferenceAndDiagnostics(lazyNetModuleAttributesBag, netModuleAttributesBag, diagnostics, CompilationStage.Declare)
+                SourceModule.AtomicStoreReferenceAndDiagnostics(lazyNetModuleAttributesBag, netModuleAttributesBag, diagnostics)
                 diagnostics.Free()
 
                 Debug.Assert(attributeIndicesToSkip Is Nothing OrElse

@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 interfaceMembers.Free()
                 eventMembers.Free()
-                comClass.ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_syntheticInterfaces, interfaces, diagnostics, CompilationStage.Declare)
+                comClass.ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_syntheticInterfaces, interfaces, diagnostics)
 
                 diagnostics.Free()
             End Sub

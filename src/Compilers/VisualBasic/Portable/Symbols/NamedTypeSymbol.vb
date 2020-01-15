@@ -760,7 +760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag, CompilationStage.Declare, comparand)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag, comparand)
                 End If
             End If
         End Sub
@@ -775,7 +775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Else
                 Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
-                    sourceModule.AtomicStoreArrayAndDiagnostics(variable, value, diagBag, CompilationStage.Declare)
+                    sourceModule.AtomicStoreArrayAndDiagnostics(variable, value, diagBag)
                 End If
             End If
         End Sub

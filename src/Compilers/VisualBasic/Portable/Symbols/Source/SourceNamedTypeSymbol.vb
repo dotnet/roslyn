@@ -1652,8 +1652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                 StateFlags.ReportedBaseClassConstraintsDiagnostics,
                                                                 0,
-                                                                diagnostics,
-                                                                CompilationStage.Declare)
+                                                                diagnostics)
 
             If diagnostics IsNot Nothing Then
                 diagnostics.Free()
@@ -1688,8 +1687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                    StateFlags.ReportedInterfacesConstraintsDiagnostics,
                                                                    0,
-                                                                   diagnostics,
-                                                                   CompilationStage.Declare) Then
+                                                                   diagnostics) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
 
@@ -1764,7 +1762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     underlyingType = BindEnumUnderlyingType(syntax, binder, tempDiags)
 
                     If Interlocked.CompareExchange(Me._lazyEnumUnderlyingType, underlyingType, Nothing) Is Nothing Then
-                        ContainingSourceModule.AddDiagnostics(tempDiags, CompilationStage.Declare)
+                        ContainingSourceModule.AddDeclarationDiagnostics(tempDiags)
                     Else
                         Debug.Assert(TypeSymbol.Equals(underlyingType, Me._lazyEnumUnderlyingType, TypeCompareKind.ConsiderEverything))
                         underlyingType = Me._lazyEnumUnderlyingType

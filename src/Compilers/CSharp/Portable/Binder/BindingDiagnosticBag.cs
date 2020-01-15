@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static void AddForSymbol(this ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, Symbol? symbol, bool addDiagnostics = true, bool addDependencies = true)
+        internal static void AddForSymbol(this ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, Symbol? symbol, bool addDiagnostics = true)
         {
-            if (symbol is null || useSiteInfo.IsDiscarded || !(addDiagnostics || addDependencies))
+            if (symbol is null || useSiteInfo.IsDiscarded)
             {
                 return;
             }
@@ -54,15 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 useSiteInfo.AddDiagnostics(info);
             }
-            else
-            {
-                Debug.Assert(info.DiagnosticInfo == null); // It would be strange to drop diagnostics, but record dependencies
-            }
 
-            if (addDependencies)
-            {
-                useSiteInfo.AddDependencies(info);
-            }
+            useSiteInfo.AddDependencies(info);
         }
     }
 

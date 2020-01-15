@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim constantTuple = MakeConstantTuple(inProgress, diagnostics)
                 Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
                 diagnostics.Free()
             End If
 

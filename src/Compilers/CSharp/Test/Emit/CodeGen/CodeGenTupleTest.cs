@@ -3135,7 +3135,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation), AlwaysSkip = "PROTOTYPE(UsedAssemblyReferences): The test hook is blocked by https://github.com/dotnet/roslyn/issues/39976")]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
         [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {

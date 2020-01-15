@@ -296,6 +296,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If Not reportedAnError AndAlso Not suppressUseSiteError AndAlso
                                Not typeSymbol.IsArrayType() AndAlso Not typeSymbol.IsTupleType AndAlso typeSymbol.IsDefinition Then
                                 ReportUseSite(diagBag, typeSyntax, typeSymbol)
+                            ElseIf typeSymbol Is sym Then
+                                binder.AddTypesAssemblyAsDependency(TryCast(typeSymbol, NamedTypeSymbol), diagBag)
                             End If
 
                             If diagBag.DiagnosticBag IsNot Nothing AndAlso typeSymbol.Kind = SymbolKind.NamedType AndAlso binder.SourceModule.AnyReferencedAssembliesAreLinked Then
@@ -528,6 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' LookupTypeOrNamespaceSyntax can't return more than one symbol.
                         Dim result = lookupResult.SingleSymbol
                         binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, result, typeSyntax)
+                        binder.AddTypesAssemblyAsDependency(TryCast(result, NamedTypeSymbol), diagBag)
                         Return result
                     End If
                 Finally
@@ -973,6 +976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
 
                 binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 lookupResult.Clear()
                 Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
@@ -1071,6 +1075,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 ' Lookup the generic type.
                 lookupResult.Clear()

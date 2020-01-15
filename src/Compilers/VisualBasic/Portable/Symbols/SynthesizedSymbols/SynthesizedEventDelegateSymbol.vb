@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 members = ImmutableArray.Create(Of Symbol)(ctor, beginInvoke, endInvoke, invoke)
             End If
 
-            sourceModule.AtomicStoreArrayAndDiagnostics(_lazyMembers, members, diagBag, CompilationStage.Declare)
+            sourceModule.AtomicStoreArrayAndDiagnostics(_lazyMembers, members, diagBag)
             diagBag.Free()
 
             Return _lazyMembers
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 Locations(0)))
             End If
 
-            DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics, CompilationStage.Declare)
+            DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics)
 
             diagnostics.Free()
         End Sub

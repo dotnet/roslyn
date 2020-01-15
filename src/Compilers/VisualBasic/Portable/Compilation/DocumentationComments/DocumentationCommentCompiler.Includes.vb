@@ -679,6 +679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Else
                                     ' Replace value with id 
                                     attribute.Value = symbolCommentId
+                                    _diagnostics.AddAssembliesUsedByCrefTarget(smallestSymbol.OriginalDefinition)
                                 End If
 
                             End If

@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             If diagnostics IsNot Nothing Then
-                ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.ReportedExplicitImplementationDiagnostics, 0, diagnostics, CompilationStage.Declare)
+                ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.ReportedExplicitImplementationDiagnostics, 0, diagnostics)
                 diagnostics.Free()
             End If
         End Sub
@@ -319,8 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ContainingSourceModule.AtomicStoreArrayAndDiagnostics(
                             _lazyDelegateParameters,
                             binder.DecodeParameterListOfDelegateDeclaration(Me, syntax.ParameterList, diagnostics),
-                            diagnostics,
-                            CompilationStage.Declare)
+                            diagnostics)
 
                         diagnostics.Free()
                     End If
@@ -467,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ThreadSafeFlagOperations.Set(_lazyState, newState)
 
-                    ContainingSourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, eventType, diagnostics, CompilationStage.Declare)
+                    ContainingSourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, eventType, diagnostics)
                     diagnostics.Free()
                 End If
 
@@ -511,8 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     ContainingSourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedEvents,
                                                                           ComputeImplementedEvents(diagnostics),
-                                                                          diagnostics,
-                                                                          CompilationStage.Declare)
+                                                                          diagnostics)
                     diagnostics.Free()
                 End If
 

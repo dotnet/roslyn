@@ -793,8 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 sourceModule.AtomicStoreArrayAndDiagnostics(
                     _lazyParameters,
                     params,
-                    diagnostics,
-                    CompilationStage.Declare)
+                    diagnostics)
 
                 diagnostics.Free()
             End If
@@ -864,8 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
-                                                                diagnostics,
-                                                                CompilationStage.Declare)
+                                                                diagnostics)
                     diagnostics.Free()
                 End If
 

@@ -2432,7 +2432,8 @@ End Module
 
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40680: The test hook is blocked by this issue.
+        <WorkItem(40680, "https://github.com/dotnet/roslyn/issues/40680")>
         Public Sub ScriptExtensionMethods()
             Dim source = <![CDATA[
 Imports System.Runtime.CompilerServices

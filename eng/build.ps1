@@ -59,6 +59,7 @@ param (
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
   [switch]$testIOperation,
+  [switch]$testUsedAssemblies,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -90,6 +91,7 @@ function Print-Usage() {
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+  Write-Host "  -$testUsedAssemblies      Run extra checks to validate used assemblies feature"
   Write-Host ""
   Write-Host "Advanced settings:"
   Write-Host "  -ci                       Set when running on CI server"
@@ -352,6 +354,10 @@ function TestUsingOptimizedRunner() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
+  if ($testUsedAssemblies) {
+    $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
+  }
+
   $secondaryLogDir = Join-Path (Join-Path $ArtifactsDir "log2") $configuration
   Create-Directory $secondaryLogDir
   $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
@@ -427,6 +433,9 @@ function TestUsingOptimizedRunner() {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
+    }
+    if ($testUsedAssemblies) {
+      Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
     }
   }
 }

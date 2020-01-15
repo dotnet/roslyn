@@ -2052,7 +2052,7 @@ class B
             Assert.Equal(0, info.CandidateSymbols.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void Ambiguous3()
         {
             var lib1Source = @"

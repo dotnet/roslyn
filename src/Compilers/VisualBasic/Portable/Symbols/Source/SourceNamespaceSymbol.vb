@@ -495,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 cancellationToken.ThrowIfCancellationRequested()
             Next
 
-            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, New BindingDiagnosticBag(diagnostics), CompilationStage.Declare) Then
+            If _containingModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.DeclarationValidated, 0, New BindingDiagnosticBag(diagnostics)) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
             diagnostics.Free()

@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics, CompilationStage.Declare)
+            ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics)
             diagnostics.Free()
         End Sub
 
@@ -293,9 +293,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     params = GetTypeParameters(sourceModule, diagBag)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyTypeParameters,
-                                                                    params,
-                                                                    diagBag,
-                                                                    CompilationStage.Declare)
+                                                                params,
+                                                                diagBag)
 
                     diagBag.Free()
 
@@ -382,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         implementedMethods = Me.GetExplicitInterfaceImplementations(sourceModule, diagnostics)
                     End If
 
-                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedMethods, implementedMethods, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedMethods, implementedMethods, diagnostics)
                     diagnostics.Free()
                 End If
                 Return _lazyImplementedMethods
@@ -563,9 +562,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim boundHandledEvents = Me.GetHandles(sourceModule, diagnostics)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(Of HandledEvent)(_lazyHandles,
-                                                                                  boundHandledEvents,
-                                                                                  diagnostics,
-                                                                                  CompilationStage.Declare)
+                                                                                 boundHandledEvents,
+                                                                                 diagnostics)
 
                     diagnostics.Free()
                 End If

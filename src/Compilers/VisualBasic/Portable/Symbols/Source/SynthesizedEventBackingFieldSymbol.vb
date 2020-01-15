@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         result = tokenType.Construct(result)
                     End If
 
-                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyType, result, diagnostics, CompilationStage.Declare)
+                    DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreReferenceAndDiagnostics(_lazyType, result, diagnostics)
                     diagnostics.Free()
                 End If
 

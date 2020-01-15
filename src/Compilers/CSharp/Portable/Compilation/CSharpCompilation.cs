@@ -2743,7 +2743,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(!IsSubmission || HasCodeToEmit());
+            Debug.Assert(!IsSubmission || HasCodeToEmit() ||
+                         (emitOptions == EmitOptions.Default && debugEntryPoint is null && sourceLinkStream is null && embeddedTexts is null && manifestResources is null && testData is null));
 
             string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)

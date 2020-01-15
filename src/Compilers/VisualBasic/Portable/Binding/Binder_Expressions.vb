@@ -714,6 +714,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf group.ResultKind = LookupResultKind.Good AndAlso group.TypeArgumentsOpt IsNot Nothing Then
                         ReportDiagnostic(diagnostics, group.TypeArgumentsOpt.Syntax, ERRID.ERR_MethodTypeArgsUnexpected)
+                    Else
+                        For Each method In group.Methods
+                            diagnostics.AddDependency(method.ContainingAssembly)
+                        Next
                     End If
 
                 Case BoundKind.PropertyGroup
@@ -726,7 +730,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             DirectCast(node.Argument, MemberAccessExpressionSyntax).Name,
                                             node.Argument),
                                          GetInaccessibleErrorInfo(group.Properties.First))
+                    Else
+                        For Each prop In group.Properties
+                            diagnostics.AddDependency(prop.ContainingAssembly)
+                        Next
                     End If
+
+                Case BoundKind.NamespaceExpression
+                    diagnostics.AddAssembliesUsedByNamespaceReference(DirectCast(argument, BoundNamespaceExpression).NamespaceSymbol)
             End Select
 
             Return New BoundNameOfOperator(node, argument, ConstantValue.Create(value), GetSpecialType(SpecialType.System_String, node, diagnostics))
@@ -1370,6 +1381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim getMethod = propertyAccess.PropertySymbol.GetMostDerivedGetMethod()
                 Debug.Assert(getMethod IsNot Nothing)
 
+                ReportUseSite(diagnostics, expr.Syntax, getMethod)
                 ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, getMethod, expr.Syntax)
 
                 Select Case propertyAccess.AccessKind
