@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         var mayBeWritten = captures.Count > 1;
                         foreach (var (symbol, write) in captures)
                         {
-                            OnWriteReferenceFound(symbol, write, mayBeWritten);
+                            OnWriteReferenceFound(symbol, write, mayBeWritten, isRef: false);
                         }
                     }
                 }

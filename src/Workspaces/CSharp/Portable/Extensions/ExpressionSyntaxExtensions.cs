@@ -216,20 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
-            => expression != null && expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression;
+            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) &&
+               memberAccess.Expression == expression;
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
-        {
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                (expression.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
-        }
+            => IsLeftSideOfQualifiedName(expression) ||
+               (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-        {
-            return
-                expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Left == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
 
         public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
@@ -825,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
 
             if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, optionSet, symbol))
+                !SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(semanticModel, optionSet, symbol))
             {
                 return false;
             }
@@ -956,15 +951,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return speculativeSymbols.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance)
                     || speculativeNamespacesAndTypes.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance);
             }
-
-            //foreach (var symbol in actualSymbol.CandidateSymbols)
-            //{
-            //    if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
-            //        && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
-            //    {
-            //        return false;
-            //    }
-            //}
 
             return true;
         }
