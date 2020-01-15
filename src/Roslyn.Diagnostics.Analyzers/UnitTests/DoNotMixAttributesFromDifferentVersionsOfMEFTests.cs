@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
@@ -571,20 +569,14 @@ End Class
 
         #endregion
 
-        private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName)
-        {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+        private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);
-        }
 
-        private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName)
-        {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+        private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName) =>
+            VerifyVB.Diagnostic()
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);
-        }
     }
 }

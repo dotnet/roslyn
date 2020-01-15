@@ -1,12 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -196,22 +200,14 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
-        {
-            return GetExpectedDiagnostic(line, column, analyzerTypeName, missingLanguageName);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
-        {
-            return GetExpectedDiagnostic(line, column, analyzerTypeName, missingLanguageName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
-        {
-            return new DiagnosticResult(DiagnosticIds.AddLanguageSupportToAnalyzerRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName) =>
+            VerifyCS.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.AddLanguageSupportToAnalyzerRule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage)
                 .WithArguments(analyzerTypeName, missingLanguageName);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName) =>
+            VerifyVB.Diagnostic(DiagnosticAnalyzerAttributeAnalyzer.AddLanguageSupportToAnalyzerRule)
+                .WithLocation(line, column)
+                .WithArguments(analyzerTypeName, missingLanguageName);
     }
 }

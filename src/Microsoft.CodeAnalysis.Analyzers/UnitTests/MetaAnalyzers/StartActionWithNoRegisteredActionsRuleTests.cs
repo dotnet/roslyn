@@ -1,13 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -672,17 +676,17 @@ End Class
             }.RunAsync();
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
-        {
-            return GetExpectedDiagnostic(line, column, parameterName, kind);
-        }
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
+            VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.StartActionWithNoRegisteredActionsRule)
+                .WithLocation(line, column)
+                .WithArguments(GetExpectedArguments(parameterName, kind));
 
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
-        {
-            return GetExpectedDiagnostic(line, column, parameterName, kind);
-        }
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
+            VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.StartActionWithNoRegisteredActionsRule)
+                .WithLocation(line, column)
+                .WithArguments(GetExpectedArguments(parameterName, kind));
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
+        private static string[] GetExpectedArguments(string parameterName, StartActionKind kind)
         {
             string arg2;
             switch (kind)
@@ -700,11 +704,7 @@ End Class
                     throw new ArgumentException("Unsupported action kind", nameof(kind));
             }
 
-            string message = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.StartActionWithNoRegisteredActionsMessage, parameterName, arg2);
-
-            return new DiagnosticResult(DiagnosticIds.StartActionWithNoRegisteredActionsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(line, column)
-                .WithMessageFormat(message);
+            return new[] { parameterName, arg2 };
         }
 
         private enum StartActionKind

@@ -2,13 +2,16 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.Analyzers.UnitTests.UpgradeMSBuildWorkspaceAnalyzerTests.TestCSharpUpgradeMSBuildWorkspaceAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.Analyzers.UnitTests.UpgradeMSBuildWorkspaceAnalyzerTests.TestVisualBasicUpgradeMSBuildWorkspaceAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.UnitTests.UpgradeMSBuildWorkspaceAnalyzerTests.TestCSharpUpgradeMSBuildWorkspaceAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.Analyzers.UnitTests.UpgradeMSBuildWorkspaceAnalyzerTests.TestVisualBasicUpgradeMSBuildWorkspaceAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
@@ -124,18 +127,11 @@ End Class";
             }.RunAsync();
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column)
-            => GetExpectedDiagnostic(line, column);
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column) =>
+            VerifyCS.Diagnostic().WithLocation(line, column);
 
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column)
-            => GetExpectedDiagnostic(line, column);
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column)
-        {
-            return new DiagnosticResult(DiagnosticIds.UpgradeMSBuildWorkspaceRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-               .WithLocation(line, column)
-               .WithMessageFormat(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage);
-        }
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column) =>
+            VerifyVB.Diagnostic().WithLocation(line, column);
 
         [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Used via new() constraint: https://github.com/dotnet/roslyn-analyzers/issues/3199")]
         internal class TestCSharpUpgradeMSBuildWorkspaceAnalyzer : CSharpUpgradeMSBuildWorkspaceAnalyzer

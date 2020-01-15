@@ -1,11 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerApiUsageAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerApiUsageAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerApiUsageAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerApiUsageAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -925,42 +929,24 @@ End Class
             GetBasicExpectedDiagnostic(10, 7, "MyAnalyzer", "Class2, Class3", "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllProvider"));
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes)
-        {
-            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypesOpt: null, violatingTypes: violatingTypes);
-        }
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes) =>
+            VerifyCS.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyDirectRule)
+                .WithLocation(line, column)
+                .WithArguments(analyzerTypeName, violatingTypes);
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes)
-        {
-            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypes, violatingTypes);
-        }
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes) =>
+            VerifyCS.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyIndirectRule)
+                .WithLocation(line, column)
+                .WithArguments(analyzerTypeName, violatingIndirectTypes, violatingTypes);
 
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes)
-        {
-            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypesOpt: null, violatingTypes: violatingTypes);
-        }
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes) =>
+            VerifyVB.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyDirectRule)
+                .WithLocation(line, column)
+                .WithArguments(analyzerTypeName, violatingTypes);
 
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes)
-        {
-            return GetExpectedDiagnostic(line, column, analyzerTypeName, violatingIndirectTypes, violatingTypes);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypesOpt, string violatingTypes)
-        {
-            var result = new DiagnosticResult(DiagnosticIds.DoNotUseTypesFromAssemblyRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(line, column);
-            if (violatingIndirectTypesOpt is null)
-            {
-                return result
-                    .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleDirectMessage)
-                    .WithArguments(analyzerTypeName, violatingTypes);
-            }
-            else
-            {
-                return result
-                    .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotUseTypesFromAssemblyRuleIndirectMessage)
-                    .WithArguments(analyzerTypeName, violatingIndirectTypesOpt, violatingTypes);
-            }
-        }
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes) =>
+            VerifyVB.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyIndirectRule)
+                .WithLocation(line, column)
+                .WithArguments(analyzerTypeName, violatingIndirectTypes, violatingTypes);
     }
 }

@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
@@ -91,17 +92,9 @@ namespace ConsoleApplication1
             await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName)
-        {
-            return GetExpectedDiagnostic(line, column, objectName, methodName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string objectName, string methodName)
-        {
-            return new DiagnosticResult(DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation, DiagnosticHelpers.DefaultDiagnosticSeverity)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage)
                 .WithArguments(objectName, methodName);
-        }
     }
 }
