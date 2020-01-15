@@ -1057,7 +1057,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (value == null ||
-                value.WasCompilerGenerated ||
                 !targetType.HasType ||
                 targetType.Type.IsValueType)
             {
@@ -6571,6 +6570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             var left = node.Left;
+            var right = node.Right;
             Visit(left);
             TypeWithAnnotations declaredType = LvalueResultType;
             TypeWithAnnotations leftLValueType = declaredType;
@@ -6603,13 +6603,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeWithState resultType;
-            TypeWithState rightType = VisitRvalueWithState(node.Right);
+            TypeWithState rightType = VisitRvalueWithState(right);
             if ((object)node.Operator.ReturnType != null)
             {
                 if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
                 {
                     MethodSymbol method = node.Operator.Method;
-                    VisitArguments(node, ImmutableArray.Create(node.Left, node.Right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default,
+                    VisitArguments(node, ImmutableArray.Create<BoundExpression>(node.Left, right), method.ParameterRefKinds, method.Parameters, argsToParamsOpt: default,
                         expanded: true, invokedAsExtensionMethod: false, method);
                 }
 
