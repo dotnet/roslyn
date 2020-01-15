@@ -22,8 +22,8 @@ namespace Roslyn.Diagnostics.Analyzers
             RoslynDiagnosticIds.DoNotAccessDiagnosticDescriptorRuleId,
             s_localizableTitle,
             s_localizableMessage,
-            DiagnosticCategory.RoslynDiagnosticsPerformance,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticCategory.RoslyDiagnosticsPerformance,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);

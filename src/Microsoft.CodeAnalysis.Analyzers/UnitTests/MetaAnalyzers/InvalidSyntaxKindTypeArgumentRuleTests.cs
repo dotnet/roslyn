@@ -196,7 +196,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
         {
-            return new DiagnosticResult(DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage)
                 .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);

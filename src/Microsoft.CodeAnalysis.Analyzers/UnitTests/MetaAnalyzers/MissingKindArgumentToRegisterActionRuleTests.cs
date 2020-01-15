@@ -240,7 +240,7 @@ End Class
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
 
-            return new DiagnosticResult(DiagnosticIds.MissingKindArgumentToRegisterActionRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticIds.MissingKindArgumentToRegisterActionRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column)
                 .WithMessageFormat(message);
         }

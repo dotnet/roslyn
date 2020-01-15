@@ -947,7 +947,7 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypesOpt, string violatingTypes)
         {
-            var result = new DiagnosticResult(DiagnosticIds.DoNotUseTypesFromAssemblyRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            var result = new DiagnosticResult(DiagnosticIds.DoNotUseTypesFromAssemblyRuleId, DiagnosticSeverity.Warning)
                 .WithLocation(line, column);
             if (violatingIndirectTypesOpt is null)
             {
