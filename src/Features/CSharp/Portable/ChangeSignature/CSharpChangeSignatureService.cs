@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -365,7 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 else
                 {
                     // No parameters. Change to a parenthesized lambda expression
-
                     var emptyParameterList = SyntaxFactory.ParameterList()
                         .WithLeadingTrivia(lambda.Parameter.GetLeadingTrivia())
                         .WithTrailingTrivia(lambda.Parameter.GetTrailingTrivia());
@@ -440,7 +440,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Handle references in crefs
-
             if (updatedNode.IsKind(SyntaxKind.NameMemberCref))
             {
                 var nameMemberCref = (NameMemberCrefSyntax)updatedNode;
@@ -550,52 +549,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SignatureChange updatedSignature,
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
         {
-            var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
-            var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
-
-            int numAddedParameters = 0;
-
-            var newParameters = new List<T>();
-            for (var index = 0; index < reorderedParameters.Count; index++)
-            {
-                var newParam = reorderedParameters[index];
-                var pos = originalParameters.IndexOf(p => p.Symbol == newParam.Symbol);
-
-                if (pos == -1)
-                {
-                    // Added parameter
-                    numAddedParameters++;
-                    var newParameter = createNewParameterMethod(newParam as AddedParameter);
-                    newParameters.Add(newParameter);
-                }
-                else
-                {
-                    var param = list[pos];
-
-                    // copy whitespace trivia from original position
-                    param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
-                    newParameters.Add(param);
-                }
-            }
-
-            int numSeparatorsToSkip;
-            if (originalParameters.Count == 0)
-            {
-                // () 
-                // Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1;
-            }
-            else
-            {
-                // (a,b,c)
-                // Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count;
-            }
-
-            return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip));
+            var permuteDeclarationBase = base.PermuteDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
+            return SyntaxFactory.SeparatedList(permuteDeclarationBase.Item1, permuteDeclarationBase.Item2);
         }
 
-        private static T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode
+        protected override T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument)
         {
             var oldTrivia = oldArgument.GetLeadingTrivia();
             var oldOnlyHasWhitespaceTrivia = oldTrivia.All(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
@@ -647,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
 
-        private static List<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
+        private List<T> TransferLeadingWhitespaceTrivia<T, U>(IEnumerable<T> newArguments, SeparatedSyntaxList<U> oldArguments)
             where T : SyntaxNode
             where U : SyntaxNode
         {

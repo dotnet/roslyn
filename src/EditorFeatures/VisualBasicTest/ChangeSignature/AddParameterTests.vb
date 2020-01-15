@@ -93,6 +93,31 @@ End Module
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameterToParameterlessMethod() As Task
+
+            Dim markup = <Text><![CDATA[
+Module Program
+    Sub $$M()
+        M()
+    End Sub
+End Module
+
+]]></Text>.NormalizedValue()
+            Dim permutation = {
+                New AddedParameterOrExistingIndex(New AddedParameter("Integer", "newIntegerParameter", "12345"))}
+            Dim updatedCode = <Text><![CDATA[
+Module Program
+    Sub M(newIntegerParameter As Integer)
+        M(newIntegerParameter:=12345)
+    End Sub
+End Module
+
+]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Parameters() As Task
 
             Dim markup = <Text><![CDATA[

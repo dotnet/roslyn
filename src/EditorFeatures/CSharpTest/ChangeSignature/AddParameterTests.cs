@@ -108,6 +108,31 @@ static class Ext
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task AddParameterToParameterlessMethod()
+        {
+            var markup = @"
+static class Ext
+{
+    static void $$M()
+    {
+        M();
+    }
+}";
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "12345"))};
+            var updatedCode = @"
+static class Ext
+{
+    static void M(int newIntegerParameter)
+    {
+        M(12345);
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddAndReorderLocalFunctionParametersAndArguments_OnDeclaration()
         {
             var markup = @"

@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Utilities
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     <ExportLanguageService(GetType(AbstractChangeSignatureService), LanguageNames.VisualBasic), [Shared]>
@@ -438,60 +439,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                                                                parameterList As SeparatedSyntaxList(Of T),
                                                                updatedSignature As SignatureChange,
                                                                createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
-            Dim originalParameterSymbols = updatedSignature.OriginalConfiguration.ToListOfParameters().Select(Function(p) p.Symbol).ToArray()
-            Dim reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters()
-            Dim numSeparatorsToSkip = originalParameterSymbols.Length - reorderedParameters.Count
-
-            ' The parameter list could be empty if dealing with delegates.
-            If parameterList.IsEmpty() Then
-                Return SyntaxFactory.SeparatedList(parameterList, GetSeparators(parameterList, numSeparatorsToSkip))
-            End If
-
-            Dim numAddedParameters = 0
-
-            Dim numAddedParameters = 0
-
-            Dim newParameters = New List(Of T)
-            For index = 0 To reorderedParameters.Count - 1
-                Dim newParam = reorderedParameters(index)
-                Dim pos = originalParameterSymbols.IndexOf(Function(p) p.Symbol Is newParam.Symbol)
-
-                If pos = -1 Then
-                    ' Added parameter
-                    numAddedParameters += 1
-
-                    Dim newParameter = SyntaxFactory.Parameter(
-                        attributeLists:=SyntaxFactory.List(Of AttributeListSyntax),
-                        modifiers:=SyntaxFactory.TokenList(),
-                        identifier:=SyntaxFactory.ModifiedIdentifier(TryCast(newParam, AddedParameter).Name),
-                        asClause:=SyntaxFactory.SimpleAsClause(SyntaxFactory.ParseTypeName(TryCast(newParam, AddedParameter).TypeName)),
-                        [default]:=Nothing)
-
-                    newParameters.Add(TryCast(newParameter, T))
-                Else
-                    ' Added parameter
-                    numAddedParameters += 1
-                    Dim newParameter = createNewParameterMethod(DirectCast(newParam, AddedParameter))
-                    newParameters.Add(newParameter)
-                End If
-            Next
-
-            Dim numSeparatorsToSkip As Integer
-            If originalParameters.Count = 0 Then
-                ' () 
-                ' Adding X parameters, need to add X-1 separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count + 1
-            Else
-                ' (a,b,c)
-                ' Adding X parameters, need to add X separators.
-                numSeparatorsToSkip = originalParameters.Count - reorderedParameters.Count
-            End If
-
-            Return SyntaxFactory.SeparatedList(newParameters, GetSeparators(list, numSeparatorsToSkip))
-        End Function
-
-        Private Shared Function CreateNewArgumentSyntax(addedParameter As AddedParameter) As ArgumentSyntax
-            Return SyntaxFactory.SimpleArgument(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(addedParameter.TypeName)))
+            Dim basePermuteDeclaration = PermuteDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
+            Return SyntaxFactory.SeparatedList(basePermuteDeclaration.Item1, basePermuteDeclaration.Item2)
         End Function
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax
@@ -657,5 +606,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         Protected Overrides Function CreateSeparatorSyntaxToken() As SyntaxToken
             Return SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace)
         End Function
+
+        Protected Overrides Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T
+            Return newArgument
+        End Function
+
     End Class
 End Namespace
