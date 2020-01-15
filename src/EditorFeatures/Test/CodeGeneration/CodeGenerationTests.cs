@@ -357,11 +357,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             var workspace = context.Workspace;
             if (options != null)
             {
+                var optionSet = workspace.Options;
                 foreach (var kvp in options)
                 {
-                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                        .WithChangedOption(kvp.Key, kvp.Value)));
+                    optionSet = optionSet.WithChangedOption(kvp.Key, kvp.Value);
                 }
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
             }
 
             var typeSymbol = GetTypeSymbol(type)(context.SemanticModel);
