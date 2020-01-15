@@ -1364,7 +1364,8 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.Options = workspace.Options.WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
 
             var hostdoc = workspace.Documents.First();
 
@@ -1405,9 +1406,9 @@ class C
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
             var snapshot = buffer.CurrentSnapshot;

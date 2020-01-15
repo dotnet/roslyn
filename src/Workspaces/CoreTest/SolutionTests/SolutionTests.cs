@@ -726,7 +726,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace.CurrentSolution;
         }
 
@@ -1444,7 +1445,8 @@ public class C : A {
             // set max file length to 1 bytes
             var maxLength = 1;
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
-            workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
