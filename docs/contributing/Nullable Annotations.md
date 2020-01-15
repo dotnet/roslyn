@@ -16,12 +16,14 @@ Example:
 struct SyntaxTrivia {
     void Example() {    
         if (this.HasStructure) {
-            Use(this.GetStructure()!)
+            Use(this.GetStructure()!);
         }
     }
 }
 ```
-- **DO** use `Assert` to validate state that is passed into the method
+- **DO** use explicit validation such as `RoslynDebug.Assert` or 
+`Contract.ThrowIfNull` to validate state that is passed into the method if it 
+avoids the need for suppressions later in the method.
 ```cs
 void M1(SyntaxNode node) {
     RoslynDebug.Assert(node.Parent is object);
@@ -35,32 +37,38 @@ annotations and significant refactorings into separate commits. Small changes,
 and modernizing style (change `default(SyntaxToken)` to `default`) are
 acceptable.
 - **DO NOT** be concerned with the validity of annotations after an object has 
-been Dispose'd or otherwise entered into an invalid state. For example
+been disposed or otherwise entered into an invalid state. For example
 manipulating a pooled object after it's been freed. This is a violation of the 
 objects contract and annotations aren't meaningful here.
-- **DO NOT** be concerned with the validity of an enumerator's Current 
-annotations when used before MoveNext has been called or after MoveNext has 
-returned false.  As with Dispose, such use is considered invalid, and we don't
-want to harm the correct consumption of Current by catering to incorrect
+- **DO NOT** be concerned with the validity of an enumerator's `Current` 
+annotations when used before `MoveNext` has been called or after `MoveNext` has 
+returned false. As with `Dispose`, such use is considered invalid, and we don't
+want to harm the correct consumption of `Current` by catering to incorrect
 consumption.
+- **DO** use the adjective `Require` when defining a member that exist only
+to provide a non-null returning version of a method that returns a nullable 
+reference type. For example: `GetRequiredSemanticModel` model returns a non-null 
+value from `GetSemanticModel`
+
 
 ## Breaking Change Guidance
-At this point in time nullable annotations are not considered as a part of our 
-compatibility bar. That is nullable annotations can change as needed or desired
-by the Roslyn team and it is not considered a compat change even if it
-introduces new warnings into consumer code.
+Roslyn is a large code base and it will take significant time for us to fully 
+annotate the code base. This will likely take several releases for our larger
+libraries to complete. During this time those libraries will not consider 
+nullable annotations to be a part of the compatibility bar. That is 
+nullable annotations will change without an entry in the breaking change 
+document, no compat review, etc ...
 
-This is necessary as Roslyn is a very large code base and it will take a 
-significant amount of time to annotate the code base. Even Public API 
-annotations only is a significant amount of work and, without the 
-implementations also being annotated, there won't be significant confidence the
-annotations are correct.
+Once the nullable annotations in a given library reach critical mass we will 
+begin tracking nullable annotations as a part of our compatibility bar. The 
+Roslyn team still reserves the right to change annotations if the language or
+underlying platforms we build on effectively require us to do so. However such
+changes will have a higher degree of scrutiny and will need approval from 
+members of the API compat council.
 
 As specific libraries complete their nullable annotations then the annotations
 will be [tracked in API files](https://github.com/dotnet/roslyn-analyzers/pull/3125)
 and the library names will be added to this document as being complete.
 
-At that point nullable annotation changes will still be allowed but there will
-be a **significantly** higher bar to making such changes.
 
 
