@@ -539,5 +539,78 @@ class A<T> where T: struct
     }
 }");
         }
+
+        [WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestRetainingComments()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        if (arg == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(arg)); // Oh no!
+        }
+        _arg = arg;
+    }
+}",
+@"using System;
+class Program
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program(object arg)
+    {
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg)) // Oh no!
+;
+    }
+}");
+        }
+
+        [WorkItem(38102, "https://github.com/dotnet/roslyn/issues/38102")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestRetainingComments2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+class Program2
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program2(object arg)
+    {
+        if (arg == null)
+        {
+            // Oh no!
+            [|throw|] new ArgumentNullException(nameof(arg));
+        }
+        _arg = arg;
+    }
+}",
+@"using System;
+class Program2
+{
+    static void Main() { }
+
+    private object _arg;
+
+    public Program2(object arg)
+    {
+        _arg = arg ?? throw new ArgumentNullException(nameof(arg)) // Oh no!
+;
+    }
+}");
+        }
     }
 }
