@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -45,21 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             context.RegisterSemanticModelAction(c => AnalyzeSemanticModel(c, compilationTypeNames));
         }
 
-        private static HashSet<string> GetCompilationTypeNames(Compilation compilation)
+        private static ICollection<string> GetCompilationTypeNames(Compilation compilation)
         {
-            var result = new HashSet<string>();
-            result.AddAll(compilation.Assembly.TypeNames);
+            var builder = ArrayBuilder<ICollection<string>>.GetInstance();
+            builder.Add(compilation.Assembly.TypeNames);
             foreach (var reference in compilation.References)
             {
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
-                    result.AddAll(assembly.TypeNames);
+                    builder.Add(assembly.TypeNames);
             }
 
-            return result;
+            return UnionCollection<string>.Create(builder.ToImmutableAndFree());
         }
 
         private void AnalyzeSemanticModel(
-            SemanticModelAnalysisContext context, HashSet<string> compilationTypeNames)
+            SemanticModelAnalysisContext context, ICollection<string> compilationTypeNames)
         {
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;

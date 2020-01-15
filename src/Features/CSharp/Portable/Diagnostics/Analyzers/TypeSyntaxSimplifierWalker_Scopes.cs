@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// a type and thus if we should try to simplify that to <c>X.Z</c> (if <c>X</c> is a base
         /// class of <c>Y</c>).
         /// </summary>
-        private readonly HashSet<string> _compilationTypeNames;
+        private readonly ICollection<string> _compilationTypeNames;
 
         /// <summary>
         /// Set of type and namespace names that have an alias associated with them.  i.e. if the
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         public TypeSyntaxSimplifierWalker(
             CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SemanticModel semanticModel,
-            OptionSet optionSet, HashSet<string> compilationTypeNames, CancellationToken cancellationToken)
+            OptionSet optionSet, ICollection<string> compilationTypeNames, CancellationToken cancellationToken)
         {
             _analyzer = analyzer;
             _semanticModel = semanticModel;
