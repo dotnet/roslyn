@@ -647,6 +647,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract SyntaxNode? GetNodeSlot(int slot);
 
+        internal SyntaxNode GetRequiredNodeSlot(int slot)
+        {
+            var syntaxNode = GetNodeSlot(slot);
+            RoslynDebug.Assert(syntaxNode is object);
+            return syntaxNode;
+        }
+
         /// <summary>
         /// Gets a list of the child nodes in prefix document order.
         /// </summary>

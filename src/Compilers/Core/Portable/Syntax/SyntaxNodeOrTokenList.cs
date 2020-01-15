@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
                                 return new SyntaxToken(this.Parent, green, _node.GetChildPosition(index), this.index + index);
                             }
 
-                            return _node.GetNodeSlot(index);
+                            return _node.GetRequiredNodeSlot(index);
                         }
                     }
                 }
