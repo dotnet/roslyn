@@ -3896,7 +3896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckDisallowedNullAssignment(TypeWithState state, FlowAnalysisAnnotations annotations, Location location, BoundExpression boundValueOpt = null)
         {
-            if (boundValueOpt is object && boundValueOpt.WasCompilerGenerated)
+            if (boundValueOpt is { WasCompilerGenerated: true })
             {
                 // We need to skip `return backingField;` in auto-prop getters
                 return;
