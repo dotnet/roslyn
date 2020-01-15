@@ -2,7 +2,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers;
@@ -132,9 +131,8 @@ End Class";
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column)
         {
-            return new DiagnosticResult(DiagnosticIds.UpgradeMSBuildWorkspaceRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-               .WithLocation(line, column)
-               .WithMessageFormat(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage);
+            return new DiagnosticResult(UpgradeMSBuildWorkspaceAnalyzer.UpgradeMSBuildWorkspaceDiagnosticRule)
+               .WithLocation(line, column);
         }
 
         [SuppressMessage("Performance", "CA1812:Avoid uninstantiated internal classes", Justification = "Used via new() constraint: https://github.com/dotnet/roslyn-analyzers/issues/3199")]

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Testing;
@@ -250,19 +249,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName)
         {
-            return GetExpectedDiagnostic(line, column, violatingTypeName);
+            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer.DoNotStorePerCompilationDataOntoFieldsRule,
+                line, column, violatingTypeName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName)
         {
-            return GetExpectedDiagnostic(line, column, violatingTypeName);
+            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerFieldsAnalyzer.DoNotStorePerCompilationDataOntoFieldsRule,
+                line, column, violatingTypeName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string violatingTypeName)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string violatingTypeName)
         {
-            return new DiagnosticResult(DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsMessage)
                 .WithArguments(violatingTypeName);
         }
     }

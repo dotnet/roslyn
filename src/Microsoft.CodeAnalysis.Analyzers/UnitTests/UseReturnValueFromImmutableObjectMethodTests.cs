@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -93,14 +92,14 @@ namespace ConsoleApplication1
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string objectName, string methodName)
         {
-            return GetExpectedDiagnostic(line, column, objectName, methodName);
+            return GetExpectedDiagnostic(CSharp.Analyzers.CSharpImmutableObjectMethodAnalyzer.DoNotIgnoreReturnValueDiagnosticRule,
+                line, column, objectName, methodName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string objectName, string methodName)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string objectName, string methodName)
         {
-            return new DiagnosticResult(DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage)
                 .WithArguments(objectName, methodName);
         }
     }
