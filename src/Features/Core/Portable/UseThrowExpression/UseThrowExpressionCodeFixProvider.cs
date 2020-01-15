@@ -57,18 +57,19 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
                 var text = document.GetTextSynchronously(cancellationToken);
                 var throwLine = text.Lines.GetLineFromPosition(diagnostic.AdditionalLocations[1].SourceSpan.Start);
-                var assignmentLine = text.Lines.GetLineFromPosition(diagnostic.AdditionalLocations[2].SourceSpan.Start);
 
                 var fullThrowStatement = root.FindNode(throwLine.SpanIncludingLineBreak, getInnermostNodeForTie: true);
-                var fullAssignmentStatement = root.FindNode(assignmentLine.SpanIncludingLineBreak, getInnermostNodeForTie: true);
+
+                var triviaList = new SyntaxTriviaList()
+                    .AddRange(fullThrowStatement.GetLeadingTrivia())
+                    .AddRange(fullThrowStatement.GetTrailingTrivia());
 
                 // First, remove the if-statement entirely.
                 editor.RemoveNode(ifStatement);
 
                 var newNode = generator.CoalesceExpression(assignmentValue,
                     generator.ThrowExpression(throwStatementExpression))
-                    .WithLeadingTrivia(fullAssignmentStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(fullThrowStatement.GetTrailingTrivia()).NormalizeWhitespace();
+                    .WithTrailingTrivia(triviaList).NormalizeWhitespace();
 
                 // Now, update the assignment value to go from 'a' to 'a ?? throw ...'
                 // Copying all non whitespace trivia from the old statements.
