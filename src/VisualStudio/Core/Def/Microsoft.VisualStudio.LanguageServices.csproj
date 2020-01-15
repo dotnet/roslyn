@@ -44,6 +44,8 @@
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\ExpressionEvaluator\Core\Source\ExpressionCompiler\DkmExceptionUtilities.cs" Link="Implementation\EditAndContinue\Interop\DkmExceptionUtilities.cs" />
+    <EmbeddedResource Include="ColorSchemes\Enhanced.xml" />
+    <EmbeddedResource Include="ColorSchemes\VisualStudio2017.xml" />
     <Compile Update="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml.cs">
       <DependentUpon>MoveToNamespaceDialog.xaml</DependentUpon>
     </Compile>
@@ -274,20 +276,5 @@
   <ItemGroup>
     <VsdConfigXmlFiles Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
-  <!-- Editor Color Scheme support-->
-  <PropertyGroup>
-    <EnhancedThemePath>$(OutputPath)$(TargetFramework)\Enhanced.pkgdef</EnhancedThemePath>
-    <VisualStudio2017ThemePath>$(OutputPath)$(TargetFramework)\VisualStudio2017.pkgdef</VisualStudio2017ThemePath>
-  </PropertyGroup>
-  <ItemGroup>
-    <VsTheme Include="ColorSchemes\Enhanced.xml" />
-    <VsTheme Include="ColorSchemes\VisualStudio2017.xml" />
-  </ItemGroup>
-  <Target Name="CompileRoslynEditorColors" BeforeTargets="BeforeBuild" DependsOnTargets="CompileVsThemeToPkgdef">
-    <ItemGroup>
-      <EmbeddedResource Include="$(EnhancedThemePath)" />
-      <EmbeddedResource Include="$(VisualStudio2017ThemePath)" />
-    </ItemGroup>
-  </Target>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>
