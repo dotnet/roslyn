@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            LastCommittedSolution.CommitSolution(update.Solution, update.ChangedDocuments);
+            LastCommittedSolution.CommitSolution(update.Solution);
         }
 
         /// <summary>

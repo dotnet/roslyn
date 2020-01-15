@@ -25,6 +25,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             /// </summary>
             private readonly ArrayBuilder<BasicBlockAnalysisData> _allocatedBasicBlockAnalysisDatas;
 
+            /// <summary>
+            /// Set of locals/parameters which are passed by reference to other method calls.
+            /// </summary>
+            private readonly PooledHashSet<ISymbol> _referenceTakenSymbolsBuilder;
+
             protected AnalysisData(
                 PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolWriteBuilder,
                 PooledHashSet<ISymbol> symbolsRead,
@@ -35,6 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
 
                 _allocatedBasicBlockAnalysisDatas = ArrayBuilder<BasicBlockAnalysisData>.GetInstance();
+                _referenceTakenSymbolsBuilder = PooledHashSet<ISymbol>.GetInstance();
                 CurrentBlockAnalysisData = CreateBlockAnalysisData();
                 AdditionalConditionalBranchAnalysisData = CreateBlockAnalysisData();
             }
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 SymbolsReadBuilder.Add(symbol);
             }
 
-            public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten)
+            public void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten, bool isRef)
             {
                 var symbolAndWrite = (symbol, operation);
                 if (symbol.Kind == SymbolKind.Discard)
@@ -202,8 +208,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return;
                 }
 
+                if (_referenceTakenSymbolsBuilder.Contains(symbol))
+                {
+                    // Skip tracking writes for reference taken symbols as the written value may be read from a different variable.
+                    return;
+                }
+
                 // Add a new write for the given symbol at the given operation.
                 CurrentBlockAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
+
+                if (isRef)
+                {
+                    _referenceTakenSymbolsBuilder.Add(symbol);
+                }
 
                 // Only mark as unused write if we are processing it for the first time (not from back edge for loops)
                 if (!SymbolsWriteBuilder.ContainsKey(symbolAndWrite) &&
@@ -232,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public void Dispose()
             {
-                DisposeAllocatedBasicBlockAnalysisData();
+                DisposeAllocatedPrivateData();
                 DisposeCoreData();
             }
 
@@ -243,7 +260,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 LambdaOrLocalFunctionsBeingAnalyzed.Free();
             }
 
-            protected void DisposeAllocatedBasicBlockAnalysisData()
+            private void DisposeAllocatedPrivateData()
             {
                 foreach (var instance in _allocatedBasicBlockAnalysisDatas)
                 {
@@ -251,6 +268,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 }
 
                 _allocatedBasicBlockAnalysisDatas.Free();
+                _referenceTakenSymbolsBuilder.Free();
             }
         }
     }
