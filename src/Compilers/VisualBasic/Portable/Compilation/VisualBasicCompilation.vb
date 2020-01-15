@@ -423,7 +423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(declarationTable IsNot Nothing)
 
             Debug.Assert(syntaxTrees.All(Function(tree) syntaxTrees(syntaxTreeOrdinalMap(tree)) Is tree))
-            Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.AsImmutable(), EqualityComparer(Of SyntaxTree).Default))
+            Debug.Assert(syntaxTrees.SetEquals(rootNamespaces.Keys.ToImmutableArray(), EqualityComparer(Of SyntaxTree).Default))
             Debug.Assert(embeddedTrees.All(Function(treeAndDeclaration) declarationTable.Contains(treeAndDeclaration.DeclarationEntry)))
 
             _options = options

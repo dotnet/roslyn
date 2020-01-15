@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Modules.SelectMany(m => m.Locations).AsImmutable();
+                return this.Modules.SelectMany(m => m.Locations).ToImmutableArray();
             }
         }
 

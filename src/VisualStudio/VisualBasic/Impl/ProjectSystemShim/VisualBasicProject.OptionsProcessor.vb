@@ -229,7 +229,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Dim defines = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(str, errors)
                 ' ignore errors
 
-                Return AddPredefinedPreprocessorSymbols(kind, defines.AsImmutableOrEmpty())
+                Return AddPredefinedPreprocessorSymbols(kind, defines.ToImmutableArrayOrEmpty())
             End Function
 
             Private Shared Iterator Function ParseWarningCodes(warnings As String) As IEnumerable(Of String)

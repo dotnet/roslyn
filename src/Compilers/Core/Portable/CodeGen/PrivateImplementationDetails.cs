@@ -129,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _orderedSynthesizedFields = fieldsBuilder.ToImmutableAndFree();
 
             // Sort methods.
-            _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
+            _orderedSynthesizedMethods = _synthesizedMethods.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).ToImmutableArray();
 
             // Sort proxy types.
-            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).AsImmutable();
+            _orderedProxyTypes = _proxyTypes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value).ToImmutableArray();
         }
 
         private bool IsFrozen => _frozen != 0;

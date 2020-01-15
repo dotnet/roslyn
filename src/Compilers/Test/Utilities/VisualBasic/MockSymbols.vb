@@ -22,7 +22,7 @@ Friend Class MockNamespaceSymbol
     Public Sub New(name As String, extent As NamespaceExtent, children As IEnumerable(Of Symbol))
         Me._name = name
         Me._extent = extent
-        Me._children = children.AsImmutable
+        Me._children = children.ToImmutableArray()
     End Sub
 
     Public Sub SetContainer(container As Symbol) Implements IMockSymbol.SetContainer
@@ -127,7 +127,7 @@ Friend Class MockNamedTypeSymbol
     Public Sub New(name As String, children As IEnumerable(Of Symbol), Optional kind As TypeKind = TypeKind.Class)
         _name = name
         _kind = kind
-        _children = children.AsImmutable
+        _children = children.ToImmutableArray()
     End Sub
 
     Public Sub SetContainer(container As Symbol) Implements IMockSymbol.SetContainer

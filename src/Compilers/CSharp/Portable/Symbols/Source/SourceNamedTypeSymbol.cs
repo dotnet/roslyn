@@ -231,7 +231,7 @@ next:;
 
             var parameterBuilders2 = parameterBuilders1.Transpose(); // type arguments are positional
             var parameters = parameterBuilders2.Select((builders, i) => builders[0].MakeSymbol(i, builders, diagnostics));
-            return parameters.AsImmutable();
+            return parameters.ToImmutableArray();
         }
 
         /// <summary>

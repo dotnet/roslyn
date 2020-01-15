@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             b.Add("hello");
             b.Add("world");
             Assert.Equal("hello", b[0]);
-            var a = b.AsImmutable();
+            var a = b.ToImmutableArray();
             Assert.Equal("hello", a[0]);
             var e = (IEnumerable<string>)a;
             Assert.Equal("hello", e.First());

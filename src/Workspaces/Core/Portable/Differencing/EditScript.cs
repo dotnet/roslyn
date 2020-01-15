@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             AddUpdatesInsertsMoves(edits);
             AddDeletes(edits);
 
-            _edits = edits.AsImmutable();
+            _edits = edits.ToImmutableArray();
         }
 
         public ImmutableArray<Edit<TNode>> Edits => _edits;

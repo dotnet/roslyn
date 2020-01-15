@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
             }
 
-            return CompletionDescription.Create(textContentBuilder.AsImmutable());
+            return CompletionDescription.Create(textContentBuilder.ToImmutableArray());
         }
 
         public static Task<CompletionDescription> CreateDescriptionAsync(

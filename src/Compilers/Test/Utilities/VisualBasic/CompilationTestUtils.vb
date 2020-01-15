@@ -766,7 +766,7 @@ Friend Module CompilationUtils
 
     <Extension()>
     Public Sub AssertTheseDiagnostics(tree As SyntaxTree, errs As XElement, Optional suppressInfos As Boolean = True)
-        AssertTheseDiagnostics(tree.GetDiagnostics().AsImmutable(), errs, suppressInfos)
+        AssertTheseDiagnostics(tree.GetDiagnostics().ToImmutableArray(), errs, suppressInfos)
     End Sub
 
     ''' <summary>

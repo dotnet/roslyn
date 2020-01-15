@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    var moduleReferences = new ModuleReferences<AssemblySymbol>(referencedAssemblies, symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty());
+                    var moduleReferences = new ModuleReferences<AssemblySymbol>(referencedAssemblies, symbols.AsImmutableOrNull(), unifiedAssemblies.ToImmutableArrayOrEmpty());
                     modules[j].SetReferences(moduleReferences, sourceAssemblyDebugOnly);
 
                     refsUsed += refsCount;
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    var moduleReferences = new ModuleReferences<AssemblySymbol>(identities.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty());
+                    var moduleReferences = new ModuleReferences<AssemblySymbol>(identities.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.ToImmutableArrayOrEmpty());
                     modules[j].SetReferences(moduleReferences, sourceAssemblyDebugOnly);
 
                     refsUsed += moduleReferenceCount;
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var references = new ModuleReferences<AssemblySymbol>(
                         identities.AsImmutableOrNull(),
                         symbols.AsImmutableOrNull(),
-                        unifiedAssemblies.AsImmutableOrEmpty());
+                        unifiedAssemblies.ToImmutableArrayOrEmpty());
 
                     if (moduleIndex > 0)
                     {

@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Protected Overrides Function GetArguments(expression As ExpressionSyntax) As ImmutableArray(Of ArgumentSyntax)
             Dim argumentList = GetArgumentList(expression)
             Return If(argumentList IsNot Nothing,
-                      argumentList.Arguments.AsImmutable(),
+                      argumentList.Arguments.ToImmutableArray(),
                       Nothing)
         End Function
 

@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
                     virtualWidth: 16, virtualHeight: 16,
                     layerCount: layers.Length, layers: layers);
 
-            _compositeImages.Add(new CompositeImage(layers.AsImmutableOrEmpty(), imageHandle));
+            _compositeImages.Add(new CompositeImage(layers.ToImmutableArrayOrEmpty(), imageHandle));
 
             var moniker = imageHandle.Moniker;
             return moniker;

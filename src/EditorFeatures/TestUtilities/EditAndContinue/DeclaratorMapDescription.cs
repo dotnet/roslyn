@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 result[id0][id1] = new TextSpan(stmt.Index, stmt.Length);
             }
 
-            return result.Select(r => r.AsImmutableOrEmpty()).AsImmutableOrEmpty();
+            return result.Select(r => r.ToImmutableArrayOrEmpty()).ToImmutableArrayOrEmpty();
         }
 
         internal IEnumerable<KeyValuePair<TextSpan, TextSpan>> this[int i]

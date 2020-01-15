@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 solution: null,
                 projectId: projectId,
                 documentId: null,
-                diagnostics: items.AsImmutableOrEmpty());
+                diagnostics: items.ToImmutableArrayOrEmpty());
 
             RaiseDiagnosticsUpdated(args);
         }

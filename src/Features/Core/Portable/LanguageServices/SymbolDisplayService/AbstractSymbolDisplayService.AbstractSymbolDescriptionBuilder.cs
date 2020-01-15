@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     finalParts.AddRange(parts);
                 }
 
-                return finalParts.AsImmutable();
+                return finalParts.ToImmutableArray();
             }
 
             private static int GetPrecedingNewLineCount(SymbolDescriptionGroups group)

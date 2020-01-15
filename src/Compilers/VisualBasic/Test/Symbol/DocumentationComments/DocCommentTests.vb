@@ -11949,7 +11949,7 @@ xmlDoc)
             Dim filter As New HashSet(Of SymbolKind)(kinds)
             Return (From s In symbols
                     Where filter.Contains(s.Kind)
-                    Select s).AsImmutable()
+                    Select s).ToImmutableArray()
         End Function
 
         Private Shared Sub AssertLookupResult(actual As ImmutableArray(Of ISymbol), ParamArray expected() As String)

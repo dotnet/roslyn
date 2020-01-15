@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     IEnumerable<NamespaceSymbol> allGlobalNamespaces = from m in Modules select m.GlobalNamespace;
                     var result = MergedNamespaceSymbol.Create(new NamespaceExtent(this),
                                                         null,
-                                                        allGlobalNamespaces.AsImmutable());
+                                                        allGlobalNamespaces.ToImmutableArray());
                     Interlocked.CompareExchange(ref _globalNamespace, result, null);
                 }
 

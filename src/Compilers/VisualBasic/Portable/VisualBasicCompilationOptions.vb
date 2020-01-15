@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=metadataImportOptions,
                 referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
 
-            _globalImports = globalImports.AsImmutableOrEmpty()
+            _globalImports = globalImports.ToImmutableArrayOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
             _optionStrict = optionStrict
             _optionInfer = optionInfer
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="globalImports">A collection of Global Imports <see cref="GlobalImport"/>.</param>        
         ''' <returns>A new instance of VisualBasicCompilationOptions.</returns>        
         Public Function WithGlobalImports(globalImports As IEnumerable(Of GlobalImport)) As VisualBasicCompilationOptions
-            Return New VisualBasicCompilationOptions(Me) With {._globalImports = globalImports.AsImmutableOrEmpty()}
+            Return New VisualBasicCompilationOptions(Me) With {._globalImports = globalImports.ToImmutableArrayOrEmpty()}
         End Function
 
         ''' <summary>

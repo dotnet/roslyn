@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return (From t In declaredInterfaces
                     Let diag = BaseTypeAnalysis.GetDependencyDiagnosticsForImportedBaseInterface(Me, t)
-                    Select If(diag Is Nothing, t, CyclicInheritanceError(diag))).AsImmutable
+                    Select If(diag Is Nothing, t, CyclicInheritanceError(diag))).ToImmutableArray()
 
         End Function
 

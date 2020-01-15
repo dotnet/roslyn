@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static Dictionary<string, ImmutableArray<SyntaxToken>> CreateLocalDeclarationMap(MemberDeclarationSyntax member)
         {
             var dictionary = DeclarationFinder.GetAllDeclarations(member);
-            return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.AsImmutable<SyntaxToken>());
+            return dictionary.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableArray());
         }
 
         public static SyntaxToken GetNameToken(this MemberDeclarationSyntax member)

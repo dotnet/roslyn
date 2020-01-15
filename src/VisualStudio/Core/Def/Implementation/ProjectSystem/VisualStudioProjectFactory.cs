@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             [Import(AllowDefault = true)] HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
         {
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
-            _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
+            _dynamicFileInfoProviders = fileInfoProviders.ToImmutableArrayOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
         }
 

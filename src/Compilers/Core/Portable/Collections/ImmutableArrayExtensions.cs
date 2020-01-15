@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,21 +26,8 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="T">Elemental type of the sequence.</typeparam>
         /// <param name="items">The sequence to convert.</param>
         /// <returns>An immutable copy of the contents of the sequence.</returns>
-        /// <exception cref="ArgumentNullException">If items is null (default)</exception>
-        /// <remarks>If the sequence is null, this will throw <see cref="ArgumentNullException"/></remarks>
-        public static ImmutableArray<T> AsImmutable<T>(this IEnumerable<T> items)
-        {
-            return ImmutableArray.CreateRange<T>(items);
-        }
-
-        /// <summary>
-        /// Converts a sequence to an immutable array.
-        /// </summary>
-        /// <typeparam name="T">Elemental type of the sequence.</typeparam>
-        /// <param name="items">The sequence to convert.</param>
-        /// <returns>An immutable copy of the contents of the sequence.</returns>
         /// <remarks>If the sequence is null, this will return an empty array.</remarks>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this IEnumerable<T>? items)
+        public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this IEnumerable<T>? items)
         {
             if (items == null)
             {
@@ -50,6 +36,9 @@ namespace Microsoft.CodeAnalysis
 
             return ImmutableArray.CreateRange<T>(items);
         }
+
+        internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this ImmutableArray<T> items)
+            => items.IsDefault ? ImmutableArray<T>.Empty : items;
 
         /// <summary>
         /// Converts a sequence to an immutable array.
@@ -103,7 +92,7 @@ namespace Microsoft.CodeAnalysis
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The sequence to convert</param>
         /// <returns>If the array is null, this will return an empty immutable array.</returns>
-        public static ImmutableArray<T> AsImmutableOrEmpty<T>(this T[]? items)
+        public static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[]? items)
         {
             if (items == null)
             {
@@ -627,6 +616,35 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
+        }
+
+        // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
+        internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+        {
+            int low = 0;
+            int high = array.Length - 1;
+
+            while (low <= high)
+            {
+                int middle = low + ((high - low) >> 1);
+                int comparison = comparer(array[middle], value);
+
+                if (comparison == 0)
+                {
+                    return middle;
+                }
+
+                if (comparison > 0)
+                {
+                    high = middle - 1;
+                }
+                else
+                {
+                    low = middle + 1;
+                }
+            }
+
+            return ~low;
         }
     }
 }

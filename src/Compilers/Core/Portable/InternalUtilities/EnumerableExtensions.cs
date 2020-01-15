@@ -453,7 +453,7 @@ namespace Roslyn.Utilities
             var groups = data.GroupBy(keySelector, comparer);
             foreach (var grouping in groups)
             {
-                var items = grouping.AsImmutable();
+                var items = grouping.ToImmutableArray();
                 dictionary.Add(grouping.Key, items);
             }
 

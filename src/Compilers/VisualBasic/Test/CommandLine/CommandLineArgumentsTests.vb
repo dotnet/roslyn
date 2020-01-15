@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
@@ -249,7 +250,7 @@ End Module
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
-                                                                                               parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
+                                                                                               parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.ToImmutableArray()))
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
 Blah
@@ -265,7 +266,7 @@ blah
 
             comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
                                                                                                options:=TestOptions.ReleaseExe,
-                                                                                               parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.AsImmutable()))
+                                                                                               parseOptions:=New VisualBasicParseOptions(preprocessorSymbols:=dict.ToImmutableArray()))
             CompileAndVerify(comp,
                              expectedOutput:=<![CDATA[
 Blah

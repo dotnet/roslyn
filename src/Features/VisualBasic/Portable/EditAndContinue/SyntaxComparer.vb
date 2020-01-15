@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Calculates the edits that transform one sequence of syntax nodes to another, disregarding trivia.
         ''' </summary>
         Public Shared Function GetSequenceEdits(oldNodes As IEnumerable(Of SyntaxNode), newNodes As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SequenceEdit)
-            Return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty())
+            Return LcsNodes.Instance.GetEdits(oldNodes.ToImmutableArrayOrEmpty(), newNodes.ToImmutableArrayOrEmpty())
         End Function
 
         ''' <summary>
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' Calculates the edits that transform one sequence of syntax tokens to another, disregarding trivia.
         ''' </summary>
         Public Shared Function GetSequenceEdits(oldTokens As IEnumerable(Of SyntaxToken), newTokens As IEnumerable(Of SyntaxToken)) As IEnumerable(Of SequenceEdit)
-            Return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty())
+            Return LcsTokens.Instance.GetEdits(oldTokens.ToImmutableArrayOrEmpty(), newTokens.ToImmutableArrayOrEmpty())
         End Function
 
         ''' <summary>

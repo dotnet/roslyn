@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
 
-            return result.Select(r => r.AsImmutableOrEmpty()).ToArray();
+            return result.Select(r => r.ToImmutableArrayOrEmpty()).ToArray();
         }
 
         public static List<T> SetListItem<T>(List<T> list, int i, T item)

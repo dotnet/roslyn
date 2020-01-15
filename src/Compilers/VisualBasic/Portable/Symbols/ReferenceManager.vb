@@ -598,7 +598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Next
 
-                    Dim moduleReferences As New ModuleReferences(Of AssemblySymbol)(referencedAssemblies, symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty())
+                    Dim moduleReferences As New ModuleReferences(Of AssemblySymbol)(referencedAssemblies, symbols.AsImmutableOrNull(), unifiedAssemblies.ToImmutableArrayOrEmpty())
                     modules(j).SetReferences(moduleReferences, sourceAssemblyDebugOnly)
 
                     refsUsed += refsCount
@@ -636,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Next
 
-                    Dim moduleReferences = New ModuleReferences(Of AssemblySymbol)(names.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.AsImmutableOrEmpty())
+                    Dim moduleReferences = New ModuleReferences(Of AssemblySymbol)(names.AsImmutableOrNull(), symbols.AsImmutableOrNull(), unifiedAssemblies.ToImmutableArrayOrEmpty())
                     modules(j).SetReferences(moduleReferences, sourceAssemblyDebugOnly)
 
                     refsUsed += refsCount
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim references = New ModuleReferences(Of AssemblySymbol)(identities.AsImmutableOrNull(),
                                                                              symbols.AsImmutableOrNull(),
-                                                                             unifiedAssemblies.AsImmutableOrEmpty())
+                                                                             unifiedAssemblies.ToImmutableArrayOrEmpty())
 
                     If moduleIndex > 0 Then
                         moduleReferencesBuilder.Add(references)

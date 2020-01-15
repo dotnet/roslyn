@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             string? description = null,
             string? helpLinkUri = null,
             params string[] customTags)
-            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
+            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.ToImmutableArrayOrEmpty())
         {
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             LocalizableString? description = null,
             string? helpLinkUri = null,
             params string[] customTags)
-            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.AsImmutableOrEmpty())
+            : this(id, title, messageFormat, category, defaultSeverity, isEnabledByDefault, description, helpLinkUri, customTags.ToImmutableArrayOrEmpty())
         {
         }
 

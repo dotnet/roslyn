@@ -1724,8 +1724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var info = new CSDiagnosticInfo(
                          ErrorCode.ERR_MultipleEntryPoints,
                          args: Array.Empty<object>(),
-                         symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+                         symbols: viableEntryPoints.OfType<Symbol>().ToImmutableArray(),
+                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().ToImmutableArray());
 
                     diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
                 }
@@ -2525,7 +2525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
             ImmutableArray<Diagnostic> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
 
-            return result.AsImmutable().Concat(clsDiagnostics);
+            return result.ToImmutableArray().Concat(clsDiagnostics);
         }
 
         private ImmutableArray<Diagnostic> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)

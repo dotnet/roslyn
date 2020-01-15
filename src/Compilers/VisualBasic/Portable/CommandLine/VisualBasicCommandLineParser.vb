@@ -1344,7 +1344,7 @@ lVbRuntimePlus:
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                 kind:=If(IsScriptCommandLineParser, SourceCodeKind.Script, SourceCodeKind.Regular),
-                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
+                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.ToImmutableArrayOrEmpty()),
                 features:=parsedFeatures)
 
             ' We want to report diagnostics with source suppression in the error log file.
@@ -1408,7 +1408,7 @@ lVbRuntimePlus:
                 .IsScriptRunner = IsScriptCommandLineParser,
                 .InteractiveMode = interactiveMode,
                 .BaseDirectory = baseDirectory,
-                .Errors = diagnostics.AsImmutable(),
+                .Errors = diagnostics.ToImmutableArray(),
                 .Utf8Output = utf8output,
                 .CompilationName = compilationName,
                 .OutputFileName = outputFileName,
@@ -1416,17 +1416,17 @@ lVbRuntimePlus:
                 .OutputDirectory = outputDirectory,
                 .DocumentationPath = documentationPath,
                 .ErrorLogOptions = errorLogOptions,
-                .SourceFiles = sourceFiles.AsImmutable(),
+                .SourceFiles = sourceFiles.ToImmutableArray(),
                 .PathMap = pathMap,
                 .Encoding = codepage,
                 .ChecksumAlgorithm = checksumAlgorithm,
-                .MetadataReferences = metadataReferences.AsImmutable(),
-                .AnalyzerReferences = analyzers.AsImmutable(),
-                .AdditionalFiles = additionalFiles.AsImmutable(),
+                .MetadataReferences = metadataReferences.ToImmutableArray(),
+                .AnalyzerReferences = analyzers.ToImmutableArray(),
+                .AdditionalFiles = additionalFiles.ToImmutableArray(),
                 .AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 .ReferencePaths = searchPaths,
-                .SourcePaths = sourcePaths.AsImmutable(),
-                .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
+                .SourcePaths = sourcePaths.ToImmutableArray(),
+                .KeyFileSearchPaths = keyFileSearchPaths.ToImmutableArray(),
                 .Win32ResourceFile = win32ResourceFile,
                 .Win32Icon = win32IconFile,
                 .Win32Manifest = win32ManifestFile,
@@ -1435,11 +1435,11 @@ lVbRuntimePlus:
                 .DisplayHelp = displayHelp,
                 .DisplayVersion = displayVersion,
                 .DisplayLangVersions = displayLangVersions,
-                .ManifestResources = managedResources.AsImmutable(),
+                .ManifestResources = managedResources.ToImmutableArray(),
                 .CompilationOptions = options,
                 .ParseOptions = parseOptions,
                 .EmitOptions = emitOptions,
-                .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
+                .ScriptArguments = scriptArgs.ToImmutableArrayOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
                 .EmitPdb = emitPdb AndAlso Not refOnly, ' Silently ignore emitPdb when refOnly is set
@@ -1448,7 +1448,7 @@ lVbRuntimePlus:
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
-                .EmbeddedFiles = embeddedFiles.AsImmutable()
+                .EmbeddedFiles = embeddedFiles.ToImmutableArray()
             }
         End Function
 

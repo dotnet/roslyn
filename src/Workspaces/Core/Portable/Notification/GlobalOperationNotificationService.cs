@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
                 if (_registrations.Count == 0)
                 {
-                    var operations = _operations.AsImmutable();
+                    var operations = _operations.ToImmutableArray();
                     _operations.Clear();
 
                     // We don't care if an individual operation has canceled.
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Notification
 
                 if (_registrations.Count == 0)
                 {
-                    var operations = _operations.AsImmutable();
+                    var operations = _operations.ToImmutableArray();
                     _operations.Clear();
 
                     RaiseGlobalOperationStopped(operations, cancelled: false);

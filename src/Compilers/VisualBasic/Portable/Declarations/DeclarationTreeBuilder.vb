@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim projectNs = BuildRootNamespace(node, nonGlobal)
                 globalChildren = globalChildren.Add(projectNs)
 
-                Dim newChildren = globalChildren.OfType(Of SingleNamespaceOrTypeDeclaration).AsImmutable()
+                Dim newChildren = globalChildren.OfType(Of SingleNamespaceOrTypeDeclaration).ToImmutableArray()
                 Return New RootSingleNamespaceDeclaration(
                     hasImports:=True,
                     treeNode:=_syntaxTree.GetReference(node),
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     nameLocation:=_syntaxTree.GetLocation(dotted.Right.Span),
                     children:=children)
 
-                children = {ns}.OfType(Of SingleNamespaceOrTypeDeclaration).AsImmutable()
+                children = {ns}.OfType(Of SingleNamespaceOrTypeDeclaration).ToImmutableArray()
                 name = dotted.Left
             End While
 

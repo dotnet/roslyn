@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim names = From name In LocalVariableDeclaratorsCollector.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
                         Select DirectCast(name, VisualBasicSyntaxNode)
 
-            Return names.AsImmutableOrEmpty
+            Return names.ToImmutableArrayOrEmpty()
         End Function
 
         Friend Shared Function GetLocalName(node As SyntaxNode) As String

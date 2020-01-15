@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public Data(EditSessionTelemetry telemetry)
             {
-                RudeEdits = telemetry._rudeEdits.AsImmutable();
-                EmitErrorIds = telemetry._emitErrorIds.AsImmutable();
+                RudeEdits = telemetry._rudeEdits.ToImmutableArray();
+                EmitErrorIds = telemetry._emitErrorIds.ToImmutableArray();
                 HadCompilationErrors = telemetry._hadCompilationErrors;
                 HadRudeEdits = telemetry._hadRudeEdits;
                 HadValidChanges = telemetry._hadValidChanges;

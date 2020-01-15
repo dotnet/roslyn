@@ -795,7 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' TODO: cache
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return Me.Modules.SelectMany(Function(m) m.Locations).AsImmutable()
+                Return Me.Modules.SelectMany(Function(m) m.Locations).ToImmutableArray()
             End Get
         End Property
 

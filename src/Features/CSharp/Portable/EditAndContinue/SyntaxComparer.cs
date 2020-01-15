@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
         {
-            return LcsTokens.Instance.ComputeDistance(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
+            return LcsTokens.Instance.ComputeDistance(oldTokens.ToImmutableArrayOrEmpty(), newTokens.ToImmutableArrayOrEmpty());
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </remarks>
         public static double ComputeDistance(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
         {
-            return LcsNodes.Instance.ComputeDistance(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
+            return LcsNodes.Instance.ComputeDistance(oldNodes.ToImmutableArrayOrEmpty(), newNodes.ToImmutableArrayOrEmpty());
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </summary>
         public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxNode>? oldNodes, IEnumerable<SyntaxNode>? newNodes)
         {
-            return LcsNodes.Instance.GetEdits(oldNodes.AsImmutableOrEmpty(), newNodes.AsImmutableOrEmpty());
+            return LcsNodes.Instance.GetEdits(oldNodes.ToImmutableArrayOrEmpty(), newNodes.ToImmutableArrayOrEmpty());
         }
 
         /// <summary>
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </summary>
         public static IEnumerable<SequenceEdit> GetSequenceEdits(IEnumerable<SyntaxToken>? oldTokens, IEnumerable<SyntaxToken>? newTokens)
         {
-            return LcsTokens.Instance.GetEdits(oldTokens.AsImmutableOrEmpty(), newTokens.AsImmutableOrEmpty());
+            return LcsTokens.Instance.GetEdits(oldTokens.ToImmutableArrayOrEmpty(), newTokens.ToImmutableArrayOrEmpty());
         }
 
         /// <summary>

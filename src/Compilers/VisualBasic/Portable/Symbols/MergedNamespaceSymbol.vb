@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function CreateGlobalNamespace(extent As AssemblySymbol) As NamespaceSymbol
             ' Get the root namespace from each module, and merge them all together. If there is only one, 
             ' then MergedNamespaceSymbol.Create will just return that one.
-            Return MergedNamespaceSymbol.Create(extent, Nothing, ConstituentGlobalNamespaces(extent).AsImmutable())
+            Return MergedNamespaceSymbol.Create(extent, Nothing, ConstituentGlobalNamespaces(extent).ToImmutableArray())
         End Function
 
         Private Shared Iterator Function ConstituentGlobalNamespaces(extent As AssemblySymbol) As IEnumerable(Of NamespaceSymbol)
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Shared Function CreateForTestPurposes(extent As AssemblySymbol, namespacesToMerge As IEnumerable(Of NamespaceSymbol)) As NamespaceSymbol
-            Return Create(extent, Nothing, namespacesToMerge.AsImmutable())
+            Return Create(extent, Nothing, namespacesToMerge.ToImmutableArray())
         End Function
 
         ''' <summary>
