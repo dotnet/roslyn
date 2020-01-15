@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -246,20 +245,21 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            return GetExpectedDiagnostic(line, column, unsupportedSymbolKind);
+            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule,
+                line, column, unsupportedSymbolKind);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            return GetExpectedDiagnostic(line, column, unsupportedSymbolKind);
+            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule,
+                line, column, unsupportedSymbolKind);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            return new DiagnosticResult(DiagnosticIds.UnsupportedSymbolKindArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage)
-                .WithArguments(unsupportedSymbolKind.ToString());
+                .WithArguments(unsupportedSymbolKind);
         }
     }
 }

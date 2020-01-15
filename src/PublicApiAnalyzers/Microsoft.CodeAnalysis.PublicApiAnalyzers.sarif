@@ -141,6 +141,44 @@
               "Telemetry"
             ]
           }
+        },
+        "RS0036": {
+          "id": "RS0036",
+          "shortDescription": "Annotate nullability of public types and members in the declared API",
+          "fullDescription": "All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS0037": {
+          "id": "RS0037",
+          "shortDescription": "Annotate nullability of types and members in the declared API",
+          "fullDescription": "All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
+          "properties": {
+            "category": "ApiDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DeclarePublicApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             s_localizableProvideCustomTagsTitle,
             s_localizableProvideCustomTagsMessage,
             DiagnosticCategory.MicrosoftCodeAnalysisDocumentation,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
+            DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
             description: s_localizableProvideCustomTagsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -46,8 +45,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             title: PublicApiAnalyzerResources.AnnotatePublicApiTitle,
             messageFormat: PublicApiAnalyzerResources.AnnotatePublicApiMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             description: PublicApiAnalyzerResources.AnnotatePublicApiDescription,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -118,8 +117,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             title: PublicApiAnalyzerResources.ShouldAnnotateApiFilesTitle,
             messageFormat: PublicApiAnalyzerResources.ShouldAnnotateApiFilesMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             description: PublicApiAnalyzerResources.ShouldAnnotateApiFilesDescription,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);

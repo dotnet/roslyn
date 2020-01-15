@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
@@ -263,19 +262,20 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string unsupportedDescriptorName)
         {
-            return GetExpectedDiagnostic(line, column, unsupportedDescriptorName);
+            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpReportDiagnosticAnalyzer.InvalidReportDiagnosticRule,
+                line, column, unsupportedDescriptorName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string unsupportedDescriptorName)
         {
-            return GetExpectedDiagnostic(line, column, unsupportedDescriptorName);
+            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicReportDiagnosticAnalyzer.InvalidReportDiagnosticRule,
+                line, column, unsupportedDescriptorName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string unsupportedDescriptorName)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string unsupportedDescriptorName)
         {
-            return new DiagnosticResult(DiagnosticIds.InvalidReportDiagnosticRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage)
                 .WithArguments(unsupportedDescriptorName);
         }
     }
