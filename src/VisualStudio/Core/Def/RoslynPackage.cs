@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -45,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
+        private ColorSchemeApplier _colorSchemeApplier;
         private IDisposable _solutionEventMonitor;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -98,6 +100,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
             CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
             CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
+
+            // Initialize ColorScheme support
+            _colorSchemeApplier = _componentModel.GetService<ColorSchemeApplier>();
+            _colorSchemeApplier.Initialize();
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
