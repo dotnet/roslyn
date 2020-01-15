@@ -549,8 +549,7 @@ Public Class C
     Private Const Hello As String = ""Hello""
     Private Const World As String = ""World""
     Private Const Message As String = Hello + "" "" + World[||]
-End Class
-")
+End Class")
         End Function
 
         <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
@@ -563,8 +562,7 @@ Public Class C
         Const World As String = ""World""
         Const Message As String = Hello + "" "" + World[||]
     End Sub
-End Class
-")
+End Class")
         End Function
 
         <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
@@ -584,8 +582,7 @@ Public Class C
         Const World As String = ""World""
         Console.WriteLine($""{Hello} {World}"")
     End Sub
-End Class
-")
+End Class")
         End Function
     End Class
 End Namespace
