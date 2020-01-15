@@ -279,8 +279,8 @@ a    * /$$
 ";
             Verify(code, expected, workspace =>
             {
-                workspace.Options = workspace.Options.WithChangedOption(
-                    FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp, false)));
             });
         }
 

@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             bool useTabs = false)
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
-            workspace.Options = workspace.Options
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
                 .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs);
+                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
 
             if (useTabs && expectedOutputMarkup != null)
             {

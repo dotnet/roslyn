@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return currentSymbol;
         }
 
-        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode? syntax, DiagnosticBag? diagnostics, NamedTypeSymbol firstTupleType)
+        private static void ReportUseSiteAndObsoleteDiagnostics(CSharpSyntaxNode? syntax, DiagnosticBag diagnostics, NamedTypeSymbol firstTupleType)
         {
             Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
             Binder.ReportDiagnosticsIfObsoleteInternal(diagnostics, firstTupleType, syntax, firstTupleType.ContainingType, BinderFlags.None);
@@ -259,9 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
         /// </summary>
-        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, DiagnosticBag? diagnostics)
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode? syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            Debug.Assert(diagnostics is object && syntax is object);
+            RoslynDebug.Assert(diagnostics is object && syntax is object);
 
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal TupleExtraData(NamedTypeSymbol underlyingType)
             {
-                Debug.Assert(underlyingType is object);
+                RoslynDebug.Assert(underlyingType is object);
                 Debug.Assert(underlyingType.IsTupleType);
                 Debug.Assert(underlyingType.TupleElementNames.IsDefault);
 

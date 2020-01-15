@@ -2649,6 +2649,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
                         Return GetModifierTokens(declaration.Parent)
                     End If
+                Case SyntaxKind.LocalDeclarationStatement
+                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Modifiers
                 Case SyntaxKind.VariableDeclarator
                     If IsChildOfVariableDeclaration(declaration) Then
                         Return GetModifierTokens(declaration.Parent)

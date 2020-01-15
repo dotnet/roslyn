@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         Inherits AbstractKeywordHighlighterTests
 
         Protected Overrides Function GetOptions() As IEnumerable(Of ParseOptions)
-            Return {TestOptions.Regular}
+            Return SpecializedCollections.SingletonEnumerable(TestOptions.Regular)
         End Function
 
         Protected Overloads Function TestAsync(element As XElement) As Threading.Tasks.Task

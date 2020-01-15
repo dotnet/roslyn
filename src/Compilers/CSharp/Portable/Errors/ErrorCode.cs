@@ -1747,6 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadFuncPointerParamModifier = 8755,
 
         ERR_ExternEventInitializer = 8760,
+        ERR_AmbigBinaryOpsOnUnconstrainedDefault = 8761,
 
         #endregion
 

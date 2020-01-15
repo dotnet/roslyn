@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Initialize
         {
             Assert.True(actual.DefinitionProvider);
             Assert.True(actual.ImplementationProvider);
-            Assert.True(actual.HoverProvider);
             Assert.True(actual.DocumentSymbolProvider);
             Assert.True(actual.WorkspaceSymbolProvider);
             Assert.True(actual.DocumentFormattingProvider);

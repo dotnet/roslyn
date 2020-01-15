@@ -483,15 +483,11 @@ partial class Bar
         public async Task ExpressionBodyMethod()
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = workspace.Options;
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
+                new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent))));
 
-            try
-            {
-                workspace.Options = originalOptions.WithChangedOption(
-                    CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-                    new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent));
-
-                var text = @"using System;
+            var text = @"using System;
 partial class Bar
 {
     partial void Foo();
@@ -500,7 +496,7 @@ partial class Bar
 "
 ;
 
-                var expected = @"using System;
+            var expected = @"using System;
 partial class Bar
 {
     partial void Foo();
@@ -509,12 +505,7 @@ partial class Bar
 "
 ;
 
-                await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
         }
     }
 }
