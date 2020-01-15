@@ -29,8 +29,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Deep clone
-      run: git fetch --prune --unshallow origin HEAD
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
     - name: Install prerequisites
       run: |
         ./init.ps1 -UpgradePrerequisites
