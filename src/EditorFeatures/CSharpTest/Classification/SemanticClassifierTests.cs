@@ -3614,6 +3614,55 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardVariableDeclaration()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        var _ = int.Parse("""");
+    }
+}",
+            Keyword("var"),
+            Keyword("_"),
+            Method("Parse"),
+            Static("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardVariableDeclarationMultipleDeclarators()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        int i = 1, _ = 1;
+        int _ = 2, j = 1;
+    }
+}",
+            Keyword("_"),
+            Keyword("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardAssignment()
+        {
+            await TestAsync(@"
+class X
+{
+    void N()
+    {
+        _ = int.Parse("""");
+    }
+}",
+            Keyword("_"),
+            Static("Parse"),
+            Method("Parse"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DiscardInOutDeclaration()
         {
             await TestAsync(@"

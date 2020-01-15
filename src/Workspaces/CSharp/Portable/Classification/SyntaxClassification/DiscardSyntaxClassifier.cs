@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(
             typeof(DiscardDesignationSyntax),
             typeof(DiscardPatternSyntax),
+            typeof(VariableDeclaratorSyntax),
             typeof(ParameterSyntax),
             typeof(IdentifierNameSyntax));
 
@@ -36,6 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             switch (syntax)
             {
+                case VariableDeclaratorSyntax declarator when declarator.Identifier.Text == "_":
+                    result.Add(new ClassifiedSpan(declarator.Identifier.Span, ClassificationTypeNames.Keyword));
+                    break;
+
+
                 case ParameterSyntax parameter when parameter.Identifier.Text == "_":
                     var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
 
