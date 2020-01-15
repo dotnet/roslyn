@@ -573,17 +573,15 @@ End Class
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string attributeName, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer.Rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);
         }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string attributeName, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer.Rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.DoNotMixAttributesFromDifferentVersionsOfMEFMessage)
                 .WithArguments(attributeName, typeName);
         }
     }

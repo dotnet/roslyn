@@ -160,17 +160,15 @@ End Class
 
         private static DiagnosticResult GetCSharpResultAt(int line, int column, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer.Rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
                 .WithArguments(typeName);
         }
 
         private static DiagnosticResult GetBasicResultAt(int line, int column, string typeName)
         {
-            return new DiagnosticResult(RoslynDiagnosticIds.MissingSharedAttributeRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer.Rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(RoslynDiagnosticsAnalyzersResources.PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)
                 .WithArguments(typeName);
         }
     }

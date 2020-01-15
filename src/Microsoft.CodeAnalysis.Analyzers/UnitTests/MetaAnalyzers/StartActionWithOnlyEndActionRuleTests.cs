@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -328,15 +326,17 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
         {
-            return GetExpectedDiagnostic(line, column, parameterName, kind);
+            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.StartActionWithOnlyEndActionRule,
+                line, column, parameterName, kind);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
         {
-            return GetExpectedDiagnostic(line, column, parameterName, kind);
+            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.StartActionWithOnlyEndActionRule,
+                line, column, parameterName, kind);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string parameterName, StartActionKind kind)
         {
             string endActionName;
             string statelessActionName;
@@ -365,11 +365,9 @@ End Class
                     throw new ArgumentException("Unsupported argument kind", nameof(kind));
             }
 
-            string message = string.Format(CultureInfo.CurrentCulture, CodeAnalysisDiagnosticsResources.StartActionWithOnlyEndActionMessage, parameterName, endActionName, statelessActionName, arg4);
-
-            return new DiagnosticResult(DiagnosticIds.StartActionWithOnlyEndActionRuleId, DiagnosticSeverity.Warning)
+            return new DiagnosticResult(rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(message);
+                .WithArguments(parameterName, endActionName, statelessActionName, arg4);
         }
 
         private enum StartActionKind
