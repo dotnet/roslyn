@@ -94,13 +94,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     _symbolWritesInsideBlockRangeMap = PooledDictionary<(int firstBlockOrdinal, int lastBlockOrdinal), PooledHashSet<(ISymbol, IOperation)>>.GetInstance();
                 }
 
-                /// <inheritdoc/>
                 protected override PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
-                /// <inheritdoc/>
                 protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
-                /// <inheritdoc/>
                 protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
                 public static FlowGraphAnalysisData Create(
@@ -563,8 +560,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 public override void Dispose()
                 {
-                    base.Dispose();
-
                     // We share the base analysis data structures between primary method's flow graph analysis
                     // and it's inner lambda/local function flow graph analysis.
                     // Dispose the base data structures only for primary method's flow analysis data.
@@ -574,6 +569,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     }
 
                     DisposeCommon();
+
+                    base.Dispose();
+
                     return;
 
                     // Local functions.

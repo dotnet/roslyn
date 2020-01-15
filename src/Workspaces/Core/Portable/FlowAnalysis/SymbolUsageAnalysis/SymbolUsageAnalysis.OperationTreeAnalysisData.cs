@@ -28,13 +28,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 LambdaOrLocalFunctionsBeingAnalyzed = lambdaOrLocalFunctionsBeingAnalyzed;
             }
 
-            /// <inheritdoc/>
             protected override PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
-            /// <inheritdoc/>
             protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
-            /// <inheritdoc/>
             protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
             public static OperationTreeAnalysisData Create(
@@ -81,11 +78,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
             public override void Dispose()
             {
-                base.Dispose();
-
                 SymbolsWriteBuilder.Free();
                 SymbolsReadBuilder.Free();
                 LambdaOrLocalFunctionsBeingAnalyzed.Free();
+
+                base.Dispose();
             }
         }
     }
