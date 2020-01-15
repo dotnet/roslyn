@@ -528,6 +528,66 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingOnAmbiguousCref1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        /// <summary>
+        /// <see cref=""[|Example|].ToString""/>
+        /// </summary>
+        void Method()
+        {
+        }
+
+        public override string ToString() => throw null;
+        public string ToString(string format, IFormatProvider formatProvider) => throw null;
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingOnAmbiguousCref2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        /// <summary>
+        /// <see cref=""[|Example.ToString|]""/>
+        /// </summary>
+        void Method()
+        {
+        }
+
+        public override string ToString() => throw null;
+        public string ToString(string format, IFormatProvider formatProvider) => throw null;
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingInNameofMemberGroup()
+        {
+            // Note: this is something we could potentially support as removing the
+            // qualification here preserves semantics.
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        void Method()
+        {
+            _ = nameof([|Example|].Goo);
+        }
+
+        public static void Goo() { }
+        public static void Goo(int i) { }
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliasesConflict2()
         {
             await TestInRegularAndScriptAsync(
