@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        isNativeInt: false,
                        errorInfo,
                        containingNamespace: null,
-                       typeId: -1)
+                       typeId)
             {
             }
 
