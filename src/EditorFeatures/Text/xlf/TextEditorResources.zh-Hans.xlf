@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../TextEditorResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../TextEditorResources.resx">
     <body>
       <trans-unit id="textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer">
         <source>textContainer is not a SourceTextContainer that was created from an ITextBuffer.</source>
