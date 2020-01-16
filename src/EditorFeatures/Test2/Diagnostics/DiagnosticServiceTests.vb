@@ -772,7 +772,8 @@ class AnonymousFunctions
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' turn off heuristic
-                workspace.Options = workspace.Options.WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic, False)))
 
                 Dim analyzer = New CompilationEndedAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -2086,7 +2087,8 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
-                workspace.Options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)))
 
                 Dim project = workspace.CurrentSolution.Projects.Single()
 

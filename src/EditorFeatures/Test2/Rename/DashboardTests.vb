@@ -578,7 +578,7 @@ class D : B
                     Next
                 End If
 
-                workspace.Options = optionSet
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)

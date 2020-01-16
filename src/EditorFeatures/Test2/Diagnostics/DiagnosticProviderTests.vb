@@ -278,10 +278,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 ' turn off diagnostic
                 If Not enabled Then
-                    workspace.Options = workspace.Options _
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                                                   .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
                                                   .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.Default) _
-                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)))
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()

@@ -540,5 +540,49 @@ Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithConstMember() As Task
+            Await TestMissingAsync("
+Public Class C
+    Private Const Hello As String = ""Hello""
+    Private Const World As String = ""World""
+    Private Const Message As String = Hello + "" "" + World[||]
+End Class")
+        End Function
+
+        <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithConstDeclaration() As Task
+            Await TestMissingAsync("
+Public Class C
+    Private Sub M()
+        Const Hello As String = ""Hello""
+        Const World As String = ""World""
+        Const Message As String = Hello + "" "" + World[||]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestConcatenationWithInlineString() As Task
+            Await TestInRegularAndScriptAsync("
+Public Class C
+    Private Sub M()
+        Const Hello As String = ""Hello""
+        Const World As String = ""World""
+        Console.WriteLine(Hello + "" "" + World[||])
+    End Sub
+End Class", "
+Public Class C
+    Private Sub M()
+        Const Hello As String = ""Hello""
+        Const World As String = ""World""
+        Console.WriteLine($""{Hello} {World}"")
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Don't show the InfoBar again link
                 yield return new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
                     kind: InfoBarUI.UIKind.Button,
-                    action: () => _workspace.Options = _workspace.Options.WithChangedOption(NeverShowAgain, true),
+                    action: () => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options.WithChangedOption(NeverShowAgain, true))),
                     closeAfterAction: true);
             }
 

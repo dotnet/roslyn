@@ -1212,8 +1212,9 @@ class D { }
             Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
         }
 
-        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
-        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged()
+        [CombinatorialData]
+        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
         {
             // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
             using var primaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
@@ -1238,7 +1239,16 @@ class D { }
             optionService.OptionChanged += OptionService_OptionChanged;
 
             // Change workspace options through primary workspace
-            primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
+            if (testDeprecatedOptionsSetter)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            else
+            {
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
+            }
 
             // Verify current solution and option change for both workspaces.
             VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
