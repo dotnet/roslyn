@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 {
-    internal class AddedParameterOrExistingIndex
+    internal sealed class AddedParameterOrExistingIndex
     {
         public bool IsExisting { get; }
 
