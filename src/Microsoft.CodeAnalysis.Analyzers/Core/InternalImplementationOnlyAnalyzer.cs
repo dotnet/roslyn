@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
                                                         s_localizableMessageFormat,
                                                         DiagnosticCategory.MicrosoftCodeAnalysisCompatibility,
                                                         DiagnosticSeverity.Error,
-                                                        isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+                                                        isEnabledByDefault: true,
                                                         description: s_localizableDescription);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);

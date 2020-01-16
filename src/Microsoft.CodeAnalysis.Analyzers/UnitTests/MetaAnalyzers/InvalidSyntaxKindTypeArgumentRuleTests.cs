@@ -188,20 +188,21 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
         {
-            return GetExpectedDiagnostic(line, column, typeArgumentName, registerMethodName);
+            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule,
+                line, column, typeArgumentName, registerMethodName);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
         {
-            return GetExpectedDiagnostic(line, column, typeArgumentName, registerMethodName);
+            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule,
+                line, column, typeArgumentName, registerMethodName);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string typeArgumentName, string registerMethodName)
         {
-            return new DiagnosticResult(DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(rule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage)
-                .WithArguments(typeArgumentName, DiagnosticWellKnownNames.TLanguageKindEnumName, registerMethodName);
+                .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
         }
     }
 }
