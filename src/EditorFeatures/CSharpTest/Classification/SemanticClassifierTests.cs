@@ -3692,7 +3692,6 @@ class X
             Keyword("_"));
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task DiscardInDeconstructionAssignment()
         {
