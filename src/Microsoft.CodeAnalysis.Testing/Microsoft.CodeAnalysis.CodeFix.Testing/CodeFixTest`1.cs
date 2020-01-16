@@ -170,11 +170,21 @@ namespace Microsoft.CodeAnalysis.Testing
         protected abstract IEnumerable<CodeFixProvider> GetCodeFixProviders();
 
         /// <inheritdoc />
-        protected override bool IsDiagnosticHandled(Diagnostic diagnostic)
+        protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
         {
-            var codeFixProviders = GetCodeFixProviders();
-            return codeFixProviders
-                .Any(provider => provider.FixableDiagnosticIds.Any(fixerDiagnosticId => string.Equals(fixerDiagnosticId, diagnostic.Id, StringComparison.OrdinalIgnoreCase)));
+            if (base.IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics))
+            {
+                return true;
+            }
+
+            return CodeFixProvidersHandleDiagnostic(diagnostic);
+
+            bool CodeFixProvidersHandleDiagnostic(Diagnostic localDiagnostic)
+            {
+                var codeFixProviders = GetCodeFixProviders();
+                return codeFixProviders
+                    .Any(provider => provider.FixableDiagnosticIds.Any(fixerDiagnosticId => string.Equals(fixerDiagnosticId, localDiagnostic.Id, StringComparison.OrdinalIgnoreCase)));
+            }
         }
 
         public override async Task RunAsync(CancellationToken cancellationToken = default)
