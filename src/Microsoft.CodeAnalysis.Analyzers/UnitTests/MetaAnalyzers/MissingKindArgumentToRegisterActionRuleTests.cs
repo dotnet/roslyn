@@ -4,9 +4,14 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -226,6 +231,7 @@ End Class
                 MissingKindArgument.OperationKind => CSharpRegisterActionAnalyzer.MissingOperationKindArgumentRule,
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
+
             return VerifyCS.Diagnostic(rule).WithLocation(line, column);
         }
 
@@ -233,11 +239,12 @@ End Class
         {
             var rule = kind switch
             {
-                MissingKindArgument.SymbolKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
-                MissingKindArgument.SyntaxKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
-                MissingKindArgument.OperationKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                MissingKindArgument.SymbolKind => BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
+
             return VerifyVB.Diagnostic(rule).WithLocation(line, column);
         }
 

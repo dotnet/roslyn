@@ -3,6 +3,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerApiUsageAnalyzer,
@@ -940,12 +941,12 @@ End Class
                 .WithArguments(analyzerTypeName, violatingIndirectTypes, violatingTypes);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes) =>
-            VerifyVB.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyDirectRule)
+            VerifyVB.Diagnostic(BasicDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyDirectRule)
                 .WithLocation(line, column)
                 .WithArguments(analyzerTypeName, violatingTypes);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes) =>
-            VerifyVB.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyIndirectRule)
+            VerifyVB.Diagnostic(BasicDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyIndirectRule)
                 .WithLocation(line, column)
                 .WithArguments(analyzerTypeName, violatingIndirectTypes, violatingTypes);
     }
