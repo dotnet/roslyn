@@ -782,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
-                diagnostics.AddRange(allDiagnostics.Where(diagnostic => IsCompilerDiagnosticIncluded(diagnostic, CompilerDiagnostics)));
+                diagnostics.AddRange(allDiagnostics.Where(diagnostic => IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)));
             }
 
             var results = SortDistinctDiagnostics(diagnostics);
@@ -797,15 +797,15 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>return true to exclude a diagnostic, false to leave it up to internal logic.</returns>
         protected virtual bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
         {
-            return IsCompilerDiagnostic(diagnostic)
-                || IsCompilerDiagnosticIncluded();
+            return !IsCompilerDiagnostic(diagnostic)
+                || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics);
 
             static bool IsCompilerDiagnostic(Diagnostic diagnostic)
             {
                 return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
             }
 
-            bool IsCompilerDiagnosticIncluded()
+            static bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
             {
                 switch (compilerDiagnostics)
                 {
