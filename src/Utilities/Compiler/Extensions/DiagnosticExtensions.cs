@@ -139,8 +139,10 @@ namespace Analyzer.Utilities.Extensions
 
             if (effectiveSeverity.Value != rule.DefaultSeverity)
             {
+#pragma warning disable RS0030 // The symbol 'DiagnosticDescriptor.DiagnosticDescriptor.#ctor' is banned in this project: Use 'DiagnosticDescriptorHelper.Create' instead
                 rule = new DiagnosticDescriptor(rule.Id, rule.Title, rule.MessageFormat, rule.Category,
                     effectiveSeverity.Value, rule.IsEnabledByDefault, rule.Description, rule.HelpLinkUri, rule.CustomTags.ToArray());
+#pragma warning restore RS0030
             }
 
             var diagnostic = Diagnostic.Create(rule, Location.None, properties, args);
