@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         /// <summary>
-        /// Extension point to allow inheriting classes to include diagnostics which would otherwise be filtered. The default implementation returns false
+        /// Determines if a compiler diagnostic should be included for diagnostic validation. The default implementation includes all diagnostics at a severity level indicated by <paramref name="compilerDiagnostics"/>.
         /// </summary>
         /// <param name="diagnostic">The compiler diagnostic.</param>
         /// <param name="compilerDiagnostics">The compiler diagnostic level in effect for the test.</param>
