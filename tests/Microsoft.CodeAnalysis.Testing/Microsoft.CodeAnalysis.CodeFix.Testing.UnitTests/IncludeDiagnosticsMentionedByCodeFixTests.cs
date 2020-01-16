@@ -83,6 +83,7 @@ namespace ConsoleApp1
             public void SomeMethod(){}
     }
 }";
+
             await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, DiagnosticResult.CompilerWarning("CS0169"), after);
         }
     }
