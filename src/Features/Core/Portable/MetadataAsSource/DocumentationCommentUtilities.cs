@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             using var list = s_pool.GetPooledObject();
             while (reader.ReadLine() is string str)
             {
+                str = str.TrimStart();
                 if (str.StartsWith(docCommentPrefix, StringComparison.Ordinal))
                 {
                     str = str.Substring(docCommentPrefix.Length);
