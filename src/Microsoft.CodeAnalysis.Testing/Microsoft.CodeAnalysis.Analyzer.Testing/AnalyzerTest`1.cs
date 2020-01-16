@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         /// <param name="diagnostic">The compiler diagnostic.</param>
         /// <param name="compilerDiagnostics">The compiler diagnostic level in effect for the test.</param>
-        /// <returns>return true to exclude a diagnostic, false to leave it up to internal logic.</returns>
+        /// <returns><see langword="true"/> to include the diagnostic for validation; otherwise, <see langword="false"/> to exclude a diagnostic.</returns>
         protected virtual bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
         {
             return !IsCompilerDiagnostic(diagnostic)
