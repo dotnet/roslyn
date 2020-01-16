@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private TemporaryWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 

@@ -393,7 +393,8 @@ language: LanguageNames.CSharp);
         private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
         {
             var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
-            ws.Options = ws.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
+            ws.TryApplyChanges(ws.CurrentSolution.WithOptions(ws.CurrentSolution.Options
+                .WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return ws;
         }
 

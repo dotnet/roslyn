@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         {
             using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
             {
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120)));
                 var hostDocument = workspace.Documents.Single();
-                workspace.Options = workspace.Options.WithChangedOption(
-                    BlockStructureOptions.MaximumBannerLength, LanguageName, 120);
                 Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
                 var position = hostDocument.CursorPosition.Value;
 

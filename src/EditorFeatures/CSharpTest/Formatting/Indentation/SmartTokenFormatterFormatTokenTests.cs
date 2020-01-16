@@ -636,7 +636,8 @@ class Program
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs)));
 
             var buffer = workspace.Documents.First().GetTextBuffer();
 
