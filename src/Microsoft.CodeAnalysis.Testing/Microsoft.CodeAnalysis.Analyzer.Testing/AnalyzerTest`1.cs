@@ -791,6 +791,7 @@ namespace Microsoft.CodeAnalysis.Testing
             bool IsIncludedDiagnostic(Diagnostic diagnostic)
             {
                 return !IsCompilerDiagnostic(diagnostic)
+                    || IsDiagnosticHandled(diagnostic)
                     || IsCompilerDiagnosticIncluded(diagnostic);
             }
 
@@ -821,6 +822,13 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
         }
+
+        /// <summary>
+        /// Extension point to allow inheriting classes to include diagnostics which would otherwise be filtered. The default implementation returns false
+        /// </summary>
+        /// <param name="diagnostic">the diagnostic which is subject to filter processes.</param>
+        /// <returns>return true to exclude a diagnostic, false to leave it up to internal logic.</returns>
+        protected internal virtual bool IsDiagnosticHandled(Diagnostic diagnostic) => false;
 
         /// <summary>
         /// Gets the effective analyzer options for a project. The default implementation returns

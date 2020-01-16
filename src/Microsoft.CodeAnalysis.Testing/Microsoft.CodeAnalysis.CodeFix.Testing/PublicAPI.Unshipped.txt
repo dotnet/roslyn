@@ -27,6 +27,7 @@ Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider
 Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.EmptyCodeFixProvider() -> void
 abstract Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.GetCodeFixProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider>
 abstract Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.SyntaxKindType.get -> System.Type
+override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.IsDiagnosticHandled(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> bool
 override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
 override Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
 override Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task

@@ -2,10 +2,12 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -29,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     context.RegisterCodeFix(
                         CodeAction.Create(
                             nameof(SomeCodeFix),
-                            cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan,
-                                cancellationToken),
+                            cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                             nameof(SomeCodeFix)),
                         diagnostic);
                 }
@@ -46,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken);
                 var root = await tree.GetRootAsync(cancellationToken);
                 var node = root.FindNode(sourceSpan);
-                return document.WithSyntaxRoot(root.RemoveNode(node, SyntaxRemoveOptions.AddElasticMarker));
+                var targetNode = node.AncestorsAndSelf().OfType<FieldDeclarationSyntax>().FirstOrDefault();
+                return document.WithSyntaxRoot(root.RemoveNode(targetNode, SyntaxRemoveOptions.AddElasticMarker));
             }
 
             public override ImmutableArray<string> FixableDiagnosticIds => new[] { "CS0169" }.ToImmutableArray();
@@ -67,9 +69,9 @@ namespace ConsoleApp1
 {
     public class TestClass
     {
-            private int someField;
+        private int someField;
 
-            public void SomeMethod(){}
+        public void SomeMethod(){}
     }
 }";
 
@@ -80,11 +82,12 @@ namespace ConsoleApp1
 {
     public class TestClass
     {
-            public void SomeMethod(){}
+        public void SomeMethod(){}
     }
 }";
 
-            await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, DiagnosticResult.CompilerWarning("CS0169"), after);
+            var diagnostic = DiagnosticResult.CompilerWarning("CS0169").WithSpan(8, 21, 8, 30).WithArguments("ConsoleApp1.TestClass.someField");
+            await Verify<SomeCodeFix>.VerifyCodeFixAsync(before, diagnostic, after);
         }
     }
 }

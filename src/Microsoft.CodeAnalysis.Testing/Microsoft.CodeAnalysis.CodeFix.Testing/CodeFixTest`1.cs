@@ -169,6 +169,14 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>The <see cref="CodeFixProvider"/> to be used.</returns>
         protected abstract IEnumerable<CodeFixProvider> GetCodeFixProviders();
 
+        /// <inheritdoc />
+        protected override bool IsDiagnosticHandled(Diagnostic diagnostic)
+        {
+            var codeFixProviders = GetCodeFixProviders();
+            return codeFixProviders
+                .Any(provider => provider.FixableDiagnosticIds.Any(fixerDiagnosticId => string.Equals(fixerDiagnosticId, diagnostic.Id, StringComparison.OrdinalIgnoreCase)));
+        }
+
         public override async Task RunAsync(CancellationToken cancellationToken = default)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
