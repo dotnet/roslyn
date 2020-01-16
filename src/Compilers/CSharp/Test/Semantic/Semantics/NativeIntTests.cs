@@ -1458,7 +1458,7 @@ $@"class Program
             {
                 if (expectedSymbol == null && diagnostic == null)
                 {
-                    diagnostic = Diagnostic(ErrorCode.ERR_BadBinaryOps, $"x {op} y").WithArguments(op, opType);
+                    diagnostic = Diagnostic(ErrorCode.ERR_BadUnaryOp, $"{op}operand").WithArguments(op, opType);
                 }
                 builder.Add(new object[] { op, opType, expectedSymbol, diagnostic != null ? new[] { diagnostic } : Array.Empty<DiagnosticDescription>() });
             }
@@ -1467,16 +1467,26 @@ $@"class Program
 
             getArgs(builder, "+", "nint", "nint nint.op_UnaryPlus(nint value)");
             getArgs(builder, "+", "nuint", "nuint nuint.op_UnaryPlus(nuint value)");
-            getArgs(builder, "-", "nint", "nint nint.op_UnaryMinus(nint value)");
-            getArgs(builder, "-", "nuint", null);
-            getArgs(builder, "~", "nint", "nint nint.op_UnaryNot(nint value)");
-            getArgs(builder, "~", "nuint", "nuint nuint.op_UnaryNot(nuint value)");
+            getArgs(builder, "-", "nint", "nint nint.op_UnaryNegation(nint value)");
+            getArgs(builder, "-", "nuint", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
+            getArgs(builder, "!", "nint", null);
+            getArgs(builder, "!", "nuint", null);
+            getArgs(builder, "~", "nint", "nint nint.op_OnesComplement(nint value)");
+            getArgs(builder, "~", "nuint", "nuint nuint.op_OnesComplement(nuint value)");
 
-            // PROTOTYPE: Test nint? and nuint?
+            getArgs(builder, "+", "nint?", "nint nint.op_UnaryPlus(nint value)");
+            getArgs(builder, "+", "nuint?", "nuint nuint.op_UnaryPlus(nuint value)");
+            getArgs(builder, "-", "nint?", "nint nint.op_UnaryNegation(nint value)");
+            getArgs(builder, "-", "nuint?", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
+            getArgs(builder, "!", "nint?", null);
+            getArgs(builder, "!", "nuint?", null);
+            getArgs(builder, "~", "nint?", "nint nint.op_OnesComplement(nint value)");
+            getArgs(builder, "~", "nuint?", "nuint nuint.op_OnesComplement(nuint value)");
+
             return builder;
         }
 
-        [Theory(Skip = "PROTOTYPE")]
+        [Theory]
         [MemberData(nameof(UnaryOperatorsData))]
         public void UnaryOperators(string op, string opType, string expectedSymbol, DiagnosticDescription[] expectedDiagnostics)
         {
