@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> MakeParameters()
         {
+            int ordinal = 0;
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
             var parameters = this.BaseMethodParameters;
             var inheritAttributes = InheritsBaseMethodAttributes;
@@ -120,11 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 builder.Add(SynthesizedParameterSymbol.Create(
                     this,
-                    TypeMap.SubstituteType(p.OriginalDefinition.TypeWithAnnotations),
-                    p,
-                    inheritAttributes));
+                    this.TypeMap.SubstituteType(p.OriginalDefinition.TypeWithAnnotations),
+                    ordinal++,
+                    p.RefKind,
+                    p.Name,
+                    attributes: inheritAttributes ? p.GetAttributes() : default,
+                    hasEnumeratorCancellationAttribute: p.IsSourceParameterWithEnumeratorCancellationAttribute()));
             }
-            int ordinal = parameters.Length;
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {

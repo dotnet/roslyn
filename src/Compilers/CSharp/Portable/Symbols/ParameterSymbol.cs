@@ -415,7 +415,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ParameterSymbol(this);
         }
-
-        internal virtual bool HasEnumeratorCancellationAttribute => false;
     }
 }

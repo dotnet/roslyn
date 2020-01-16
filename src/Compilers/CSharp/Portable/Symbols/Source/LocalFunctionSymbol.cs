@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
+            PostDecodeAllMethodAttributes(_declarationDiagnostics);
+
             addTo.AddRange(_declarationDiagnostics);
         }
 
