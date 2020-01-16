@@ -1823,19 +1823,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Compute additional inherited actions for this symbol by running the containing symbol's start actions.
-            AnalyzerActions inheritedActions = await getInheritedActionsAsync().ConfigureAwait(false);
+            AnalyzerActions inheritedActions = await getInheritedActionsAsync(this, symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
 
             // Execute the symbol start actions for this symbol to compute additional actions for its members.
-            AnalyzerActions myActions = await getSymbolActionsCoreAsync().ConfigureAwait(false);
+            AnalyzerActions myActions = await getSymbolActionsCoreAsync(this, symbol, analyzer).ConfigureAwait(false);
             AnalyzerActions allActions = !myActions.IsEmpty ? inheritedActions.Append(in myActions) : inheritedActions;
             return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), allActions);
 
-            async ValueTask<AnalyzerActions> getInheritedActionsAsync()
+            static async ValueTask<AnalyzerActions> getInheritedActionsAsync(AnalyzerDriver driver, ISymbol symbol, DiagnosticAnalyzer analyzer, AnalysisState analysisStateOpt, CancellationToken cancellationToken)
             {
                 if (symbol.ContainingSymbol != null)
                 {
                     // Get container symbol's per-symbol actions, which also forces its start actions to execute.
-                    var containerActions = await GetPerSymbolAnalyzerActionsAsync(symbol.ContainingSymbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
+                    var containerActions = await driver.GetPerSymbolAnalyzerActionsAsync(symbol.ContainingSymbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
                     if (!containerActions.IsEmpty)
                     {
                         // Don't inherit actions for nested type and namespace from its containing type and namespace respectively.
@@ -1852,16 +1852,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return AnalyzerActions.Empty;
             }
 
-            async ValueTask<AnalyzerActions> getSymbolActionsCoreAsync()
+            static async ValueTask<AnalyzerActions> getSymbolActionsCoreAsync(AnalyzerDriver driver, ISymbol symbol, DiagnosticAnalyzer analyzer)
             {
-                if (!_unsuppressedAnalyzers.Contains(analyzer) ||
-                    IsGeneratedCodeSymbol(symbol) && ShouldSkipAnalysisOnGeneratedCode(analyzer))
+                if (!driver._unsuppressedAnalyzers.Contains(analyzer) ||
+                    driver.IsGeneratedCodeSymbol(symbol) && driver.ShouldSkipAnalysisOnGeneratedCode(analyzer))
                 {
                     return AnalyzerActions.Empty;
                 }
                 else
                 {
-                    return await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false);
+                    return await driver.AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, driver.AnalyzerExecutor).ConfigureAwait(false);
                 }
             }
         }
