@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal struct PythiaTypeInferenceServiceWrapper
+    internal readonly struct PythiaTypeInferenceServiceWrapper
     {
         internal readonly ITypeInferenceService UnderlyingObject;
 

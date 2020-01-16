@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal struct PythiaSignatureHelpItemWrapper
+    internal readonly struct PythiaSignatureHelpItemWrapper
     {
         internal readonly SignatureHelpItem UnderlyingObject;
 

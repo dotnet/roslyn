@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal struct PythiaEditDistanceWrapper : IDisposable
+    internal readonly struct PythiaEditDistanceWrapper : IDisposable
     {
         private readonly EditDistance _underlyingObject;
 

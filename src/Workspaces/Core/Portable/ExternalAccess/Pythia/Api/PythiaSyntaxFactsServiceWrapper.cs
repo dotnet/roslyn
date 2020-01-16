@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal struct PythiaSyntaxFactsServiceWrapper
+    internal readonly struct PythiaSyntaxFactsServiceWrapper
     {
         internal readonly ISyntaxFactsService UnderlyingObject;
 
