@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -15,10 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
     {
         private readonly Compilation parentCompilation;
         private readonly Dictionary<string, List<IAssemblySymbol>> cache = new Dictionary<string, List<IAssemblySymbol>>();
+        private readonly StringBuilder logger;
 
-        public AssemblyResolver(Compilation parentCompilation)
+        public AssemblyResolver(Compilation parentCompilation, StringBuilder logger)
         {
             this.parentCompilation = parentCompilation;
+            this.logger = logger;
             BuildReferenceCache();
             Log("{0} items in cache", cache.Count);
         }
@@ -120,10 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             }
         }
 
-        [Conditional("DEBUG")]
-        private static void Log(string format, params object[] args)
+        private void Log(string format, params object[] args)
         {
-            File.AppendAllText("C:\\temp\\ICSharpCode.Decompiler.VSAssemblyResolver.log", string.Format(format, args) + Environment.NewLine);
+            logger.AppendFormat(format + Environment.NewLine, args);
         }
     }
 }
