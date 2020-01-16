@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         {
             // Get all the liveshare request handlers in this assembly.
             var liveShareRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(LoadHandler).Assembly, typeof(ILspRequestHandler));
+                    typeof(LiveShareConstants).Assembly, typeof(ILspRequestHandler));
             // Get all of the roslyn request helpers in M.CA.LanguageServer
             var roslynRequestHelperTypes = DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(RoslynHandlers.IRequestHandler).Assembly, typeof(RoslynHandlers.IRequestHandler));
