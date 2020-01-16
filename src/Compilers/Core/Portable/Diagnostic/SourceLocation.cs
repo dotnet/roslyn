@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceLocation(in SyntaxTrivia trivia)
-            : this(trivia.SyntaxTree, trivia.Span)
+            : this(trivia.SyntaxTree!, trivia.Span)
         {
+            RoslynDebug.Assert(trivia.SyntaxTree is object);
         }
 
         public SourceLocation(SyntaxReference syntaxRef)

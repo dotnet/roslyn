@@ -993,7 +993,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1012,7 +1012,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1377,7 +1377,7 @@ recurse:
 
                 if (trivia.HasStructure && stepInto(trivia))
                 {
-                    token = trivia.GetStructure().FindTokenInternal(position);
+                    token = trivia.GetStructure()!.FindTokenInternal(position);
                 }
             }
 

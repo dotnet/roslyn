@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithLeadingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
-            var greenList = trivia?.Select(t => t.UnderlyingNode);
+            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
 
             return Node != null
                 ? new SyntaxToken(null, Node.WithTrailingTrivia(Node.CreateList(greenList)), position: 0, index: 0)
