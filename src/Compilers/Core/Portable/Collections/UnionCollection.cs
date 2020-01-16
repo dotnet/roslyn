@@ -42,24 +42,7 @@ namespace Microsoft.CodeAnalysis
                 return coll1;
             }
 
-            return new UnionCollection<T>(Flatten(ImmutableArray.Create(coll1, coll2)));
-        }
-
-        public static ICollection<T> Create(ImmutableArray<ICollection<T>> collections)
-        {
-            Debug.Assert(collections.All(c => c.IsReadOnly));
-
-            switch (collections.Length)
-            {
-                case 0:
-                    return SpecializedCollections.EmptyCollection<T>();
-
-                case 1:
-                    return collections[0];
-
-                default:
-                    return new UnionCollection<T>(Flatten(collections));
-            }
+            return new UnionCollection<T>(ImmutableArray.Create(coll1, coll2));
         }
 
         public static ICollection<T> Create<TOrig>(ImmutableArray<TOrig> collections, Func<TOrig, ICollection<T>> selector)
@@ -75,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                     return selector(collections[0]);
 
                 default:
-                    return new UnionCollection<T>(Flatten(ImmutableArray.CreateRange(collections, selector)));
+                    return new UnionCollection<T>(ImmutableArray.CreateRange(collections, selector));
             }
         }
 
@@ -83,38 +66,6 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!collections.IsDefault);
             _collections = collections;
-        }
-
-        private static ImmutableArray<ICollection<T>> Flatten(ImmutableArray<ICollection<T>> collections)
-        {
-            if (!hasUnionCollection(collections))
-                return collections;
-
-            var builder = ArrayBuilder<ICollection<T>>.GetInstance();
-            foreach (var collection in collections)
-            {
-                if (collection is UnionCollection<T> unionCollection)
-                {
-                    builder.AddRange(unionCollection._collections);
-                }
-                else
-                {
-                    builder.Add(collection);
-                }
-            }
-
-            return builder.ToImmutableAndFree();
-
-            static bool hasUnionCollection(ImmutableArray<ICollection<T>> collections)
-            {
-                foreach (var collection in collections)
-                {
-                    if (collection is UnionCollection<T>)
-                        return true;
-                }
-
-                return false;
-            }
         }
 
         public void Add(T item)
