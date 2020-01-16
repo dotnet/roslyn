@@ -1343,9 +1343,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var skipDeclarationAnalysis = AnalysisScope.ShouldSkipDeclarationAnalysis(symbol);
                 var hasPerSymbolActions = AnalyzerActions.SymbolStartActionsCount > 0 && (!skipSymbolAnalysis || !skipDeclarationAnalysis);
 
-                AnalyzerActions? perSymbolActions = hasPerSymbolActions ?
+                AnalyzerActions perSymbolActions = hasPerSymbolActions ?
                     await GetPerSymbolAnalyzerActionsAsync(symbol, analysisScope, analysisStateOpt, cancellationToken).ConfigureAwait(false) :
-                    null;
+                    AnalyzerActions.Empty;
 
                 if (!skipSymbolAnalysis &&
                     !TryExecuteSymbolActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, cancellationToken))
@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 if (!skipDeclarationAnalysis &&
-                    !TryExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, perSymbolActions ?? AnalyzerActions.Empty, cancellationToken))
+                    !TryExecuteDeclaringReferenceActions(symbolEvent, analysisScope, analysisStateOpt, isGeneratedCodeSymbol, perSymbolActions, cancellationToken))
                 {
                     processedState = EventProcessedState.NotProcessed;
                 }
@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers = default;
                 if (processedState.Kind == EventProcessedStateKind.Processed &&
                     hasPerSymbolActions &&
-                    !TryExecuteSymbolEndActions(perSymbolActions ?? AnalyzerActions.Empty, symbolEvent, analysisScope, analysisStateOpt, cancellationToken, out subsetProcessedAnalyzers))
+                    !TryExecuteSymbolEndActions(perSymbolActions, symbolEvent, analysisScope, analysisStateOpt, cancellationToken, out subsetProcessedAnalyzers))
                 {
                     processedState = subsetProcessedAnalyzers.IsDefaultOrEmpty ? EventProcessedState.NotProcessed : EventProcessedState.CreatePartiallyProcessed(subsetProcessedAnalyzers);
                 }
@@ -1773,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
             OftenCompletesSynchronously = true)]
-        private async ValueTask<AnalyzerActions?> GetPerSymbolAnalyzerActionsAsync(
+        private async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt,
@@ -1781,16 +1781,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (AnalyzerActions.SymbolStartActionsCount == 0 || symbol.IsImplicitlyDeclared)
             {
-                return null;
+                return AnalyzerActions.Empty;
             }
 
             var allActions = Diagnostics.AnalyzerActions.Empty;
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 var analyzerActions = await GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
-                if (analyzerActions != null)
+                if (!analyzerActions.IsEmpty)
                 {
-                    allActions = allActions.Append(analyzerActions.GetValueOrDefault());
+                    allActions = allActions.Append(in analyzerActions);
                 }
             }
 
@@ -1800,7 +1800,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [PerformanceSensitive(
             "https://developercommunity.visualstudio.com/content/problem/805524/ctrl-suggestions-are-very-slow-and-produce-gatheri.html",
             OftenCompletesSynchronously = true)]
-        private async ValueTask<AnalyzerActions?> GetPerSymbolAnalyzerActionsAsync(
+        private async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             DiagnosticAnalyzer analyzer,
             AnalysisState analysisStateOpt,
@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbol.IsImplicitlyDeclared)
             {
-                return null;
+                return AnalyzerActions.Empty;
             }
 
             if (_perSymbolAnalyzerActionsCache.TryGetValue((symbol, analyzer), out var actions))
@@ -1823,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Execute the symbol start actions for this symbol to compute additional actions for its members.
             AnalyzerActions myActions = await getSymbolActionsCoreAsync().ConfigureAwait(false);
-            AnalyzerActions allActions = !myActions.IsDefault ? inheritedActions.Append(in myActions) : inheritedActions;
+            AnalyzerActions allActions = !myActions.IsEmpty ? inheritedActions.Append(in myActions) : inheritedActions;
             return _perSymbolAnalyzerActionsCache.GetOrAdd((symbol, analyzer), allActions);
 
             async ValueTask<AnalyzerActions> getInheritedActionsAsync()
@@ -1832,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // Get container symbol's per-symbol actions, which also forces its start actions to execute.
                     var containerActions = await GetPerSymbolAnalyzerActionsAsync(symbol.ContainingSymbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
-                    if (containerActions != null)
+                    if (!containerActions.IsEmpty)
                     {
                         // Don't inherit actions for nested type and namespace from its containing type and namespace respectively.
                         // However, note that we bail out **after** computing container's per-symbol actions above.
@@ -1840,7 +1840,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (symbol.ContainingSymbol.Kind != symbol.Kind)
                         {
                             // Don't inherit the symbol start and symbol end actions.
-                            return Diagnostics.AnalyzerActions.Empty.Append(containerActions.GetValueOrDefault(), appendSymbolStartAndSymbolEndActions: false);
+                            return Diagnostics.AnalyzerActions.Empty.Append(in containerActions, appendSymbolStartAndSymbolEndActions: false);
                         }
                     }
                 }
@@ -1853,11 +1853,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!_unsuppressedAnalyzers.Contains(analyzer) ||
                     IsGeneratedCodeSymbol(symbol) && ShouldSkipAnalysisOnGeneratedCode(analyzer))
                 {
-                    return default;
+                    return AnalyzerActions.Empty;
                 }
                 else
                 {
-                    return (await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false)) ?? default;
+                    return await AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, AnalyzerExecutor).ConfigureAwait(false);
                 }
             }
         }

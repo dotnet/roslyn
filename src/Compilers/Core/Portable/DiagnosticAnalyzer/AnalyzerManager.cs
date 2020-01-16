@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// These are the actions registered during the various RegisterSymbolStartAction method invocations for the given symbol on different analysis contexts.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<AnalyzerActions?> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             if (analyzerActions.SymbolStartActionsCount > 0)
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return null;
+            return AnalyzerActions.Empty;
 
             ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
             {
