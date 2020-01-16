@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void CommitSolutionUpdate();
         void DiscardSolutionUpdate();
 
-        void OnManagedModuleInstanceLoaded(Guid mvid);
-        void OnManagedModuleInstanceUnloaded(Guid mvid);
-
         bool IsDebuggingSessionInProgress { get; }
         void OnSourceFileUpdated(DocumentId documentId);
 
