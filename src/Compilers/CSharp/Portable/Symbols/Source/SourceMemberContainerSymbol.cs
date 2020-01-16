@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddDeclarationDiagnostics(diagnostics);
             diagnostics.Free();
 
-            return _lazyMembersAndInitializers!;
+            return membersAndInitializers!;
         }
 
         protected Dictionary<string, ImmutableArray<Symbol>> GetMembersByName()
