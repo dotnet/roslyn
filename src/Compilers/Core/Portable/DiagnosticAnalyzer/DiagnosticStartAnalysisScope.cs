@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -632,7 +631,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal struct AnalyzerActions
     {
         public static readonly AnalyzerActions Empty = new AnalyzerActions(concurrent: false);
-        public static readonly AnalyzerActions EmptyConcurrent = new AnalyzerActions(concurrent: true);
 
         private ImmutableArray<CompilationStartAnalyzerAction> _compilationStartActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions;

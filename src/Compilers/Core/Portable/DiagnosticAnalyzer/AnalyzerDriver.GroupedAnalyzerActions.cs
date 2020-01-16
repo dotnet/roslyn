@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private sealed class GroupedAnalyzerActions
         {
-            private static readonly GroupedAnalyzerActions s_Default = new GroupedAnalyzerActions(in Diagnostics.AnalyzerActions.Empty);
+            private static readonly GroupedAnalyzerActions s_Default = new GroupedAnalyzerActions(in AnalyzerActions.Empty);
 
             private readonly AnalyzerActions _analyzerActions;
 

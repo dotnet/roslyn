@@ -1702,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
-            var allAnalyzerActions = Diagnostics.AnalyzerActions.Empty;
+            var allAnalyzerActions = AnalyzerActions.Empty;
             var unsuppressedAnalyzersBuilder = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
             foreach (var analyzer in analyzers)
             {
@@ -1788,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return AnalyzerActions.Empty;
             }
 
-            var allActions = Diagnostics.AnalyzerActions.Empty;
+            var allActions = AnalyzerActions.Empty;
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 var analyzerActions = await GetPerSymbolAnalyzerActionsAsync(symbol, analyzer, analysisStateOpt, cancellationToken).ConfigureAwait(false);
@@ -1844,12 +1844,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         if (symbol.ContainingSymbol.Kind != symbol.Kind)
                         {
                             // Don't inherit the symbol start and symbol end actions.
-                            return Diagnostics.AnalyzerActions.Empty.Append(in containerActions, appendSymbolStartAndSymbolEndActions: false);
+                            return AnalyzerActions.Empty.Append(in containerActions, appendSymbolStartAndSymbolEndActions: false);
                         }
                     }
                 }
 
-                return Diagnostics.AnalyzerActions.Empty;
+                return AnalyzerActions.Empty;
             }
 
             async ValueTask<AnalyzerActions> getSymbolActionsCoreAsync()
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyCoreActions == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyCoreActions, GroupedAnalyzerActions.Create(in base.AnalyzerActions), null);
+                    Interlocked.CompareExchange(ref _lazyCoreActions, GroupedAnalyzerActions.Create(in AnalyzerActions), null);
                 }
 
                 return _lazyCoreActions;
