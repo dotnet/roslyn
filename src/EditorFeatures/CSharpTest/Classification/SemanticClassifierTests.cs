@@ -3614,7 +3614,7 @@ class X
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DiscardVariableDeclaration()
+        public async Task NonDiscardVariableDeclaration()
         {
             await TestAsync(@"
 class X
@@ -3625,13 +3625,12 @@ class X
     }
 }",
             Keyword("var"),
-            Keyword("_"),
-            Method("Parse"),
-            Static("Parse"));
+            Static("Parse"),
+            Method("Parse"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public async Task DiscardVariableDeclarationMultipleDeclarators()
+        public async Task NonDiscardVariableDeclarationMultipleDeclarators()
         {
             await TestAsync(@"
 class X
@@ -3641,9 +3640,7 @@ class X
         int i = 1, _ = 1;
         int _ = 2, j = 1;
     }
-}",
-            Keyword("_"),
-            Keyword("_"));
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
