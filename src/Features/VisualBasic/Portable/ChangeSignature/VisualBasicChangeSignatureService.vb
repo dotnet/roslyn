@@ -529,16 +529,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return permutedParams
         End Function
 
-        Private Shared Function GetSeparators(Of T As SyntaxNode)(ByVal arguments As SeparatedSyntaxList(Of T), ByVal Optional numSeparatorsToSkip As Integer = 0) As List(Of SyntaxToken)
-            Dim separators = New List(Of SyntaxToken)()
+        Private Function GetPermutedTrivia(document As Document, node As VisualBasicSyntaxNode, permutedParamNodes As List(Of XmlElementSyntax)) As List(Of SyntaxTrivia)
+            Dim updatedLeadingTrivia = New List(Of SyntaxTrivia)()
+            Dim index = 0
 
-            For i = 0 To arguments.SeparatorCount - numSeparatorsToSkip - 1
-                If i >= arguments.SeparatorCount Then
-                    separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken))
-                Else
-                    separators.Add(arguments.GetSeparator(i))
+            Dim lastWhiteSpaceTrivia As SyntaxTrivia = Nothing
+
+            Dim lastDocumentationCommentTriviaSyntax = node.GetLeadingTrivia().
+            LastOrDefault(Function(t) t.HasStructure AndAlso t.GetStructure().IsKind(SyntaxKind.DocumentationCommentTrivia))
+            Dim documentationCommeStructuredTrivia As DocumentationCommentTriviaSyntax = DirectCast(lastDocumentationCommentTriviaSyntax.GetStructure(), DocumentationCommentTriviaSyntax)
+
+            For Each trivia In node.GetLeadingTrivia()
+                If Not trivia.HasStructure Then
+                    If trivia.IsKind(SyntaxKind.WhitespaceTrivia) Then
+                        lastWhiteSpaceTrivia = trivia
+                    End If
+
+                    updatedLeadingTrivia.Add(trivia)
+                    Continue For
                 End If
+
+                Dim structuredTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
+                If structuredTrivia Is Nothing Then
+                    updatedLeadingTrivia.Add(trivia)
+                    Continue For
+                End If
+
+                Dim updatedNodeList = New List(Of XmlNodeSyntax)()
+                For Each content In structuredTrivia.Content
+                    If Not content.IsKind(SyntaxKind.XmlElement) Then
+                        updatedNodeList.Add(content)
+                        Continue For
+                    End If
+
+                    Dim xmlElement = DirectCast(content, XmlElementSyntax)
+                    If xmlElement.StartTag.Name.ToString() <> DocumentationCommentXmlNames.ParameterElementName Then
+                        updatedNodeList.Add(content)
+                        Continue For
+                    End If
+
+                    ' Found a param tag, so insert the next one from the reordered list.
+                    If index < permutedParamNodes.Count Then
+                        updatedNodeList.Add(permutedParamNodes(index).WithLeadingTrivia(content.GetLeadingTrivia()).WithTrailingTrivia(content.GetTrailingTrivia()))
+                        index += 1
+                    Else
+                        ' Inspecting a param element that we are deleting but not replacing.
+                    End If
+                Next
+
+                Dim newDocComments = SyntaxFactory.DocumentationCommentTrivia(SyntaxFactory.List(updatedNodeList.AsEnumerable()))
+                newDocComments = newDocComments.WithLeadingTrivia(structuredTrivia.GetLeadingTrivia()).WithTrailingTrivia(structuredTrivia.GetTrailingTrivia())
+                Dim newTrivia = SyntaxFactory.Trivia(newDocComments)
+
+                updatedLeadingTrivia.Add(newTrivia)
             Next
+
+            Dim extraNodeList = New List(Of XmlNodeSyntax)()
+            While (index < permutedParamNodes.Count)
+                extraNodeList.Add(permutedParamNodes(index))
+                index += 1
+            End While
+
+            If extraNodeList.Any() Then
+                Dim extraDocComments = SyntaxFactory.DocumentationCommentTrivia(
+                    SyntaxFactory.List(extraNodeList.AsEnumerable()))
+                extraDocComments = extraDocComments.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExteriorTrivia("''' ")).
+                    WithTrailingTrivia(node.GetTrailingTrivia()).
+                    WithTrailingTrivia(SyntaxFactory.EndOfLine(document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp)),
+                lastWhiteSpaceTrivia)
+
+                Dim newTrivia = SyntaxFactory.Trivia(extraDocComments)
+
+                updatedLeadingTrivia.Add(newTrivia)
+            End If
 
             Return updatedLeadingTrivia
         End Function
@@ -599,8 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).
-                Concat(Formatter.GetDefaultFormattingRules(document))
+            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
         Protected Overrides Function CreateSeparatorSyntaxToken() As SyntaxToken

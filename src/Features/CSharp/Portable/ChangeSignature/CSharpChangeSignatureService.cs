@@ -817,27 +817,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var convertedMethodGroups = nodes
                 .WhereAsArray(
                     n =>
+                    {
+                        if (!n.IsKind(SyntaxKind.IdentifierName) ||
+                            !semanticModel.GetMemberGroup(n, cancellationToken).Any())
                         {
-                            if (!n.IsKind(SyntaxKind.IdentifierName) ||
-                                !semanticModel.GetMemberGroup(n, cancellationToken).Any())
-                            {
-                                return false;
-                            }
+                            return false;
+                        }
 
-                            ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
+                        ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
 
-                            if (convertedType != null)
-                            {
-                                convertedType = convertedType.OriginalDefinition;
-                            }
+                        if (convertedType != null)
+                        {
+                            convertedType = convertedType.OriginalDefinition;
+                        }
 
-                            if (convertedType != null)
-                            {
-                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
-                            }
+                        if (convertedType != null)
+                        {
+                            convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
+                        }
 
-                            return Equals(convertedType, symbol.ContainingType);
-                        })
+                        return Equals(convertedType, symbol.ContainingType);
+                    })
                 .SelectAsArray(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
             return convertedMethodGroups.SelectAsArray(symbolAndProjectId.WithSymbol);
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
-            return SpecializedCollections.SingletonEnumerable(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
+            return new[] { new ChangeSignatureFormattingRule() }.Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         protected override SyntaxToken CreateSeparatorSyntaxToken()

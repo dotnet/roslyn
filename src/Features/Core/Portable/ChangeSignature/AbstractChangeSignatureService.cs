@@ -332,9 +332,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var nodes = nodesToUpdate[docId];
 
                 var newRoot = root.ReplaceNodes(nodes, (originalNode, potentiallyUpdatedNode) =>
-                    {
-                        return updater.ChangeSignature(doc, definitionToUse[originalNode], potentiallyUpdatedNode, originalNode, CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature), cancellationToken);
-                    });
+                {
+                    return updater.ChangeSignature(doc, definitionToUse[originalNode], potentiallyUpdatedNode, originalNode, CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature), cancellationToken);
+                });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
 
@@ -653,11 +653,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
-            if (numSeparatorsToSkip < 0)
-            {
-                numSeparatorsToSkip = 0;
-            }
-
+ 
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
                 if (i >= arguments.SeparatorCount)
