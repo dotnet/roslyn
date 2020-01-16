@@ -786,41 +786,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var results = SortDistinctDiagnostics(diagnostics);
             return results.ToImmutableArray();
-
-            // Local function
-            bool IsIncludedDiagnostic(Diagnostic diagnostic)
-            {
-                return !IsCompilerDiagnostic(diagnostic)
-                    || IsDiagnosticHandled(diagnostic)
-                    || IsCompilerDiagnosticIncluded(diagnostic);
-            }
-
-            static bool IsCompilerDiagnostic(Diagnostic diagnostic)
-            {
-                return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
-            }
-
-            bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic)
-            {
-                switch (compilerDiagnostics)
-                {
-                case CompilerDiagnostics.None:
-                default:
-                    return false;
-
-                case CompilerDiagnostics.Errors:
-                    return diagnostic.Severity >= DiagnosticSeverity.Error;
-
-                case CompilerDiagnostics.Warnings:
-                    return diagnostic.Severity >= DiagnosticSeverity.Warning;
-
-                case CompilerDiagnostics.Suggestions:
-                    return diagnostic.Severity >= DiagnosticSeverity.Info;
-
-                case CompilerDiagnostics.All:
-                    return true;
-                }
-            }
         }
 
         /// <summary>
@@ -829,6 +794,40 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="diagnostic">the diagnostic which is subject to filter processes.</param>
         /// <returns>return true to exclude a diagnostic, false to leave it up to internal logic.</returns>
         protected virtual bool IsDiagnosticHandled(Diagnostic diagnostic) => false;
+
+        protected virtual bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic,
+            CompilerDiagnostics compilerDiagnostics)
+        {
+            return IsCompilerDiagnostic(diagnostic)
+                || IsCompilerDiagnosticIncluded();
+
+            static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+            {
+                return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
+            }
+
+            bool IsCompilerDiagnosticIncluded()
+            {
+                switch (compilerDiagnostics)
+                {
+                    case CompilerDiagnostics.None:
+                    default:
+                        return false;
+
+                    case CompilerDiagnostics.Errors:
+                        return diagnostic.Severity >= DiagnosticSeverity.Error;
+
+                    case CompilerDiagnostics.Warnings:
+                        return diagnostic.Severity >= DiagnosticSeverity.Warning;
+
+                    case CompilerDiagnostics.Suggestions:
+                        return diagnostic.Severity >= DiagnosticSeverity.Info;
+
+                    case CompilerDiagnostics.All:
+                        return true;
+                }
+            }
+        }
 
         /// <summary>
         /// Gets the effective analyzer options for a project. The default implementation returns
