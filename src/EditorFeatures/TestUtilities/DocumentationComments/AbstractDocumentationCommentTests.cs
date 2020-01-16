@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                 options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
                 options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
 
-                workspace.Options = options;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
                 setOptionsOpt?.Invoke(workspace);
 

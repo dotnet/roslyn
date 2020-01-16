@@ -187,7 +187,7 @@ class Deconstructable
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameFile, renameFile)
-            workspace.Options = optionSet
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet))
 
             Dim session = StartSession(workspace)
 

@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 DefinitionProvider = true,
                 ImplementationProvider = true,
                 CompletionProvider = new CompletionOptions { ResolveProvider = true, TriggerCharacters = new[] { "." } },
-                HoverProvider = true,
                 SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } },
                 DocumentSymbolProvider = true,
                 WorkspaceSymbolProvider = true,

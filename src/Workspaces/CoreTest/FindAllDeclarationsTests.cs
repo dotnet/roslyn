@@ -679,7 +679,7 @@ Inner i;
                 project, Checksum.Null, cancellationToken: CancellationToken.None);
 
             using var writerStream = new MemoryStream();
-            using (var writer = new ObjectWriter(writerStream))
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true))
             {
                 info.WriteTo(writer);
             }

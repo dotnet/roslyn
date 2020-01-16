@@ -726,7 +726,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private Solution CreateNotKeptAliveSolution()
         {
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), "NotKeptAlive");
-            workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0)));
             return workspace.CurrentSolution;
         }
 
@@ -1243,75 +1244,33 @@ End Class";
         }
 
         [Fact]
-        public void TestDocumentFileAccessFailureMissingFile()
-        {
-            var solution = new AdhocWorkspace().CurrentSolution;
-
-            WorkspaceDiagnostic diagnostic = null;
-
-            solution.Workspace.WorkspaceFailed += (sender, args) =>
-            {
-                diagnostic = args.Diagnostic;
-            };
-
-            var pid = ProjectId.CreateNewId();
-            var did = DocumentId.CreateNewId(pid);
-
-            solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
-
-            var doc = solution.GetDocument(did);
-            var text = doc.GetTextAsync().Result;
-
-            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
-
-            Assert.NotNull(diagnostic);
-            var dd = diagnostic as DocumentDiagnostic;
-            Assert.NotNull(dd);
-            Assert.Equal(did, dd.DocumentId);
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, dd.Kind);
-        }
-
-        [Fact]
         [WorkItem(666263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666263")]
-        public void TestWorkspaceDiagnosticHasDebuggerText()
+        public async Task TestDocumentFileAccessFailureMissingFile()
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var workspace = new AdhocWorkspace();
+            var solution = workspace.CurrentSolution;
 
-            WorkspaceDiagnostic diagnostic = null;
-
+            WorkspaceDiagnostic diagnosticFromEvent = null;
             solution.Workspace.WorkspaceFailed += (sender, args) =>
             {
-                diagnostic = args.Diagnostic;
+                diagnosticFromEvent = args.Diagnostic;
             };
 
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8));
+                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8))
+                               .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);
-            var text = doc.GetTextAsync().Result;
+            var text = await doc.GetTextAsync().ConfigureAwait(false);
 
-            WaitFor(() => diagnostic != null, TimeSpan.FromSeconds(5));
+            var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.NotNull(diagnostic);
-            var dd = diagnostic as DocumentDiagnostic;
-            Assert.NotNull(dd);
-            Assert.Equal(dd.ToString(), string.Format("[{0}] {1}", WorkspacesResources.Failure, dd.Message));
-        }
-
-        private bool WaitFor(Func<bool> condition, TimeSpan timeout)
-        {
-            var start = DateTime.UtcNow;
-
-            while ((DateTime.UtcNow - start) < timeout && !condition())
-            {
-                Thread.Sleep(TimeSpan.FromMilliseconds(10));
-            }
-
-            return condition();
+            Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
+            Assert.Equal("", text.ToString());
         }
 
         [Fact]
@@ -1486,7 +1445,8 @@ public class C : A {
             // set max file length to 1 bytes
             var maxLength = 1;
             var workspace = new AdhocWorkspace(MefHostServices.Create(TestHost.Assemblies), ServiceLayer.Host);
-            workspace.Options = workspace.Options.WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
