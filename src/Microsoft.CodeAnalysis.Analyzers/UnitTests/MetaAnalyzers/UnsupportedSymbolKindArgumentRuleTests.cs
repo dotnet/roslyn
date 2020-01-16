@@ -252,11 +252,11 @@ End Class
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
             VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule)
                 .WithLocation(line, column)
-                .WithArguments(unsupportedSymbolKind.ToString());
+                .WithArguments(unsupportedSymbolKind);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
             VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule)
                 .WithLocation(line, column)
-                .WithArguments(unsupportedSymbolKind.ToString());
+                .WithArguments(unsupportedSymbolKind);
     }
 }

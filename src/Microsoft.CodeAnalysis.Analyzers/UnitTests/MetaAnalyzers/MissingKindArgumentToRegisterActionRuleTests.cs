@@ -217,26 +217,28 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, MissingKindArgument kind) =>
-            VerifyCS.Diagnostic(GetRule(kind))
-                .WithLocation(line, column);
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, MissingKindArgument kind) =>
-            VerifyVB.Diagnostic(GetRule(kind))
-                .WithLocation(line, column);
-
-        private static DiagnosticDescriptor GetRule(MissingKindArgument kind)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            return kind switch
+            var rule = kind switch
             {
                 MissingKindArgument.SymbolKind => CSharpRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
-
                 MissingKindArgument.SyntaxKind => CSharpRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
-
                 MissingKindArgument.OperationKind => CSharpRegisterActionAnalyzer.MissingOperationKindArgumentRule,
-
                 _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
             };
+            return VerifyCS.Diagnostic(rule).WithLocation(line, column);
+        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, MissingKindArgument kind)
+        {
+            var rule = kind switch
+            {
+                MissingKindArgument.SymbolKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
+            };
+            return VerifyVB.Diagnostic(rule).WithLocation(line, column);
         }
 
         private enum MissingKindArgument
