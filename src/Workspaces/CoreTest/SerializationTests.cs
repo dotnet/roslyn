@@ -39,10 +39,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void VersionStamp_RoundTripText()
         {
-            using var writerStream = new MemoryStream();
-            using var writer = new ObjectWriter(writerStream);
             var versionStamp = VersionStamp.Create();
-            versionStamp.WriteTo(writer);
+
+            using var writerStream = new MemoryStream();
+
+            using (var writer = new ObjectWriter(writerStream, leaveOpen: true))
+            {
+                versionStamp.WriteTo(writer);
+            }
 
             using var readerStream = new MemoryStream(writerStream.ToArray());
             using var reader = ObjectReader.TryGetReader(readerStream);

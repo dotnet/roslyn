@@ -164,6 +164,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
+                if (!_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
+                {
+                    // Bail out if solution crawler is disabled.
+                    return;
+                }
+
                 ReanalyzeOnOptionChange(sender, e);
             }
 

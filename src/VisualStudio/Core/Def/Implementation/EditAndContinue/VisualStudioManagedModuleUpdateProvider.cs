@@ -33,12 +33,20 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// Returns the state of the changes made to the source. 
         /// The EnC manager calls this to determine whether there are any changes to the source 
         /// and if so whether there are any rude edits.
+        /// 
+        /// TODO: Future work in the debugger https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1051385 will replace this with bool HasChangesAsync.
+        /// The debugger currently uses <see cref="SolutionUpdateStatus.Ready"/> as a signal to trigger emit of updates 
+        /// (i.e. to call <see cref="GetManagedModuleUpdatesAsync(CancellationToken)"/>). 
+        /// When <see cref="SolutionUpdateStatus.Blocked"/> is returned updates are not emitted.
+        /// Since <see cref="GetManagedModuleUpdatesAsync(CancellationToken)"/> already handles all validation and error reporting 
+        /// we either return <see cref="SolutionUpdateStatus.None"/> if there are no changes or <see cref="SolutionUpdateStatus.Ready"/> if there are any changes.
         /// </summary>
         public async Task<ManagedModuleUpdateStatus> GetStatusAsync(string sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
-                return (await _encService.GetSolutionUpdateStatusAsync(sourceFilePath, cancellationToken).ConfigureAwait(false)).ToModuleUpdateStatus();
+                return (await _encService.HasChangesAsync(sourceFilePath, cancellationToken).ConfigureAwait(false)) ?
+                    ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

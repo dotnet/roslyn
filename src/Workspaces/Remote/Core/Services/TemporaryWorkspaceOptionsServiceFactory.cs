@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote
     [ExportWorkspaceServiceFactory(typeof(IOptionService), WorkspaceKind.RemoteTemporaryWorkspace), Shared]
     internal class TemporaryWorkspaceOptionsServiceFactory : IWorkspaceServiceFactory
     {
-        private readonly ImmutableArray<Lazy<IOptionProvider>> _providers;
+        private readonly ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public TemporaryWorkspaceOptionsServiceFactory(
-            [ImportMany] IEnumerable<Lazy<IOptionProvider>> optionProviders)
+            [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {
             _providers = optionProviders.ToImmutableArray();
         }

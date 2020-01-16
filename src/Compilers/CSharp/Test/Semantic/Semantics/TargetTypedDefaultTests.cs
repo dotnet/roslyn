@@ -252,6 +252,7 @@ class C
         }
 
         [Fact, WorkItem(35684, "https://github.com/dotnet/roslyn/issues/35684")]
+        [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_Unconstrained()
         {
             string source = @"
@@ -267,9 +268,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                // (6,16): error CS8761: Operator '==' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
                 //         return x == default // 1
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //             && x == default(T); // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)
@@ -292,7 +293,111 @@ class C
             Assert.Equal(Conversion.Identity, model.GetConversion(default2));
         }
 
+        [Fact, WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        public void ComparisonWithGenericType_Unconstrained_Inequality()
+        {
+            string source = @"
+class C
+{
+    static bool M<T>(T x = default)
+    {
+        return default != x // 1
+            && default(T) != x; // 2
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
+                //         return default != x // 1
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(6, 16),
+                // (7,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
+                //             && default(T) != x; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(7, 16)
+                );
+        }
+
+        /// <summary>
+        /// <seealso cref="BuiltInOperators.IsValidObjectEquality"/>
+        /// </summary>
+        [Fact, WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
+        public void ComparisonWithGenericType_VariousConstraints()
+        {
+            string source = @"
+public class C { }
+public interface I { }
+public class C2<U>
+{
+    bool M1<T>(T x = default) where T : class
+    { // equality is okay because T is a reference type
+        return default != x
+            && default(T) != x;
+    }
+    bool M2<T>(T x = default) where T : struct
+    {
+        return default != x // 1
+            && default(T) != x; // 2
+    }
+    bool M3<T>(T x = default) where T : U
+    {
+        return default != x // 3
+            && default(T) != x; // 4
+    }
+    bool M4<T>(T x = default) where T : C
+    { // equality is okay because T is a reference type
+        return default != x
+            && default(T) != x;
+    }
+    bool M5<T>(T x = default) where T : I
+    {
+        return default != x // 5
+            && default(T) != x; // 6
+    }
+    public virtual bool M6<T>(T x = default) where T : U
+        => true;
+}
+public class Derived : C2<int?>
+{
+    public override bool M6<T>(T x = default)
+    {
+        return default != x // 7
+            && default(T) != x; // 8
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
+                //         return default != x // 1
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(13, 16),
+                // (14,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
+                //             && default(T) != x; // 2
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(14, 16),
+                // (18,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
+                //         return default != x // 3
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(18, 16),
+                // (19,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
+                //             && default(T) != x; // 4
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(19, 16),
+                // (28,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
+                //         return default != x // 5
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(28, 16),
+                // (29,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
+                //             && default(T) != x; // 6
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(29, 16),
+                // (38,16): error CS8761: Operator '!=' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
+                //         return default != x // 7
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "default != x").WithArguments("!=", "T").WithLocation(38, 16),
+                // (39,16): error CS0019: Operator '!=' cannot be applied to operands of type 'T' and 'T'
+                //             && default(T) != x; // 8
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) != x").WithArguments("!=", "T", "T").WithLocation(39, 16)
+                );
+        }
+
         [Fact, WorkItem(38643, "https://github.com/dotnet/roslyn/issues/38643")]
+        [WorkItem(40791, "https://github.com/dotnet/roslyn/issues/40791")]
         public void ComparisonWithGenericType_ValueType()
         {
             string source = @"
@@ -308,9 +413,9 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'default'
+                // (6,16): error CS8761: Operator '==' cannot be applied to 'default' and operand of type 'T' because it is a type parameter that is not known to be a reference type
                 //         return x == default // 1
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "T", "default").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnUnconstrainedDefault, "x == default").WithArguments("==", "T").WithLocation(6, 16),
                 // (7,16): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //             && x == default(T); // 2
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(T)").WithArguments("==", "T", "T").WithLocation(7, 16)

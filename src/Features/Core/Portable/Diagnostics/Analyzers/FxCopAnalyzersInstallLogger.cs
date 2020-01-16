@@ -23,14 +23,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers
             if (!installed && installStatus == FxCopAnalyzersInstallStatus.Installed)
             {
                 // first time after vsix installed
-                workspace.Options = workspace.Options.WithChangedOption(FxCopAnalyzersInstallOptions.VsixInstalled, true);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(FxCopAnalyzersInstallOptions.VsixInstalled, true)));
                 Log("VsixInstalled");
             }
 
             if (installed && installStatus == FxCopAnalyzersInstallStatus.NotInstalled)
             {
                 // first time after vsix is uninstalled
-                workspace.Options = workspace.Options.WithChangedOption(FxCopAnalyzersInstallOptions.VsixInstalled, false);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(FxCopAnalyzersInstallOptions.VsixInstalled, false)));
                 Log("VsixUninstalled");
             }
         }

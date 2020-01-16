@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
             actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
             actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
-            actions._concurrent = actions._concurrent || otherActions.Concurrent;
+            actions._concurrent = _concurrent || otherActions.Concurrent;
             actions.IsEmpty = IsEmpty && otherActions.IsEmpty;
 
             return actions;
