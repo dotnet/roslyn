@@ -32,9 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             private static byte[] ToData(ColorTheme theme)
             {
-                //   |-------------Header----------------|------------------------Category---------------------------|----------------------------Item:Preprocessor Text------------------------------|-------------------------Item:Punctuation---------------------|
-                //   |-Byte Count|--Version--|CategoryCnt|----------------Category GUID------------------|-Item Count|Name Length|---------------------Name-------------------------|CT|CT|-ColorRef--|Name Length|-------------Name---------------|CT|CT|-ColorRef--|
-                //hex:ca,05,00,00,0b,00,00,00,01,00,00,00,85,56,a0,75,a8,00,ed,4d,ba,e5,e7,a5,0b,fa,92,9a,2e,00,00,00,11,00,00,00,70,72,65,70,72,6f,63,65,73,73,6f,72,20,74,65,78,74,00,01,00,00,00,ff,0b,00,00,00,70,75,6e,63,74,75,61,74,69,6f,6e,00,01,00,00,00,ff,
+                //|-------------Header----------------|--Categories...
+                //|-Byte Count|--Version--|CategoryCnt|--
+                //:ca,05,00,00,0b,00,00,00,01,00,00,00,--
 
                 // Initialize with a generous initial capacity.
                 var bytes = new MemoryStream(4096);
@@ -67,9 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             private static void WriteCategory(MemoryStream bytes, ColorCategory category)
             {
-                // |------------------------Category---------------------------|
-                // |----------------Category GUID------------------|-Item Count|
-                // ,85,56,a0,75,a8,00,ed,4d,ba,e5,e7,a5,0b,fa,92,9a,2e,00,00,00,
+                // |------------------------Category---------------------------|--Items...
+                // |----------------Category GUID------------------|-Item Count|--
+                // ,85,56,a0,75,a8,00,ed,4d,ba,e5,e7,a5,0b,fa,92,9a,2e,00,00,00,--
 
                 WriteGuid(bytes, category.Guid);
 

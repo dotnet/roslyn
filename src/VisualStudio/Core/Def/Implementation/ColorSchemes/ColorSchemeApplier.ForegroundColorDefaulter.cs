@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             private static readonly Guid TextEditorMEFItemsColorCategory = new Guid("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
             // These classification colors (0x00BBGGRR) should match the VS\EditorColors.xml file.
+            // They are not in the scheme files because they are core classifications.
             private const uint DarkThemePlainText = 0x00DCDCDCu;
             private const uint DarkThemeIdentifier = DarkThemePlainText;
             private const uint DarkThemeOperator = 0x00B4B4B4u;
@@ -74,6 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 : base(threadingContext, assertIsForeground: true)
             {
                 _settings = settings;
+
+                // Convert colors schemes into an array of theme dictionaries which contain classification dictionaries of colors.
                 _colorSchemes = colorSchemes.Values.Select(
                     scheme => scheme.Themes.ToImmutableDictionary(
                         theme => theme.Guid,
@@ -82,8 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                             color => color.Foreground)))
                     .ToImmutableArray();
 
+                // Gather all the classifications from the core and scheme dictionaries.
+                var coreClassifications = DarkThemeForeground.Keys.Concat(BlueLightThemeForeground.Keys).Distinct();
                 var colorSchemeClassifications = _colorSchemes.SelectMany(scheme => scheme.Values.SelectMany(theme => theme.Keys)).Distinct();
-                Classifications = DarkThemeForeground.Keys.Concat(colorSchemeClassifications).ToImmutableArray();
+                Classifications = coreClassifications.Concat(colorSchemeClassifications).ToImmutableArray();
 
                 _fontAndColorStorage = serviceProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
                 // IVsFontAndColorStorage3 has methods to default classifications but does not include the methods defined in IVsFontAndColorStorage
@@ -129,6 +134,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }
 
                 return false;
+            }
+
+            private bool IsSupportedTheme(Guid themeId)
+            {
+                return _colorSchemes.Any(scheme => scheme.ContainsKey(themeId));
             }
 
             private bool AreClassificationsDefaultableToScheme(Guid themeId, ImmutableDictionary<string, uint?> schemeThemeColors)
@@ -225,7 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 var themeId = _settings.GetThemeId();
 
                 // Make no changes when in high contast mode, in unknown theme, or if theme has been defaulted.
-                if (SystemParameters.HighContrast || !IsSupportedTheme(themeId) || _settings.GetHasThemeBeenDefaulted(themeId))
+                if (SystemParameters.HighContrast || !IsSupportedTheme(themeId) || _settings.HasThemeBeenDefaulted[themeId])
                 {
                     return;
                 }
@@ -249,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     _fontAndColorStorage.CloseCategory();
                 }
 
-                _settings.SetHasThemeBeenDefaulted(themeId);
+                _settings.HasThemeBeenDefaulted[themeId] = true;
             }
 
             private void DefaultClassification(string classification)

@@ -19,37 +19,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private class ColorSchemeSettings
         {
-            private static readonly ImmutableDictionary<Guid, Option<bool>> HasThemeBeenDefaultedOptions = new Dictionary<Guid, Option<bool>>
-            {
-                [KnownColorThemes.Blue] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Blue),
-                [KnownColorThemes.Light] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Light),
-                [KnownColorThemes.Dark] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Dark),
-                [KnownColorThemes.AdditionalContrast] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.AdditionalContrast)
-            }.ToImmutableDictionary();
-
             private readonly IServiceProvider _serviceProvider;
             private readonly VisualStudioWorkspace _workspace;
+
+            public HasThemeBeenDefaultedIndexer HasThemeBeenDefaulted { get; }
 
             public ColorSchemeSettings(IServiceProvider serviceProvider, VisualStudioWorkspace workspace)
             {
                 _serviceProvider = serviceProvider;
                 _workspace = workspace;
-            }
 
-            private static Option<bool> CreateHasThemeBeenDefaultedOption(Guid themeId)
-            {
-                return new Option<bool>(nameof(ColorSchemeApplier), $"{nameof(HasThemeBeenDefaultedOptions)}{themeId}", defaultValue: false,
-                    storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted{themeId}"));
-            }
-
-            public bool GetHasThemeBeenDefaulted(Guid themeId)
-            {
-                return _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
-            }
-
-            public void SetHasThemeBeenDefaulted(Guid themeId)
-            {
-                _workspace.Options = _workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value: true);
+                HasThemeBeenDefaulted = new HasThemeBeenDefaultedIndexer(_workspace);
             }
 
             public ImmutableDictionary<string, ColorScheme> GetColorSchemes()
@@ -130,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
             }
 
-            private static class VisualStudioColorTheme
+            public static class VisualStudioColorTheme
             {
                 private const string CurrentThemeValueName = "Microsoft.VisualStudio.ColorTheme";
                 private const string CurrentThemeValueNameNew = "Microsoft.VisualStudio.ColorThemeNew";
@@ -144,6 +124,37 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     nameof(CurrentThemeNew),
                     defaultValue: null,
                     storageLocations: new RoamingProfileStorageLocation(CurrentThemeValueNameNew));
+            }
+
+            public class HasThemeBeenDefaultedIndexer
+            {
+                private static readonly ImmutableDictionary<Guid, Option<bool>> HasThemeBeenDefaultedOptions = new Dictionary<Guid, Option<bool>>
+                {
+                    [KnownColorThemes.Blue] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Blue),
+                    [KnownColorThemes.Light] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Light),
+                    [KnownColorThemes.Dark] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.Dark),
+                    [KnownColorThemes.AdditionalContrast] = CreateHasThemeBeenDefaultedOption(KnownColorThemes.AdditionalContrast)
+                }.ToImmutableDictionary();
+
+                private static Option<bool> CreateHasThemeBeenDefaultedOption(Guid themeId)
+                {
+                    return new Option<bool>(nameof(ColorSchemeApplier), $"{nameof(HasThemeBeenDefaultedOptions)}{themeId}", defaultValue: false,
+                        storageLocations: new RoamingProfileStorageLocation($@"Roslyn\ColorSchemeApplier\HasThemeBeenDefaulted{themeId}"));
+                }
+
+                private readonly VisualStudioWorkspace _workspace;
+
+                public HasThemeBeenDefaultedIndexer(VisualStudioWorkspace workspace)
+                {
+                    _workspace = workspace;
+                }
+
+                public bool this[Guid themeId]
+                {
+                    get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
+
+                    set => _workspace.Options = _workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value);
+                }
             }
         }
     }

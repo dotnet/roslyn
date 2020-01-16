@@ -48,6 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
         }
 
-        public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(ColorSchemeOptions.ColorScheme, ColorSchemeOptions.AppliedColorScheme);
+        public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(ColorSchemeOptions.ColorScheme);
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -155,12 +156,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             return IsSupportedTheme(_settings.GetThemeId());
         }
 
-        public static bool IsSupportedTheme(Guid currentTheme)
+        public bool IsSupportedTheme(Guid themeId)
         {
-            return currentTheme == KnownColorThemes.Light ||
-                currentTheme == KnownColorThemes.Blue ||
-                currentTheme == KnownColorThemes.AdditionalContrast ||
-                currentTheme == KnownColorThemes.Dark;
+            return _colorSchemes.Values.Any(
+                scheme => scheme.Themes.Any(
+                    theme => theme.Guid == themeId));
         }
 
         public bool IsThemeCustomized()

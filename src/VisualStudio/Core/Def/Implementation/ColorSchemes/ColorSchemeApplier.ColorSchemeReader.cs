@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -86,17 +87,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     type = (int)__VSCOLORTYPE.CT_RAW;
 
-                    // Convert ARGB to BGR by ignoring the alpha channel and reversing byte order.
+                    // The ColorableItemInfo returned by the FontAndColorStorage retuns RGB color information as 0x00BBGGRR.
+                    // Optimize for color comparisons by converting ARGB to BGR by ignoring the alpha channel and reversing byte order.
                     var r = sourceColor.Substring(2, 2);
                     var g = sourceColor.Substring(4, 2);
                     var b = sourceColor.Substring(6, 2);
-                    color = uint.Parse($"{b}{g}{r}", System.Globalization.NumberStyles.HexNumber);
+                    color = uint.Parse($"{b}{g}{r}", NumberStyles.HexNumber);
                 }
                 else if (colorType == "CT_SYSCOLOR")
                 {
                     type = (int)__VSCOLORTYPE.CT_SYSCOLOR;
 
-                    color = uint.Parse(sourceColor, System.Globalization.NumberStyles.HexNumber);
+                    color = uint.Parse(sourceColor, NumberStyles.HexNumber);
                 }
                 else
                 {
