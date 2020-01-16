@@ -3,7 +3,9 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Windows;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -59,6 +61,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
                 JoinableTaskFactory.Run(() => ClickAsync(testAccessor => testAccessor.UpButton, cancellationTokenSource.Token));
+            }
+        }
+
+        public void ClickAddButton()
+        {
+            using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
+            {
+                JoinableTaskFactory.Run(() => ClickAsync(testAccessor => testAccessor.AddButton, cancellationTokenSource.Token));
             }
         }
 

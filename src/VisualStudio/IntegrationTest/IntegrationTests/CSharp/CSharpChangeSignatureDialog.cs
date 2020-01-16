@@ -18,6 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.ChangeSignatureDialog;
 
+        private AddParameterDialog_OutOfProc AddParameterDialog => VisualStudio.AddParameterDialog;
+
         public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper, nameof(CSharpChangeSignatureDialog))
         {
@@ -173,6 +175,109 @@ End Class");
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
             actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"vb.Method(2, ""world"");", actualText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyAddParameter()
+        {
+            SetUpEditor(@"
+class C
+{
+    public void Method(int a, string b) { }
+
+    public void NewMethod()
+    {
+        Method(1, ""stringB"");
+    }
+    
+}");
+
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            // Add 'c'
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("int");
+            AddParameterDialog.FillNameField("c");
+            AddParameterDialog.FillCallsiteField("stringC");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            // Add 'd'
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("int");
+            AddParameterDialog.FillNameField("d");
+            AddParameterDialog.FillCallsiteField("2");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            // Remove 'c'
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.SelectParameter("int c");
+            ChangeSignatureDialog.ClickRemoveButton();
+
+            // Move 'd' between 'a' and 'b'
+            ChangeSignatureDialog.SelectParameter("int d");
+            ChangeSignatureDialog.ClickUpButton();
+            ChangeSignatureDialog.ClickUpButton();
+            ChangeSignatureDialog.ClickDownButton();
+
+            ChangeSignatureDialog.ClickAddButton();
+
+            // Add 'c' (as a String instead of an Integer this time)
+            // Note that 'c' does not have a callsite value.
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("string");
+            AddParameterDialog.FillNameField("c");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.ClickOK();
+            ChangeSignatureDialog.VerifyClosed();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"
+class C
+{
+    public void Method(int a, int d, string b, string c) { }
+
+    public void NewMethod()
+    {
+        Method(1, 2, ""stringB"", TODO);
+    }
+    
+}", actualText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyAddParameterRefactoringCancelled()
+        {
+            SetUpEditor(@"
+class C
+{
+    public void Method$$(int a, string b) { }
+}");
+
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.ClickCancel();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickCancel();
+            ChangeSignatureDialog.VerifyClosed();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"
+class C
+{
+    public void Method(int a, string b) { }
+}", actualText);
         }
     }
 }

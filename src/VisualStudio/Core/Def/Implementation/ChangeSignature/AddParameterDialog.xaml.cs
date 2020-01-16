@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.ExtractMethod;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -112,6 +113,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     }
                 }
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AddParameterDialog _dialog;
+
+            public TestAccessor(AddParameterDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public DialogButton OKButton => _dialog.OKButton;
+
+            public DialogButton CancelButton => _dialog.CancelButton;
         }
     }
 }
