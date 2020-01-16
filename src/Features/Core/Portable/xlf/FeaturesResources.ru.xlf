@@ -198,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">Текущее содержимое исходного файла "{0}" не соответствует созданному источнику. Сеанс отладки не может быть продолжен, пока не будет восстановлено содержимое исходного файла.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">Текущее содержимое исходного файла "{0}" не соответствует созданному источнику. Сеанс отладки не может быть продолжен, пока не будет восстановлено содержимое исходного файла.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -437,6 +437,16 @@
         <target state="translated">Переместить в пространство имен...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Закрытый член «{0}» может быть удален как значение, присвоенное него никогда не читал.</target>
@@ -512,16 +522,6 @@
         <target state="translated">Удалить неиспользуемый параметр "{0}", если он не является частью предоставляемого общедоступного API</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Удалите неиспользуемый параметр "{0}" если он не является частью предоставленного общедоступного API. Начальное значение этого параметра никогда не используется</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">Удалите неиспользуемый параметр "{0}", его начальное значение никогда не используется</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Удалите неиспользуемые закрытые члены</target>
@@ -570,6 +570,11 @@
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">

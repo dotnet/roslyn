@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
-            : this(new SolutionState(workspace, solutionAttributes))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options)
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options))
         {
         }
 
@@ -1263,13 +1263,33 @@ namespace Microsoft.CodeAnalysis
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options
+        public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Creates a new solution instance with the specified <paramref name="options"/>.
+        /// </summary>
+        public Solution WithOptions(OptionSet options)
         {
-            get
+            return options switch
             {
-                // TODO: actually make this a snapshot (https://github.com/dotnet/roslyn/issues/19284)
-                return this.Workspace.Options;
+                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                null => throw new ArgumentNullException(nameof(options)),
+                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
+            };
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
+        /// </summary>
+        internal Solution WithOptions(SerializableOptionSet options)
+        {
+            var newState = _state.WithOptions(options: options);
+            if (newState == _state)
+            {
+                return this;
             }
+
+            return new Solution(newState);
         }
     }
 }

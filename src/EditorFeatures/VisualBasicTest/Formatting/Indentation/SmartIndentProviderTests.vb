@@ -34,7 +34,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent3()
             Using workspace = TestWorkspace.CreateCSharp("")
-                workspace.Options = workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False)))
 
                 Dim document = workspace.Projects.Single().Documents.Single()
                 Dim provider = New SmartIndentProvider()

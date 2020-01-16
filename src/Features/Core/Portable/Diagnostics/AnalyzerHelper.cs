@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
         public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer;
+            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer == FileContentLoadAnalyzer.Instance;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
             => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution),
                 onAnalyzerException: service.GetOnAnalyzerException(project.Id, logAggregator),
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -306,10 +306,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Document document,
             DiagnosticAnalyzer analyzer,
             AnalysisKind kind,
-            TextSpan? spanOpt,
+            TextSpan? span,
             DiagnosticLogAggregator? logAggregator,
             CancellationToken cancellationToken)
         {
+            var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
+
+            if (analyzer == FileContentLoadAnalyzer.Instance)
+            {
+                return loadDiagnostic != null ?
+                    SpecializedCollections.SingletonEnumerable(DiagnosticData.Create(loadDiagnostic, document)) :
+                    SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+            }
+
+            if (loadDiagnostic != null)
+            {
+                return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
+            }
+
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 var diagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
@@ -373,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                     }
 
-                    diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, spanOpt, singleAnalyzer, cancellationToken).ConfigureAwait(false);
+                    diagnostics = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, span, singleAnalyzer, cancellationToken).ConfigureAwait(false);
 
                     Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationWithAnalyzers.Compilation).Count());
                     return diagnostics.ConvertToLocalDiagnostics(document);
@@ -385,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool SupportAnalysisKind(this DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer, string language, AnalysisKind kind)
         {
-            // compiler diagnostic analyzer always support all kinds
+            // compiler diagnostic analyzer always supports all kinds:
             if (service.IsCompilerDiagnosticAnalyzer(language, analyzer))
             {
                 return true;
@@ -395,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 AnalysisKind.Syntax => analyzer.SupportsSyntaxDiagnosticAnalysis(),
                 AnalysisKind.Semantic => analyzer.SupportsSemanticDiagnosticAnalysis(),
-                _ => Contract.FailWithReturn<bool>("shouldn't reach here"),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
         }
 
@@ -412,7 +426,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
-
                 var analyzeAsync = kind switch
                 {
                     AnalysisKind.Syntax => analyzer.AnalyzeSyntaxAsync(document, cancellationToken),

@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    ((IntellisenseTextBox)dialog.TypeContentControl.Content).Text =typeName;
+                    ((IntellisenseTextBox)dialog.TypeContentControl.Content).Text = typeName;
                 });
             }
         }

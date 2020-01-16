@@ -1353,17 +1353,21 @@ I agree to all of the foregoing:</value>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>
-  <data name="Current_Document" xml:space="preserve">
-    <value>Current Document</value>
+  <data name="Current_document" xml:space="preserve">
+    <value>Current document</value>
   </data>
-  <data name="Open_Documents_and_Projects" xml:space="preserve">
-    <value>Open Documents and Projects</value>
+  <data name="Open_documents" xml:space="preserve">
+    <value>Open documents</value>
   </data>
-  <data name="Entire_Solution" xml:space="preserve">
-    <value>Entire Solution</value>
+  <data name="Entire_solution" xml:space="preserve">
+    <value>Entire solution</value>
   </data>
   <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
+  </data>
+  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
+    <value>Live Share C#/Visual Basic Language Server Client</value>
+    <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
@@ -1385,7 +1389,7 @@ I agree to all of the foregoing:</value>
   <data name="Add_Parameter" xml:space="preserve">
     <value>Add Parameter</value>
   </data>
-  <data name="Callsite_Value" xml:space="preserve">
+  <data name="Call_site_value" xml:space="preserve">
     <value>Call site value:</value>
   </data>
   <data name="Parameter_Name" xml:space="preserve">
@@ -1393,10 +1397,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Type_Name" xml:space="preserve">
     <value>Type name:</value>
-  </data>
-  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>Live Share C#/Visual Basic Language Server Client</value>
-    <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
   <data name="You_must_change_the_signature" xml:space="preserve">
     <value>You must change the signature</value>

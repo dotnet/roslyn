@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -23,9 +25,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public partial class WorkspaceTests : TestBase
     {
-        private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
+        private TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
         {
-            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
+            return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind, disablePartialSolutions);
         }
 
         private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
@@ -1180,6 +1182,99 @@ class D { }
             var version5 = version4.GetNewerVersion(version3);
 
             Assert.Equal(version5, version4);
+        }
+
+        [Fact, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestSolutionWithOptions()
+        {
+            using var workspace = CreateWorkspace();
+
+            var document = new TestHostDocument("class C { }");
+
+            var project1 = new TestHostProject(workspace, document, name: "project1");
+
+            workspace.AddTestProject(project1);
+
+            var solution = workspace.CurrentSolution;
+            var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            var optionValue = solution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
+
+            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+            var newSolution = solution.WithOptions(newOptions);
+            var newOptionValue = newSolution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, newOptionValue);
+
+            var applied = workspace.TryApplyChanges(newSolution);
+            Assert.True(applied);
+
+            var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
+        }
+
+        [CombinatorialData]
+        [Theory, WorkItem(19284, "https://github.com/dotnet/roslyn/issues/19284")]
+        public void TestOptionChangedHandlerInvokedAfterCurrentSolutionChanged(bool testDeprecatedOptionsSetter)
+        {
+            // Create workspaces with shared global options to replicate the true global options service shared between workspaces.
+            using var primaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
+            using var secondaryWorkspace = CreateWorkspace(workspaceKind: TestWorkspaceName.NameWithSharedGlobalOptions);
+
+            var document = new TestHostDocument("class C { }");
+
+            var project1 = new TestHostProject(primaryWorkspace, document, name: "project1");
+
+            primaryWorkspace.AddTestProject(project1);
+            secondaryWorkspace.AddTestProject(project1);
+
+            var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
+            var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
+
+            var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            Assert.Equal(BackgroundAnalysisScope.Default, primaryWorkspace.Options.GetOption(optionKey));
+            Assert.Equal(BackgroundAnalysisScope.Default, secondaryWorkspace.Options.GetOption(optionKey));
+
+            // Hook up the option changed event handler.
+            var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
+            optionService.OptionChanged += OptionService_OptionChanged;
+
+            // Change workspace options through primary workspace
+            if (testDeprecatedOptionsSetter)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            else
+            {
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
+            }
+
+            // Verify current solution and option change for both workspaces.
+            VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+            VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
+
+            optionService.OptionChanged -= OptionService_OptionChanged;
+            return;
+
+            void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                // Verify current solution and option change for both workspaces.
+                VerifyCurrentSolutionAndOptionChange(primaryWorkspace, beforeSolutionForPrimaryWorkspace);
+                VerifyCurrentSolutionAndOptionChange(secondaryWorkspace, beforeSolutionForSecondaryWorkspace);
+            }
+
+            static void VerifyCurrentSolutionAndOptionChange(Workspace workspace, Solution beforeOptionChangedSolution)
+            {
+                // Verify that workspace.CurrentSolution has been updated with a new solution instance with changed option.
+                var currentSolution = workspace.CurrentSolution;
+                Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
+
+                // Verify workspace.CurrentSolution has changed option.
+                var optionKey = new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+                Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentSolution.Options.GetOption(optionKey));
+            }
         }
     }
 }

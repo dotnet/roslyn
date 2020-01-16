@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -18,12 +17,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             Document document, string documentText, IContentType contentType,
             IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory, CancellationToken cancellationToken);
 
-        public abstract void GeneratePreviewGrammar(
+        public abstract void GeneratePreviewDisplayParts(
             ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
 
         public abstract bool IsTypeNameValid(string typeName);
 
-        protected ITrackingSpan[] CreateTrackingSpansHelper(IProjectionSnapshot snapshot, int contextPoint, int spaceBetweenTypeAndName)
+        protected ITrackingSpan[] CreateTrackingSpansHelper(ITextSnapshot snapshot, int contextPoint, int spaceBetweenTypeAndName)
         {
             // Get the previous span/text.
             var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);

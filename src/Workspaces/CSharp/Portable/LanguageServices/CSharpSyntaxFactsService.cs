@@ -1292,6 +1292,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
             => (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
 
+        public bool IsLeftSideOfCompoundAssignment(SyntaxNode node)
+            => (node as ExpressionSyntax).IsLeftSideOfCompoundAssignExpression();
+
         public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
             => (node as AssignmentExpressionSyntax)?.Right;
 

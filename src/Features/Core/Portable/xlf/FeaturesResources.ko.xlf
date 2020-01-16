@@ -198,8 +198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">소스 파일 '{0}'의 현재 콘텐츠가 빌드된 소스와 일치하지 않습니다. 소스 파일의 콘텐츠가 복원될 때까지 디버그 세션을 계속할 수 없습니다.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">소스 파일 '{0}'의 현재 콘텐츠가 빌드된 소스와 일치하지 않습니다. 소스 파일의 콘텐츠가 복원될 때까지 디버그 세션을 계속할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -437,6 +437,16 @@
         <target state="translated">네임스페이스로 이동...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Private 멤버 '{0}'에 할당된 값을 읽을 수 없으므로 이 멤버를 제거할 수 있습니다.</target>
@@ -512,16 +522,6 @@
         <target state="translated">제공된 공용 API의 일부가 아닌 경우 사용하지 않는 매개 변수 '{0}' 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">제공된 공용 API의 일부가 아닌 경우 사용하지 않는 '{0}' 매개 변수를 제거하세요. 초기 값은 사용되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">사용하지 않는 매개 변수 '{0}'을(를) 제거합니다. 이 매개 변수의 초기 값은 절대 사용되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">사용되지 않는 private 멤버 제거</target>
@@ -570,6 +570,11 @@
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">

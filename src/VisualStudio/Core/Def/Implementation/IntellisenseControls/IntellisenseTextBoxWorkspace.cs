@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
-    internal class IntellisenseTextBoxWorkspace : Workspace
+    internal sealed class IntellisenseTextBoxWorkspace : Workspace
     {
         public IntellisenseTextBoxWorkspace(Solution solution, Project project, string documentText = null)
             : base(project.Solution.Workspace.Services.HostServices, nameof(IntellisenseTextBoxWorkspace))
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             ChangeSignatureDocumentId = DocumentId.CreateNewId(project.Id);
             this.SetCurrentSolution(solution.AddDocument(ChangeSignatureDocumentId, Guid.NewGuid().ToString(), documentText));
 
-            Options = Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, true);
+            this.TryApplyChanges(this.CurrentSolution.WithOptions(Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, true)));
         }
 
         public Document ChangeSignatureDocument => this.CurrentSolution.GetDocument(this.ChangeSignatureDocumentId);

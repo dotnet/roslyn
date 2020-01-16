@@ -22,6 +22,11 @@
         <target state="translated">若要在插入的逐字字串使用 '@$' 而不是 '$@'，請使用 '{0}' 或更高的語言版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">無法在建立物件時使用可為 Null 的參考型別。</target>
@@ -5933,8 +5938,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">無法指定唯讀欄位 (除非在建構函式或變數初始設定式中)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">無法指定唯讀欄位 (除非在建構函式或變數初始設定式中)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

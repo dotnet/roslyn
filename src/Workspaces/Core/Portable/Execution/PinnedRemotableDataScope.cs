@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Execution
             }
         }
 
-        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>?> GetRemotableDataAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {

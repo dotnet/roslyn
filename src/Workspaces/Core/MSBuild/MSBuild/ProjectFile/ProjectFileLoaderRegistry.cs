@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectFileLoaderRegistry
     {
-        private readonly Workspace _workspace;
+        private readonly HostWorkspaceServices _workspaceServices;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly Dictionary<string, string> _extensionToLanguageMap;
         private readonly NonReentrantLock _dataGuard;
 
-        public ProjectFileLoaderRegistry(Workspace workspace, DiagnosticReporter diagnosticReporter)
+        public ProjectFileLoaderRegistry(HostWorkspaceServices workspaceServices, DiagnosticReporter diagnosticReporter)
         {
-            _workspace = workspace;
+            _workspaceServices = workspaceServices;
             _diagnosticReporter = diagnosticReporter;
             _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _dataGuard = new NonReentrantLock();
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 if (_extensionToLanguageMap.TryGetValue(extension, out var language))
                 {
-                    if (_workspace.Services.SupportedLanguages.Contains(language))
+                    if (_workspaceServices.SupportedLanguages.Contains(language))
                     {
-                        loader = _workspace.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
+                        loader = _workspaceServices.GetLanguageServices(language).GetService<IProjectFileLoader>();
                     }
                     else
                     {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
                 else
                 {
-                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspace, extension);
+                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspaceServices, extension);
 
                     if (loader == null)
                     {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     language = loader.Language;
 
                     // check for command line parser existing... if not then error.
-                    var commandLineParser = _workspace.Services
+                    var commandLineParser = _workspaceServices
                         .GetLanguageServices(language)
                         .GetService<ICommandLineParserService>();
 

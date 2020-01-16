@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.ExtractMethod;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -17,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         public readonly AddParameterDialogViewModel ViewModel;
-        private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxView;
-        private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxView;
+        private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxViewModel;
+        private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxViewModel;
         private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
@@ -41,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // The current implementation supports Add only.
             // The dialog should be initialized the other way if called for Edit.
             ViewModel = new AddParameterDialogViewModel(notificationService);
-            _typeIntellisenseTextBoxView = typeIntellisenseTextBoxViewModel;
-            _nameIntellisenseTextBoxView = nameIntellisenseTextBoxViewModel;
+            _typeIntellisenseTextBoxViewModel = typeIntellisenseTextBoxViewModel;
+            _nameIntellisenseTextBoxViewModel = nameIntellisenseTextBoxViewModel;
             _document = document;
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = ViewModel;
@@ -53,11 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
             IntellisenseTextBox typeTextBox = new IntellisenseTextBox(
-                _typeIntellisenseTextBoxView, TypeContentControl);
+                _typeIntellisenseTextBoxViewModel, TypeContentControl);
             this.TypeContentControl.Content = typeTextBox;
 
             IntellisenseTextBox nameTextBox = new IntellisenseTextBox(
-                _nameIntellisenseTextBoxView, NameContentControl);
+                _nameIntellisenseTextBoxViewModel, NameContentControl);
             this.NameContentControl.Content = nameTextBox;
         }
 

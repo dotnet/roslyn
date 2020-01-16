@@ -9,5 +9,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangesNotAppliedWhileRunning = 3,
         ChangesDisallowedWhileStoppedAtException = 4,
         DocumentIsOutOfSyncWithDebuggee = 5,
+        UnableToReadSourceFileOrPdb = 6,
     }
 }

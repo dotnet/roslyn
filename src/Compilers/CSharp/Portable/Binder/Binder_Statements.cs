@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         internal virtual ImmutableHashSet<Symbol> LockedOrDisposedVariables
         {
-            get { return _next.LockedOrDisposedVariables; }
+            get { return Next.LockedOrDisposedVariables; }
         }
 
         /// <remarks>
@@ -2161,9 +2161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var arm in switchExpression.SwitchArms)
                         {
                             var armConversion = this.Conversions.ClassifyImplicitConversionFromExpression(arm.Value, targetType, ref useSiteDiagnostics);
-                            if (!armConversion.IsImplicit)
+                            if (!armConversion.IsImplicit || !armConversion.IsValid)
                             {
-                                GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, conversion, arm.Value, targetType);
+                                GenerateImplicitConversionError(diagnostics, arm.Value.Syntax, armConversion, arm.Value, targetType);
                                 reportedError = true;
                             }
                         }

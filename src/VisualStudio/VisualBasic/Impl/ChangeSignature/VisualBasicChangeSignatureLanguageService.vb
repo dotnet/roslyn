@@ -3,7 +3,6 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -31,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
                 document,
                 contentType,
                 documentText.Insert(insertPosition, ", [~] As "),
-                Function(snapshot As IProjectionSnapshot)
+                Function(snapshot As ITextSnapshot)
                     ' + 4 to support inserted ', [~'
                     Return CreateTrackingSpansHelper(snapshot, contextPoint:=insertPosition + 4, spaceBetweenTypeAndName:=5)
                 End Function,
@@ -39,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ChangeSignature
                 cancellationToken).ConfigureAwait(False)
         End Function
 
-        Public Overrides Sub GeneratePreviewGrammar(addedParameterViewModel As ChangeSignatureDialogViewModel.AddedParameterViewModel, displayParts As List(Of SymbolDisplayPart))
+        Public Overrides Sub GeneratePreviewDisplayParts(addedParameterViewModel As ChangeSignatureDialogViewModel.AddedParameterViewModel, displayParts As List(Of SymbolDisplayPart))
             displayParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, addedParameterViewModel.Parameter))
             displayParts.Add(New SymbolDisplayPart(SymbolDisplayPartKind.Keyword, Nothing, " As " + addedParameterViewModel.Type))
         End Sub

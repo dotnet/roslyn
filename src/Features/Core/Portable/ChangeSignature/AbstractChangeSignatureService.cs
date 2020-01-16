@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
                 context.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
+            var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
+
             foreach (var symbol in symbols)
             {
                 var methodSymbol = symbol.Definition as IMethodSymbol;
@@ -261,6 +263,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     if (methodSymbol.Name == WellKnownMemberNames.DelegateBeginInvokeName &&
                         methodSymbol.ContainingType != null &&
                         methodSymbol.ContainingType.IsDelegateType())
+                    {
+                        includeDefinitionLocations = false;
+                    }
+
+                    // We update delegates which may have different signature.
+                    // It seems it is enough for now to compare delegates by parameter count only.
+                    if (methodSymbol.Parameters.Length != declaredSymbolParametersCount)
                     {
                         includeDefinitionLocations = false;
                     }
@@ -332,9 +341,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var nodes = nodesToUpdate[docId];
 
                 var newRoot = root.ReplaceNodes(nodes, (originalNode, potentiallyUpdatedNode) =>
-                    {
-                        return updater.ChangeSignature(doc, definitionToUse[originalNode], potentiallyUpdatedNode, originalNode, CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature), cancellationToken);
-                    });
+                {
+                    return updater.ChangeSignature(doc, definitionToUse[originalNode], potentiallyUpdatedNode, originalNode, CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature), cancellationToken);
+                });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
 
@@ -463,7 +472,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var brandNewParameter in brandNewParameters)
             {
-                newArguments.Add(createIUnifiedArgument(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
+                newArguments.Add(createIUnifiedArgument(brandNewParameter.CallSiteValue).WithName(brandNewParameter.ParameterName));
             }
 
             // 6. Add the params argument with the first value:
@@ -653,10 +662,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
-            if (numSeparatorsToSkip < 0)
-            {
-                numSeparatorsToSkip = 0;
-            }
 
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {

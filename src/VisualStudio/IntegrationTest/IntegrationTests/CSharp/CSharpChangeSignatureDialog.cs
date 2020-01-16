@@ -183,7 +183,7 @@ End Class");
             SetUpEditor(@"
 class C
 {
-    public void Method(int a, string b) { }
+    public void Method$$(int a, string b) { }
 
     public void NewMethod()
     {
@@ -200,7 +200,7 @@ class C
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("int");
             AddParameterDialog.FillNameField("c");
-            AddParameterDialog.FillCallsiteField("stringC");
+            AddParameterDialog.FillCallsiteField("2");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
@@ -211,7 +211,7 @@ class C
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("int");
             AddParameterDialog.FillNameField("d");
-            AddParameterDialog.FillCallsiteField("2");
+            AddParameterDialog.FillCallsiteField("3");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
@@ -246,7 +246,7 @@ class C
 
     public void NewMethod()
     {
-        Method(1, 2, ""stringB"", TODO);
+        Method(1, 3, ""stringB"", TODO);
     }
     
 }", actualText);

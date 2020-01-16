@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
 
             if (result == null)
             {
-                var green = this.Green.GetSlot(slot);
+                var green = this.Green.GetRequiredSlot(slot);
                 // passing list's parent
                 Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(slot)), null);
                 result = element;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
 
             if (result == null)
             {
-                var green = this.Green.GetSlot(1);
+                var green = this.Green.GetRequiredSlot(1);
                 if (!green.IsToken)
                 {
                     // passing list's parent
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis
         // handle a miss
         private SyntaxNode CreateWeakItem(ref WeakReference<SyntaxNode>? slot, int index)
         {
-            var greenChild = this.Green.GetSlot(index);
+            var greenChild = this.Green.GetRequiredSlot(index);
             var newNode = greenChild.CreateRed(this.Parent, GetChildPosition(index));
             var newWeakReference = new WeakReference<SyntaxNode>(newNode);
 
@@ -643,6 +643,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets node at given node index. 
         /// This WILL force node creation if node has not yet been created.
+        /// Can still return null for invalid slot numbers
         /// </summary>
         internal abstract SyntaxNode? GetNodeSlot(int slot);
 
@@ -1238,7 +1239,11 @@ recurse:
             return IsEquivalentToCore(node, topLevel);
         }
 
-        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// Serializes the node to the given <paramref name="stream"/>.
+        /// Leaves the <paramref name="stream"/> open for further writes.
+        /// </summary>
+        public virtual void SerializeTo(Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {
@@ -1250,10 +1255,8 @@ recurse:
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeWrittenTo);
             }
 
-            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-            {
-                writer.WriteValue(this.Green);
-            }
+            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+            writer.WriteValue(Green);
         }
 
         #region Core Methods
@@ -1267,8 +1270,8 @@ recurse:
         }
 
         /// <summary>
-        /// Returns SyntaxTree that owns the node or null if node does not belong to a
-        /// SyntaxTree
+        /// Returns SyntaxTree that owns the node. If the node does not belong to a tree then
+        /// one will be generated.
         /// </summary>
         protected abstract SyntaxTree SyntaxTreeCore { get; }
 

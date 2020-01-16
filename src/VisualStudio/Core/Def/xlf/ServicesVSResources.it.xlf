@@ -102,14 +102,14 @@
         <target state="translated">Calcolo dei dipendenti...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_site_value">
+        <source>Call site value:</source>
+        <target state="new">Call site value:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Callsite">
         <source>Call site</source>
         <target state="new">Call site</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Callsite_Value">
-        <source>Call site value:</source>
-        <target state="new">Call site value:</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIndicator">
@@ -152,9 +152,9 @@
         <target state="translated">Tipo contenitore</target>
         <note />
       </trans-unit>
-      <trans-unit id="Current_Document">
-        <source>Current Document</source>
-        <target state="new">Current Document</target>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="new">Current document</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit">
@@ -172,9 +172,9 @@
         <target state="translated">L'elemento non è valido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Entire_Solution">
-        <source>Entire Solution</source>
-        <target state="new">Entire Solution</target>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="new">Entire solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -427,9 +427,9 @@
         <target state="translated">Metodi non pubblici</target>
         <note />
       </trans-unit>
-      <trans-unit id="Open_Documents_and_Projects">
-        <source>Open Documents and Projects</source>
-        <target state="new">Open Documents and Projects</target>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="new">Open documents</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
