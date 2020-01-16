@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(otherActions));
             }
 
-            AnalyzerActions actions = new AnalyzerActions(concurrent: otherActions.Concurrent);
+            AnalyzerActions actions = new AnalyzerActions(concurrent: _concurrent || otherActions.Concurrent);
             actions._compilationStartActions = _compilationStartActions.AddRange(otherActions._compilationStartActions);
             actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
             actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);

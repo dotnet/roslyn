@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -339,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add a null and type test if needed.
             if (!declaration.IsVar)
             {
-                input = MakeConvertToType(input, declaration.Syntax, type, tests);
+                input = MakeConvertToType(input, declaration.Syntax, type, isExplicitTest: false, tests);
             }
 
             BoundExpression variableAccess = declaration.VariableAccess;
@@ -357,12 +356,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void MakeCheckNotNull(
             BoundDagTemp input,
             SyntaxNode syntax,
+            bool isExplicitTest,
             ArrayBuilder<BoundDagTest> tests)
         {
             if (input.Type.CanContainNull())
             {
                 // Add a null test
-                tests.Add(new BoundDagNonNullTest(syntax, input));
+                tests.Add(new BoundDagNonNullTest(syntax, isExplicitTest, input));
             }
         }
 
@@ -373,9 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input,
             SyntaxNode syntax,
             TypeSymbol type,
+            bool isExplicitTest,
             ArrayBuilder<BoundDagTest> tests)
         {
-            MakeCheckNotNull(input, syntax, tests);
+            MakeCheckNotNull(input, syntax, isExplicitTest, tests);
             if (!input.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 TypeSymbol inputType = input.Type.StrippedType(); // since a null check has already been done
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, tests);
+                var convertedInput = MakeConvertToType(input, constant.Syntax, constant.Value.Type, isExplicitTest: false, tests);
                 tests.Add(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, convertedInput));
             }
         }
@@ -438,8 +439,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type.Equals(recursive.InputType, TypeCompareKind.AllIgnoreOptions));
+
             var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
-            input = MakeConvertToType(input, recursive.Syntax, inputType, tests);
+            input = MakeConvertToType(input, recursive.Syntax, inputType, isExplicitTest: recursive.IsExplicitNotNullTest, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {

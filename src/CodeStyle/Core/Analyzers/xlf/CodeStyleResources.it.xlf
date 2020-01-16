@@ -42,11 +42,6 @@
         <target state="translated">Refactoring Only</target>
         <note />
       </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Stile</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Suggerimento</target>

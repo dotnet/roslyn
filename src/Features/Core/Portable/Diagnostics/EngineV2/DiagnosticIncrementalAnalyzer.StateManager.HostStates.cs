@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analyzersPerReference = analyzerInfoCache.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(analyzerInfoCache, language, analyzersPerReference.Values);
+                    var analyzerMap = CreateStateSetMap(analyzerInfoCache, language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);
                     VerifyUniqueStateNames(analyzerMap.Values);
 
                     return new HostAnalyzerStateSets(analyzerInfoCache, language, analyzerMap);
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private sealed class HostAnalyzerStateSets
             {
+                private const int FileContentLoadAnalyzerPriority = -3;
                 private const int BuiltInCompilerPriority = -2;
                 private const int RegularDiagnosticAnalyzerPriority = -1;
 
@@ -69,16 +70,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return BuiltInCompilerPriority;
                     }
 
-                    switch (state.Analyzer)
+                    return state.Analyzer switch
                     {
-                        case DocumentDiagnosticAnalyzer analyzer:
-                            return Math.Max(0, analyzer.Priority);
-                        case ProjectDiagnosticAnalyzer analyzer:
-                            return Math.Max(0, analyzer.Priority);
-                        default:
-                            // regular analyzer get next priority after compiler analyzer
-                            return RegularDiagnosticAnalyzerPriority;
-                    }
+                        FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
+                        DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                        ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
+                        _ => RegularDiagnosticAnalyzerPriority,
+                    };
                 }
             }
         }

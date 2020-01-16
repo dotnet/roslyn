@@ -694,11 +694,11 @@ Do you want to continue?</value>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>
-  <data name="Awaited_task_returns" xml:space="preserve">
-    <value>Awaited task returns</value>
+  <data name="Awaited_task_returns_0" xml:space="preserve">
+    <value>Awaited task returns '{0}'</value>
   </data>
-  <data name="no_value" xml:space="preserve">
-    <value>no value.</value>
+  <data name="Awaited_task_returns_no_value" xml:space="preserve">
+    <value>Awaited task returns no value</value>
   </data>
   <data name="Note_colon_Tab_twice_to_insert_the_0_snippet" xml:space="preserve">
     <value>Note: Tab twice to insert the '{0}' snippet.</value>
@@ -708,12 +708,6 @@ Do you want to continue?</value>
   </data>
   <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
     <value>Implement interface with Dispose pattern</value>
-  </data>
-  <data name="Compiler1" xml:space="preserve">
-    <value>Compiler</value>
-  </data>
-  <data name="Style" xml:space="preserve">
-    <value>Style</value>
   </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
@@ -1415,9 +1409,6 @@ This version used in: {2}</value>
   <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
     <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
   </data>
-  <data name="Code_Quality" xml:space="preserve">
-    <value>Code Quality</value>
-  </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
   </data>
@@ -1580,11 +1571,11 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
   </data>
-  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</value>
+  <data name="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</value>
   </data>
-  <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Remove unused parameter '{0}', its initial value is never used</value>
+  <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Parameter '{0}' can be removed, its initial value is never used</value>
   </data>
   <data name="Merge_with_nested_0_statement" xml:space="preserve">
     <value>Merge with nested '{0}' statement</value>
@@ -1681,7 +1672,10 @@ This version used in: {2}</value>
     <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
   <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
-    <value>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</value>
+    <value>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
+  </data>
+  <data name="UnableToReadSourceFileOrPdb" xml:space="preserve">
+    <value>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
   </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>

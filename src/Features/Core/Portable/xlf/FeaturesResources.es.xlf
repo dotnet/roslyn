@@ -82,6 +82,16 @@
         <target state="translated">Evite los parámetros sin usar en el código. Si el parámetro no se puede quitar, cámbielo de nombre para que empiece por un carácter de subrayado, seguido opcionalmente por un entero, como "_", "_1", "_2", etc. Estos se tratan como nombres de símbolos de descarte especiales.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">No se pueden aplicar los cambios. Error inesperado: "{0}"</target>
@@ -115,11 +125,6 @@
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">Si se cambia "{0}" a "{1}", la sesión de depuración no podrá continuar porque cambia la forma de la máquina de estados.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Calidad del código</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -188,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">El contenido actual del archivo de código fuente "{0}" no coincide con el del origen compilado. La sesión de depuración no puede continuar hasta que se restaure el contenido del archivo de código fuente.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">El contenido actual del archivo de código fuente "{0}" no coincide con el del origen compilado. La sesión de depuración no puede continuar hasta que se restaure el contenido del archivo de código fuente.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -427,6 +432,16 @@
         <target state="translated">Mover a espacio de nombres...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Un miembro privado "{0}" puede retirarse porque el valor asignado a él no se lee nunca.</target>
@@ -502,16 +517,6 @@
         <target state="translated">Quitar el parámetro "{0}" sin usar si no forma parte de una API pública enviada</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Quitar el parámetro sin usar "{0}" si no forma parte de una API pública enviada; su valor inicial no se usa nunca.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">Eliminar el parámetro "{0}" sin usar, ya que su valor inicial no se utiliza nunca</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Quitar miembros privados no utilizados</target>
@@ -560,6 +565,11 @@
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -1648,16 +1658,6 @@ Do you want to continue?</source>
         <target state="translated">&lt;pendiente&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">La tarea esperada devuelve</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">no hay valor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Nota: Presione dos veces la tecla Tab para insertar el fragmento de código '{0}'.</target>
@@ -1671,16 +1671,6 @@ Do you want to continue?</source>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementar interfaz con modelo de Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Compilador</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Estilo</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

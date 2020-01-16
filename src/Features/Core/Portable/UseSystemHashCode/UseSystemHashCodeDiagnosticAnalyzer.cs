@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferSystemHashCode, operation.Language);
-            if (!option.Value)
+            if (option?.Value != true)
             {
                 return;
             }

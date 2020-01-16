@@ -82,6 +82,16 @@
         <target state="translated">Kodunuzda, kullanılmayan parametrelerden kaçının. Parametre kaldırılamıyorsa adını, bir alt çizgiyle başlayacak ve ardından isteğe bağlı olarak bir tamsayı gelecek ('_', '_1', '_2' gibi) şekilde değiştirin. Bu değerler özel atılabilir sembol adı olarak işlenir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Değişiklikler uygulanamıyor - beklenmeyen hata: '{0}'</target>
@@ -115,11 +125,6 @@
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">'{0}' öğesini '{1}' olarak değiştirmek, durum makinesinin şeklini değiştirdiğinden hata ayıklama oturumunun devam etmesini engeller.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Kod kalite</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -188,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">'{0}' kaynak dosyasının geçerli içeriği, oluşturulan kaynakla eşleşmiyor. Hata ayıklama oturumu, kaynak dosyanın içeriği geri yüklenene kadar devam edemez.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">'{0}' kaynak dosyasının geçerli içeriği, oluşturulan kaynakla eşleşmiyor. Hata ayıklama oturumu, kaynak dosyanın içeriği geri yüklenene kadar devam edemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -427,6 +432,16 @@
         <target state="translated">Ad alanına taşı...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Kendisine atanmış değeri hiç okurken özel üye '{0}'-ebilmek var olmak çıkarmak.</target>
@@ -502,16 +517,6 @@
         <target state="translated">Kullanılmayan '{0}' parametresi gönderilmiş bir genel API'nin parçası değilse parametreyi kaldırın</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Kullanılmayan '{0}' parametresi gönderilmiş bir genel API'nin parçası değilse parametreyi kaldırın, parametrenin ilk değeri asla kullanılmaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">Kullanılmayan '{0}' parametresini kaldırın, parametrenin ilk değeri hiç kullanılmaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Kullanılmayan özel üyeleri kaldır</target>
@@ -560,6 +565,11 @@
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -1648,16 +1658,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">&lt; bekleyen &gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">Beklenen görev döndürülür</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">değer yok.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Not: '{0}' kod parçacığını eklemek için iki kez sekme yapın.</target>
@@ -1671,16 +1671,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Ara birimi Dispose düzeniyle uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Derleyici</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Stil</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

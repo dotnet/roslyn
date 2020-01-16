@@ -17,5 +17,9 @@ namespace Roslyn.Utilities
         [Conditional("DEBUG")]
         public static void Assert([DoesNotReturnIf(false)]bool b, string message)
             => Debug.Assert(b, message);
+
+        [Conditional("DEBUG")]
+        public static void AssertNotNull<T>([NotNull]T value) where T : class?
+            => Debug.Assert(value is object, "Unexpected null reference");
     }
 }

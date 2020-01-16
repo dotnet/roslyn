@@ -507,7 +507,8 @@ class Program
             using var workspace = TestWorkspace.CreateCSharp(code);
             var subjectDocument = workspace.Documents.Single();
             var spans = subjectDocument.SelectedSpans;
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true)));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
@@ -2063,7 +2064,7 @@ class MyClass
                     options = options.WithChangedOption(entry.Key, entry.Value);
                 }
 
-                workspace.Options = options;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
 
             var subjectDocument = workspace.Documents.Single();

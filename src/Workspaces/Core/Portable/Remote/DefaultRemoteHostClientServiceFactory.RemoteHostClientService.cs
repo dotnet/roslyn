@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _lazyInstance = CreateNewLazyRemoteHostClient();
 
-                // let people know this remote host client is being disconnected
-                instance.Shutdown();
+                instance.Dispose();
             }
 
             private AsyncLazy<RemoteHostClient> CreateNewLazyRemoteHostClient()

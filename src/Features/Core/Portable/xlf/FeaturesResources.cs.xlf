@@ -82,6 +82,16 @@
         <target state="translated">Vyhněte se v kódu nepoužitým parametrům. Pokud parametr nelze odebrat, změňte jeho název tak, aby začínal podtržítkem, za kterým volitelně následuje celé číslo, například _, _1, _2 atd. Tyto řetězce se považují za názvy speciálních symbolů pro vyřazení.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Awaited_task_returns_0">
+        <source>Awaited task returns '{0}'</source>
+        <target state="new">Awaited task returns '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Awaited_task_returns_no_value">
+        <source>Awaited task returns no value</source>
+        <target state="new">Awaited task returns no value</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CannotApplyChangesUnexpectedError">
         <source>Cannot apply changes -- unexpected error: '{0}'</source>
         <target state="translated">Změny se nedají použít – neočekávaná chyba: {0}</target>
@@ -115,11 +125,6 @@
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Kvalita kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -188,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">Aktuální obsah zdrojového souboru {0} se neshoduje se sestaveným zdrojem. Relace ladění nemůže pokračovat, dokud se obsah zdrojového souboru neobnoví.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">Aktuální obsah zdrojového souboru {0} se neshoduje se sestaveným zdrojem. Relace ladění nemůže pokračovat, dokud se obsah zdrojového souboru neobnoví.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -427,6 +432,16 @@
         <target state="translated">Přesunout do oboru názvů...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Soukromý člen {0} se může odebrat, jak jeho přiřazená hodnota se nikdy nečte.</target>
@@ -502,16 +517,6 @@
         <target state="translated">Odeberte nepoužívaný parametr {0}, pokud není součástí dodávaného veřejného rozhraní API.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Odeberte nepoužívaný parametr {0}, pokud není součástí dodávaného veřejného rozhraní API. Jeho počáteční hodnota se nikdy nepoužívá.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">Odeberte nepoužívaný parametr {0}. Jeho počáteční hodnota se nikdy nepoužívá.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Odebrat nepoužité soukromé členy</target>
@@ -560,6 +565,11 @@
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -1648,16 +1658,6 @@ Chcete pokračovat?</target>
         <target state="translated">&lt;Čeká&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Awaited_task_returns">
-        <source>Awaited task returns</source>
-        <target state="translated">Očekávaný vrácený obsah úkolů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_value">
-        <source>no value.</source>
-        <target state="translated">žádná hodnota</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Poznámka: Pro vložení fragmentu {0} stiskněte dvakrát tabulátor.</target>
@@ -1671,16 +1671,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementovat rozhraní se vzorem Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Kompilátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Styl</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

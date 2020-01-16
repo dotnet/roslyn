@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string LangVersion = nameof(LangVersion);
         public const string ModuleAssemblyName = nameof(ModuleAssemblyName);
         public const string NoCompilerStandardLib = nameof(NoCompilerStandardLib);
+        public const string NonExistentFile = nameof(NonExistentFile);
         public const string NoWarn = nameof(NoWarn);
         public const string _NoWarnings = nameof(_NoWarnings);
         public const string Optimize = nameof(Optimize);

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
@@ -60,15 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal struct TupleTypeDecoder
     {
-        private readonly ImmutableArray<string> _elementNames;
+        private readonly ImmutableArray<string?> _elementNames;
         // Keep track of how many names we've "used" during decoding. Starts at
         // the back of the array and moves forward.
         private int _namesIndex;
+        private bool _foundUsableErrorType;
+        private bool _decodingFailed;
 
-        private TupleTypeDecoder(ImmutableArray<string> elementNames)
+        private TupleTypeDecoder(ImmutableArray<string?> elementNames)
         {
             _elementNames = elementNames;
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
+            _decodingFailed = false;
+            _foundUsableErrorType = false;
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
-            ImmutableArray<string> elementNames;
+            ImmutableArray<string?> elementNames;
             var hasTupleElementNamesAttribute = containingModule
                 .Module
                 .HasTupleElementNamesAttribute(targetHandle, out elementNames);
@@ -96,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
-            ImmutableArray<string> elementNames;
+            ImmutableArray<string?> elementNames;
             var hasTupleElementNamesAttribute = containingModule
                 .Module
                 .HasTupleElementNamesAttribute(targetHandle, out elementNames);
@@ -117,33 +123,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
-            ImmutableArray<string> elementNames)
+            ImmutableArray<string?> elementNames)
         {
             return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute: !elementNames.IsDefaultOrEmpty);
         }
 
-        private static TypeSymbol DecodeTupleTypesInternal(TypeSymbol metadataType, ImmutableArray<string> elementNames, bool hasTupleElementNamesAttribute)
+        private static TypeSymbol DecodeTupleTypesInternal(TypeSymbol metadataType, ImmutableArray<string?> elementNames, bool hasTupleElementNamesAttribute)
         {
-            Debug.Assert((object)metadataType != null);
+            RoslynDebug.AssertNotNull(metadataType);
 
             var decoder = new TupleTypeDecoder(elementNames);
-            try
+            var decoded = decoder.DecodeType(metadataType);
+            if (!decoder._decodingFailed)
             {
-                var decoded = decoder.DecodeType(metadataType);
-                // If not all of the names have been used, the metadata is bad
-                if (!hasTupleElementNamesAttribute ||
-                    decoder._namesIndex == 0)
+                if (!hasTupleElementNamesAttribute || decoder._namesIndex == 0)
                 {
                     return decoded;
                 }
             }
-            catch (InvalidOperationException)
-            {
-                // Indicates that the tuple info in the attribute didn't match
-                // the type. Bad metadata.
-            }
 
-            if (metadataType.HasUseSiteError)
+            // If not all of the names have been used, the metadata is bad
+            if (decoder._foundUsableErrorType)
             {
                 return metadataType;
             }
@@ -157,6 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             switch (type.Kind)
             {
                 case SymbolKind.ErrorType:
+                    if (type.HasUseSiteError)
+                    {
+                        _foundUsableErrorType = true;
+                    }
+                    return type;
                 case SymbolKind.DynamicType:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.PointerType:
@@ -203,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Now check the container
             NamedTypeSymbol containingType = type.ContainingType;
-            NamedTypeSymbol decodedContainingType;
-            if ((object)containingType != null && containingType.IsGenericType)
+            NamedTypeSymbol? decodedContainingType;
+            if (containingType is object && containingType.IsGenericType)
             {
                 decodedContainingType = DecodeNamedType(containingType);
                 Debug.Assert(decodedContainingType.IsGenericType);
@@ -236,11 +241,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (decodedType.IsTupleType)
             {
                 int tupleCardinality = decodedType.TupleElementTypesWithAnnotations.Length;
-                var elementNames = EatElementNamesIfAvailable(tupleCardinality);
+                if (tupleCardinality > 0)
+                {
+                    var elementNames = EatElementNamesIfAvailable(tupleCardinality);
 
-                Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
+                    Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
-                decodedType = NamedTypeSymbol.CreateTuple(decodedType, elementNames);
+                    decodedType = NamedTypeSymbol.CreateTuple(decodedType, elementNames);
+                }
             }
 
             return decodedType;
@@ -289,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations.Create(decoded, typeWithAnnotations.NullableAnnotation, typeWithAnnotations.CustomModifiers);
         }
 
-        private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)
+        private ImmutableArray<string?> EatElementNamesIfAvailable(int numberOfElements)
         {
             Debug.Assert(numberOfElements > 0);
 
@@ -302,7 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // We've gone past the end of the names -- bad metadata
             if (numberOfElements > _namesIndex)
             {
-                throw new InvalidOperationException();
+                // We'll want to continue decoding without consuming more names to see if there are any error types
+                _namesIndex = 0;
+                _decodingFailed = true;
+                return default;
             }
 
             // Check to see if all the elements are null
@@ -321,17 +332,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (allNull)
             {
-                return default(ImmutableArray<string>);
+                return default;
             }
 
-            var builder = ArrayBuilder<string>.GetInstance(numberOfElements);
-
-            for (int i = 0; i < numberOfElements; i++)
-            {
-                builder.Add(_elementNames[start + i]);
-            }
-
-            return builder.ToImmutableAndFree();
+            return ImmutableArray.Create(_elementNames, start, numberOfElements);
         }
     }
 }

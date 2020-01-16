@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
-    internal abstract partial class RemoteHostClient
+    internal abstract partial class RemoteHostClient : IDisposable
     {
         public readonly Workspace Workspace;
         public event EventHandler<bool>? StatusChanged;
@@ -46,26 +46,16 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected abstract void OnStarted();
 
-        protected abstract void OnStopped();
-
-        internal void Shutdown()
-        {
-            // this should be only used by RemoteHostService to shutdown this remote host
-            Stopped();
-        }
-
         protected void Started()
         {
             OnStarted();
 
-            OnStatusChanged(true);
+            OnStatusChanged(started: true);
         }
 
-        protected void Stopped()
+        public virtual void Dispose()
         {
-            OnStopped();
-
-            OnStatusChanged(false);
+            OnStatusChanged(started: false);
         }
 
         private void OnStatusChanged(bool started)
@@ -110,7 +100,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            return await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+            SessionWithSolution? session = null;
+            try
+            {
+                // transfer ownership of the connection to the session object:
+                session = await SessionWithSolution.CreateAsync(connection, solution, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                if (session == null)
+                {
+                    connection.Dispose();
+                }
+            }
+
+            return session;
         }
 
         /// <summary>
@@ -149,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                await session.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                await session.Connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
 
             return true;
@@ -163,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return default;
             }
 
-            return await session.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
+            return await session.Connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -188,11 +192,6 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // do nothing
             }
-
-            protected override void OnStopped()
-            {
-                // do nothing
-            }
         }
 
         /// <summary>
@@ -214,10 +213,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
-            public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            protected virtual void Dispose(bool disposing)
+            protected virtual void DisposeImpl()
             {
                 // do nothing
             }
@@ -231,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _disposed = true;
 
-                Dispose(disposing: true);
+                DisposeImpl();
                 GC.SuppressFinalize(this);
             }
 
