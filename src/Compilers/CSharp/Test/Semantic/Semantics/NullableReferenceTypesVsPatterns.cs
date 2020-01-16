@@ -2071,5 +2071,28 @@ public class C {
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(19, 17)
                 );
         }
+
+        [Fact]
+        [WorkItem(40629, "https://github.com/dotnet/roslyn/issues/40629")]
+        public void NullTestInSwitch_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    void M(object? p)
+    {
+        switch (p)
+        {
+            case null:
+                return;
+        }
+
+        p.ToString();
+    }
+}
+");
+            c.VerifyDiagnostics();
+        }
     }
 }

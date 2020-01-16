@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override LocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
+        protected override (LocalState initialState, LocalState afterSwitchState) VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
             // first, learn from any null tests in the patterns
             int slot = node.Expression.IsSuppressed ? GetOrCreatePlaceholderSlot(node.Expression) : MakeSlot(node.Expression);
@@ -183,8 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var afterSwitchState = labelStateMap.TryGetValue(node.BreakLabel, out var stateAndReachable) ? stateAndReachable.state : UnreachableState();
             labelStateMap.Free();
-            return initialState;
+            return (initialState, afterSwitchState);
         }
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
