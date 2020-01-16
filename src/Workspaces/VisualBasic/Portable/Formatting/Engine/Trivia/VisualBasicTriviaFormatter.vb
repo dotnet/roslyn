@@ -64,11 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Return _newLine
         End Function
-
+#Const LineContinueCommentSupport = True
         Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
+#If LineContinueCommentSupport Then
                 If trivia1.Kind = SyntaxKind.None Then
                     ' File or line or trivia starting with _ requires a leading space
                     Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
@@ -83,6 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     ' Anything else
                     Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
                 End If
+#Else
+                Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
+#End If
             End If
 
             If IsStartOrEndOfFile(trivia1, trivia2) Then
@@ -118,10 +122,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If insertNewLine Then
                     Return LineColumnRule.PreserveLinesWithDefaultIndentation(lines:=0)
                 End If
+#If LineContinueCommentSupport Then
                 If trivia1.Kind = SyntaxKind.LineContinuationTrivia Then
-                    ' token following a line with only a line continuation (with an optional comment) 
+                    ' token following a line with only a line continuation (with an optional comment)
                     Return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation()
                 End If
+#End If
                 Return LineColumnRule.PreserveLinesWithGivenIndentation(lines:=0)
             End If
 

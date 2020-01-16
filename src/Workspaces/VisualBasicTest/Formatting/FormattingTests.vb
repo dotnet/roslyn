@@ -779,7 +779,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation1() As Task
+        Public Async Function LineContinuation1___() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim a = 1 + _
@@ -800,7 +800,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation2() As Task
+        Public Async Function LineContinuation2___() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim aa = 1 + _
@@ -820,8 +820,9 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
+
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation3() As Task
+        Public Async Function LineContinuation3___() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim aa = 1 + _
@@ -842,7 +843,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation3___() As Task
+        Public Async Function LineContinuation3____() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim aa = 1 + _
@@ -863,7 +864,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation4() As Task
+        Public Async Function LineContinuation4___() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim aa = 1 + _
@@ -894,7 +895,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation4___() As Task
+        Public Async Function LineContinuation4____() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim aa = 1 + _
@@ -1080,7 +1081,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function Trivia3___() As Task
+        Public Async Function Trivia3____() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
 Dim a =             _
@@ -1093,9 +1094,9 @@ End Class</Code>
             Dim expected = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
         Dim a = _
-        _
-        _
-        1
+                _
+                _
+                1
     End Sub
 End Class</Code>
 
@@ -1103,7 +1104,7 @@ End Class</Code>
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function Trivia3A___() As Task
+        Public Async Function Trivia3A____() As Task
             Dim code = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
 Dim a = _ ' Comment 1
@@ -1116,8 +1117,8 @@ End Class</Code>
             Dim expected = <Code>Class C
     Sub Method(Optional ByVal i As Integer = 1)
         Dim a = _ ' Comment 1
-        _ ' Comment 2
-        _ ' Comment 3
+                _ ' Comment 2
+                _ ' Comment 3
                 1
     End Sub
 End Class</Code>
@@ -2324,13 +2325,13 @@ End Module</Code>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4641() As Task
             Dim code = <Code>Module module1
-	 Structure C
+     Structure C
 
-	 End Structure
+     End Structure
 
-	 Sub goo()
-		  Dim cc As C   ?   = New   C   ?   (   )
-	 End Sub
+     Sub goo()
+          Dim cc As C   ?   = New   C   ?   (   )
+     End Sub
 End Module</Code>
 
             Dim expected = <Code>Module module1
@@ -2359,7 +2360,7 @@ End Module</Code>
 
         <WorkItem(538894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538894")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function BugFix4644() As Task
+        Public Async Function BugFix4644___() As Task
             Dim code = <Code>Option Explicit Off
 Module Module1
     Sub Main()
@@ -2401,60 +2402,15 @@ End Module</Code>
 
         <WorkItem(538897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538897")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function BugFix4647() As Task
-            Dim code = <Code>Option Explicit Off
-Module Module1
-    Sub Main()
-        Dim mmm = Sub(ByRef x As String, _
-                                y As Integer)
-                      Console.WriteLine(x &amp; y)
-                  End Sub, zzz = Sub(y, _
-x)
-                                     mmm(y, _
-                                       x)
-                                 End Sub : Dim _
-                                     lll = Sub(x _
-                                         )
-                                               Console.WriteLine(x)
-                                           End Sub
-    End Sub
-End Module
-</Code>
-
-            Dim expected = <Code>Option Explicit Off
-Module Module1
-    Sub Main()
-        Dim mmm = Sub(ByRef x As String, _
-                                y As Integer)
-                      Console.WriteLine(x &amp; y)
-                  End Sub, zzz = Sub(y, _
-x)
-                                     mmm(y, _
-                                       x)
-                                 End Sub : Dim _
-                                     lll = Sub(x _
-                                         )
-                                               Console.WriteLine(x)
-                                           End Sub
-    End Sub
-End Module
-</Code>
-
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
-        End Function
-
-
-        <WorkItem(538897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538897")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4647___() As Task
             Dim code = <Code>Option Explicit Off
 Module Module1
     Sub Main()
         Dim mmm = Sub(ByRef x As String, _
-                                         y As Integer)
+                                y As Integer)
                       Console.WriteLine(x &amp; y)
                   End Sub, zzz = Sub(y, _
-                                        x)
+x)
                                      mmm(y, _
                                        x)
                                  End Sub : Dim _
@@ -2470,15 +2426,15 @@ End Module
 Module Module1
     Sub Main()
         Dim mmm = Sub(ByRef x As String, _
-                                         y As Integer)
+                                y As Integer)
                       Console.WriteLine(x &amp; y)
                   End Sub, zzz = Sub(y, _
-                                        x)
+x)
                                      mmm(y, _
-                                            x)
+                                       x)
                                  End Sub : Dim _
-                                               lll = Sub(x _
-                                                 )
+                                     lll = Sub(x _
+                                         )
                                                Console.WriteLine(x)
                                            End Sub
     End Sub
@@ -2655,7 +2611,7 @@ End Module</Code>
         <WorkItem(539351, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539351")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function BugFix5268___() As Task
+        Public Async Function BugFix5268____() As Task
             Dim code = <Code>
 #If True _
 </Code>
@@ -2853,8 +2809,8 @@ End Module
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5637() As Task
             Dim code = <Code>Public Class Class1
-	'this line is comment line
-	Sub sub1(ByVal aa As Integer)
+    'this line is comment line
+    Sub sub1(ByVal aa As Integer)
 
     End Sub
 End Class</Code>
@@ -2893,7 +2849,7 @@ End Class</Code>
         <WorkItem(530597, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530597")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function XmlTest5442() As Task
+        Public Async Function XmlTest5442___() As Task
             Using workspace = New AdhocWorkspace()
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
@@ -3236,7 +3192,7 @@ namespace'</Code>
         <Fact>
         <WorkItem(542698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function ColonTrivia1() As Task
+        Public Async Function ColonTrivia1___() As Task
             Dim code = <Code>Imports _
     System.Collections.Generic _
     :
@@ -3252,7 +3208,7 @@ End Module
 </Code>
 
             Dim expected = <Code>Imports _
-        System.Collections.Generic _
+    System.Collections.Generic _
 :
 : Imports _
           System
@@ -3270,7 +3226,7 @@ End Module
         <Fact>
         <WorkItem(542698, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542698")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function ColonTrivia2() As Task
+        Public Async Function ColonTrivia2___() As Task
             Dim code = <Code>Imports _
     System.Collections.Generic _
 :
@@ -3704,7 +3660,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(529899, "DevDiv_Projects/Roslyn")>
-        Public Async Function IndentContinuedLineOfSingleLineLambdaToFunctionKeyword() As Task
+        Public Async Function IndentContinuedLineOfSingleLineLambdaToFunctionKeyword___() As Task
             Dim code =
 <Code><![CDATA[
 Module Program
@@ -3730,7 +3686,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         <WorkItem(529899, "DevDiv_Projects/Roslyn")>
-        Public Async Function IndentContinuedLineOfSingleLineLambdaToFunctionKeyword___() As Task
+        Public Async Function IndentContinuedLineOfSingleLineLambdaToFunctionKeyword____() As Task
             Dim code =
 <Code><![CDATA[
 Module Program
@@ -3746,7 +3702,7 @@ End Module
 Module Program
     Sub Main(ByVal args As String())
         Dim a1 = Function() args(0) _
-                                    + 1
+                            + 1
     End Sub
 End Module
 ]]></Code>
@@ -3812,7 +3768,7 @@ Module Program
     Sub Main(args As String())
         With <a>
              </a>
-						Dim s = 1
+                        Dim s = 1
         End With
         SyncLock <b>
                  </b>
@@ -3908,7 +3864,7 @@ Namespace NS
             Await AssertFormatLf2CrLfAsync(code.Value, code.Value)
         End Function
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function TestBang() As Task
+        Public Async Function TestBang___() As Task
             Dim code =
 <Code><![CDATA[
 Imports System.Collections
@@ -3930,7 +3886,7 @@ Module Program
     Sub Main()
         Dim x As New Hashtable
         Dim y = x ! _
-        Goo
+            Goo
     End Sub
 End Module
 ]]></Code>
