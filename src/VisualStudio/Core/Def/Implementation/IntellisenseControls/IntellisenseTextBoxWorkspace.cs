@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
-    internal class IntellisenseTextBoxWorkspace : Workspace
+    internal sealed class IntellisenseTextBoxWorkspace : Workspace
     {
         public IntellisenseTextBoxWorkspace(Solution solution, Project project, string documentText = null)
             : base(project.Solution.Workspace.Services.HostServices, nameof(IntellisenseTextBoxWorkspace))

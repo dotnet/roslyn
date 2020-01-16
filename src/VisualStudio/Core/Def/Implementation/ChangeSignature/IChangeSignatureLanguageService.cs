@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
             CancellationToken cancellationToken);
 
-        void GeneratePreviewGrammar(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
+        void GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
 
         bool IsTypeNameValid(string typeName);
     }

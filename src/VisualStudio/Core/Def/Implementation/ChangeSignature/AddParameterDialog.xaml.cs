@@ -16,8 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         public readonly AddParameterDialogViewModel ViewModel;
-        private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxView;
-        private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxView;
+        private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxViewModel;
+        private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxViewModel;
         private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }

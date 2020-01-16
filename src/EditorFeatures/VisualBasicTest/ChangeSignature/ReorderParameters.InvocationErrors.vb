@@ -30,7 +30,7 @@ End Class]]></Text>.NormalizedValue()
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
-        Public Async Function TestReorderMethodParameters_NoExistingParameters() As Task
+        Public Async Function TestReorderMethodParameters_NoChangeableParameters() As Task
             Dim markup = <Text><![CDATA[
 Class C
     Public Shared $$Operator +(c1 As C, c2 As C)

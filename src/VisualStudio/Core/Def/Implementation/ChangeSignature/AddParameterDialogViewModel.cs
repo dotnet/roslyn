@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string ParameterName { get; set; }
 
-        public string CallsiteValue { get; set; }
+        public string CallSiteValue { get; set; }
 
         public string TypeName { get; set; }
 
@@ -53,13 +53,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private bool IsParameterTypeValid(string typeName, Document document)
         {
-            var languageService = document.GetLanguageService<IChangeSignatureLanguageService>();
+            var languageService = document.GetRequiredLanguageService<IChangeSignatureLanguageService>();
             return languageService.IsTypeNameValid(typeName);
         }
 
         private bool IsParameterNameValid(string identifierName, Document document)
         {
-            var languageService = document.GetLanguageService<ISyntaxFactsService>();
+            var languageService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return languageService.IsValidIdentifier(identifierName);
         }
     }

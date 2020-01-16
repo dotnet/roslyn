@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls
 {
-    internal class ElisionBufferTextViewModel : ITextViewModel
+    internal sealed class ElisionBufferTextViewModel : ITextViewModel
     {
         public ElisionBufferTextViewModel(ITextDataModel dataModel, IElisionBuffer elisionBuffer)
         {

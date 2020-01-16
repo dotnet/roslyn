@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public abstract IParameterSymbol Symbol { get; }
     }
 
-    internal class ExistingParameter : Parameter
+    internal sealed class ExistingParameter : Parameter
     {
         public override IParameterSymbol Symbol { get; }
 
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override string Name => Symbol.Name;
     }
 
-    internal class AddedParameter : Parameter
+    internal sealed class AddedParameter : Parameter
     {
-        public AddedParameter(string type, string parameter, string callsite)
+        public AddedParameter(string type, string parameter, string callSiteValue)
         {
             TypeName = type;
             ParameterName = parameter;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public string TypeName { get; set; }
         public string ParameterName { get; set; }
-        public string CallsiteValue { get; set; }
+        public string CallSiteValue { get; set; }
 
         public override bool HasExplicitDefaultValue => false;
         public override string Name => ParameterName;

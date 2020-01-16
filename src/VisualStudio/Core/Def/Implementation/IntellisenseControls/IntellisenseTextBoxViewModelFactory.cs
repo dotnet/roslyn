@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
           Document document,
           IContentType contentType,
           string contentString,
-          Func<IProjectionSnapshot, ITrackingSpan[]> createSpansMethod,
+          Func<ITextSnapshot, ITrackingSpan[]> createSpansMethod,
           string[][] rolesCollections, CancellationToken cancellationToken)
         {
             var vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, contentType) as IVsTextLines;

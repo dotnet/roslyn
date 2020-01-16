@@ -99,12 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var documentText = sourceText.ToString();
 
-            var rolesCollectionType = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
+            var rolesCollectionForTypeTextBox = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterTypeTextViewRole };
             var rolesCollectionName = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
 
-            var languageService = document.GetLanguageService<IChangeSignatureLanguageService>();
+            var languageService = document.GetRequiredLanguageService<IChangeSignatureLanguageService>();
             var viewModels = await languageService.CreateViewModelsAsync(
                 rolesCollectionType,
                 rolesCollectionName,
