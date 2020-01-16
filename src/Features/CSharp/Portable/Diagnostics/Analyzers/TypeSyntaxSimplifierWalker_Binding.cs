@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             // Only need to visit the name if it is generic.
-            if (node.Name.IsKind(SyntaxKind.GenericName, out GenericNameSyntax genericName))
+            if (node.Name.IsKind(SyntaxKind.GenericName, out GenericNameSyntax? genericName))
                 VisitGenericName(genericName);
 
             Visit(node.Expression);
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         private bool IsDottedSimpleNameSequence(MemberAccessExpressionSyntax node)
         {
             var current = node.Expression;
-            while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+            while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? currentMember))
             {
                 current = currentMember.Expression;
                 continue;
