@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     AddedParameter = new AddedParameter(
                         viewModel.TypeName,
                         viewModel.ParameterName,
-                        viewModel.CallsiteValue)
+                        viewModel.CallSiteValue)
                 };
             }
             else
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             var languageService = document.GetRequiredLanguageService<IChangeSignatureLanguageService>();
             var viewModels = await languageService.CreateViewModelsAsync(
-                rolesCollectionType,
+                rolesCollectionForTypeTextBox,
                 rolesCollectionName,
                 insertPosition,
                 document,

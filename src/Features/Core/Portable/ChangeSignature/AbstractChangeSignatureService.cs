@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             foreach (var brandNewParameter in brandNewParameters)
             {
-                newArguments.Add(createIUnifiedArgument(brandNewParameter.CallsiteValue).WithName(brandNewParameter.ParameterName));
+                newArguments.Add(createIUnifiedArgument(brandNewParameter.CallSiteValue).WithName(brandNewParameter.ParameterName));
             }
 
             // 6. Add the params argument with the first value:

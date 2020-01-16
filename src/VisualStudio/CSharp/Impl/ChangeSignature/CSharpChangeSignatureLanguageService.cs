@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
                document, contentType, documentText.Insert(insertPosition, ", "),
                CreateTrackingSpans, rolesCollections, cancellationToken).ConfigureAwait(false);
 
-            ITrackingSpan[] CreateTrackingSpans(IProjectionSnapshot snapshot)
+            ITrackingSpan[] CreateTrackingSpans(ITextSnapshot snapshot)
             {
                 // Adjust the context point to ensure that the right information is in scope.
                 // For example, we may need to move the point to the end of the last statement in a method body
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
             }
         }
 
-        public override void GeneratePreviewGrammar(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts)
+        public override void GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts)
         {
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, addedParameterViewModel.Type));
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, " "));

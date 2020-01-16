@@ -327,7 +327,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 if (parameter is AddedParameterViewModel addedParameterViewModel)
                 {
                     var languageService = Document.GetLanguageService<IChangeSignatureLanguageService>();
-                    languageService.GeneratePreviewGrammar(addedParameterViewModel, displayParts);
+                    languageService.GeneratePreviewDisplayParts(addedParameterViewModel, displayParts);
                 }
             }
 
@@ -597,9 +597,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 get
                 {
-                    if (!string.IsNullOrWhiteSpace(_addedParameter.CallsiteValue))
+                    if (!string.IsNullOrWhiteSpace(_addedParameter.CallSiteValue))
                     {
-                        return _addedParameter.CallsiteValue;
+                        return _addedParameter.CallSiteValue;
                     }
 
                     return ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable;

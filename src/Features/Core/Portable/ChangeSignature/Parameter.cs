@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             TypeName = type;
             ParameterName = parameter;
-            CallsiteValue = callsite;
+            CallSiteValue = callSiteValue;
         }
 
         public string TypeName { get; set; }
@@ -40,6 +40,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public override IParameterSymbol Symbol => null;
 
         // For test purposes.
-        public override string ToString() => $"{TypeName} {Name} ({CallsiteValue})";
+        public override string ToString() => $"{TypeName} {Name} ({CallSiteValue})";
     }
 }

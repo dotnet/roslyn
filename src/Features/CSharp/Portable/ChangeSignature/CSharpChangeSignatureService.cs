@@ -482,12 +482,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 {
                     if (updatedParameters[i] is AddedParameter addedParameter)
                     {
-                        if (addedParameter.CallsiteValue != null)
+                        if (addedParameter.CallSiteValue != null)
                         {
                             fullList.Add(SyntaxFactory.Argument(
                                 seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
                                 refKindKeyword: default,
-                                expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
+                                expression: SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)));
                             separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
                         }
                     }
