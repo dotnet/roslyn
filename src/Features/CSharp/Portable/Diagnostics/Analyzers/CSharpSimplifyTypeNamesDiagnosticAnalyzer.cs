@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                     builder.Add(assembly.TypeNames);
             }
 
-            return UnionCollection<string>.Create(builder.ToImmutableAndFree());
+            return UnionCollection<string>.Create(builder.ToImmutableAndFree(), _ => _);
         }
 
         private void AnalyzeSemanticModel(
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             SyntaxNode replacementSyntax;
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
+            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
             {
                 if (!crefSyntax.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
                     return false;
