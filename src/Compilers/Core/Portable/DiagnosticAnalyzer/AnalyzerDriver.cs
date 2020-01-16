@@ -89,6 +89,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         private ImmutableDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeAnalysisFlagsMap;
 
+        /// <summary>
+        /// The set of registered analyzer actions.
+        /// </summary>
+        /// <seealso cref="AnalyzerActions"/>
         private AnalyzerActions _analyzerActions;
 
         /// <summary>
