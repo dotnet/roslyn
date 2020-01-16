@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -32,12 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         {
         }
 
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            AllowCaptures = false)]
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             // Only analyze the topmost name/member-access/qualified-cref.  We'll handle recursing
             // into the node ourselves.  That way, in general, we report the largest/highest issue,
             // and we don't recurse and report another diagnostics for sub-spans of that issue.
-            if (context.Node.Ancestors(ascendOutOfTrivia: false).Any(n => IsCandidate(n)))
+            if (AnyAncestorIsCandidate(this, context.Node))
             {
                 return;
             }
@@ -57,6 +61,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             {
                 // Otherwise, just recurse into the topmost name/member-access normally.
                 RecurseAndAnalyzeNode(context, context.Node);
+            }
+
+            static bool AnyAncestorIsCandidate(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SyntaxNode node)
+            {
+                foreach (var ancestor in node.Ancestors(ascendOutOfTrivia: false))
+                {
+                    if (analyzer.IsCandidate(ancestor))
+                        return true;
+                }
+
+                return false;
             }
         }
 
