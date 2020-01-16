@@ -844,9 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        {
-            return new[] { new ChangeSignatureFormattingRule() }.Concat(Formatter.GetDefaultFormattingRules(document));
-        }
+            => SpecializedCollections.SingletonEnumerable<AbstractFormattingRule>(new ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
 
         protected override SyntaxToken CreateSeparatorSyntaxToken()
             => SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace);

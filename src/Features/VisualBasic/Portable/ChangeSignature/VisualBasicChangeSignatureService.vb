@@ -431,7 +431,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Function(callsiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callsiteValue))),
                 isReducedExtensionMethod)
 
-            Dim numSeparatorsToSkip = arguments.Count - newArguments.Count
+            Dim numSeparatorsToSkip As Integer
+            If arguments.Count = 0 Then
+                ' () 
+                ' Adding X parameters, need to add X-1 separators.
+                numSeparatorsToSkip = arguments.Count - newArguments.Count + 1
+            Else
+                ' (a,b,c)
+                ' Adding X parameters, need to add X separators.
+                numSeparatorsToSkip = arguments.Count - newArguments.Count
+            End If
+
             Return SyntaxFactory.SeparatedList(newArguments.Select(Function(a) CType(DirectCast(a, UnifiedArgumentSyntax), ArgumentSyntax)), GetSeparators(arguments, numSeparatorsToSkip))
         End Function
 

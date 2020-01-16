@@ -92,7 +92,7 @@ End Module
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact(Skip:="TODO"), Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameterToParameterlessMethod() As Task
 
             Dim markup = <Text><![CDATA[

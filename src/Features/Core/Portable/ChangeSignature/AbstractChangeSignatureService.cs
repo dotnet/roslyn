@@ -208,6 +208,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
                 context.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
+            var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
+
             foreach (var symbol in symbols)
             {
                 var methodSymbol = symbol.Definition as IMethodSymbol;
@@ -261,6 +263,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     if (methodSymbol.Name == WellKnownMemberNames.DelegateBeginInvokeName &&
                         methodSymbol.ContainingType != null &&
                         methodSymbol.ContainingType.IsDelegateType())
+                    {
+                        includeDefinitionLocations = false;
+                    }
+
+                    // We update delegates which may have different signature.
+                    // It seems it is enough for now to compare delegates by parameter count only.
+                    if (methodSymbol.Parameters.Length != declaredSymbolParametersCount)
                     {
                         includeDefinitionLocations = false;
                     }
@@ -653,7 +662,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
- 
+
             for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
                 if (i >= arguments.SeparatorCount)
