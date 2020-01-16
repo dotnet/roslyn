@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
@@ -219,30 +218,34 @@ End Class
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            return GetExpectedDiagnostic(line, column, kind);
+            var rule = kind switch
+            {
+                MissingKindArgument.SymbolKind => CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind))
+            };
+
+            return GetExpectedDiagnostic(rule, line, column);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, MissingKindArgument kind)
         {
-            return GetExpectedDiagnostic(line, column, kind);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(int line, int column, MissingKindArgument kind)
-        {
-            var message = kind switch
+            var rule = kind switch
             {
-                MissingKindArgument.SymbolKind => CodeAnalysisDiagnosticsResources.MissingSymbolKindArgumentToRegisterActionMessage,
-
-                MissingKindArgument.SyntaxKind => CodeAnalysisDiagnosticsResources.MissingSyntaxKindArgumentToRegisterActionMessage,
-
-                MissingKindArgument.OperationKind => CodeAnalysisDiagnosticsResources.MissingOperationKindArgumentToRegisterActionMessage,
-
-                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind)),
+                MissingKindArgument.SymbolKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSymbolKindArgumentRule,
+                MissingKindArgument.SyntaxKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingSyntaxKindArgumentRule,
+                MissingKindArgument.OperationKind => VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.MissingOperationKindArgumentRule,
+                _ => throw new ArgumentException("Unsupported argument kind", nameof(kind))
             };
 
-            return new DiagnosticResult(DiagnosticIds.MissingKindArgumentToRegisterActionRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(line, column)
-                .WithMessageFormat(message);
+            return GetExpectedDiagnostic(rule, line, column);
+        }
+
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column)
+        {
+            return new DiagnosticResult(rule)
+                .WithLocation(line, column);
         }
 
         private enum MissingKindArgument

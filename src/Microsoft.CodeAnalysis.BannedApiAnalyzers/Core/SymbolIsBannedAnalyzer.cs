@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             title: BannedApiAnalyzerResources.SymbolIsBannedTitle,
             messageFormat: BannedApiAnalyzerResources.SymbolIsBannedMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             description: BannedApiAnalyzerResources.SymbolIsBannedDescription,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             title: BannedApiAnalyzerResources.DuplicateBannedSymbolTitle,
             messageFormat: BannedApiAnalyzerResources.DuplicateBannedSymbolMessage,
             category: "ApiDesign",
-            defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             description: BannedApiAnalyzerResources.DuplicateBannedSymbolDescription,
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);

@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Analyzers
             s_localizableTitle,
             s_localizableMessage,
             DiagnosticCategory.Library,
-            DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
             description: s_localizableDescription,
             helpLinkUri: "https://go.microsoft.com/fwlink/?linkid=874285",
             customTags: WellKnownDiagnosticTags.Telemetry);

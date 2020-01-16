@@ -6,5 +6,6 @@ namespace Microsoft.CodeAnalysis
     {
         public const string Dataflow = nameof(Dataflow);
         public static string[] DataflowAndTelemetry = new string[] { Dataflow, WellKnownDiagnosticTags.Telemetry };
+        public static string[] Telemetry = new string[] { WellKnownDiagnosticTags.Telemetry };
     }
 }
