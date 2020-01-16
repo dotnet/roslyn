@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
-        private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeWithAnnotations>.GetInstance();
+        private readonly PooledDictionary<Symbol, TypeWithAnnotations> _variableTypes = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<Symbol, TypeWithAnnotations>();
 
         /// <summary>
         /// Binder for symbol being analyzed.
@@ -687,6 +687,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
                 _variableTypes.ToImmutableDictionary(),
                 _symbol);
+
+        //private class SymbolComparer : IEqualityComparer<Symbol>
+        //{
+        //    public bool Equals(Symbol x, Symbol y) => x.Equals(y, TypeCompareKind.ConsiderEverything);
+        //    public int GetHashCode(Symbol obj)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+        //}
 
         private void TakeIncrementalSnapshot(BoundNode node)
         {
