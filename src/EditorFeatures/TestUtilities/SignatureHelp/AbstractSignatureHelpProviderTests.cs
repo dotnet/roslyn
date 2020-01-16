@@ -344,9 +344,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
             var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
             var document = testWorkspace.CurrentSolution.GetDocument(documentId);
-            var code = (await document.GetTextAsync()).ToString();
 
-            testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
+            testWorkspace.TryApplyChanges(testWorkspace.CurrentSolution.WithOptions(testWorkspace.Options
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers)));
+
+            document = testWorkspace.CurrentSolution.GetDocument(documentId);
+            var code = (await document.GetTextAsync()).ToString();
 
             IList<TextSpan> textSpans = null;
 

@@ -216,8 +216,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
         {
             var definitionColumn = window.GetDefinitionColumn();
-            _workspace.Options = _workspace.Options.WithChangedOption(
-                FindUsagesOptions.DefinitionGroupingPriority, definitionColumn.GroupingPriority);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(FindUsagesOptions.DefinitionGroupingPriority, definitionColumn.GroupingPriority)));
         }
 
         private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)

@@ -68,7 +68,10 @@ End Class
                     </Project>
                 </Workspace>)
 
-                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                Dim workspace = testData.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
+
                 testData.CommandHandler.ExecuteCommand(New PasteCommandArgs(testData.View, testData.Buffer),
                                                        Sub() testData.EditorOperations.InsertText("Class Program" & vbCrLf & "    Sub M(abc As Integer)" & vbCrLf & "        Dim a  = 7" & vbCrLf & "    End Sub" & vbCrLf & "End Class"),
                                                        TestCommandExecutionContext.Create())
@@ -124,7 +127,10 @@ End Class
                                                         </Document>
                                                        </Project>
                                                    </Workspace>)
-                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                Dim workspace = testData.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
+
                 testData.Buffer.Insert(57, "    ")
                 testData.CommandHandler.ExecuteCommand(New SaveCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
                 Assert.Equal("        Dim a     = 7", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(3).GetText())
@@ -170,7 +176,9 @@ End Module
                                                    </Workspace>)
 
                 ' Turn off pretty listing
-                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+                Dim workspace = testData.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub, TestCommandExecutionContext.Create())
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())
             End Using
