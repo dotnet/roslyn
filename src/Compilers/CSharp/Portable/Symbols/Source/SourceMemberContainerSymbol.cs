@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract void CheckBase(DiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(DiagnosticBag diagnostics);
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             while (true)
             {
