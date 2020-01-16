@@ -31,7 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Property
 
         Private Sub DisableLineCommit(workspace As Workspace)
-            workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                .WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)))
         End Sub
 
         Private Sub VerifyTypedCharApplied(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),

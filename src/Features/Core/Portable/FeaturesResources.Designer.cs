@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. The debug session can&apos;t continue until the content of the source file is restored..
+        ///   Looks up a localized string similar to The current content of source file &apos;{0}&apos; does not match the built source. Any changes made to this file while debugging won&apos;t be applied until its content matches the built source..
         /// </summary>
         internal static string DocumentIsOutOfSyncWithDebuggee {
             get {
@@ -3073,6 +3073,25 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can be removed if it is not part of a shipped public API, its initial value is never used.
+        /// </summary>
+        internal static string Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_" +
+                        "value_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; can be removed, its initial value is never used.
+        /// </summary>
+        internal static string Parameter_0_can_be_removed_its_initial_value_is_never_used {
+            get {
+                return ResourceManager.GetString("Parameter_0_can_be_removed_its_initial_value_is_never_used", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameters:.
         /// </summary>
         internal static string Parameters_colon {
@@ -3467,25 +3486,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API {
             get {
                 return ResourceManager.GetString("Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos; if it is not part of a shipped public API, its initial value is never used.
-        /// </summary>
-        internal static string Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used {
-            get {
-                return ResourceManager.GetString("Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_v" +
-                        "alue_is_never_used", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove unused parameter &apos;{0}&apos;, its initial value is never used.
-        /// </summary>
-        internal static string Remove_unused_parameter_0_its_initial_value_is_never_used {
-            get {
-                return ResourceManager.GetString("Remove_unused_parameter_0_its_initial_value_is_never_used", resourceCulture);
             }
         }
         
@@ -4053,6 +4053,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unable_to_load_Analyzer_assembly_0_colon_1 {
             get {
                 return ResourceManager.GetString("Unable_to_load_Analyzer_assembly_0_colon_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to read source file &apos;{0}&apos; or the PDB built for the containing project. Any changes made to this file while debugging won&apos;t be applied until its content matches the built source..
+        /// </summary>
+        internal static string UnableToReadSourceFileOrPdb {
+            get {
+                return ResourceManager.GetString("UnableToReadSourceFileOrPdb", resourceCulture);
             }
         }
         

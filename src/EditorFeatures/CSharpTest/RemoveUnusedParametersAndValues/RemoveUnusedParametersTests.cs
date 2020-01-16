@@ -1094,6 +1094,11 @@ internal sealed class CustomSerializingType : ISerializable
     {
         p4 = 0;
         return p4;
+    }
+
+    void M3(int p5)
+    {
+        _ = nameof(p5);
     }|]
 }";
             var testParameters = new TestParameters(retainNonFixableDiagnostics: true);
@@ -1103,13 +1108,15 @@ internal sealed class CustomSerializingType : ISerializable
                 Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p1").WithLocation(5, 15),
                 Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p2").WithLocation(5, 23),
                 Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p3").WithLocation(13, 23),
-                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31));
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p4").WithLocation(13, 31),
+                Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId, "p5").WithLocation(19, 17));
             var sortedDiagnostics = diagnostics.OrderBy(d => d.Location.SourceSpan.Start).ToArray();
 
             Assert.Equal("Remove unused parameter 'p1'", sortedDiagnostics[0].GetMessage());
-            Assert.Equal("Remove unused parameter 'p2', its initial value is never used", sortedDiagnostics[1].GetMessage());
+            Assert.Equal("Parameter 'p2' can be removed, its initial value is never used", sortedDiagnostics[1].GetMessage());
             Assert.Equal("Remove unused parameter 'p3' if it is not part of a shipped public API", sortedDiagnostics[2].GetMessage());
-            Assert.Equal("Remove unused parameter 'p4' if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
+            Assert.Equal("Parameter 'p4' can be removed if it is not part of a shipped public API, its initial value is never used", sortedDiagnostics[3].GetMessage());
+            Assert.Equal("Parameter 'p5' can be removed, its initial value is never used", sortedDiagnostics[4].GetMessage());
         }
 
         [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]

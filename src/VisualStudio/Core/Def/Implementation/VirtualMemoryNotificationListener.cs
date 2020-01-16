@@ -153,7 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices
                         () => BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
 
             // Update info bar shown state.
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, true)));
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -164,7 +165,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             // For newly opened solution, reset the info bar state.
-            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(RuntimeOptions.BackgroundAnalysisSuspendedInfoBarShown, false)));
         }
     }
 }

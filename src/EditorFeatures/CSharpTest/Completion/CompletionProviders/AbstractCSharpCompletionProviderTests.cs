@@ -147,10 +147,11 @@ text;
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var position = hostDocument.CursorPosition.Value;
 
-            workspace.Options = workspace.Options.WithChangedOption(
-                CompletionOptions.EnterKeyBehavior,
-                LanguageNames.CSharp,
-                sendThroughEnterOption);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(
+                    CompletionOptions.EnterKeyBehavior,
+                    LanguageNames.CSharp,
+                    sendThroughEnterOption)));
 
             var service = GetCompletionService(workspace);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynTrigger.Invoke);

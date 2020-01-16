@@ -310,7 +310,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Function
 
         Private Sub SetBooleanOption(key As [PerLanguageOption](Of Boolean), value As Boolean)
-            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, value)
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options _
+                .WithChangedOption(key, LanguageNames.VisualBasic, value)))
         End Sub
 
         Private Function GetBooleanOption(key As PerLanguageOption(Of Boolean?)) As Integer
@@ -324,12 +325,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Private Sub SetBooleanOption(key As PerLanguageOption(Of Boolean?), value As Integer)
             Dim boolValue As Boolean? = If(value < 0, Nothing, value > 0)
-            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options _
+                .WithChangedOption(key, LanguageNames.VisualBasic, boolValue)))
         End Sub
 
         Private Sub SetXmlOption(key As PerLanguageOption(Of CodeStyleOption(Of Boolean)), value As String)
             Dim convertedValue = CodeStyleOption(Of Boolean).FromXElement(XElement.Parse(value))
-            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, convertedValue)
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options _
+                .WithChangedOption(key, LanguageNames.VisualBasic, convertedValue)))
         End Sub
 
     End Class

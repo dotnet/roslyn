@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService?.Register(this);
