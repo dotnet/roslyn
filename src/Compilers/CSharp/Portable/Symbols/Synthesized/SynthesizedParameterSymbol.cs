@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _attributes;
         }
 
+        // PROTOTYPE(local-function-attributes): handle any other well-known parameter attributes which may be used after lowering
         public bool HasEnumeratorCancellationAttribute { get; }
     }
 }
