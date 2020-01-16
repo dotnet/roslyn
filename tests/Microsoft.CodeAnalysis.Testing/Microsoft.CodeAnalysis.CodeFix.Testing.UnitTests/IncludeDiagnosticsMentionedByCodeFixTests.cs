@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.Testing
         [PartNotDiscoverable]
         internal class SomeCodeFix : CodeFixProvider
         {
+            /// <inheritdoc />
+            public override FixAllProvider GetFixAllProvider()
+            {
+                return WellKnownFixAllProviders.BatchFixer;
+            }
+
             public override Task RegisterCodeFixesAsync(CodeFixContext context)
             {
                 foreach (var diagnostic in context.Diagnostics)
