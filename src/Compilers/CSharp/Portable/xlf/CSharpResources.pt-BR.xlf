@@ -322,6 +322,11 @@
         <target state="needs-review-translation">'{0}': o tipo usado em uma instrução using deve ser implicitamente conversível em 'System.IDisposable' ou implementar um método 'Dispose' adequado. Você quis dizer 'await using' em vez de 'using'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoOutputDirectory">
+        <source>Output directory could not be determined</source>
+        <target state="new">Output directory could not be determined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotNullConstraintMustBeFirst">
         <source>The 'notnull' constraint must come before any other constraints</source>
         <target state="translated">A restrição 'notnull' precisa vir antes de outras restrições</target>

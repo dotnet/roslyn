@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isScriptCommandLineParser)
         {
-            Debug.Assert(messageProvider != null);
+            RoslynDebug.Assert(messageProvider != null);
             _messageProvider = messageProvider;
             IsScriptCommandLineParser = isScriptCommandLineParser;
         }
@@ -51,13 +54,18 @@ namespace Microsoft.CodeAnalysis
         /// <param name="fileNamePattern">File name pattern. May contain wildcards '*' (matches zero or more characters) and '?' (matches any character).</param>
         /// <param name="searchOption">Specifies whether to search the specified <paramref name="directory"/> only, or all its subdirectories as well.</param>
         /// <returns>Sequence of file paths.</returns>
-        internal virtual IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, SearchOption searchOption)
+        internal virtual IEnumerable<string> EnumerateFiles(string? directory, string fileNamePattern, SearchOption searchOption)
         {
+            if (directory is null)
+            {
+                return SpecializedCollections.EmptyEnumerable<string>();
+            }
+
             Debug.Assert(PathUtilities.IsAbsolute(directory));
             return Directory.EnumerateFiles(directory, fileNamePattern, searchOption);
         }
 
-        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories);
+        internal abstract CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectoryOpt, string additionalReferenceDirectories);
 
         /// <summary>
         /// Parses a command line.
@@ -67,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="sdkDirectory">The directory to search for mscorlib, or null if not available.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         /// <returns>a <see cref="CommandLineArguments"/> object representing the parsed command line.</returns>
-        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
+        public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory, string additionalReferenceDirectories)
         {
             return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
@@ -77,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(arg) && (arg[0] == '/' || arg[0] == '-');
         }
 
-        internal static bool TryParseOption(string arg, out string name, out string value)
+        internal static bool TryParseOption(string arg, [NotNullWhen(true)] out string? name, [NotNullWhen(true)] out string? value)
         {
             if (!IsOption(arg))
             {
@@ -120,12 +128,10 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-#nullable enable
-
         internal ErrorLogOptions? ParseErrorLogOptions(
             string arg,
             IList<Diagnostic> diagnostics,
-            string baseDirectory,
+            string? baseDirectory,
             out bool diagnosticAlreadyReported)
         {
             diagnosticAlreadyReported = false;
@@ -173,20 +179,18 @@ namespace Microsoft.CodeAnalysis
             return new ErrorLogOptions(path, sarifVersion);
         }
 
-#nullable restore
-
         internal static void ParseAndNormalizeFile(
             string unquoted,
-            string baseDirectory,
-            out string outputFileName,
-            out string outputDirectory,
+            string? baseDirectory,
+            out string? outputFileName,
+            out string? outputDirectory,
             out string invalidPath)
         {
             outputFileName = null;
             outputDirectory = null;
             invalidPath = unquoted;
 
-            string resolvedPath = FileUtilities.ResolveRelativePath(unquoted, baseDirectory);
+            string? resolvedPath = FileUtilities.ResolveRelativePath(unquoted, baseDirectory);
             if (resolvedPath != null)
             {
                 try
@@ -224,7 +228,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Trims all '.' and whitespace from the end of the path
         /// </summary>
-        internal static string RemoveTrailingSpacesAndDots(string path)
+        internal static string? RemoveTrailingSpacesAndDots(string? path)
         {
             if (path == null)
             {
@@ -281,13 +285,13 @@ namespace Microsoft.CodeAnalysis
         internal void ParseOutputFile(
             string value,
             IList<Diagnostic> errors,
-            string baseDirectory,
-            out string outputFileName,
-            out string outputDirectory)
+            string? baseDirectory,
+            out string? outputFileName,
+            out string? outputDirectory)
         {
             outputFileName = null;
             outputDirectory = null;
-            string invalidPath = null;
+            string? invalidPath = null;
 
             string unquoted = RemoveQuotesAndSlashes(value);
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
@@ -300,15 +304,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal string ParsePdbPath(
+        internal string? ParsePdbPath(
             string value,
             IList<Diagnostic> errors,
-            string baseDirectory)
+            string? baseDirectory)
         {
-            string outputFileName = null;
-            string outputDirectory = null;
-            string pdbPath = null;
-            string invalidPath = null;
+            string? outputFileName = null;
+            string? outputDirectory = null;
+            string? pdbPath = null;
+            string? invalidPath = null;
 
             string unquoted = RemoveQuotesAndSlashes(value);
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
@@ -325,16 +329,16 @@ namespace Microsoft.CodeAnalysis
             return pdbPath;
         }
 
-        internal string ParseGenericPathToFile(
+        internal string? ParseGenericPathToFile(
             string unquoted,
             IList<Diagnostic> errors,
-            string baseDirectory,
+            string? baseDirectory,
             bool generateDiagnostic = true)
         {
-            string outputFileName = null;
-            string outputDirectory = null;
-            string genericPath = null;
-            string invalidPath = null;
+            string? outputFileName = null;
+            string? outputDirectory = null;
+            string? genericPath = null;
+            string? invalidPath = null;
 
             ParseAndNormalizeFile(unquoted, baseDirectory, out outputFileName, out outputDirectory, out invalidPath);
             if (string.IsNullOrWhiteSpace(outputFileName))
@@ -356,9 +360,9 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<string> rawArguments,
             IList<Diagnostic> diagnostics,
             List<string> processedArgs,
-            List<string> scriptArgsOpt,
-            string baseDirectory,
-            List<string> responsePaths = null)
+            List<string>? scriptArgsOpt,
+            string? baseDirectory,
+            List<string>? responsePaths = null)
         {
             bool parsingScriptArgs = false;
             bool sourceFileSeen = false;
@@ -374,7 +378,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (parsingScriptArgs)
                 {
-                    scriptArgsOpt.Add(arg);
+                    scriptArgsOpt!.Add(arg);
                     continue;
                 }
 
@@ -408,7 +412,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // response file:
                     string path = RemoveQuotesAndSlashes(arg.Substring(1)).TrimEnd(null);
-                    string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
+                    string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                     if (resolvedPath != null)
                     {
                         foreach (string newArg in ParseResponseFile(resolvedPath, diagnostics).Reverse())
@@ -424,9 +428,10 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        if (responsePaths != null)
+                        if (responsePaths != null &&
+                            PathUtilities.GetDirectoryName(resolvedPath) is string directory)
                         {
-                            responsePaths.Add(FileUtilities.NormalizeAbsolutePath(PathUtilities.GetDirectoryName(resolvedPath)));
+                            responsePaths.Add(FileUtilities.NormalizeAbsolutePath(directory));
                         }
                     }
                     else
@@ -469,11 +474,11 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         internal static bool TryParseClientArgs(
             IEnumerable<string> args,
-            out List<string> parsedArgs,
+            out List<string>? parsedArgs,
             out bool containsShared,
-            out string keepAliveValue,
-            out string pipeName,
-            out string errorMessage)
+            out string? keepAliveValue,
+            out string? pipeName,
+            out string? errorMessage)
         {
             containsShared = false;
             keepAliveValue = null;
@@ -484,7 +489,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var arg in args)
             {
                 bool hasValue;
-                string value;
+                string? value;
                 if (isClientArgsOption(arg, "keepalive", out hasValue, out value))
                 {
                     if (string.IsNullOrEmpty(value))
@@ -542,7 +547,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string optionValue)
+            bool isClientArgsOption(string arg, string optionName, out bool hasValue, out string? optionValue)
             {
                 hasValue = false;
                 optionValue = null;
@@ -622,13 +627,13 @@ namespace Microsoft.CodeAnalysis
 
         internal static void ParseResourceDescription(
             string resourceDescriptor,
-            string baseDirectory,
+            string? baseDirectory,
             bool skipLeadingSeparators, //VB does this
-            out string filePath,
-            out string fullPath,
-            out string fileName,
-            out string resourceName,
-            out string accessibility)
+            out string? filePath,
+            out string? fullPath,
+            out string? fileName,
+            [NotNull] out string? resourceName,
+            out string? accessibility)
         {
             filePath = null;
             fullPath = null;
@@ -668,7 +673,7 @@ namespace Microsoft.CodeAnalysis
                 accessibility = RemoveQuotesAndSlashes(parts[offset + 2]);
             }
 
-            if (String.IsNullOrWhiteSpace(filePath))
+            if (RoslynString.IsNullOrWhiteSpace(filePath))
             {
                 return;
             }
@@ -701,7 +706,8 @@ namespace Microsoft.CodeAnalysis
         /// function is called RemoveQuotesAndSlashes.  It has virtually the same behavior except for a few 
         /// quirks in error cases.  
         /// </remarks>
-        internal static string RemoveQuotesAndSlashes(string arg)
+        [return: NotNullIfNotNull(parameterName: "arg")]
+        internal static string? RemoveQuotesAndSlashes(string? arg)
         {
             if (arg == null)
             {
@@ -738,7 +744,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static void ProcessSlashes(StringBuilder builder, string arg, ref int i)
         {
-            Debug.Assert(arg != null);
+            RoslynDebug.Assert(arg != null);
             Debug.Assert(i < arg.Length);
 
             var slashCount = 0;
@@ -784,7 +790,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Split a string, based on whether "splitHere" returned true on each character.
         /// </summary>
-        private static IEnumerable<string> Split(string str, Func<char, bool> splitHere)
+        private static IEnumerable<string> Split(string? str, Func<char, bool> splitHere)
         {
             if (str == null)
             {
@@ -808,15 +814,15 @@ namespace Microsoft.CodeAnalysis
         private static readonly char[] s_pathSeparators = { ';', ',' };
         private static readonly char[] s_wildcards = new[] { '*', '?' };
 
-        internal static IEnumerable<string> ParseSeparatedPaths(string str)
+        internal static IEnumerable<string> ParseSeparatedPaths(string? str)
         {
-            return ParseSeparatedStrings(str, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).Select(RemoveQuotesAndSlashes);
+            return ParseSeparatedStrings(str, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).Select(RemoveQuotesAndSlashes)!;
         }
 
         /// <summary>
         /// Split a string by a set of separators, taking quotes into account.
         /// </summary>
-        internal static IEnumerable<string> ParseSeparatedStrings(string str, char[] separators, StringSplitOptions options = StringSplitOptions.None)
+        internal static IEnumerable<string> ParseSeparatedStrings(string? str, char[] separators, StringSplitOptions options = StringSplitOptions.None)
         {
             bool inQuotes = false;
 
@@ -838,7 +844,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var path in paths)
             {
-                string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
+                string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                 if (resolvedPath == null)
                 {
                     errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.FTL_InvalidInputFileName, path));
@@ -869,7 +875,7 @@ namespace Microsoft.CodeAnalysis
             return new CommandLineSourceFile(resolvedPath, isScriptFile);
         }
 
-        internal IEnumerable<string> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
+        internal IEnumerable<string> ParseFileArgument(string arg, string? baseDirectory, IList<Diagnostic> errors)
         {
             Debug.Assert(IsScriptCommandLineParser || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
@@ -890,7 +896,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
+                string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                 if (resolvedPath == null)
                 {
                     errors.Add(Diagnostic.Create(MessageProvider, (int)MessageProvider.FTL_InvalidInputFileName, path));
@@ -902,7 +908,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected IEnumerable<string> ParseSeparatedFileArgument(string value, string baseDirectory, IList<Diagnostic> errors)
+        private protected IEnumerable<string> ParseSeparatedFileArgument(string value, string? baseDirectory, IList<Diagnostic> errors)
         {
             foreach (string path in ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)))
             {
@@ -913,7 +919,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal IEnumerable<CommandLineSourceFile> ParseRecurseArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
+        internal IEnumerable<CommandLineSourceFile> ParseRecurseArgument(string arg, string? baseDirectory, IList<Diagnostic> errors)
         {
             foreach (var path in ExpandFileNamePattern(arg, baseDirectory, SearchOption.AllDirectories, errors))
             {
@@ -921,7 +927,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Encoding TryParseEncodingName(string arg)
+        internal static Encoding? TryParseEncodingName(string arg)
         {
             long codepage;
             if (!string.IsNullOrWhiteSpace(arg)
@@ -960,18 +966,18 @@ namespace Microsoft.CodeAnalysis
 
         private IEnumerable<string> ExpandFileNamePattern(
             string path,
-            string baseDirectory,
+            string? baseDirectory,
             SearchOption searchOption,
             IList<Diagnostic> errors)
         {
-            string directory = PathUtilities.GetDirectoryName(path);
+            string? directory = PathUtilities.GetDirectoryName(path);
             string pattern = PathUtilities.GetFileName(path);
 
             var resolvedDirectoryPath = string.IsNullOrEmpty(directory) ?
                 baseDirectory :
                 FileUtilities.ResolveRelativePath(directory, baseDirectory);
 
-            IEnumerator<string> enumerator = null;
+            IEnumerator<string>? enumerator = null;
             try
             {
                 bool yielded = false;
@@ -986,7 +992,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     while (true)
                     {
-                        string resolvedPath = null;
+                        string? resolvedPath = null;
                         try
                         {
                             if (enumerator == null)
@@ -1049,7 +1055,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> errors);
 
-        internal ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string fullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic> diagnostics)
+        internal ReportDiagnostic GetDiagnosticOptionsFromRulesetFile(string? fullPath, out Dictionary<string, ReportDiagnostic> diagnosticOptions, IList<Diagnostic> diagnostics)
         {
             return RuleSet.GetDiagnosticOptionsFromRulesetFile(fullPath, out diagnosticOptions, diagnostics, _messageProvider);
         }
@@ -1060,11 +1066,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="value">The string value.</param>
         /// <param name="result">The result if parsing was successful.</param>
         /// <returns>true if parsing was successful, otherwise false.</returns>
-        internal static bool TryParseUInt64(string value, out ulong result)
+        internal static bool TryParseUInt64(string? value, out ulong result)
         {
             result = 0;
 
-            if (String.IsNullOrEmpty(value))
+            if (RoslynString.IsNullOrEmpty(value))
             {
                 return false;
             }
@@ -1098,11 +1104,11 @@ namespace Microsoft.CodeAnalysis
         /// <param name="value">The string value.</param>
         /// <param name="result">The result if parsing was successful.</param>
         /// <returns>true if parsing was successful, otherwise false.</returns>
-        internal static bool TryParseUInt16(string value, out ushort result)
+        internal static bool TryParseUInt16(string? value, out ushort result)
         {
             result = 0;
 
-            if (String.IsNullOrEmpty(value))
+            if (RoslynString.IsNullOrEmpty(value))
             {
                 return false;
             }

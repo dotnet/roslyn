@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < sourceFiles.Length; i++)
             {
                 var normalizedFilePath = normalizedFilePaths[i];
-                Debug.Assert(normalizedFilePath != null);
                 Debug.Assert(PathUtilities.IsAbsolute(normalizedFilePath));
 
                 if (!uniqueFilePaths.Add(normalizedFilePath))

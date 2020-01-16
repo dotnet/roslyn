@@ -2572,6 +2572,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_OutputNeedsName" xml:space="preserve">
     <value>Outputs without source must have the /out option specified</value>
   </data>
+  <data name="ERR_NoOutputDirectory" xml:space="preserve">
+    <value>Output directory could not be determined</value>
+  </data>
   <data name="ERR_CantHaveWin32ResAndManifest" xml:space="preserve">
     <value>Conflicting options specified: Win32 resource file; Win32 manifest</value>
   </data>

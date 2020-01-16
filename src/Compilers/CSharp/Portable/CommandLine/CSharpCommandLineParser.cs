@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override string RegularFileExtension { get { return ".cs"; } }
         protected override string ScriptFileExtension { get { return ".csx"; } }
 
-        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories)
+        internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectoryOpt, string additionalReferenceDirectories)
         {
             return Parse(args, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories);
         }
@@ -44,17 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="sdkDirectory">The directory to search for mscorlib, or null if not available.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         /// <returns>a commandlinearguments object representing the parsed command line.</returns>
-        public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories = null)
+        public new CSharpCommandLineArguments Parse(IEnumerable<string> args, string? baseDirectory, string? sdkDirectory, string? additionalReferenceDirectories = null)
         {
             Debug.Assert(baseDirectory == null || PathUtilities.IsAbsolute(baseDirectory));
 
             List<Diagnostic> diagnostics = new List<Diagnostic>();
             List<string> flattenedArgs = new List<string>();
-            List<string> scriptArgs = IsScriptCommandLineParser ? new List<string>() : null;
-            List<string> responsePaths = IsScriptCommandLineParser ? new List<string>() : null;
+            List<string>? scriptArgs = IsScriptCommandLineParser ? new List<string>() : null;
+            List<string>? responsePaths = IsScriptCommandLineParser ? new List<string>() : null;
             FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory, responsePaths);
 
-            string appConfigPath = null;
+            string? appConfigPath = null;
             bool displayLogo = true;
             bool displayHelp = false;
             bool displayVersion = false;
@@ -68,31 +70,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emitPdb = false;
             DebugInformationFormat debugInformationFormat = PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb;
             bool debugPlus = false;
-            string pdbPath = null;
+            string? pdbPath = null;
             bool noStdLib = IsScriptCommandLineParser; // don't add mscorlib from sdk dir when running scripts
-            string outputDirectory = baseDirectory;
+            string? outputDirectory = baseDirectory;
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
-            string outputFileName = null;
-            string outputRefFilePath = null;
+            string? outputFileName = null;
+            string? outputRefFilePath = null;
             bool refOnly = false;
-            string documentationPath = null;
-            ErrorLogOptions errorLogOptions = null;
+            string? documentationPath = null;
+            ErrorLogOptions? errorLogOptions = null;
             bool parseDocumentationComments = false; //Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             bool utf8output = false;
             OutputKind outputKind = OutputKind.ConsoleApplication;
             SubsystemVersion subsystemVersion = SubsystemVersion.None;
             LanguageVersion languageVersion = LanguageVersion.Default;
-            string mainTypeName = null;
-            string win32ManifestFile = null;
-            string win32ResourceFile = null;
-            string win32IconFile = null;
+            string? mainTypeName = null;
+            string? win32ManifestFile = null;
+            string? win32ResourceFile = null;
+            string? win32IconFile = null;
             bool noWin32Manifest = false;
             Platform platform = Platform.AnyCpu;
             ulong baseAddress = 0;
             int fileAlignment = 0;
             bool? delaySignSetting = null;
-            string keyFileSetting = null;
-            string keyContainerSetting = null;
+            string? keyFileSetting = null;
+            string? keyContainerSetting = null;
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
             bool resourcesOrModulesSpecified = false;
-            Encoding codepage = null;
+            Encoding? codepage = null;
             var checksumAlgorithm = SourceHashAlgorithmUtils.DefaultContentHashAlgorithm;
             var defines = ArrayBuilder<string>.GetInstance();
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
@@ -117,20 +119,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             int warningLevel = 4;
             bool highEntropyVA = false;
             bool printFullPaths = false;
-            string moduleAssemblyName = null;
-            string moduleName = null;
+            string? moduleAssemblyName = null;
+            string? moduleName = null;
             List<string> features = new List<string>();
-            string runtimeMetadataVersion = null;
+            string? runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
             ArrayBuilder<InstrumentationKind> instrumentationKinds = ArrayBuilder<InstrumentationKind>.GetInstance();
-            CultureInfo preferredUILang = null;
-            string touchedFilesPath = null;
+            CultureInfo? preferredUILang = null;
+            string? touchedFilesPath = null;
             bool optionsEnded = false;
             bool interactiveMode = false;
             bool publicSign = false;
-            string sourceLink = null;
-            string ruleSetPath = null;
+            string? sourceLink = null;
+            string? ruleSetPath = null;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (string arg in flattenedArgs)
                 {
-                    string name, value;
+                    string? name, value;
                     if (TryParseOption(arg, out name, out value) && (name == "ruleset"))
                     {
                         var unquoted = RemoveQuotesAndSlashes(value);
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(optionsEnded || !arg.StartsWith("@", StringComparison.Ordinal));
 
-                string name, value;
+                string? name, value;
                 if (optionsEnded || !TryParseOption(arg, out name, out value))
                 {
                     foreach (var path in ParseFileArgument(arg, baseDirectory, diagnostics))
@@ -1316,18 +1318,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Dev11 searches for the key file in the current directory and assembly output directory.
             // We always look to base directory and then examine the search paths.
-            if (!string.IsNullOrEmpty(baseDirectory))
+            if (!RoslynString.IsNullOrEmpty(baseDirectory))
             {
                 keyFileSearchPaths.Add(baseDirectory);
             }
 
-            if (!string.IsNullOrEmpty(outputDirectory) && baseDirectory != outputDirectory)
+            if (RoslynString.IsNullOrEmpty(outputDirectory))
+            {
+                AddDiagnostic(diagnostics, ErrorCode.ERR_NoOutputDirectory);
+            }
+            else if (baseDirectory != outputDirectory)
             {
                 keyFileSearchPaths.Add(outputDirectory);
             }
 
             // Public sign doesn't use the legacy search path settings
-            if (publicSign && !string.IsNullOrEmpty(keyFileSetting))
+            if (publicSign && !RoslynString.IsNullOrEmpty(keyFileSetting))
             {
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory);
             }
@@ -1349,7 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var parsedFeatures = ParseFeatures(features);
 
-            string compilationName;
+            string? compilationName;
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, sourceFilesSpecified, moduleAssemblyName, ref outputFileName, ref moduleName, out compilationName);
 
             var parseOptions = new CSharpParseOptions
@@ -1437,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EmitPdb = emitPdb && !refOnly, // silently ignore emitPdb when refOnly is set
                 SourceLink = sourceLink,
                 RuleSetPath = ruleSetPath,
-                OutputDirectory = outputDirectory,
+                OutputDirectory = outputDirectory!, // error produced when null
                 DocumentationPath = documentationPath,
                 ErrorLogOptions = errorLogOptions,
                 AppConfigPath = appConfigPath,
@@ -1473,18 +1479,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private static void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
+        private static void ParseAndResolveReferencePaths(string? switchName, string? switchValue, string? baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
         {
             if (string.IsNullOrEmpty(switchValue))
             {
-                Debug.Assert(!string.IsNullOrEmpty(switchName));
+                RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(switchName));
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_PathList.Localize(), switchName);
                 return;
             }
 
             foreach (string path in ParseSeparatedPaths(switchValue))
             {
-                string resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
+                string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                 if (resolvedPath == null)
                 {
                     AddDiagnostic(diagnostics, ErrorCode.WRN_InvalidSearchPathDir, path, origin.Localize(), MessageID.IDS_DirectoryHasInvalidPath.Localize());
@@ -1500,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string GetWin32Setting(string arg, string value, List<Diagnostic> diagnostics)
+        private static string? GetWin32Setting(string arg, string? value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
@@ -1527,12 +1533,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             OutputKind outputKind,
             List<CommandLineSourceFile> sourceFiles,
             bool sourceFilesSpecified,
-            string moduleAssemblyName,
-            ref string outputFileName,
-            ref string moduleName,
-            out string compilationName)
+            string? moduleAssemblyName,
+            ref string? outputFileName,
+            ref string? moduleName,
+            out string? compilationName)
         {
-            string simpleName;
+            string? simpleName;
             if (outputFileName == null)
             {
                 // In C#, if the output file name isn't specified explicitly, then executables take their
@@ -1593,7 +1599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<string> BuildSearchPaths(string sdkDirectoryOpt, List<string> libPaths, List<string> responsePathsOpt)
+        private ImmutableArray<string> BuildSearchPaths(string? sdkDirectoryOpt, List<string> libPaths, List<string>? responsePathsOpt)
         {
             var builder = ArrayBuilder<string>.GetInstance();
 
@@ -1720,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string value, List<Diagnostic> diagnostics)
+        private static IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string? value, List<Diagnostic> diagnostics)
         {
             if (value == null)
             {
@@ -1741,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
+        private static IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string? value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
         {
             if (value == null)
             {
@@ -1766,7 +1772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int eqlOrQuote = value.IndexOfAny(s_quoteOrEquals);
 
-            string alias;
+            string? alias;
             if (eqlOrQuote >= 0 && value[eqlOrQuote] == '=')
             {
                 alias = value.Substring(0, eqlOrQuote);
@@ -1811,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void ValidateWin32Settings(string win32ResourceFile, string win32IconResourceFile, string win32ManifestFile, OutputKind outputKind, IList<Diagnostic> diagnostics)
+        private static void ValidateWin32Settings(string? win32ResourceFile, string? win32IconResourceFile, string? win32ManifestFile, OutputKind outputKind, IList<Diagnostic> diagnostics)
         {
             if (win32ResourceFile != null)
             {
@@ -1850,18 +1856,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ResourceDescription ParseResourceDescription(
+        internal static ResourceDescription? ParseResourceDescription(
             string arg,
             string resourceDescriptor,
-            string baseDirectory,
+            string? baseDirectory,
             IList<Diagnostic> diagnostics,
             bool embedded)
         {
-            string filePath;
-            string fullPath;
-            string fileName;
-            string resourceName;
-            string accessibility;
+            string? filePath;
+            string? fullPath;
+            string? fileName;
+            string? resourceName;
+            string? accessibility;
 
             ParseResourceDescription(
                 resourceDescriptor,
@@ -1894,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (string.IsNullOrEmpty(filePath))
+            if (RoslynString.IsNullOrEmpty(filePath))
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                 return null;

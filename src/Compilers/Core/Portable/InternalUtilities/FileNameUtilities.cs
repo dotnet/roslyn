@@ -15,7 +15,6 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class FileNameUtilities
     {
-        private const string DirectorySeparatorStr = "\\";
         internal const char DirectorySeparatorChar = '\\';
         internal const char AltDirectorySeparatorChar = '/';
         internal const char VolumeSeparatorChar = ':';

@@ -7,11 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -32,7 +30,6 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<string> FindAssemblySet(string filePath)
         {
-            RoslynDebug.Assert(filePath != null);
             RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
 
             Queue<string> workList = new Queue<string>();
@@ -83,8 +80,7 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static Guid ReadMvid(string filePath)
         {
-            Debug.Assert(filePath != null);
-            Debug.Assert(PathUtilities.IsAbsolute(filePath));
+            RoslynDebug.Assert(PathUtilities.IsAbsolute(filePath));
 
             using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
             {
@@ -104,7 +100,6 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<string> FindSatelliteAssemblies(string filePath)
         {
-            Debug.Assert(filePath != null);
             Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
             var builder = ImmutableArray.CreateBuilder<string>();
@@ -140,7 +135,6 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If one of the files is not an assembly or is somehow corrupted.</exception>
         public static ImmutableArray<AssemblyIdentity> IdentifyMissingDependencies(string assemblyPath, IEnumerable<string> dependencyFilePaths)
         {
-            RoslynDebug.Assert(assemblyPath != null);
             RoslynDebug.Assert(PathUtilities.IsAbsolute(assemblyPath));
             RoslynDebug.Assert(dependencyFilePaths != null);
 
@@ -179,7 +173,6 @@ namespace Roslyn.Utilities
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
         public static AssemblyIdentity GetAssemblyIdentity(string assemblyPath)
         {
-            Debug.Assert(assemblyPath != null);
             Debug.Assert(PathUtilities.IsAbsolute(assemblyPath));
 
             using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
