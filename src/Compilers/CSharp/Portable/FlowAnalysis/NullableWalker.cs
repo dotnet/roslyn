@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly SnapshotManager.Builder? _snapshotBuilderOpt;
 
-#nullable disable
+#nullable restore
 
         // https://github.com/dotnet/roslyn/issues/35043: remove this when all expression are supported
         private bool _disableNullabilityAnalysis;
@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (result != -1)
             {
                 // Check that the slot represents a value of an equivalent type to the node
-                TypeSymbol slotType = variableBySlot[result].Symbol.GetTypeOrReturnType().Type;
+                TypeSymbol slotType = NominalSlotType(result);
                 TypeSymbol nodeType = node.Type;
                 HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
                 var conversionsWithoutNullability = this.compilation.Conversions;
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol possibleBase = possibleMember.ContainingType;
             TypeSymbol possibleDerived = NominalSlotType(slot);
             HashSet<DiagnosticInfo> discardedUseSiteDiagnostics = null;
-            var conversionsWithoutNullability = this.compilation.Conversions;
+            var conversionsWithoutNullability = _conversions.WithNullability(false);
             return
                 conversionsWithoutNullability.HasIdentityOrImplicitReferenceConversion(possibleDerived, possibleBase, ref discardedUseSiteDiagnostics) ||
                 conversionsWithoutNullability.HasBoxingConversion(possibleDerived, possibleBase, ref discardedUseSiteDiagnostics);
@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            if (!(CurrentSymbol is MethodSymbol methodSymbol))
+            if (!(_symbol is MethodSymbol methodSymbol))
             {
                 return;
             }
@@ -1789,7 +1789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0)
                 {
                     PopulateOneSlot(ref this.State, slot);
-                    InheritDefaultState(_variableTypes.TryGetValue(local, out var typeWithAnnotations) ? typeWithAnnotations.Type : local.Type, slot);
+                    InheritDefaultState(GetDeclaredLocalResult(local).Type, slot);
                 }
             }
         }
@@ -6968,8 +6968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var getValue = (MethodSymbol)compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value);
             valueProperty = getValue?.AsMember((NamedTypeSymbol)containingType)?.AssociatedSymbol;
-            var result = (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
-            return result;
+            return (valueProperty is null) ? -1 : GetOrCreateSlot(valueProperty, containingSlot, forceSlotEvenIfEmpty: forceSlotEvenIfEmpty);
         }
 
         protected override void VisitForEachExpression(BoundForEachStatement node)

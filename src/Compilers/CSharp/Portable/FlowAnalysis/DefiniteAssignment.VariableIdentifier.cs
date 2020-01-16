@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                return Symbol.Equals(other.Symbol, SymbolEqualityComparer.IgnoreEverything.CompareKind);
+                return Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
             }
 
             public override bool Equals(object obj)

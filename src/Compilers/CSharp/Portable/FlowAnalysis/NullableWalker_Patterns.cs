@@ -465,8 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var slotType = NominalSlotType(slot);
-                    Debug.Assert(slotType.IsErrorType() || isDerivedType(slotType, type));
+                    Debug.Assert(NominalSlotType(slot) is var slotType && (slotType.IsErrorType() || isDerivedType(slotType, type)));
                     tempMap.Add(output, (slot, type));
                 }
             }
