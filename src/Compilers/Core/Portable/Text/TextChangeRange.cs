@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Compares current instance of <see cref="TextChangeRange"/> to another.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TextChangeRange && Equals((TextChangeRange)obj);
         }
