@@ -782,11 +782,16 @@ namespace Microsoft.CodeAnalysis.Testing
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
-                diagnostics.AddRange(allDiagnostics.Where(diagnostic => IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)));
+                diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)));
             }
 
             var results = SortDistinctDiagnostics(diagnostics);
             return results.ToImmutableArray();
+        }
+
+        private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+        {
+            return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
         }
 
         /// <summary>
@@ -797,34 +802,23 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>return true to exclude a diagnostic, false to leave it up to internal logic.</returns>
         protected virtual bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
         {
-            return !IsCompilerDiagnostic(diagnostic)
-                || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics);
-
-            static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+            switch (compilerDiagnostics)
             {
-                return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
-            }
+                case CompilerDiagnostics.None:
+                default:
+                    return false;
 
-            static bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
-            {
-                switch (compilerDiagnostics)
-                {
-                    case CompilerDiagnostics.None:
-                    default:
-                        return false;
+                case CompilerDiagnostics.Errors:
+                    return diagnostic.Severity >= DiagnosticSeverity.Error;
 
-                    case CompilerDiagnostics.Errors:
-                        return diagnostic.Severity >= DiagnosticSeverity.Error;
+                case CompilerDiagnostics.Warnings:
+                    return diagnostic.Severity >= DiagnosticSeverity.Warning;
 
-                    case CompilerDiagnostics.Warnings:
-                        return diagnostic.Severity >= DiagnosticSeverity.Warning;
+                case CompilerDiagnostics.Suggestions:
+                    return diagnostic.Severity >= DiagnosticSeverity.Info;
 
-                    case CompilerDiagnostics.Suggestions:
-                        return diagnostic.Severity >= DiagnosticSeverity.Info;
-
-                    case CompilerDiagnostics.All:
-                        return true;
-                }
+                case CompilerDiagnostics.All:
+                    return true;
             }
         }
 
