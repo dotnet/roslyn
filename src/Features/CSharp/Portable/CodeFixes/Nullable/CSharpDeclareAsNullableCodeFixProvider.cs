@@ -152,6 +152,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return variableDeclaration.Type;
             }
 
+            // x = null;
+            if (node.Parent is AssignmentExpressionSyntax assignment)
+            {
+                var symbol = model.GetSymbolInfo(assignment.Left).Symbol;
+                if (symbol is ILocalSymbol local)
+                {
+                    var syntax = local.DeclaringSyntaxReferences[0].GetSyntax();
+                    if (syntax is VariableDeclaratorSyntax declarator &&
+                        declarator.Parent is VariableDeclarationSyntax declaration &&
+                        declaration.Variables.Count == 1)
+                    {
+                        return declaration.Type;
+                    }
+
+                }
+                else if (symbol is IParameterSymbol parameter)
+                {
+                    return ParameterTypeSyntax(parameter);
+                }
+
+                return null;
+            }
+
             // Method(null)
             if (node.Parent is ArgumentSyntax argument && argument.Parent.Parent is InvocationExpressionSyntax invocation)
             {
@@ -165,18 +188,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 if (argument?.NameColon?.Name is IdentifierNameSyntax { Identifier: var identifier })
                 {
                     var parameter = method.Parameters.Where(p => p.Name == identifier.Text).FirstOrDefault();
-                    if (parameter is object)
-                    {
-                        return parameter.DeclaringSyntaxReferences.Select(r => ((ParameterSyntax)r.GetSyntax()).Type).FirstOrDefault();
-                    }
-                    return null;
+                    return ParameterTypeSyntax(parameter);
                 }
 
                 var index = invocation.ArgumentList.Arguments.IndexOf(argument);
                 if (index >= 0 && index < method.Parameters.Length)
                 {
                     var parameter = method.Parameters[index];
-                    return parameter.DeclaringSyntaxReferences.Select(r => ((ParameterSyntax)r.GetSyntax()).Type).FirstOrDefault();
+                    return ParameterTypeSyntax(parameter);
                 }
 
                 return null;
@@ -191,7 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             // void M(string x = null) { }
             if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax parameter))
             {
-                return parameter.Type;
+                var parameter = (ParameterSyntax)node.Parent.Parent;
+                var parameterSymbol = model.GetDeclaredSymbol(parameter);
+                return ParameterTypeSyntax(parameterSymbol);
             }
 
             // static string M() => null;
@@ -232,6 +253,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                             return typeArguments[0];
                         }
                         break;
+                }
+                return null;
+            }
+
+            TypeSyntax ParameterTypeSyntax(IParameterSymbol parameter)
+            {
+                if (parameter is object &&
+                    parameter.DeclaringSyntaxReferences[0].GetSyntax() is ParameterSyntax parameterSyntax &&
+                    parameter.ContainingSymbol is IMethodSymbol method &&
+                    method.GetAllMethodSymbolsOfPartialParts().Length == 1)
+                {
+                    return parameterSyntax.Type;
                 }
                 return null;
             }

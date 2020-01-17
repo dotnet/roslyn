@@ -269,6 +269,83 @@ class Program
         }
 
         [Fact]
+        public async Task FixLocalDeclaration_FromAssignment()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        string x = """";
+        x = [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        string? x = """";
+        x = null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task CannotFixMultiLocalDeclaration_FromAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+NonNullTypes + @"
+class Program
+{
+    static void M()
+    {
+        string x, y;
+        x = [|null|];
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task FixParameter_FromAssignment()
+        {
+            await TestInRegularAndScript1Async(
+NonNullTypes + @"
+class Program
+{
+    static void M(out string x)
+    {
+        x = [|null|];
+    }
+}",
+NonNullTypes + @"
+class Program
+{
+    static void M(out string? x)
+    {
+        x = null;
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
+        public async Task CannotFixParameterOfPartialMethod_FromAssignment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+NonNullTypes + @"
+partial class Program
+{
+    partial void M(out string x);
+
+    partial void M(out string x)
+    {
+        x = [|null|];
+    }
+}", parameters: s_nullableFeature);
+        }
+
+        [Fact]
         public async Task FixLocalDeclaration_WithVar()
         {
             await TestMissingInRegularAndScriptAsync(
