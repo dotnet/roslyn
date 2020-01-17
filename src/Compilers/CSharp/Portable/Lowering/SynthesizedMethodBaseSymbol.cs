@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.RefKind,
                     p.Name,
                     attributes: inheritAttributes ? p.GetAttributes() : default,
-                    hasEnumeratorCancellationAttribute: p.IsSourceParameterWithEnumeratorCancellationAttribute()));
+                    hasEnumeratorCancellationAttribute: inheritAttributes && p.IsSourceParameterWithEnumeratorCancellationAttribute()));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
