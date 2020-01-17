@@ -839,12 +839,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsAsync)
             {
-                var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
                 var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
-                var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
                     GetInMethodSyntaxNode() is object)
                 {
+                    var cancellationTokenType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+                    var enumeratorCancellationCount = Parameters.Count(p => p.IsSourceParameterWithEnumeratorCancellationAttribute());
                     if (enumeratorCancellationCount == 0 &&
                         ParameterTypesWithAnnotations.Any(p => p.Type.Equals(cancellationTokenType)))
                     {
