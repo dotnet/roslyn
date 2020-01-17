@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
                 ? CommandState.Available
-                : CommandState.Unavailable;
+                : CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)

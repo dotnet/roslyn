@@ -1645,10 +1645,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var securityActionType = _compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction);
                     if (!(securityActionType is MissingMetadataTypeSymbol))
                     {
-                        var fieldRequestMinimum = (FieldSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityAction__RequestMinimum);
+                        var fieldRequestMinimum = (FieldSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Security_Permissions_SecurityAction__RequestMinimum);
 
                         // NOTE: Dev10 handles missing enum value.
-                        object? constantValue = (object)fieldRequestMinimum == null || fieldRequestMinimum.HasUseSiteError ? 0 : fieldRequestMinimum.ConstantValue;
+                        object? constantValue = (object?)fieldRequestMinimum == null || fieldRequestMinimum.HasUseSiteError ? 0 : fieldRequestMinimum.ConstantValue;
                         var typedConstantRequestMinimum = new TypedConstant(securityActionType, TypedConstantKind.Enum, constantValue);
 
                         var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);

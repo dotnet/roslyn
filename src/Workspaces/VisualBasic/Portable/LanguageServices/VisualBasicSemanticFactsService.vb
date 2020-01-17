@@ -145,16 +145,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function GetDeclaredSymbol(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As ISymbol Implements ISemanticFactsService.GetDeclaredSymbol
             Dim location = token.GetLocation()
 
-            Dim q = From node In token.GetAncestors(Of SyntaxNode)()
-                    Where Not TypeOf node Is AggregationRangeVariableSyntax AndAlso
-                          Not TypeOf node Is CollectionRangeVariableSyntax AndAlso
-                          Not TypeOf node Is ExpressionRangeVariableSyntax AndAlso
-                          Not TypeOf node Is InferredFieldInitializerSyntax
-                    Let symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken)
-                    Where symbol IsNot Nothing AndAlso symbol.Locations.Contains(location)
-                    Select symbol
+            For Each ancestor In token.GetAncestors(Of SyntaxNode)()
+                If Not TypeOf ancestor Is AggregationRangeVariableSyntax AndAlso
+                   Not TypeOf ancestor Is CollectionRangeVariableSyntax AndAlso
+                   Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
+                   Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
 
-            Return q.FirstOrDefault()
+                    Dim symbol = semanticModel.GetDeclaredSymbol(ancestor)
+
+                    If symbol IsNot Nothing Then
+                        If symbol.Locations.Contains(location) Then
+                            Return symbol
+                        End If
+
+                        ' We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
+                        Return Nothing
+                    End If
+
+                    ' If we hit an executable statement syntax and didn't find anything yet, we can just stop now -- anything higher would be a member declaration which won't be defined by something inside a statement.
+                    If SyntaxFactsService.IsExecutableStatement(ancestor) Then
+                        Return Nothing
+                    End If
+                End If
+            Next
+
+            Return Nothing
         End Function
 
         Public Function LastEnumValueHasInitializer(namedTypeSymbol As INamedTypeSymbol) As Boolean Implements ISemanticFactsService.LastEnumValueHasInitializer
@@ -298,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Select(Function(n) semanticModel.GetDeclaredSymbol(n, cancellationToken))
             End If
 
-            Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
+            Return SpecializedCollections.SingletonEnumerable(semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken))
         End Function
 
         Public Function FindParameterForArgument(semanticModel As SemanticModel, argumentNode As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol Implements ISemanticFactsService.FindParameterForArgument

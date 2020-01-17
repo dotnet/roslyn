@@ -3,6 +3,7 @@
 #nullable enable
 
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsEmptyOrWhitespace(this TextLine line)
         {
             var text = line.Text;
+            RoslynDebug.Assert(text is object);
             for (var i = line.Span.Start; i < line.Span.End; i++)
             {
                 if (!char.IsWhiteSpace(text[i]))

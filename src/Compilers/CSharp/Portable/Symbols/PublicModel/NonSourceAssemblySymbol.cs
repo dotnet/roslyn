@@ -3,6 +3,7 @@
 #nullable enable
 
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         public NonSourceAssemblySymbol(Symbols.AssemblySymbol underlying)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             Debug.Assert(!(underlying is Symbols.SourceAssemblySymbol));
             _underlying = underlying;
         }

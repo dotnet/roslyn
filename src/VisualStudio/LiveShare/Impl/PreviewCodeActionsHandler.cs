@@ -28,10 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             var edits = ArrayBuilder<LSP.TextEdit>.GetInstance();
             var solution = requestContext.Context;
             var codeActions = await GetCodeActionsAsync(solution,
-                                                        request.CodeActionParams.TextDocument.Uri,
-                                                        request.CodeActionParams.Range,
-                                                        keepThreadContext: false,
-                                                        cancellationToken).ConfigureAwait(false);
+                request.CodeActionParams.TextDocument.Uri,
+                request.CodeActionParams.Range,
+                cancellationToken).ConfigureAwait(false);
 
             var actionToRun = codeActions?.FirstOrDefault(a => a.Title == request.Title);
 

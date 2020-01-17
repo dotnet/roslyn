@@ -777,11 +777,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Current Document.
+        ///   Looks up a localized string similar to Current document.
         /// </summary>
-        internal static string Current_Document {
+        internal static string Current_document {
             get {
-                return ResourceManager.GetString("Current_Document", resourceCulture);
+                return ResourceManager.GetString("Current_document", resourceCulture);
             }
         }
         
@@ -968,11 +968,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Entire Solution.
+        ///   Looks up a localized string similar to Entire solution.
         /// </summary>
-        internal static string Entire_Solution {
+        internal static string Entire_solution {
             get {
-                return ResourceManager.GetString("Entire_Solution", resourceCulture);
+                return ResourceManager.GetString("Entire_solution", resourceCulture);
             }
         }
         
@@ -1475,6 +1475,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Live_analysis_VSIX_extension {
             get {
                 return ResourceManager.GetString("Live_analysis_VSIX_extension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Live Share C#/Visual Basic Language Server Client.
+        /// </summary>
+        internal static string Live_Share_CSharp_Visual_Basic_Language_Server_Client {
+            get {
+                return ResourceManager.GetString("Live_Share_CSharp_Visual_Basic_Language_Server_Client", resourceCulture);
             }
         }
         
@@ -2101,11 +2110,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Open Documents and Projects.
+        ///   Looks up a localized string similar to Open documents.
         /// </summary>
-        internal static string Open_Documents_and_Projects {
+        internal static string Open_documents {
             get {
-                return ResourceManager.GetString("Open_Documents_and_Projects", resourceCulture);
+                return ResourceManager.GetString("Open_documents", resourceCulture);
             }
         }
         

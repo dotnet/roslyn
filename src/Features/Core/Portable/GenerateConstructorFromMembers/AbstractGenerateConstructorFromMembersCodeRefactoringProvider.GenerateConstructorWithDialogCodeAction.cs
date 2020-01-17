@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
 
+            private bool? _addNullCheckOptionValue;
+
             public override string Title => FeaturesResources.Generate_constructor;
 
             public GenerateConstructorWithDialogCodeAction(
@@ -65,11 +67,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    var workspace = _document.Project.Solution.Workspace;
-                    workspace.Options = workspace.Options.WithChangedOption(
-                        GenerateConstructorFromMembersOptions.AddNullChecks,
-                        _document.Project.Language,
-                        addNullChecksOption.Value);
+                    _addNullCheckOptionValue = addNullChecksOption.Value;
                 }
 
                 var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
@@ -108,6 +106,21 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                     return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 }
+            }
+
+            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            {
+                var solution = await base.GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+                if (_addNullCheckOptionValue.HasValue)
+                {
+                    solution = solution.WithOptions(solution.Options.WithChangedOption(
+                        GenerateConstructorFromMembersOptions.AddNullChecks,
+                        _document.Project.Language,
+                        _addNullCheckOptionValue.Value));
+                }
+
+                return solution;
             }
         }
     }

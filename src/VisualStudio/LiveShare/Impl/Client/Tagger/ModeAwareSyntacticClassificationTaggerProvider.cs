@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
     [Export(typeof(ITaggerProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(StringConstants.CSharpLspContentTypeName)]
+    [ContentType(ContentTypeNames.CSharpLspContentTypeName)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class CSharpModeAwareSyntacticClassificationTaggerProvider : ModeAwareSyntacticClassificationTaggerProvider
     {
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Tagger
     [Export(typeof(ITaggerProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(StringConstants.VBLspContentTypeName)]
+    [ContentType(ContentTypeNames.VBLspContentTypeName)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class VBModeAwareSyntacticClassificationTaggerProvider : ModeAwareSyntacticClassificationTaggerProvider
     {

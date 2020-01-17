@@ -271,12 +271,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' Property: Attributes Modifiers [|Identifier$ Initializer|] ImplementsClause
                     Dim propertyStatement = DirectCast(node, PropertyStatementSyntax)
                     If propertyStatement.Initializer IsNot Nothing Then
-                        Return {propertyStatement.Identifier}.Concat(If(propertyStatement.AsClause?.DescendantTokens(),
+                        Return SpecializedCollections.SingletonEnumerable(propertyStatement.Identifier).Concat(If(propertyStatement.AsClause?.DescendantTokens(),
                                                                      Array.Empty(Of SyntaxToken))).Concat(propertyStatement.Initializer.DescendantTokens())
                     End If
 
                     If HasAsNewClause(propertyStatement) Then
-                        Return {propertyStatement.Identifier}.Concat(propertyStatement.AsClause.DescendantTokens())
+                        Return SpecializedCollections.SingletonEnumerable(propertyStatement.Identifier).Concat(propertyStatement.AsClause.DescendantTokens())
                     End If
 
                     Return Nothing

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Execution
                     var storage = _assetStorages.CreateStorage(solution.State);
                     var checksum = await solution.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
 
-                    return new PinnedRemotableDataScope(_assetStorages, storage, checksum);
+                    return PinnedRemotableDataScope.Create(_assetStorages, storage, checksum);
                 }
             }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>?> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public async ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {

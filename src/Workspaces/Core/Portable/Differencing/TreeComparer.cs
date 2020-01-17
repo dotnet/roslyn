@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 #nullable enable
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Returns a parent for the specified node.
         /// </summary>
-        protected internal abstract bool TryGetParent(TNode node, out TNode parent);
+        protected internal abstract bool TryGetParent(TNode node, [MaybeNullWhen(false)] out TNode parent);
 
         internal TNode GetParent(TNode node)
         {

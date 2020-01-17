@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         AssemblyMetadata? IAssemblySymbol.GetMetadata() => UnderlyingAssemblySymbol.GetMetadata();
 
-        INamedTypeSymbol IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
+        INamedTypeSymbol? IAssemblySymbol.ResolveForwardedType(string fullyQualifiedMetadataName)
         {
             return UnderlyingAssemblySymbol.ResolveForwardedType(fullyQualifiedMetadataName).GetPublicSymbol();
         }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             return false;
         }
 
-        INamedTypeSymbol IAssemblySymbol.GetTypeByMetadataName(string metadataName)
+        INamedTypeSymbol? IAssemblySymbol.GetTypeByMetadataName(string metadataName)
         {
             return UnderlyingAssemblySymbol.GetTypeByMetadataName(metadataName).GetPublicSymbol();
         }

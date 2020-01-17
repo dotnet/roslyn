@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var (oldDocument, oldDocumentState) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document.Id, cancellationToken).ConfigureAwait(false);
                 if (oldDocumentState == CommittedSolution.DocumentState.OutOfSync ||
+                    oldDocumentState == CommittedSolution.DocumentState.Indeterminate ||
                     oldDocumentState == CommittedSolution.DocumentState.DesignTimeOnly)
                 {
                     // Do not report diagnostics for existing out-of-sync documents or design-time-only documents.
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
-        public Task<SolutionUpdateStatus> GetSolutionUpdateStatusAsync(string sourceFilePath, CancellationToken cancellationToken)
+        public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         {
             // GetStatusAsync is called outside of edit session when the debugger is determining 
             // whether a source file checksum matches the one in PDB.
@@ -404,10 +405,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             if (editSession == null)
             {
-                return Task.FromResult(SolutionUpdateStatus.None);
+                return Task.FromResult(false);
             }
 
-            return editSession.GetSolutionUpdateStatusAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
+            return editSession.HasChangesAsync(_workspace.CurrentSolution, sourceFilePath, cancellationToken);
         }
 
         public async Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken)
@@ -428,8 +429,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     solution,
                     solutionUpdate.EmitBaselines,
                     solutionUpdate.Deltas,
-                    solutionUpdate.ModuleReaders,
-                    solutionUpdate.ChangedDocuments));
+                    solutionUpdate.ModuleReaders));
 
                 // commit/discard was not called:
                 Contract.ThrowIfFalse(previousPendingUpdate == null);

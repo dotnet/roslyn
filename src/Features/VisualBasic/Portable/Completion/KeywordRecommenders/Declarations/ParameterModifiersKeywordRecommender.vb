@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                     ' If a previous one had a ParamArray, then nothing is valid anymore, since the ParamArray must
                     ' always be the last parameter
                     If parameter.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.ParamArrayKeyword) Then
-                        Return Enumerable.Empty(Of RecommendedKeyword)()
+                        Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
                     End If
 
                     ' If a previous one had an Optional, then all following must be optional. Following Dev10 behavior,

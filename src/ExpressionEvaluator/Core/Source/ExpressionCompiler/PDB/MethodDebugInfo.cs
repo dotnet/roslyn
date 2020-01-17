@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -16,12 +19,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<HoistedLocalScopeRecord>.Empty,
             ImmutableArray<ImmutableArray<ImportRecord>>.Empty,
             ImmutableArray<ExternAliasRecord>.Empty,
-            null,
-            null,
-            "",
-            ImmutableArray<string>.Empty,
-            ImmutableArray<TLocalSymbol>.Empty,
-            ILSpan.MaxValue);
+            dynamicLocalMap: null,
+            tupleLocalMap: null,
+            defaultNamespaceName: "",
+            localVariableNames: ImmutableArray<string>.Empty,
+            localConstants: ImmutableArray<TLocalSymbol>.Empty,
+            reuseSpan: ILSpan.MaxValue);
 
         /// <summary>
         /// Hoisted local variable scopes.
@@ -32,8 +35,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;
         public readonly ImmutableArray<ExternAliasRecord> ExternAliasRecords; // C# only.
-        public readonly ImmutableDictionary<int, ImmutableArray<bool>> DynamicLocalMap; // C# only.
-        public readonly ImmutableDictionary<int, ImmutableArray<string>> TupleLocalMap;
+        public readonly ImmutableDictionary<int, ImmutableArray<bool>>? DynamicLocalMap; // C# only.
+        public readonly ImmutableDictionary<int, ImmutableArray<string?>>? TupleLocalMap;
         public readonly string DefaultNamespaceName; // VB only.
         public readonly ImmutableArray<string> LocalVariableNames;
         public readonly ImmutableArray<TLocalSymbol> LocalConstants;
@@ -43,16 +46,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<HoistedLocalScopeRecord> hoistedLocalScopeRecords,
             ImmutableArray<ImmutableArray<ImportRecord>> importRecordGroups,
             ImmutableArray<ExternAliasRecord> externAliasRecords,
-            ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
-            ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap,
+            ImmutableDictionary<int, ImmutableArray<bool>>? dynamicLocalMap,
+            ImmutableDictionary<int, ImmutableArray<string?>>? tupleLocalMap,
             string defaultNamespaceName,
             ImmutableArray<string> localVariableNames,
             ImmutableArray<TLocalSymbol> localConstants,
             ILSpan reuseSpan)
         {
-            Debug.Assert(!importRecordGroups.IsDefault);
-            Debug.Assert(!externAliasRecords.IsDefault);
-            Debug.Assert(defaultNamespaceName != null);
+            RoslynDebug.Assert(!importRecordGroups.IsDefault);
+            RoslynDebug.Assert(!externAliasRecords.IsDefault);
+            RoslynDebug.AssertNotNull(defaultNamespaceName);
 
             HoistedLocalScopeRecords = hoistedLocalScopeRecords;
             ImportRecordGroups = importRecordGroups;

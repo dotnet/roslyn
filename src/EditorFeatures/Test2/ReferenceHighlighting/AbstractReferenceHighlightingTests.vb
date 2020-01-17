@@ -25,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
         Private Async Function VerifyHighlightsAsync(test As XElement, optionIsEnabled As Boolean, outOfProcess As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractReferenceHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)))
 
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
@@ -37,7 +38,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
 
-                workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)))
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(

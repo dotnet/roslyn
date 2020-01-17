@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -139,11 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.IsRightSideOfQualifiedName();
         }
 
-        public bool IsNameOfMemberAccessExpression(SyntaxNode node)
+#nullable enable
+        public bool IsNameOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsMemberAccessExpressionName();
         }
+#nullable restore
 
         public bool IsObjectCreationExpressionType(SyntaxNode node)
         {
@@ -156,10 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsAttributeName(node);
         }
 
-        public bool IsInvocationExpression(SyntaxNode node)
+#nullable enable
+        public bool IsInvocationExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             return node is InvocationExpressionSyntax;
         }
+#nullable restore
 
         public bool IsAnonymousFunction(SyntaxNode node)
         {
@@ -556,8 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPostfixUnaryExpression(SyntaxNode node)
             => node is PostfixUnaryExpressionSyntax;
 
-        public bool IsMemberBindingExpression(SyntaxNode node)
+#nullable enable
+        public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberBindingExpressionSyntax;
+#nullable restore
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
@@ -1284,6 +1291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
             => (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
+
+        public bool IsLeftSideOfCompoundAssignment(SyntaxNode node)
+            => (node as ExpressionSyntax).IsLeftSideOfCompoundAssignExpression();
 
         public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
             => (node as AssignmentExpressionSyntax)?.Right;

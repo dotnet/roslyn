@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService?.Register(this);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Adds an entire solution to the workspace, replacing any existing solution.
         /// </summary>
-        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, out Solution solution)
+        public bool TryAddSolutionIfPossible(SolutionInfo solutionInfo, int workspaceVersion, SerializableOptionSet options, out Solution solution)
         {
             if (solutionInfo == null)
             {
@@ -89,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 this.ClearSolutionData();
 
                 this.OnSolutionAdded(solutionInfo);
+
+                SetOptions(options);
 
                 solution = this.CurrentSolution;
                 return true;
@@ -121,6 +123,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var newSolution = this.SetCurrentSolution(solution);
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+
+                SetOptions(newSolution.Options);
 
                 return this.CurrentSolution;
             }

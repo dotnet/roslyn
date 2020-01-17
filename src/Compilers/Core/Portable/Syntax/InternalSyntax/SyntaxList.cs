@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
         }
 
-        internal SyntaxList(DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        internal SyntaxList(DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
             : base(GreenNode.ListKind, diagnostics, annotations)
         {
         }
@@ -29,11 +31,11 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static WithTwoChildren List(GreenNode child0, GreenNode child1)
         {
-            Debug.Assert(child0 != null);
-            Debug.Assert(child1 != null);
+            RoslynDebug.Assert(child0 != null);
+            RoslynDebug.Assert(child1 != null);
 
             int hash;
-            GreenNode cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, out hash);
+            GreenNode? cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, out hash);
             if (cached != null)
                 return (WithTwoChildren)cached;
 
@@ -48,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal static WithThreeChildren List(GreenNode child0, GreenNode child1, GreenNode child2)
         {
-            Debug.Assert(child0 != null);
-            Debug.Assert(child1 != null);
-            Debug.Assert(child2 != null);
+            RoslynDebug.Assert(child0 != null);
+            RoslynDebug.Assert(child1 != null);
+            RoslynDebug.Assert(child2 != null);
 
             int hash;
-            GreenNode cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, out hash);
+            GreenNode? cached = SyntaxNodeCache.TryGetNode(GreenNode.ListKind, child0, child1, child2, out hash);
             if (cached != null)
                 return (WithThreeChildren)cached;
 
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal abstract void CopyTo(ArrayElement<GreenNode>[] array, int offset);
 
-        internal static GreenNode Concat(GreenNode left, GreenNode right)
+        internal static GreenNode? Concat(GreenNode? left, GreenNode? right)
         {
             if (left == null)
             {

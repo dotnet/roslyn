@@ -3199,5 +3199,21 @@ class C
 
             Assert.Equal("A, B", namedTypeAnalyzer.GetSortedSymbolCallbacksString());
         }
+
+        [Fact]
+        public void TestConcurrentAnalyzerActions()
+        {
+            var first = AnalyzerActions.Empty;
+            var second = AnalyzerActions.Empty;
+            first.EnableConcurrentExecution();
+
+            Assert.True(first.Concurrent);
+            Assert.False(second.Concurrent);
+            Assert.True(first.Append(second).Concurrent);
+
+            Assert.True(first.Concurrent);
+            Assert.False(second.Concurrent);
+            Assert.True(second.Append(first).Concurrent);
+        }
     }
 }

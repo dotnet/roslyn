@@ -22,6 +22,11 @@
         <target state="translated">挿入される verbatim 文字列で '$@' の代わりに '@$' を使用するには、言語バージョン '{0}' 以上をご使用ください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">オブジェクト作成では Null 許容参照型を使用できません。</target>
@@ -5933,8 +5938,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">読み取り専用フィールドに割り当てることはできません (コンストラクター、変数初期化子では可 )。</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">読み取り専用フィールドに割り当てることはできません (コンストラクター、変数初期化子では可 )。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

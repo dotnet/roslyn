@@ -22,6 +22,11 @@
         <target state="translated">Per usare '@$' invece di '$@' per una stringa verbatim interpolata, usare la versione '{0}' o versioni successive del linguaggio.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">Non è possibile usare un tipo riferimento nullable durante la creazione di oggetti.</target>
@@ -5933,8 +5938,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">Un campo readonly non può essere assegnato (tranne che in un costruttore o in un inizializzatore di variabile)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Un campo readonly non può essere assegnato (tranne che in un costruttore o in un inizializzatore di variabile)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">
