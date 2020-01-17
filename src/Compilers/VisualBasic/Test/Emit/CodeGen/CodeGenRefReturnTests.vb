@@ -1119,6 +1119,7 @@ public class B
             F(New B(), a)
         Catch e As System.Exception
             System.Console.Write(e.Message)
+            System.Console.WriteLine(e.StackTrace)
         Finally
             System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
         End Try
