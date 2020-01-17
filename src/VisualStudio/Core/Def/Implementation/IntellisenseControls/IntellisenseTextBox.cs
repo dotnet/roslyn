@@ -46,16 +46,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <summary>
         /// Appearance category of text view in the intellisense textbox
         /// </summary>
-        private const string appearanceCategory = "IntellisenseTextBlock";
+        private const string AppearanceCategory = "IntellisenseTextBlock";
 
-        /// <summary>
-        /// Name of container.
-        /// </summary>
         public readonly string ContainerName;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IntellisenseTextBox"/> class.
-        /// </summary>
         public IntellisenseTextBox(IntellisenseTextBoxViewModel viewModel, ContentControl container)
         {
             this.InitializeEditorControl(viewModel, container);
@@ -100,6 +94,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         protected override int VisualChildrenCount
         {
             get => 1;
+        }
+
+        /// <summary>
+        /// Returns visual child at given index
+        /// </summary>
+        /// <param name="index">child index</param>
+        /// <returns>returns visual child</returns>
+        protected override Visual GetVisualChild(int index)
+        {
+            if (this._textViewHost != null)
+            {
+                return this._textViewHost.HostControl;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -226,21 +235,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         }
 
         /// <summary>
-        /// Returns visual child at given index
-        /// </summary>
-        /// <param name="index">child index</param>
-        /// <returns>returns visual child</returns>
-        protected override Visual GetVisualChild(int index)
-        {
-            if (this._textViewHost != null)
-            {
-                return this._textViewHost.HostControl;
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Arrange visual children
         /// </summary>
         /// <param name="finalSize">final size to arrange children</param>
@@ -271,14 +265,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             // Sets editor options that control its final look
             IEditorOptions editorOptions = viewModel.WpfTextView.Properties.GetProperty(typeof(IEditorOptions)) as IEditorOptions;
             editorOptions.SetOptionValue("TextViewHost/ZoomControl", false);
-            editorOptions.SetOptionValue(DefaultWpfViewOptions.AppearanceCategory, appearanceCategory);
+            editorOptions.SetOptionValue(DefaultWpfViewOptions.AppearanceCategory, AppearanceCategory);
 
             // Set the font used in the editor
             // The editor will automatically choose the font, color for the text
             // depending on the current language. Override the font information
             // to have uniform look and feel in the parallel watch window
             IClassificationFormatMapService classificationFormatMapService = componentModel.GetService<IClassificationFormatMapService>();
-            IClassificationFormatMap classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap(appearanceCategory);
+            IClassificationFormatMap classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap(AppearanceCategory);
             Typeface typeface = new Typeface(container.FontFamily, container.FontStyle, container.FontWeight, container.FontStretch);
             classificationFormatMap.DefaultTextProperties = classificationFormatMap.DefaultTextProperties.SetTypeface(typeface);
             classificationFormatMap.DefaultTextProperties = classificationFormatMap.DefaultTextProperties.SetFontRenderingEmSize(container.FontSize);

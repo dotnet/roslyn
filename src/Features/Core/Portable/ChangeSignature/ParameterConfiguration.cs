@@ -1,19 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal sealed class ParameterConfiguration
     {
-        public readonly Parameter ThisParameter;
-        public readonly List<Parameter> ParametersWithoutDefaultValues;
-        public readonly List<Parameter> RemainingEditableParameters;
-        public readonly Parameter ParamsParameter;
+        public readonly Parameter? ThisParameter;
+        public readonly ImmutableArray<Parameter> ParametersWithoutDefaultValues;
+        public readonly ImmutableArray<Parameter> RemainingEditableParameters;
+        public readonly Parameter? ParamsParameter;
         public readonly int SelectedIndex;
 
-        public ParameterConfiguration(Parameter thisParameter, List<Parameter> parametersWithoutDefaultValues, List<Parameter> remainingEditableParameters, Parameter paramsParameter, int selectedIndex)
+        public ParameterConfiguration(
+            Parameter? thisParameter,
+            ImmutableArray<Parameter> parametersWithoutDefaultValues,
+            ImmutableArray<Parameter> remainingEditableParameters,
+            Parameter? paramsParameter,
+            int selectedIndex)
         {
             ThisParameter = thisParameter;
             ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
@@ -22,12 +30,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(List<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
+        public static ParameterConfiguration Create(List<Parameter?> parameters, bool isExtensionMethod, int selectedIndex)
         {
-            Parameter thisParameter = null;
-            var parametersWithoutDefaultValues = new List<Parameter>();
-            var remainingReorderableParameters = new List<Parameter>();
-            Parameter paramsParameter = null;
+            Parameter? thisParameter = null;
+            var parametersWithoutDefaultValues = ImmutableArray.CreateBuilder<Parameter>();
+            var remainingReorderableParameters = ImmutableArray.CreateBuilder<Parameter>();
+            Parameter? paramsParameter = null;
 
             if (parameters.Count > 0 && isExtensionMethod)
             {
@@ -44,19 +52,22 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var seenDefaultValues = false;
             foreach (var param in parameters)
             {
-                if (param.HasExplicitDefaultValue)
+                if (param != null)
                 {
-                    seenDefaultValues = true;
-                }
+                    if (param.HasExplicitDefaultValue)
+                    {
+                        seenDefaultValues = true;
+                    }
 
-                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
+                    (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
+                }
             }
 
-            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues, remainingReorderableParameters, paramsParameter, selectedIndex);
+            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues.ToImmutable(), remainingReorderableParameters.ToImmutable(), paramsParameter, selectedIndex);
         }
 
         internal ParameterConfiguration WithoutAddedParameters()
-            => Create(ToListOfParameters().OfType<ExistingParameter>().ToList<Parameter>(), ThisParameter != null, selectedIndex: 0);
+            => Create(ToListOfParameters().OfType<ExistingParameter>().ToList<Parameter?>(), ThisParameter != null, selectedIndex: 0);
 
         public List<Parameter> ToListOfParameters()
         {

@@ -15,8 +15,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     [TextViewRole(VisualStudioChangeSignatureOptionsService.AddParameterTextViewRole)]
     internal class AddParameterTextViewModelProvider : ITextViewModelProvider
     {
-        [Import]
-        public IProjectionBufferFactoryService ProjectionBufferFactoryService { get; set; }
+        public IProjectionBufferFactoryService ProjectionBufferFactoryService { get; }
+
+        [ImportingConstructor]
+        public AddParameterTextViewModelProvider(IProjectionBufferFactoryService projectionBufferFactoryService)
+        {
+            ProjectionBufferFactoryService = projectionBufferFactoryService;
+        }
 
         public ITextViewModel CreateTextViewModel(ITextDataModel dataModel, ITextViewRoleSet roles)
         {

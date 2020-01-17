@@ -2,8 +2,6 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -51,12 +49,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             _projectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        public async Task<IntellisenseTextBoxViewModel[]> CreateIntellisenseTextBoxViewModelsAsync(
+        public IntellisenseTextBoxViewModel[] CreateIntellisenseTextBoxViewModels(
           Document document,
           IContentType contentType,
           string contentString,
           Func<ITextSnapshot, ITrackingSpan[]> createSpansMethod,
-          string[][] rolesCollections, CancellationToken cancellationToken)
+          string[][] rolesCollections)
         {
             var vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, contentType) as IVsTextLines;
             vsTextLines.InitializeContent(contentString, contentString.Length);
@@ -91,15 +89,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
 
             // Put it into a new workspace, and open it and its related documents
             // with the projection buffer as the text.
-            var workspace = new IntellisenseTextBoxWorkspace(forkedSolution, document.Project);
+            var workspace = new IntellisenseTextBoxWorkspace(forkedSolution, document.Project, string.Empty);
             workspace.OpenDocument(workspace.ChangeSignatureDocumentId, originalContextBuffer.AsTextContainer());
             foreach (var link in document.GetLinkedDocumentIds())
             {
                 workspace.OpenDocument(link, originalContextBuffer.AsTextContainer());
             }
-
-            // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             _editorAdaptersFactoryService.SetDataBuffer(vsTextLines, projectionBuffer);
 

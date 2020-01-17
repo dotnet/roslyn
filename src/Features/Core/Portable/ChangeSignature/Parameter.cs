@@ -1,17 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal abstract class Parameter
     {
         public abstract bool HasExplicitDefaultValue { get; }
         public abstract string Name { get; }
-        public abstract IParameterSymbol Symbol { get; }
     }
 
     internal sealed class ExistingParameter : Parameter
     {
-        public override IParameterSymbol Symbol { get; }
+        public IParameterSymbol Symbol { get; }
 
         public ExistingParameter(IParameterSymbol param)
         {
@@ -37,9 +38,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         public override bool HasExplicitDefaultValue => false;
         public override string Name => ParameterName;
-        public override IParameterSymbol Symbol => null;
 
-        // For test purposes.
+        // For test purposes: to display assert failure details in tests.
         public override string ToString() => $"{TypeName} {Name} ({CallSiteValue})";
     }
 }

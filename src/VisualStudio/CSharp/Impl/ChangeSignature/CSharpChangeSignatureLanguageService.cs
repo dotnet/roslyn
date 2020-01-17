@@ -6,12 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ChangeSignatureDialogViewModel;
 
@@ -20,21 +18,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
     [ExportLanguageService(typeof(IChangeSignatureLanguageService), LanguageNames.CSharp), Shared]
     internal class CSharpChangeSignatureLanguageService : ChangeSignatureLanguageService
     {
-        public override async Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(
+        public override IntellisenseTextBoxViewModel[] CreateViewModels(
             string[] rolesCollectionType,
             string[] rolesCollectionName,
             int insertPosition,
             Document document,
             string documentText,
             IContentType contentType,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
-            CancellationToken cancellationToken)
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory)
         {
             var rolesCollections = new[] { rolesCollectionType, rolesCollectionName };
 
-            return await intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModelsAsync(
+            return intellisenseTextBoxViewModelFactory.CreateIntellisenseTextBoxViewModels(
                document, contentType, documentText.Insert(insertPosition, ", "),
-               CreateTrackingSpans, rolesCollections, cancellationToken).ConfigureAwait(false);
+               CreateTrackingSpans, rolesCollections);
 
             ITrackingSpan[] CreateTrackingSpans(ITextSnapshot snapshot)
             {

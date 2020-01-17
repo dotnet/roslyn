@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                                                                updatedSignature As SignatureChange,
                                                                createNewParameterMethod As Func(Of AddedParameter, T)) As SeparatedSyntaxList(Of T)
             Dim basePermuteDeclaration = PermuteDeclarationBase(parameterList, updatedSignature, createNewParameterMethod)
-            Return SyntaxFactory.SeparatedList(basePermuteDeclaration.Item1, basePermuteDeclaration.Item2)
+            Return SyntaxFactory.SeparatedList(basePermuteDeclaration.parameters, basePermuteDeclaration.separators)
         End Function
 
         Private Shared Function CreateNewParameterSyntax(addedParameter As AddedParameter) As ParameterSyntax

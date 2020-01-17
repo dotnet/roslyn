@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis.ChangeSignature;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
@@ -8,25 +10,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
     {
         public bool IsExisting { get; }
 
-        public int OldIndex { get; }
+        public int? OldIndex { get; }
 
-        public AddedParameter AddedParameter { get; }
+        public AddedParameter? AddedParameter { get; }
 
         public AddedParameterOrExistingIndex(int index)
         {
             OldIndex = index;
             IsExisting = true;
-            AddedParameter = default;
+            AddedParameter = null;
         }
 
         public AddedParameterOrExistingIndex(AddedParameter addedParameter)
         {
-            OldIndex = -1;
+            OldIndex = null;
             IsExisting = false;
             AddedParameter = addedParameter;
         }
 
         public override string ToString()
-            => IsExisting ? OldIndex.ToString() : AddedParameter.ToString();
+            => IsExisting ? OldIndex.ToString() : (AddedParameter?.ToString() ?? string.Empty);
     }
 }

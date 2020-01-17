@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var context = await GetContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return context.CanChangeSignature
-                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, context))
+            return context is ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext
+                ? ImmutableArray.Create(new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext))
                 : ImmutableArray<ChangeSignatureCodeAction>.Empty;
         }
 
@@ -63,13 +63,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var context = GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
-            if (context.CanChangeSignature)
+            if (context is ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext)
             {
-                return ChangeSignatureWithContextAsync(context, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                return ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             }
             else
             {
-                switch (context.CannotChangeSignatureReason)
+                var cannotChangeSignatureAnalyzedContext = context as CannotChangeSignatureAnalyzedContext;
+                switch (cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason)
                 {
                     case CannotChangeSignatureReason.DefinedInMetadata:
                         errorHandler(FeaturesResources.The_member_is_defined_in_metadata, NotificationSeverity.Error);
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (symbol == null)
             {
-                return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
             if (symbol is IMethodSymbol method)
@@ -125,21 +126,21 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (symbol.Locations.Any(loc => loc.IsInMetadata))
             {
-                return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.DefinedInMetadata);
             }
 
             if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property, SymbolKind.NamedType))
             {
-                return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
             var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().Select(p => new ExistingParameter(p)).ToList<Parameter>(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
 
-            return new ChangeSignatureAnalyzedContext(
-                document, symbol, parameterConfiguration, insertPosition);
+            return new ChangeSignatureAnalyzedSucceedContext(
+                document, insertPosition, symbol, parameterConfiguration);
         }
 
-        private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, CancellationToken cancellationToken)
+        private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)
         {
             var options = GetChangeSignatureOptions(context);
             if (options.IsCancelled)
@@ -150,21 +151,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return await ChangeSignatureWithContextAsync(context, options, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+        internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
             var updatedSolution = await TryCreateUpdatedSolutionAsync(context, options, cancellationToken).ConfigureAwait(false);
             return new ChangeSignatureResult(updatedSolution != null, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedContext context)
+        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedSucceedContext context)
         {
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
 
             return changeSignatureOptionsService.GetChangeSignatureOptions(
-                context.Symbol,
-                context.InsertPosition,
-                context.ParameterConfiguration,
-                context.Document);
+                context.Document, context.InsertPosition, context.Symbol, context.ParameterConfiguration);
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindChangeSignatureReferencesAsync(
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 #nullable enable
 
         private async Task<Solution?> TryCreateUpdatedSolutionAsync(
-            ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
+            ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
             var originalSolution = context.Solution;
             var declaredSymbol = context.Symbol;
@@ -205,7 +203,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var hasLocationsInMetadata = false;
 
             var symbols = FindChangeSignatureReferencesAsync(
-                SymbolAndProjectId.Create(declaredSymbol, context.Project.Id),
+                SymbolAndProjectId.Create(declaredSymbol, context.Document.Project.Id),
                 context.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
@@ -609,7 +607,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return parameters.Count - 1;
         }
 
-        protected (IEnumerable<T>, IEnumerable<SyntaxToken>) PermuteDeclarationBase<T>(
+        protected (IEnumerable<T> parameters, IEnumerable<SyntaxToken> separators) PermuteDeclarationBase<T>(
             SeparatedSyntaxList<T> list,
             SignatureChange updatedSignature,
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
@@ -623,22 +621,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             for (var index = 0; index < reorderedParameters.Count; index++)
             {
                 var newParam = reorderedParameters[index];
-                var pos = originalParameters.IndexOf(p => p.Symbol == newParam.Symbol);
+                if (newParam is ExistingParameter existingParameter)
+                {
+                    var pos = originalParameters.IndexOf(p => p is ExistingParameter ep && ep.Symbol == existingParameter.Symbol);
+                    if (pos >= 0)
+                    {
+                        var param = list[pos];
 
-                if (pos == -1)
+                        // copy whitespace trivia from original position
+                        param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
+                        newParameters.Add(param);
+                    }
+                }
+                else
                 {
                     // Added parameter
                     numAddedParameters++;
                     var newParameter = createNewParameterMethod(newParam as AddedParameter);
                     newParameters.Add(newParameter);
-                }
-                else
-                {
-                    var param = list[pos];
-
-                    // copy whitespace trivia from original position
-                    param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
-                    newParameters.Add(param);
                 }
             }
 

@@ -35,6 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
+        /// <summary>
+        /// The document where the symbol we are changing signature is defined.
+        /// </summary>
         public readonly Document Document;
 
         internal ChangeSignatureDialogViewModel(
@@ -74,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var selectedIndex = parameters.SelectedIndex;
             if (parameters.ThisParameter != null && selectedIndex == 0)
             {
-                if (parameters.ParametersWithoutDefaultValues.Count + parameters.RemainingEditableParameters.Count > 0)
+                if (parameters.ParametersWithoutDefaultValues.Length + parameters.RemainingEditableParameters.Length > 0)
                 {
                     this.SelectedIndex = 1;
                 }
@@ -237,8 +240,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             return new ParameterConfiguration(
                 _originalParameterConfiguration.ThisParameter,
-                _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
-                _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToList(),
+                _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToImmutableArray(),
+                _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToImmutableArray(),
                 (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).CreateParameter(),
                 selectedIndex: -1);
         }
@@ -319,15 +322,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
 
                 first = false;
-                if (parameter is ExistingParameterViewModel existingParameter)
-                {
-                    displayParts.AddRange(existingParameter.ParameterSymbol.ToDisplayParts(s_parameterDisplayFormat));
-                }
 
-                if (parameter is AddedParameterViewModel addedParameterViewModel)
+                switch (parameter)
                 {
-                    var languageService = Document.GetLanguageService<IChangeSignatureLanguageService>();
-                    languageService.GeneratePreviewDisplayParts(addedParameterViewModel, displayParts);
+                    case ExistingParameterViewModel existingParameter:
+                        displayParts.AddRange(existingParameter.ParameterSymbol.ToDisplayParts(s_parameterDisplayFormat));
+                        break;
+
+                    case AddedParameterViewModel addedParameterViewModel:
+                        var languageService = Document.GetLanguageService<IChangeSignatureLanguageService>();
+                        languageService.GeneratePreviewDisplayParts(addedParameterViewModel, displayParts);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(parameter.GetType().ToString());
                 }
             }
 

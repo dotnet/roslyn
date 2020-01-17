@@ -24,9 +24,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             for (var i = 0; i < originalParameterList.Count; i++)
             {
+                int? index = null;
                 var parameter = originalParameterList[i];
-                var updatedIndex = updatedParameterList.IndexOf(p => p.Symbol == parameter.Symbol);
-                _originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
+                if (parameter is ExistingParameter existingParameter)
+                {
+                    var updatedIndex = updatedParameterList.IndexOf(p => p is ExistingParameter ep && ep.Symbol == existingParameter.Symbol);
+                    if (updatedIndex >= 0)
+                    {
+                        index = updatedIndex;
+                    }
+                }
+
+                _originalIndexToUpdatedIndexMap.Add(i, index);
             }
         }
 

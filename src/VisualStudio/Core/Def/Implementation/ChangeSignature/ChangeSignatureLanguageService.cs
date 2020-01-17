@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text;
@@ -12,10 +12,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal abstract class ChangeSignatureLanguageService : IChangeSignatureLanguageService
     {
-        public abstract Task<IntellisenseTextBoxViewModel[]> CreateViewModelsAsync(
-            string[] rolesCollectionType, string[] rolesCollectionName, int insertPosition,
-            Document document, string documentText, IContentType contentType,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory, CancellationToken cancellationToken);
+        public abstract IntellisenseTextBoxViewModel[] CreateViewModels(
+            string[] rolesCollectionType,
+            string[] rolesCollectionName,
+            int insertPosition,
+            Document document,
+            string documentText,
+            IContentType contentType,
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory);
 
         public abstract void GeneratePreviewDisplayParts(
             ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
