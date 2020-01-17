@@ -70,6 +70,15 @@ namespace AnalyzerRunner
 
             if (_options.TestDocuments)
             {
+                // Make sure we have a compilation for each project
+                foreach (var project in solution.Projects)
+                {
+                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                        continue;
+
+                    _ = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                }
+
                 var projectPerformance = new Dictionary<ProjectId, double>();
                 var documentPerformance = new Dictionary<DocumentId, DocumentAnalyzerPerformance>();
                 foreach (var projectId in solution.ProjectIds)
@@ -152,11 +161,11 @@ namespace AnalyzerRunner
                 languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
             }
 
+            Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
             var stopwatch = Stopwatch.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
-                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
                 var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
