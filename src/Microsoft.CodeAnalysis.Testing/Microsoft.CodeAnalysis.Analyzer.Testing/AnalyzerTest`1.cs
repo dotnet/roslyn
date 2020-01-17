@@ -781,28 +781,29 @@ namespace Microsoft.CodeAnalysis.Testing
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
-                diagnostics.AddRange(allDiagnostics.Where(IsIncludedDiagnostic));
+
+                diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)));
             }
 
             var results = SortDistinctDiagnostics(diagnostics);
             return results.ToImmutableArray();
+        }
 
-            // Local function
-            bool IsIncludedDiagnostic(Diagnostic diagnostic)
-            {
-                return !IsCompilerDiagnostic(diagnostic)
-                    || IsCompilerDiagnosticIncluded(diagnostic);
-            }
+        private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+        {
+            return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
+        }
 
-            static bool IsCompilerDiagnostic(Diagnostic diagnostic)
+        /// <summary>
+        /// Determines if a compiler diagnostic should be included for diagnostic validation. The default implementation includes all diagnostics at a severity level indicated by <paramref name="compilerDiagnostics"/>.
+        /// </summary>
+        /// <param name="diagnostic">The compiler diagnostic.</param>
+        /// <param name="compilerDiagnostics">The compiler diagnostic level in effect for the test.</param>
+        /// <returns><see langword="true"/> to include the diagnostic for validation; otherwise, <see langword="false"/> to exclude a diagnostic.</returns>
+        protected virtual bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
+        {
+            switch (compilerDiagnostics)
             {
-                return diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
-            }
-
-            bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic)
-            {
-                switch (compilerDiagnostics)
-                {
                 case CompilerDiagnostics.None:
                 default:
                     return false;
@@ -818,7 +819,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 case CompilerDiagnostics.All:
                     return true;
-                }
             }
         }
 
