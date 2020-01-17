@@ -6,7 +6,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class RecordTests : CompilingTestBase
     {
         [Fact]
