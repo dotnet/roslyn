@@ -79,7 +79,8 @@
       "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
       "channels": [ "dev16.6", "dev16.6p1" ],
       "vsBranch": "master",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "ibcSourceBranch": "master-vs-deps"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",
