@@ -7420,8 +7420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskLikeType
-                    ? awaitableInfo.GetResult.OriginalDefinition.AsMember(taskLikeType)
+                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskAwaiterType
+                    ? awaitableInfo.GetResult.OriginalDefinition.AsMember(taskAwaiterType)
                     : awaitableInfo.GetResult;
 
                 SetResultType(node, reinferredGetResult.ReturnTypeWithAnnotations.ToTypeWithState());
