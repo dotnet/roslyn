@@ -15,16 +15,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim withBlock = node.GetAncestor(Of WithBlockSyntax)()
             If withBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
 
             With withBlock
-                Return { .WithStatement.WithKeyword.Span,
-                        .EndWithStatement.Span}
+                highlights.Add(.WithStatement.WithKeyword.Span)
+                highlights.Add(.EndWithStatement.Span)
             End With
-        End Function
+        End Sub
     End Class
 End Namespace

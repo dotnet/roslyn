@@ -87,7 +87,7 @@ class C
         }");
 
             VisualStudio.Editor.InvokeQuickInfo();
-            var expected = "(awaitable) Task<int> C.M()\r\n\r\nUsage:\r\n  int x = await M();\r\n\r\nExceptions:\r\n  Exception";
+            var expected = "(awaitable) Task<int> C.M()\r\n\r\nExceptions:\r\n  Exception";
             Assert.Equal(expected, VisualStudio.Editor.GetQuickInfo());
         }
     }

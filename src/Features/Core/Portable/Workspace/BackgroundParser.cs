@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
     {
         private readonly Workspace _workspace;
         private readonly IWorkspaceTaskScheduler _taskScheduler;
+        private readonly IDocumentTrackingService _documentTrackingService;
 
         private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
 
@@ -35,6 +38,9 @@ namespace Microsoft.CodeAnalysis.Host
 
             var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
             _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+
+            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             workspace.DocumentOpened += OnDocumentOpened;
@@ -79,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Host
                     // this consumed around 2%-3% of the trace after some other optimizations I did. Most of that
                     // was actually walking the documents list since this was causing all the Documents to be realized.
                     // Since this is on the UI thread, it's best just to not do the work if we don't need it.
-                    if (oldProject.SupportsCompilation && !object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
+                    if (oldProject.SupportsCompilation &&
+                        !object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                     {
                         foreach (var doc in newProject.Documents)
                         {
@@ -156,6 +163,17 @@ namespace Microsoft.CodeAnalysis.Host
                 lock (_parseGate)
                 {
                     CancelParse(document.Id);
+
+                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
+                        _documentTrackingService?.TryGetActiveDocument() != document.Id)
+                    {
+                        // Avoid performing any background parsing for non-active files
+                        // if the user has explicitly set the background analysis scope
+                        // to only analyze active files.
+                        // Note that we bail out after executing CancelParse to ensure
+                        // all the current background parsing tasks are cancelled.
+                        return;
+                    }
 
                     if (IsStarted)
                     {

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                     optionSet = optionSet.WithChangedOption(option.Key, option.Value);
                 }
 
-                workspace.Options = optionSet;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
             }
         }
     }

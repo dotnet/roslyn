@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                     return Task.FromResult<IBlockContext>(result);
                 }
 
-                return SpecializedTasks.Default<IBlockContext>();
+                return SpecializedTasks.Null<IBlockContext>();
             }
         }
 

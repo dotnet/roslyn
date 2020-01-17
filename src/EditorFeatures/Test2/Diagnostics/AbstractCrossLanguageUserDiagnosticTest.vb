@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         Private Async Function GetDocumentAndDiagnosticsAsync(workspace As TestWorkspace, provider As DiagnosticAnalyzer) As Task(Of Tuple(Of Document, IEnumerable(Of Diagnostic)))
             Dim hostDocument = GetHostDocument(workspace)
 
-            Dim invocationBuffer = hostDocument.TextBuffer
+            Dim invocationBuffer = hostDocument.GetTextBuffer()
             Dim invocationPoint = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue AndAlso Not d.IsLinkFile).CursorPosition.Value
 
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)

@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-            RoslynEventSource.Instance.BlockStart(GetMessage(logMessage), functionId, uniquePairId);
+            _source.BlockStart(GetMessage(logMessage), functionId, uniquePairId);
         }
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                RoslynEventSource.Instance.BlockCanceled(functionId, delta, uniquePairId);
+                _source.BlockCanceled(functionId, delta, uniquePairId);
             }
             else
             {
-                RoslynEventSource.Instance.BlockStop(functionId, delta, uniquePairId);
+                _source.BlockStop(functionId, delta, uniquePairId);
             }
         }
 

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportOptionProvider, Shared]
+    [ExportOptionProvider(LanguageNames.CSharp), Shared]
     internal sealed class CSharpFormattingOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]

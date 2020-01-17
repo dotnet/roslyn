@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.Remote
         #region Messages to forward from here to VS
 
         public Task LogExceptionAsync(string exception, string text)
-            => this.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(LogExceptionAsync), new object[] { exception, text }, CancellationToken.None);
 
         public Task LogInfoAsync(string text)
-            => this.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(LogInfoAsync), new object[] { text }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseStartedAsync(string title)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseStartedAsync), new object[] { title }, CancellationToken.None);
 
         public Task OnDownloadFullDatabaseSucceededAsync()
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseSucceededAsync), Array.Empty<object>(), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseCanceledAsync()
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseCanceledAsync), Array.Empty<object>(), CancellationToken.None);
 
         public Task OnDownloadFullDatabaseFailedAsync(string message)
-            => this.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
+            => EndPoint.InvokeAsync(nameof(OnDownloadFullDatabaseFailedAsync), new object[] { message }, CancellationToken.None);
 
         #endregion
     }

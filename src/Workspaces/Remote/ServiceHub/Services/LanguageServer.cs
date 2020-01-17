@@ -10,33 +10,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Newtonsoft.Json;
-using Roslyn.Utilities;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    // we need per language server for now since ILanguageClient
-    // doesn't allow multiple content types to be associated with
-    // one language server
-    internal class CSharpLanguageServer : LanguageServer
-    {
-        public CSharpLanguageServer(Stream stream, IServiceProvider serviceProvider)
-            : base(stream, serviceProvider, LanguageNames.CSharp)
-        {
-        }
-    }
-
-    internal class VisualBasicLanguageServer : LanguageServer
-    {
-        public VisualBasicLanguageServer(Stream stream, IServiceProvider serviceProvider)
-            : base(stream, serviceProvider, LanguageNames.VisualBasic)
-        {
-        }
-    }
-
-    internal abstract class LanguageServer : ServiceBase
+    internal class LanguageServer : ServiceBase
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
             ImmutableHashSet.Create(
@@ -53,28 +33,22 @@ namespace Microsoft.CodeAnalysis.Remote
                 NavigateToItemKind.Property,
                 NavigateToItemKind.Structure);
 
-        private readonly string _languageName;
-
-        public LanguageServer(Stream stream, IServiceProvider serviceProvider, string languageName)
-            : base(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+        public LanguageServer(Stream stream, IServiceProvider serviceProvider)
+            : base(serviceProvider, stream)
         {
-            _languageName = languageName;
-
             StartService();
         }
 
         [JsonRpcMethod(Methods.InitializeName)]
-        public object Initialize(int? processId, string rootPath, Uri rootUri, ClientCapabilities capabilities, TraceSetting trace, CancellationToken cancellationToken)
+        public Task<InitializeResult> Initialize(JToken input, CancellationToken cancellationToken)
         {
-            // our LSP server only supports WorkspaceStreamingSymbolProvider capability
-            // for now
-            return new InitializeResult()
+            return Task.FromResult(new InitializeResult()
             {
                 Capabilities = new VSServerCapabilities()
                 {
                     WorkspaceStreamingSymbolProvider = true
                 }
-            };
+            });
         }
 
         [JsonRpcMethod(Methods.InitializedName)]
@@ -115,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task SearchAsync(Solution solution, string query, int searchId, CancellationToken cancellationToken)
         {
-            var tasks = solution.Projects.Where(p => p.Language == _languageName).Select(p => SearchProjectAsync(p, cancellationToken)).ToArray();
+            var tasks = solution.Projects.Select(p => SearchProjectAsync(p, cancellationToken)).ToArray();
             await Task.WhenAll(tasks).ConfigureAwait(false);
             return;
 
@@ -132,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var convertedResults = await ConvertAsync(results, cancellationToken).ConfigureAwait(false);
 
-                await InvokeAsync(
+                await EndPoint.InvokeAsync(
                     VSSymbolMethods.WorkspacePublishSymbolName,
                     new object[] { new VSPublishSymbolParams() { SearchId = searchId, Symbols = convertedResults } },
                     cancellationToken).ConfigureAwait(false);

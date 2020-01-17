@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static implicit operator TypeInfo(CSharpTypeInfo info)
         {
-            return new TypeInfo(info.Type, info.ConvertedType, info.Nullability, info.ConvertedNullability);
+            return new TypeInfo(info.Type?.GetITypeSymbol(info.Nullability.FlowState.ToAnnotation()), info.ConvertedType?.GetITypeSymbol(info.ConvertedNullability.FlowState.ToAnnotation()),
+                                info.Nullability, info.ConvertedNullability);
         }
 
         public override bool Equals(object obj)

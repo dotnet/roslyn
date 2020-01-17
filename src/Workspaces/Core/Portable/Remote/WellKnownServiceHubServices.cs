@@ -11,15 +11,13 @@ namespace Microsoft.CodeAnalysis.Remote
             SnapshotService = "roslynSnapshot" + bit;
             CodeAnalysisService = "roslynCodeAnalysis" + bit;
             RemoteSymbolSearchUpdateEngine = "roslynRemoteSymbolSearchUpdateEngine" + bit;
-            CSharpLanguageServer = "roslynCSharpLanguageServer" + bit;
-            VisualBasicLanguageServer = "roslynVisualBasicLanguageServer" + bit;
+            LanguageServer = "roslynLanguageServer" + bit;
         }
 
         public static string SnapshotService { get; private set; } = "roslynSnapshot";
         public static string CodeAnalysisService { get; private set; } = "roslynCodeAnalysis";
         public static string RemoteSymbolSearchUpdateEngine { get; private set; } = "roslynRemoteSymbolSearchUpdateEngine";
-        public static string CSharpLanguageServer { get; private set; } = "roslynCSharpLanguageServer";
-        public static string VisualBasicLanguageServer { get; private set; } = "roslynVisualBasicLanguageServer";
+        public static string LanguageServer { get; private set; } = "roslynLanguageServer";
 
         // these are OOP implementation itself should care. not features that consume OOP care
         public const string ServiceHubServiceBase_Initialize = "Initialize";

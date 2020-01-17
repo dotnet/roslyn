@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var tk = _identifierNodeOrToken.AsToken();
             if (tk.Kind() != SyntaxKind.None)
             {
-                return tk.ValueText;
+                return tk.ValueText ?? "";
             }
 
             return _switchCaseLabelConstant?.ToString() ?? "";

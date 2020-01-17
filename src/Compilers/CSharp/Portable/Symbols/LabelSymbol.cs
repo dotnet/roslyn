@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a label in method body
     /// </summary>
-    internal abstract class LabelSymbol : Symbol, ILabelSymbol
+    internal abstract class LabelSymbol : Symbol
     {
         /// <summary>
         /// Returns false because label can't be defined externally.
@@ -170,33 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #region ILabelSymbol Members
-
-        IMethodSymbol ILabelSymbol.ContainingMethod
+        protected sealed override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.ContainingMethod;
-            }
+            return new PublicModel.LabelSymbol(this);
         }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitLabel(this);
-        }
-
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitLabel(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-        }
-
-        #endregion
     }
 }

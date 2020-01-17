@@ -151,17 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         NamedTypeSymbol nt1 = (NamedTypeSymbol)t1.Type;
                         NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.Type;
-
-                        if (nt1.IsTupleType)
-                        {
-                            if (!nt2.IsTupleType)
-                            {
-                                return false;
-                            }
-
-                            return CanUnifyHelper(nt1.TupleUnderlyingType, nt2.TupleUnderlyingType, ref substitution);
-                        }
-
                         if (!nt1.IsGenericType)
                         {
                             return !nt2.IsGenericType && TypeSymbol.Equals(nt1, nt2, TypeCompareKind.ConsiderEverything2);

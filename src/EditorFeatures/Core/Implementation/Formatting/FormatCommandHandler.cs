@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetRequiredLanguageService<IEditorFormattingService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         {
             if (selectionOpt.HasValue)
             {
-                var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+                var ruleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
 
                 changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
                 if (changes.Count == 0)
@@ -129,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            IList<TextChange> textChanges;
+            IList<TextChange>? textChanges;
 
             // save current caret position
             if (args is ReturnKeyCommandArgs)

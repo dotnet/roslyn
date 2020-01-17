@@ -181,6 +181,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
         {
             var matchingFilters = FilterSet.GetFilters(item);
+
+            // Check that the list has no duplicates.
+            Assert.Equal(matchingFilters.Count, matchingFilters.Distinct().Count());
             return expectedMatchingFilters.SetEquals(matchingFilters);
         }
 
@@ -193,7 +196,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = WorkspaceFixture.GetWorkspace(markup, ExportProvider);
             var code = WorkspaceFixture.Code;
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
+
+            workspace.SetOptions(WithChangedOptions(workspace.Options));
 
             return VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = WorkspaceFixture.GetWorkspace(markup, workspaceKind: workspaceKind);
             var currentDocument = workspace.CurrentSolution.GetDocument(WorkspaceFixture.CurrentDocument.Id);
             var position = WorkspaceFixture.Position;
-            SetWorkspaceOptions(workspace);
+            currentDocument = WithChangedOptions(currentDocument);
 
             return await GetCompletionListAsync(GetCompletionService(workspace), currentDocument, position, RoslynCompletion.CompletionTrigger.Invoke, workspace.Options).ConfigureAwait(false);
         }
@@ -402,8 +406,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private async Task VerifyCustomCommitProviderCheckResultsAsync(Document document, string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitChar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            SetWorkspaceOptions(workspace);
-            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            document = WithChangedOptions(document);
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
 
             var service = GetCompletionService(workspace);
             var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
@@ -424,8 +428,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual void SetWorkspaceOptions(TestWorkspace workspace)
+        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
+        private Document WithChangedOptions(Document document)
         {
+            var workspace = document.Project.Solution.Workspace;
+            var newOptions = WithChangedOptions(workspace.Options);
+            workspace.TryApplyChanges(document.Project.Solution.WithOptions(newOptions));
+            return workspace.CurrentSolution.GetDocument(document.Id);
+        }
+
+        private Document WithChangedOption(Document document, OptionKey optionKey, object value)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var newOptions = workspace.Options.WithChangedOption(optionKey, value);
+            workspace.TryApplyChanges(document.Project.Solution.WithOptions(newOptions));
+            return workspace.CurrentSolution.GetDocument(document.Id);
         }
 
         internal async Task VerifyCustomCommitWorkerAsync(
@@ -457,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
 
             var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;
@@ -519,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
             var workspace = WorkspaceFixture.GetWorkspace();
-            var textBuffer = WorkspaceFixture.CurrentDocument.TextBuffer;
+            var textBuffer = WorkspaceFixture.CurrentDocument.GetTextBuffer();
             var textSnapshot = textBuffer.CurrentSnapshot.AsText();
 
             var service = GetCompletionService(workspace);
@@ -575,6 +592,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var xmlString = CreateMarkupForProjectWithMetadataReference(markup, metadataReferenceCode, sourceLanguage, referencedLanguage);
 
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+        }
+
+        protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference, string alias = null)
+        {
+            return isProjectReference
+                ? CreateMarkupForProjecWithProjectReference(currentFile, referencedFile, sourceLanguage, referenceLanguage)
+                : CreateMarkupForProjectWithMetadataReference(currentFile, referencedFile, sourceLanguage, referenceLanguage);
         }
 
         protected static string CreateMarkupForProjectWithMetadataReference(string markup, string metadataReferenceCode, string sourceLanguage, string referencedLanguage)
@@ -649,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(referencedCode));
         }
 
-        protected static string CreateMarkupForProjecWithVBProjectReference(string markup, string referencedCode, string sourceLanguage, string rootnamespace = "")
+        protected static string CreateMarkupForProjecWithVBProjectReference(string markup, string referencedCode, string sourceLanguage, string rootNamespace = "")
         {
             return string.Format(@"
 <Workspace>
@@ -662,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         <CompilationOptions RootNamespace=""{4}""/>
     </Project>
     
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootnamespace);
+</Workspace>", sourceLanguage, SecurityElement.Escape(markup), LanguageNames.VisualBasic, SecurityElement.Escape(referencedCode), rootNamespace);
         }
 
         private Task VerifyItemInSameProjectAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, bool hideAdvancedMembers)
@@ -693,7 +717,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
+                var optionKey = new OptionKey(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+                document = WithChangedOption(document, optionKey, hideAdvancedMembers);
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 
@@ -777,7 +802,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 var position = testWorkspace.Documents.First().CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                var textContainer = testWorkspace.Documents.First().TextBuffer.AsTextContainer();
+                var textContainer = testWorkspace.Documents.First().GetTextBuffer().AsTextContainer();
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
 
@@ -905,7 +930,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 var document = workspace.Documents.Single();
                 var position = document.CursorPosition.Value;
-                var text = document.TextBuffer.CurrentSnapshot.AsText();
+                var text = document.GetTextBuffer().CurrentSnapshot.AsText();
                 var options = workspace.Options.WithChangedOption(
                     CompletionOptions.TriggerOnTypingLetters, document.Project.Language, triggerOnLetter);
                 var trigger = RoslynCompletion.CompletionTrigger.CreateInsertionTrigger(text[position]);

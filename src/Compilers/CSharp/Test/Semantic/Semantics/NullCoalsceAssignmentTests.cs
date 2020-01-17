@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -41,8 +42,8 @@ class C
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
                 Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
-                Assert.Equal(cType, typeInfo.Type);
-                Assert.Equal(cType, typeInfo.ConvertedType);
+                Assert.Equal(cType.GetPublicSymbol(), typeInfo.Type);
+                Assert.Equal(cType.GetPublicSymbol(), typeInfo.ConvertedType);
 
             }
         }
@@ -75,16 +76,16 @@ class D : C {}";
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment.Right);
             Assert.NotEqual(default, whenNullTypeInfo);
-            Assert.Equal(dType, whenNullTypeInfo.Type);
-            Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
+            Assert.Equal(dType.GetPublicSymbol(), whenNullTypeInfo.Type);
+            Assert.Equal(cType, whenNullTypeInfo.ConvertedType.GetSymbol());
 
             void assertTypeInfo(SyntaxNode syntax)
             {
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
                 Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
-                Assert.Equal(cType, typeInfo.Type);
-                Assert.Equal(cType, typeInfo.ConvertedType);
+                Assert.Equal(cType, typeInfo.Type.GetSymbol());
+                Assert.Equal(cType.GetPublicSymbol(), typeInfo.ConvertedType);
 
             }
         }
@@ -115,8 +116,8 @@ class D : C {}";
 
             var whenNullTypeInfo = semanticModel.GetTypeInfo(coalesceAssignment);
             Assert.NotEqual(default, whenNullTypeInfo);
-            Assert.Equal(dType, whenNullTypeInfo.Type);
-            Assert.Equal(cType, whenNullTypeInfo.ConvertedType);
+            Assert.Equal(dType, whenNullTypeInfo.Type.GetSymbol());
+            Assert.Equal(cType.GetPublicSymbol(), whenNullTypeInfo.ConvertedType);
 
             assertTypeInfo(coalesceAssignment.Right);
             assertTypeInfo(coalesceAssignment.Left);
@@ -126,8 +127,8 @@ class D : C {}";
                 var typeInfo = semanticModel.GetTypeInfo(syntax);
                 Assert.NotEqual(default, typeInfo);
                 Assert.NotNull(typeInfo.Type);
-                Assert.Equal(dType, typeInfo.Type);
-                Assert.Equal(dType, typeInfo.ConvertedType);
+                Assert.Equal(dType.GetPublicSymbol(), typeInfo.Type);
+                Assert.Equal(dType, typeInfo.ConvertedType.GetSymbol());
 
             }
         }
@@ -155,7 +156,7 @@ class C
             var int32 = comp.GetSpecialType(SpecialType.System_Int32);
             var coalesceType = semanticModel.GetTypeInfo(coalesceAssignment).Type;
 
-            Assert.Equal(int32, coalesceType);
+            Assert.Equal(int32.GetPublicSymbol(), coalesceType);
         }
 
         [Fact]
