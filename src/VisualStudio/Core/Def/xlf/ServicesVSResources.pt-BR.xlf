@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
-        <source>&lt;TODO&gt;</source>
-        <target state="new">&lt;TODO&gt;</target>
+        <source>TODO</source>
+        <target state="new">TODO</target>
         <note>"TODO" is an indication that there is work to be done still</note>
       </trans-unit>
       <trans-unit id="Classifications">

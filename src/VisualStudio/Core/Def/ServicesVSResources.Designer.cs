@@ -543,21 +543,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Call site value:.
+        /// </summary>
+        internal static string Call_site_value {
+            get {
+                return ResourceManager.GetString("Call_site_value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Call site.
         /// </summary>
         internal static string Callsite {
             get {
                 return ResourceManager.GetString("Callsite", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Call site value:.
-        /// </summary>
-        internal static string Call_site_value
-        {
-            get {
-                return ResourceManager.GetString("Call_site_value", resourceCulture);
             }
         }
         
@@ -634,7 +633,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;TODO&gt;.
+        ///   Looks up a localized string similar to TODO.
         /// </summary>
         internal static string ChangeSignature_NewParameterIntroduceTODOVariable {
             get {

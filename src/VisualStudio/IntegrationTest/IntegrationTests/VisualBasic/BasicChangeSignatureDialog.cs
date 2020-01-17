@@ -174,7 +174,7 @@ End Class");
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("Integer");
             AddParameterDialog.FillNameField("c");
-            AddParameterDialog.FillCallSiteField("stringC");
+            AddParameterDialog.FillCallSiteField("2");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
@@ -185,7 +185,7 @@ End Class");
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("Integer");
             AddParameterDialog.FillNameField("d");
-            AddParameterDialog.FillCallSiteField("2");
+            AddParameterDialog.FillCallSiteField("3");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
@@ -219,7 +219,7 @@ Class C
     End Sub
 
     Sub NewMethod()
-        Method(1, 2, ""stringB"", TODO)
+        Method(1, 3, ""stringB"", TODO)
     End Sub
 End Class", actualText);
         }
