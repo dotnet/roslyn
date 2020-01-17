@@ -82,6 +82,11 @@
         <target state="translated">Operando no válido para la coincidencia de patrones. Se requería un valor, pero se encontró '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadRecordDeclaration">
+        <source>Records must have both a 'data' modifier and parameter list</source>
+        <target state="new">Records must have both a 'data' modifier and parameter list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="new">Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</target>
