@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             AnnotationsState = annotationsState;
         }
 
-        internal enum State
+        internal enum State : byte
         {
             Unknown,
             Disabled,
