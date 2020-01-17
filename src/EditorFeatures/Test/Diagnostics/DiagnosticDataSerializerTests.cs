@@ -343,13 +343,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    protected virtual void Dispose(bool disposing)
+                    public virtual void Dispose()
                     {
-                    }
-
-                    public void Dispose()
-                    {
-                        Dispose(true);
                     }
                 }
             }

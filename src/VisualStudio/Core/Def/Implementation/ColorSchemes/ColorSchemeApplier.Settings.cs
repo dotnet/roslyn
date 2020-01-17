@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.Options;
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     itemKey.SetValue(item.ValueName, item.ValueData);
                 }
 
-                _workspace.Options = _workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, colorSchemeName);
+                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options.WithChangedOption(ColorSchemeOptions.AppliedColorScheme, colorSchemeName)));
 
                 // Broadcast that system color settings have changed to force the ColorThemeService to reload colors.
                 NativeMethods.PostMessage(NativeMethods.HWND_BROADCAST, NativeMethods.WM_SYSCOLORCHANGE, wparam: IntPtr.Zero, lparam: IntPtr.Zero);
@@ -71,12 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             public string GetAppliedColorScheme()
             {
-                return _workspace.Options.GetOption(ColorSchemeOptions.AppliedColorScheme);
+                return _workspace.Options.GetOption(ColorSchemeOptions.AppliedColorScheme)
+                    ?? ColorSchemeOptions.AppliedColorScheme.DefaultValue;
             }
 
             public string GetConfiguredColorScheme()
             {
-                return _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme);
+                return _workspace.Options.GetOption(ColorSchemeOptions.ColorScheme)
+                    ?? ColorSchemeOptions.ColorScheme.DefaultValue;
             }
 
             public void MigrateToColorSchemeSetting(bool isThemeCustomized)
@@ -95,9 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     ? ColorSchemeOptions.Enhanced
                     : ColorSchemeOptions.VisualStudio2017;
 
-                _workspace.Options = _workspace.Options
+                var updatedOptionSet = _workspace.Options
                     .WithChangedOption(ColorSchemeOptions.ColorScheme, colorScheme)
                     .WithChangedOption(ColorSchemeOptions.LegacyUseEnhancedColors, ColorSchemeOptions.UseEnhancedColors.Migrated);
+                _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(updatedOptionSet));
             }
 
             public Guid GetThemeId()
@@ -153,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 {
                     get => _workspace.Options.GetOption(HasThemeBeenDefaultedOptions[themeId]);
 
-                    set => _workspace.Options = _workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value);
+                    set => _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options.WithChangedOption(HasThemeBeenDefaultedOptions[themeId], value)));
                 }
             }
         }

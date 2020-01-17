@@ -34,8 +34,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new ObjectWriter(stream, cancellationToken: cancellationToken);
-            checksumOpt.WriteTo(writer);
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            {
+                checksumOpt.WriteTo(writer);
+            }
+
             stream.Position = 0;
             return GetBytes(stream);
         }

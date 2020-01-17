@@ -528,6 +528,66 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingOnAmbiguousCref1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        /// <summary>
+        /// <see cref=""[|Example|].ToString""/>
+        /// </summary>
+        void Method()
+        {
+        }
+
+        public override string ToString() => throw null;
+        public string ToString(string format, IFormatProvider formatProvider) => throw null;
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingOnAmbiguousCref2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        /// <summary>
+        /// <see cref=""[|Example.ToString|]""/>
+        /// </summary>
+        void Method()
+        {
+        }
+
+        public override string ToString() => throw null;
+        public string ToString(string format, IFormatProvider formatProvider) => throw null;
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TwoMissingInNameofMemberGroup()
+        {
+            // Note: this is something we could potentially support as removing the
+            // qualification here preserves semantics.
+            await TestMissingInRegularAndScriptAsync(
+@"
+    class Example
+    {
+        void Method()
+        {
+            _ = nameof([|Example|].Goo);
+        }
+
+        public static void Goo() { }
+        public static void Goo(int i) { }
+    }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoAliasesConflict2()
         {
             await TestInRegularAndScriptAsync(
@@ -4353,17 +4413,33 @@ class Base
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
         [InlineData("Int16")]
         [InlineData("UInt16")]
         [InlineData("Int32")]
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|global::System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace(string typeName)
+        public async Task TestGlobalAliasSimplifiesInUsingAliasDirectiveWithinNamespace_UnboundName(string typeName)
         {
             await TestInRegularAndScriptAsync(
 $@"using System;
@@ -4564,6 +4640,141 @@ class C
 ");
         }
 
+        [WorkItem(40876, "https://github.com/dotnet/roslyn/issues/40876")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyPredefinedTypeInUsingDirective1()
+        {
+            await TestWithPredefinedTypeOptionsAsync(
+@"using System;
+
+namespace N
+{
+    using Alias1 = [|System|].Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}",
+
+@"using System;
+
+namespace N
+{
+    using Alias1 = Object;
+
+    class C
+    {
+        Alias1 a1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C|].X""/>
+    /// </summary>
+    class X
+    {
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""X""/>
+    /// </summary>
+    class X
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly2()
+        {
+            await TestSpansAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C|].X""/>
+    /// </summary>
+    class X
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""[|A.B.C.X|].Y(A.B.C.X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""Y(X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyTopLevelOfCrefOnly5()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""A.B.C.X.Y([|A.B.C|].X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}",
+@"using System;
+
+namespace A.B.C
+{
+    /// <summary>
+    /// <see cref=""A.B.C.X.Y(X)""/>
+    /// </summary>
+    class X
+    {
+        void Y(X x) { }
+    }
+}");
+        }
+
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         [InlineData("Boolean")]
         [InlineData("Char")]
@@ -4592,19 +4803,35 @@ namespace N
         [InlineData("Boolean")]
         [InlineData("Char")]
         [InlineData("String")]
-        [InlineData("Int8")]
-        [InlineData("UInt8")]
         [InlineData("Int16")]
         [InlineData("UInt16")]
         [InlineData("Int32")]
         [InlineData("UInt32")]
         [InlineData("Int64")]
         [InlineData("UInt64")]
+        public async Task TestSimplifyUsingAliasDirectiveToQualifiedBuiltInType(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"using System;
+namespace N
+{{
+    using My{typeName} = [|System.{typeName}|];
+}}",
+$@"using System;
+namespace N
+{{
+    using My{typeName} = {typeName};
+}}");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [InlineData("Int8")]
+        [InlineData("UInt8")]
         [InlineData("Float32")]
         [InlineData("Float64")]
-        public async Task TestDoesNotSimplifyUsingAliasDirectiveToPrimitiveType2(string typeName)
+        public async Task TestDoesNotSimplifyUsingAliasWithUnboundTypes(string typeName)
         {
-            await TestMissingAsync(
+            await TestMissingInRegularAndScriptAsync(
 $@"using System;
 namespace N
 {{

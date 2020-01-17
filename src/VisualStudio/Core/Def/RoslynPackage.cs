@@ -43,7 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     internal class RoslynPackage : AbstractPackage
     {
         private VisualStudioWorkspace _workspace;
-        private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private ColorSchemeApplier _colorSchemeApplier;
@@ -77,9 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _componentModel.GetExtensions<IOptionPersister>();
 
             RoslynTelemetrySetup.Initialize(this);
-
-            // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(_componentModel.GetService<IThreadingContext>(), this, _workspace);
 
             InitializeColors();
 

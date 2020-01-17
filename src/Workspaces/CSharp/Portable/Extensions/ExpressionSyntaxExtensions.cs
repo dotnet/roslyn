@@ -3,12 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -214,32 +211,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
+            return IsLeftSideOfQualifiedName(expression) ||
+                   IsLeftSideOfSimpleMemberAccessExpression(expression);
         }
+
+        public static bool IsLeftSideOfSimpleMemberAccessExpression(this ExpressionSyntax expression)
+            => (expression?.Parent).IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess) &&
+               memberAccess.Expression == expression;
 
         public static bool IsLeftSideOfDotOrArrow(this ExpressionSyntax expression)
-        {
-            return
-                IsLeftSideOfQualifiedName(expression) ||
-                (expression.Parent is MemberAccessExpressionSyntax && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
-        }
+            => IsLeftSideOfQualifiedName(expression) ||
+               (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-        {
-            return
-                expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Left == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName) && qualifiedName.Left == expression;
 
         public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
 
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
-        {
-            return
-                expression.IsParentKind(SyntaxKind.InvocationExpression) && ((InvocationExpressionSyntax)expression.Parent).Expression == expression;
-        }
+            => (expression?.Parent).IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+               invocation.Expression == expression;
 
         public static bool TryGetNameParts(this ExpressionSyntax expression, out IList<string> parts)
         {
@@ -764,17 +756,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            if (expression.TryReduceExplicitName(semanticModel, out var replacementTypeNode, out issueSpan, optionSet, cancellationToken))
+            if (TryReduceExplicitName(expression, semanticModel, out var replacementTypeNode, out issueSpan, optionSet, cancellationToken))
             {
                 replacementNode = replacementTypeNode;
                 return true;
             }
 
-            return expression.TrySimplify(semanticModel, out replacementNode, out issueSpan);
+            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan);
         }
 
-        public static bool TryReduceExplicitName(
-            this ExpressionSyntax expression,
+        private static bool TryReduceExplicitName(
+            ExpressionSyntax expression,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
@@ -785,26 +777,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = default;
 
             if (expression.ContainsInterleavedDirective(cancellationToken))
-            {
                 return false;
-            }
 
-            if (expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
-                return memberAccess.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+                return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
 
             if (expression is NameSyntax name)
-            {
-                return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
+                return TryReduceName(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
 
             return false;
         }
 
-        private static bool TryReduce(
-            this MemberAccessExpressionSyntax memberAccess,
+        private static bool TryReduceMemberAccessExpression(
+            MemberAccessExpressionSyntax memberAccess,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
@@ -815,15 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = default;
 
             if (memberAccess.Name == null || memberAccess.Expression == null)
-            {
                 return false;
-            }
-
-            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
-                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
-            {
-                return false;
-            }
 
             // if this node is annotated as being a SpecialType, let's use this information.
             if (memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind))
@@ -835,15 +812,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         memberAccess.GetTrailingTrivia()));
 
                 issueSpan = memberAccess.Span;
-
                 return true;
+            }
+
+            // See https://github.com/dotnet/roslyn/issues/40974
+            //
+            // To be very safe, we only support simplifying code that bound to a symbol without any
+            // sort of problems.  We could potentially relax this in the future.  However, we would
+            // need to be very careful about the implications of us offering to fixup 'broken' code 
+            // in a manner that might end up making things worse or confusing the user.
+            var symbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess);
+            if (symbol == null)
+                return false;
+
+            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
+                !SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(semanticModel, optionSet, symbol))
+            {
+                return false;
             }
 
             // if this node is on the left side, we could simplify to aliases
             if (!memberAccess.IsRightSideOfDot())
             {
                 // Check if we need to replace this syntax with an alias identifier
-                if (memberAccess.TryReplaceWithAlias(semanticModel, cancellationToken, out var aliasReplacement))
+                if (TryReplaceExpressionWithAlias(
+                        memberAccess, semanticModel, symbol,
+                        cancellationToken, out var aliasReplacement))
                 {
                     // get the token text as it appears in source code to preserve e.g. unicode character escaping
                     var text = aliasReplacement.Name;
@@ -881,7 +875,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Check if the Expression can be replaced by Predefined Type keyword
                 if (PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet, semanticModel))
                 {
-                    var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
                     if (symbol != null && symbol.IsKind(SymbolKind.NamedType))
                     {
                         var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)symbol).SpecialType);
@@ -905,18 +898,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // 'this.Name' or 'base.Name', no additional check here is required.
             if (!memberAccess.Expression.IsKind(SyntaxKind.ThisExpression, SyntaxKind.BaseExpression))
             {
-                var actualSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken);
-                if (!TryGetReplacementCandidates(
+                GetReplacementCandidates(
                     semanticModel,
                     memberAccess,
-                    actualSymbol,
+                    symbol,
                     out var speculativeSymbols,
-                    out var speculativeNamespacesAndTypes))
-                {
-                    return false;
-                }
+                    out var speculativeNamespacesAndTypes);
 
-                if (!IsReplacementCandidate(actualSymbol, speculativeSymbols, speculativeNamespacesAndTypes))
+                if (!IsReplacementCandidate(symbol, speculativeSymbols, speculativeNamespacesAndTypes))
                 {
                     return false;
                 }
@@ -925,44 +914,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
-            if (replacementNode == null)
-            {
-                return false;
-            }
-
-            return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+            return CanReplaceWithReducedName(
+                memberAccess, replacementNode, semanticModel, symbol, cancellationToken);
         }
 
         public static SimpleNameSyntax GetNameWithTriviaMoved(this MemberAccessExpressionSyntax memberAccess)
             => memberAccess.Name
-                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithLeadingTrivia(GetLeadingTriviaForSimplifiedMemberAccess(memberAccess))
                 .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
 
-        private static bool TryGetReplacementCandidates(
+        private static void GetReplacementCandidates(
             SemanticModel semanticModel,
             MemberAccessExpressionSyntax memberAccess,
-            SymbolInfo actualSymbol,
+            ISymbol actualSymbol,
             out ImmutableArray<ISymbol> speculativeSymbols,
             out ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
         {
-            bool containsNamespaceOrTypeSymbol;
-            bool containsOtherSymbol;
-            if (actualSymbol.Symbol is object)
-            {
-                containsNamespaceOrTypeSymbol = actualSymbol.Symbol is INamespaceOrTypeSymbol;
-                containsOtherSymbol = !containsNamespaceOrTypeSymbol;
-            }
-            else if (!actualSymbol.CandidateSymbols.IsDefaultOrEmpty)
-            {
-                containsNamespaceOrTypeSymbol = actualSymbol.CandidateSymbols.Any(symbol => symbol is INamespaceOrTypeSymbol);
-                containsOtherSymbol = actualSymbol.CandidateSymbols.Any(symbol => !(symbol is INamespaceOrTypeSymbol));
-            }
-            else
-            {
-                speculativeSymbols = ImmutableArray<ISymbol>.Empty;
-                speculativeNamespacesAndTypes = ImmutableArray<ISymbol>.Empty;
-                return false;
-            }
+            var containsNamespaceOrTypeSymbol = actualSymbol is INamespaceOrTypeSymbol;
+            var containsOtherSymbol = !containsNamespaceOrTypeSymbol;
 
             speculativeSymbols = containsOtherSymbol
                 ? semanticModel.LookupSymbols(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
@@ -970,33 +939,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             speculativeNamespacesAndTypes = containsNamespaceOrTypeSymbol
                 ? semanticModel.LookupNamespacesAndTypes(memberAccess.SpanStart, name: memberAccess.Name.Identifier.ValueText)
                 : ImmutableArray<ISymbol>.Empty;
-            return true;
         }
 
         /// <summary>
         /// Determines if <paramref name="speculativeSymbols"/> and <paramref name="speculativeNamespacesAndTypes"/>
         /// together contain a superset of the symbols in <paramref name="actualSymbol"/>.
         /// </summary>
-        private static bool IsReplacementCandidate(SymbolInfo actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
+        private static bool IsReplacementCandidate(ISymbol actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
         {
             if (speculativeSymbols.IsEmpty && speculativeNamespacesAndTypes.IsEmpty)
             {
                 return false;
             }
 
-            if (actualSymbol.Symbol is object)
+            if (actualSymbol is object)
             {
-                return speculativeSymbols.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance)
-                    || speculativeNamespacesAndTypes.Contains(actualSymbol.Symbol, CandidateSymbolEqualityComparer.Instance);
-            }
-
-            foreach (var symbol in actualSymbol.CandidateSymbols)
-            {
-                if (!speculativeSymbols.Contains(symbol, CandidateSymbolEqualityComparer.Instance)
-                    && !speculativeNamespacesAndTypes.Contains(symbol, CandidateSymbolEqualityComparer.Instance))
-                {
-                    return false;
-                }
+                return speculativeSymbols.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance)
+                    || speculativeNamespacesAndTypes.Contains(actualSymbol, CandidateSymbolEqualityComparer.Instance);
             }
 
             return true;
@@ -1029,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
+        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(MemberAccessExpressionSyntax memberAccess)
         {
             // We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
             // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
@@ -1076,41 +1035,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
         {
+            if (!SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language))
+                return false;
+
             return (IsInMemberAccessContext(expression) || InsideCrefReference(expression)) &&
-                   !InsideNameOfExpression(expression, semanticModel) &&
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language);
+                   !InsideNameOfExpression(expression, semanticModel);
         }
 
         public static bool IsInMemberAccessContext(this ExpressionSyntax expression) =>
             expression?.Parent is MemberAccessExpressionSyntax;
 
-        public static bool IsAliasReplaceableExpression(this ExpressionSyntax expression)
+        private static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
         {
-            if (expression.Kind() == SyntaxKind.IdentifierName ||
-                expression.Kind() == SyntaxKind.QualifiedName ||
-                expression.Kind() == SyntaxKind.AliasQualifiedName ||
-                expression.Kind() == SyntaxKind.GenericName)
+            var current = expression;
+            while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
             {
-                return true;
+                current = currentMember.Expression;
+                continue;
             }
 
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
-                return memberAccess.Expression.IsAliasReplaceableExpression();
-
-            return false;
+            return current.IsKind(SyntaxKind.AliasQualifiedName,
+                                  SyntaxKind.IdentifierName,
+                                  SyntaxKind.GenericName,
+                                  SyntaxKind.QualifiedName);
         }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
             Constraint = "Most trees do not have using alias directives, so avoid the expensive " + nameof(CSharpExtensions.GetSymbolInfo) + " call for this case.")]
-        private static bool TryReplaceWithAlias(this ExpressionSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
+        private static bool TryReplaceExpressionWithAlias(
+            ExpressionSyntax node, SemanticModel semanticModel,
+            ISymbol symbol, CancellationToken cancellationToken, out IAliasSymbol aliasReplacement)
         {
             aliasReplacement = null;
 
-            if (!node.IsAliasReplaceableExpression())
-            {
+            if (!IsAliasReplaceableExpression(node))
                 return false;
-            }
 
             // Avoid the TryReplaceWithAlias algorithm if the tree has no using alias directives. Since the input node
             // might be a speculative node (not fully rooted in a tree), we use the original semantic model to find the
@@ -1127,8 +1087,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return false;
                 }
             }
-
-            var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
             // If the Symbol is a constructor get its containing type
             if (symbol.IsConstructor())
@@ -1433,8 +1391,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return -1;
         }
 
-        private static bool TryReduce(
-            this NameSyntax name,
+        private static bool TryReduceName(
+            NameSyntax name,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
@@ -1493,7 +1451,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     .WithTrailingTrivia(genericName.GetTrailingTrivia());
 
                 issueSpan = genericName.TypeArgumentList.Span;
-                return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+                return CanReplaceWithReducedName(
+                    name, replacementNode, semanticModel, cancellationToken);
             }
 
             if (!(symbol is INamespaceOrTypeSymbol))
@@ -1517,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (!name.IsRightSideOfDotOrColonColon())
                 {
-                    if (name.TryReplaceWithAlias(semanticModel, cancellationToken, out var aliasReplacement))
+                    if (TryReplaceExpressionWithAlias(name, semanticModel, symbol, cancellationToken, out var aliasReplacement))
                     {
                         // get the token text as it appears in source code to preserve e.g. Unicode character escaping
                         var text = aliasReplacement.Name;
@@ -1592,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                     out var replacementNodeWithoutAttributeSuffix,
                                     out var issueSpanWithoutAttributeSuffix))
                             {
-                                if (name.CanReplaceWithReducedName(replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
+                                if (CanReplaceWithReducedName(name, replacementNodeWithoutAttributeSuffix, semanticModel, cancellationToken))
                                 {
                                     replacementNode = replacementNode.CopyAnnotationsTo(replacementNodeWithoutAttributeSuffix);
                                     issueSpan = issueSpanWithoutAttributeSuffix;
@@ -1644,6 +1603,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         if (!name.Parent.IsKind(SyntaxKind.QualifiedName) && (inDeclarationContext || inMemberAccessContext))
                         {
+                            // See if we can simplify this name (like System.Int32) to a built-in type (like 'int').
+                            // If not, we'll still fall through and see if we can convert it to Int32.
+
                             var codeStyleOptionName = inDeclarationContext
                                 ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
                                 : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
@@ -1652,9 +1614,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             if (type != null)
                             {
                                 var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
-                                if (keywordKind != SyntaxKind.None)
+                                if (keywordKind != SyntaxKind.None &&
+                                    CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName))
                                 {
-                                    return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName);
+                                    return true;
                                 }
                             }
                             else
@@ -1663,9 +1626,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 if (typeSymbol.IsKind(SymbolKind.NamedType))
                                 {
                                     var keywordKind = GetPredefinedKeywordKind(((INamedTypeSymbol)typeSymbol).SpecialType);
-                                    if (keywordKind != SyntaxKind.None)
+                                    if (keywordKind != SyntaxKind.None &&
+                                        CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName))
                                     {
-                                        return CanReplaceWithPredefinedTypeKeywordInContext(name, semanticModel, out replacementNode, ref issueSpan, keywordKind, codeStyleOptionName);
+                                        return true;
                                     }
                                 }
                             }
@@ -1759,7 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+            return CanReplaceWithReducedName(name, replacementNode, semanticModel, cancellationToken);
         }
 
         private static bool TryReduceCrefColorColor(
@@ -1790,7 +1754,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // QualifiedNameSyntax
 
                 var qualifiedReplacement = SyntaxFactory.QualifiedName(replacementName, qualifiedParent.Right);
-                return qualifiedParent.CanReplaceWithReducedName(qualifiedReplacement, semanticModel, cancellationToken);
+                return CanReplaceWithReducedName(
+                    qualifiedParent, qualifiedReplacement, semanticModel, cancellationToken);
             }
 
             return false;
@@ -1938,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        public static bool IsPartOfNamespaceDeclarationName(SyntaxNode node)
+        private static bool IsPartOfNamespaceDeclarationName(SyntaxNode node)
         {
             var parent = node;
 
@@ -1965,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool TrySimplify(
-            this ExpressionSyntax expression,
+            ExpressionSyntax expression,
             SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
             out TextSpan issueSpan)
@@ -2092,9 +2057,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         private static bool CanReplaceWithReducedName(
-            this MemberAccessExpressionSyntax memberAccess,
+            MemberAccessExpressionSyntax memberAccess,
             ExpressionSyntax reducedName,
             SemanticModel semanticModel,
+            ISymbol symbol,
             CancellationToken cancellationToken)
         {
             if (!IsThisOrTypeOrNamespace(memberAccess, semanticModel))
@@ -2119,7 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (memberAccess.AccessMethodWithDynamicArgumentInsideStructConstructor(semanticModel))
+            if (AccessMethodWithDynamicArgumentInsideStructConstructor(memberAccess, semanticModel))
             {
                 return false;
             }
@@ -2127,7 +2093,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (memberAccess.Expression.Kind() == SyntaxKind.BaseExpression)
             {
                 var enclosingNamedType = semanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken);
-                var symbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken).Symbol;
                 if (enclosingNamedType != null &&
                     !enclosingNamedType.IsSealed &&
                     symbol != null &&
@@ -2218,7 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
          * since the check for initialization of all member variable is a lot of work for this simplification we don't simplify
          * even if all the member variables are initialized
          */
-        private static bool AccessMethodWithDynamicArgumentInsideStructConstructor(this MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
+        private static bool AccessMethodWithDynamicArgumentInsideStructConstructor(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
@@ -2230,7 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return semanticModel.GetSymbolInfo(memberAccess.Name).CandidateReason == CandidateReason.LateBound;
         }
 
-        private static bool CanReplaceWithReducedName(this NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool CanReplaceWithReducedName(NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var speculationAnalyzer = new SpeculationAnalyzer(name, reducedName, semanticModel, cancellationToken);
             if (speculationAnalyzer.ReplacementChangesSemantics())
@@ -2252,7 +2217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 WillConflictWithExistingLocal(name, reducedName, semanticModel) ||
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(reducedName) ||
-                name.IsNotNullableReplaceable(reducedName) ||
+                IsNotNullableReplaceable(name, reducedName) ||
                 IsNonReducableQualifiedNameInUsingDirective(semanticModel, name, reducedName))
             {
                 return false;
@@ -2314,7 +2279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool IsNotNullableReplaceable(this NameSyntax name, TypeSyntax reducedName)
+        private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
         {
             var isNotNullableReplaceable = false;
             var isLeftSideOfDot = name.IsLeftSideOfDot();

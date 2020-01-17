@@ -3028,9 +3028,9 @@ end class"
                 useTabs As Boolean,
                 indentStyle As FormattingOptions.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
-                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)
+                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)))
 
                 TestIndentation(workspace, indentationLine, expectedIndentation)
             End Using

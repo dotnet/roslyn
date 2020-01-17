@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Deserialize a syntax node from the byte stream.
         /// </summary>
-        public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+        public static SyntaxNode DeserializeFrom(Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream == null)
             {
@@ -192,16 +192,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException(CodeAnalysisResources.TheStreamCannotBeReadFrom);
             }
 
-            using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
-            {
-                if (reader == null)
-                {
-                    throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
-                }
+            using var reader = ObjectReader.TryGetReader(stream, leaveOpen: true, cancellationToken);
 
-                var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
-                return root.CreateRed();
+            if (reader == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.Stream_contains_invalid_data, nameof(stream));
             }
+
+            var root = (Syntax.InternalSyntax.CSharpSyntaxNode)reader.ReadValue();
+            return root.CreateRed();
         }
 
         #endregion

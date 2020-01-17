@@ -107,9 +107,9 @@
         <target state="translated">Type conteneur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Current_Document">
-        <source>Current Document</source>
-        <target state="new">Current Document</target>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="new">Current document</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
@@ -132,9 +132,9 @@
         <target state="new">Enhanced</target>
         <note />
       </trans-unit>
-      <trans-unit id="Entire_Solution">
-        <source>Entire Solution</source>
-        <target state="new">Entire Solution</target>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="new">Entire solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -382,9 +382,9 @@
         <target state="translated">Méthodes non publiques</target>
         <note />
       </trans-unit>
-      <trans-unit id="Open_Documents_and_Projects">
-        <source>Open Documents and Projects</source>
-        <target state="new">Open Documents and Projects</target>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="new">Open documents</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">

@@ -52,6 +52,11 @@
         <target state="translated">Le document ne prend pas en charge les arborescences de syntaxe</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">Préférences de niveau expression</target>
@@ -90,6 +95,11 @@
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">Préférences de nouvelle ligne</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
@@ -1342,6 +1352,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">L'ajout d'importations place une méthode d'extension dans l'étendue avec le même nom que « {0} »</target>
         <note />
       </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="new">Workspace error</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">L'espace de travail n'est pas vide.</target>
@@ -1845,11 +1860,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">Ajouter des accolades à l'instruction '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">Les options ne proviennent pas de l'espace de travail</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

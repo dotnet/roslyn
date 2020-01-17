@@ -604,7 +604,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return New AbstractFormattingRule() {New ChangeSignatureFormattingRule()}.Concat(Formatter.GetDefaultFormattingRules(document))
+            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).
+                Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
     End Class
 End Namespace
