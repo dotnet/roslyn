@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool AreNullableAnnotationsGloballyEnabled()
+        internal override bool AreNullableAnnotationsGloballyEnabled(bool annotationsExplicitlyRestored = false)
         {
             switch (Compilation.Options.NullableContextOptions)
             {

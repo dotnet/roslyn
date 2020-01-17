@@ -19,12 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal int Position { get; }
         internal bool? WarningsState { get; }
         internal bool? AnnotationsState { get; }
+        internal bool AnnotationsExplicitlyRestored { get; }
+        internal bool WarningsExplicitlyRestored { get; }
 
-        internal NullableContextState(int position, bool? warningsState, bool? annotationsState)
+        internal NullableContextState(int position, bool? warningsState, bool? annotationsState, bool warningsExplicitlyRestored, bool annotationsExplicitlyRestored)
         {
             Position = position;
             WarningsState = warningsState;
             AnnotationsState = annotationsState;
+            WarningsExplicitlyRestored = warningsExplicitlyRestored;
+            AnnotationsExplicitlyRestored = annotationsExplicitlyRestored;
         }
     }
     internal sealed class NullableContextStateMap
@@ -61,14 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             // Generated files have an initial nullable context that is "disabled"
             return isGeneratedCode
-                ? new NullableContextState(position, warningsState: false, annotationsState: false)
-                : new NullableContextState(position, warningsState: null, annotationsState: null);
+                ? new NullableContextState(position, warningsState: false, annotationsState: false, warningsExplicitlyRestored: false, annotationsExplicitlyRestored: false)
+                : new NullableContextState(position, warningsState: null, annotationsState: null, warningsExplicitlyRestored: false, annotationsExplicitlyRestored: false);
         }
 
         internal NullableContextState GetContextState(int position)
         {
             // PositionComparer only checks the position, not the states
-            var searchContext = new NullableContextState(position, default, default);
+            var searchContext = new NullableContextState(position, default, default, warningsExplicitlyRestored: false, annotationsExplicitlyRestored: false);
             int index = _contexts.BinarySearch(searchContext, PositionComparer.Instance);
             if (index < 0)
             {
@@ -124,19 +128,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 var position = nn.Location.SourceSpan.End;
-                var setting = nn.SettingToken.Kind() switch
+
+                bool? setting;
+                bool wasExplicitlyRestored = false;
+                switch (nn.SettingToken.Kind())
                 {
-                    SyntaxKind.EnableKeyword => true,
-                    SyntaxKind.DisableKeyword => false,
-                    SyntaxKind.RestoreKeyword => (bool?)null,
-                    var kind => throw ExceptionUtilities.UnexpectedValue(kind)
-                };
+                    case SyntaxKind.EnableKeyword:
+                        setting = true;
+                        break;
+                    case SyntaxKind.DisableKeyword:
+                        setting = false;
+                        break;
+                    case SyntaxKind.RestoreKeyword:
+                        setting = null;
+                        wasExplicitlyRestored = true;
+                        break;
+                    case var kind:
+                        throw ExceptionUtilities.UnexpectedValue(kind);
+                }
 
                 var context = nn.TargetToken.Kind() switch
                 {
-                    SyntaxKind.None => new NullableContextState(position, setting, setting),
-                    SyntaxKind.WarningsKeyword => new NullableContextState(position, warningsState: setting, annotationsState: previousContext.AnnotationsState),
-                    SyntaxKind.AnnotationsKeyword => new NullableContextState(position, warningsState: previousContext.WarningsState, annotationsState: setting),
+                    SyntaxKind.None => new NullableContextState(position, setting, setting, wasExplicitlyRestored, wasExplicitlyRestored),
+                    SyntaxKind.WarningsKeyword => new NullableContextState(position,
+                                                                           warningsState: setting,
+                                                                           annotationsState: previousContext.AnnotationsState,
+                                                                           warningsExplicitlyRestored: wasExplicitlyRestored,
+                                                                           annotationsExplicitlyRestored: previousContext.AnnotationsExplicitlyRestored),
+                    SyntaxKind.AnnotationsKeyword => new NullableContextState(position,
+                                                                              warningsState: previousContext.WarningsState,
+                                                                              annotationsState: setting,
+                                                                              warningsExplicitlyRestored: previousContext.WarningsExplicitlyRestored,
+                                                                              annotationsExplicitlyRestored: wasExplicitlyRestored),
                     var kind => throw ExceptionUtilities.UnexpectedValue(kind)
                 };
 

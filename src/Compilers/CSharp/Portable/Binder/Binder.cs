@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -223,14 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool AreNullableAnnotationsEnabled(SyntaxTree syntaxTree, int position)
         {
-            bool? fromTree = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position).AnnotationsState;
+            Syntax.NullableContextState context = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position);
 
-            if (fromTree != null)
+            if (context.AnnotationsState != null)
             {
-                return fromTree.GetValueOrDefault();
+                return context.AnnotationsState.GetValueOrDefault();
             }
 
-            return AreNullableAnnotationsGloballyEnabled();
+            return AreNullableAnnotationsGloballyEnabled(context.AnnotationsExplicitlyRestored);
         }
 
         internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
@@ -239,10 +238,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
         }
 
-        internal virtual bool AreNullableAnnotationsGloballyEnabled()
+        internal virtual bool AreNullableAnnotationsGloballyEnabled(bool annotationsExplicitlyRestored = false)
         {
             RoslynDebug.Assert(Next is object);
-            return Next.AreNullableAnnotationsGloballyEnabled();
+            return Next.AreNullableAnnotationsGloballyEnabled(annotationsExplicitlyRestored);
         }
 
         /// <summary>
