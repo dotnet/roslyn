@@ -42,11 +42,6 @@
         <target state="translated">僅重構</target>
         <note />
       </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">樣式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">建議</target>
