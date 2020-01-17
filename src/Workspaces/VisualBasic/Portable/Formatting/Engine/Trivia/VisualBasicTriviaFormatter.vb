@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Return _newLine
         End Function
-#Const LineContinueCommentSupport = True
+#Const LineContinueCommentSupport = False
         Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
 
             ' line continuation
