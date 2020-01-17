@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string guid,
             string scope,
             string identifier,
-            TupleExtraData tupleData = null)
+            TupleExtraData? tupleData = null)
             : base(tupleData)
         {
             _embeddingAssembly = embeddingAssembly;
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
         {
             return ReferenceEquals(this, t2);
         }
