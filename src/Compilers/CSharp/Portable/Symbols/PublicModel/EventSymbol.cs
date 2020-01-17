@@ -3,9 +3,9 @@
 #nullable enable
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         public EventSymbol(Symbols.EventSymbol underlying)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             _underlying = underlying;
         }
 

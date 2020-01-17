@@ -22,7 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             Dim targetToken = context.TargetToken
             If context.SyntaxTree.IsExpressionContext(targetToken.SpanStart, cancellationToken, context.SemanticModel) Then
                 If targetToken.IsKindOrHasMatchingText(SyntaxKind.IteratorKeyword) Then
-                    Return {New RecommendedKeyword("Function", VBFeaturesResources.Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression)}
+                    Return SpecializedCollections.SingletonEnumerable(
+                        New RecommendedKeyword("Function", VBFeaturesResources.Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression))
                 ElseIf targetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) Then
                     Return {New RecommendedKeyword("Function", VBFeaturesResources.Defines_a_lambda_expression_that_calculates_and_returns_a_single_value_Can_be_used_wherever_a_delegate_type_is_expected_Function_parameterList_expression),
                             New RecommendedKeyword("Sub", VBFeaturesResources.Defines_a_lambda_expression_that_can_execute_statements_and_does_not_return_a_value_Can_be_used_wherever_a_delegate_type_is_expected_Sub_parameterList_statement)}

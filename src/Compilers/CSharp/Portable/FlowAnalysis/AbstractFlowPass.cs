@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// May be a top-level member or a lambda or local function. It is used for
         /// references to method parameters. Thus, '_symbol' should not be used directly, but
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
-        /// instead.
+        /// instead. _symbol is null during speculative binding.
         /// </summary>
         protected readonly Symbol _symbol;
 
@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Diagnostics = DiagnosticBag.GetInstance();
             this.compilation = compilation;
             _symbol = symbol;
+            CurrentSymbol = symbol;
             this.methodMainNode = node;
             this.firstInRegion = firstInRegion;
             this.lastInRegion = lastInRegion;
@@ -1167,11 +1168,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void VisitLocalFunctionUse(LocalFunctionSymbol symbol, SyntaxNode syntax, bool isCall)
+        protected void VisitLocalFunctionUse(LocalFunctionSymbol symbol, SyntaxNode syntax, bool isCall)
         {
             var localFuncState = GetOrCreateLocalFuncUsages(symbol);
             VisitLocalFunctionUse(symbol, localFuncState, syntax, isCall);
-            localFuncState.Visited = true;
         }
 
         protected virtual void VisitLocalFunctionUse(
@@ -1185,6 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref State, ref localFunctionState.StateFromBottom);
                 Meet(ref State, ref localFunctionState.StateFromTop);
             }
+            localFunctionState.Visited = true;
         }
 
         private void VisitReceiverBeforeCall(BoundExpression receiverOpt, MethodSymbol method)

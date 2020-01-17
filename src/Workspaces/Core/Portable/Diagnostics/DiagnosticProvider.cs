@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis
         {
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
 
-            workspace.Options = GetOptions(workspace, options);
+            var newOptions = GetOptions(workspace, options);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(newOptions));
             service.Register(workspace);
         }
 

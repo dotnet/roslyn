@@ -65,7 +65,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
-                optionSetChecksum: Checksum.Null,
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 
             VerifyJsonSerialization(arguments, (x, y) =>
@@ -74,7 +73,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
-                    x.OptionSetChecksum == y.OptionSetChecksum &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
                 {

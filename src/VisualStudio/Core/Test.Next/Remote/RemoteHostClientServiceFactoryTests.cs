@@ -119,7 +119,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var exportProvider = TestHostServices.CreateMinimalExportProvider();
 
             var workspace = new AdhocWorkspace(TestHostServices.CreateHostServices(exportProvider));
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1)));
 
             var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var analyzerReference = new AnalyzerFileReference(typeof(object).Assembly.Location, new NullAssemblyAnalyzerLoader());
@@ -210,10 +211,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var completionTask = new TaskCompletionSource<bool>();
 
             var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            client1.StatusChanged += (s, connected) =>
+            client1.StatusChanged += (_, started) =>
             {
                 // mark done
-                completionTask.SetResult(connected);
+                completionTask.SetResult(started);
             };
 
             await service.RequestNewRemoteHostAsync(CancellationToken.None);
@@ -234,9 +235,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             IAsynchronousOperationListenerProvider listenerProvider = null)
         {
             workspace = workspace ?? new AdhocWorkspace(TestHostServices.CreateHostServices());
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                                 .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution);
+                                                 .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
             var analyzerService = GetDiagnosticAnalyzerService(hostAnalyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
 

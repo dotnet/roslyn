@@ -127,11 +127,6 @@
         <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_Quality">
-        <source>Code Quality</source>
-        <target state="translated">Kvalita kódu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Nakonfigurovat styl kódu {0}</target>
@@ -198,8 +193,8 @@
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
-        <source>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</source>
-        <target state="translated">Aktuální obsah zdrojového souboru {0} se neshoduje se sestaveným zdrojem. Relace ladění nemůže pokračovat, dokud se obsah zdrojového souboru neobnoví.</target>
+        <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="needs-review-translation">Aktuální obsah zdrojového souboru {0} se neshoduje se sestaveným zdrojem. Relace ladění nemůže pokračovat, dokud se obsah zdrojového souboru neobnoví.</target>
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinue">
@@ -437,6 +432,16 @@
         <target state="translated">Přesunout do oboru názvů...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_0_can_be_removed_its_initial_value_is_never_used">
+        <source>Parameter '{0}' can be removed, its initial value is never used</source>
+        <target state="new">Parameter '{0}' can be removed, its initial value is never used</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
         <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
         <target state="translated">Soukromý člen {0} se může odebrat, jak jeho přiřazená hodnota se nikdy nečte.</target>
@@ -512,16 +517,6 @@
         <target state="translated">Odeberte nepoužívaný parametr {0}, pokud není součástí dodávaného veřejného rozhraní API.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</source>
-        <target state="translated">Odeberte nepoužívaný parametr {0}, pokud není součástí dodávaného veřejného rozhraní API. Jeho počáteční hodnota se nikdy nepoužívá.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_unused_parameter_0_its_initial_value_is_never_used">
-        <source>Remove unused parameter '{0}', its initial value is never used</source>
-        <target state="translated">Odeberte nepoužívaný parametr {0}. Jeho počáteční hodnota se nikdy nepoužívá.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
         <target state="translated">Odebrat nepoužité soukromé členy</target>
@@ -570,6 +565,11 @@
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
         <source>The selection contains a local function call without its declaration.</source>
         <target state="new">The selection contains a local function call without its declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnableToReadSourceFileOrPdb">
+        <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
+        <target state="new">Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
@@ -1671,16 +1671,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Implement_interface_with_Dispose_pattern">
         <source>Implement interface with Dispose pattern</source>
         <target state="translated">Implementovat rozhraní se vzorem Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Compiler1">
-        <source>Compiler</source>
-        <target state="translated">Kompilátor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Style">
-        <source>Style</source>
-        <target state="translated">Styl</target>
         <note />
       </trans-unit>
       <trans-unit id="Re_triage_0_currently_1">

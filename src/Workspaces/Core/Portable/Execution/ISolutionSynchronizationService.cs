@@ -49,6 +49,6 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        ValueTask<IReadOnlyDictionary<Checksum, RemotableData>?> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        ValueTask<IReadOnlyDictionary<Checksum, RemotableData>> GetRemotableDataAsync(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

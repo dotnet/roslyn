@@ -699,15 +699,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private bool IsShouldSerializeOrResetPropertyMethod(IMethodSymbol methodSymbol)
             {
-                // ShouldSerializeXXX and ResetXXX are ok if there is a matching
+                // "bool ShouldSerializeXXX()" and "void ResetXXX()" are ok if there is a matching
                 // property XXX as they are used by the windows designer property grid
                 // Note that we do a case sensitive compare for compatibility with legacy FxCop
                 // implementation of this rule.
 
-                return methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean &&
-                    methodSymbol.Parameters.IsEmpty &&
-                    (IsSpecialMethodWithMatchingProperty("ShouldSerialize") ||
-                     IsSpecialMethodWithMatchingProperty("Reset"));
+                return methodSymbol.Parameters.IsEmpty &&
+                    (IsSpecialMethodWithMatchingProperty("ShouldSerialize") && methodSymbol.ReturnType.SpecialType == SpecialType.System_Boolean ||
+                     IsSpecialMethodWithMatchingProperty("Reset") && methodSymbol.ReturnsVoid);
 
                 // Local functions.
                 bool IsSpecialMethodWithMatchingProperty(string prefix)

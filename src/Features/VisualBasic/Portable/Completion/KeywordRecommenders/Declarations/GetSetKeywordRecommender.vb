@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             ' If we have modifiers which exclude it, then definitely not
             Dim modifiers = context.ModifierCollectionFacts
             If Not modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Accessor) Then
-                Return Enumerable.Empty(Of RecommendedKeyword)()
+                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
 
             Dim targetToken = context.TargetToken

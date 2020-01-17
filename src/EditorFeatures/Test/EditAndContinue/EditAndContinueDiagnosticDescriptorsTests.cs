@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var d = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.ActiveStatementUpdate);
             Assert.Equal("ENC0001", d.Id);
-            Assert.Equal(FeaturesResources.EditAndContinue, d.Category);
+            Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
             Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable" }, d.CustomTags);
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             d = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
             Assert.Equal("ENC1001", d.Id);
-            Assert.Equal(FeaturesResources.EditAndContinue, d.Category);
+            Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
             Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable" }, d.CustomTags);
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             d = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(12);
             Assert.Equal("ENC2012", d.Id);
-            Assert.Equal(FeaturesResources.EditAndContinue, d.Category);
+            Assert.Equal(DiagnosticCategory.EditAndContinue, d.Category);
             Assert.Equal(new[] { "EditAndContinue", "Telemetry", "NotConfigurable" }, d.CustomTags);
             Assert.Equal("", d.Description);
             Assert.Equal("", d.HelpLinkUri);

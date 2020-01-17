@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        private class FindLiteralsServerCallback
+        internal sealed class FindLiteralsServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindLiteralReferencesProgress _progress;

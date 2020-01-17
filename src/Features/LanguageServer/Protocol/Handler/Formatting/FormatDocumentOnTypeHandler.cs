@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentOnTypeFormattingParams request, ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+            CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
             var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
             if (document != null)
             {
                 var formattingService = document.Project.LanguageServices.GetService<IEditorFormattingService>();
-                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+                var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
                 if (string.IsNullOrEmpty(request.Character))
                 {
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 IList<TextChange> textChanges;
                 if (SyntaxFacts.IsNewLine(request.Character[0]))
                 {
-                    textChanges = await formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(keepThreadContext);
+                    textChanges = await formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    textChanges = await formattingService.GetFormattingChangesAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(keepThreadContext);
+                    textChanges = await formattingService.GetFormattingChangesAsync(document, request.Character[0], position, cancellationToken).ConfigureAwait(false);
                 }
 
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(keepThreadContext);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (textChanges != null)
                 {
                     edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));

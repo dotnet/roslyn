@@ -52,5 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
             ' VB does not support compound assignments.
             Throw New NotImplementedException()
         End Function
+
+        Protected Overrides Function GetCandidateLocalDeclarationForRemoval(declarator As VariableDeclaratorSyntax) As LocalDeclarationStatementSyntax
+            Return TryCast(declarator.Parent, LocalDeclarationStatementSyntax)
+        End Function
     End Class
 End Namespace

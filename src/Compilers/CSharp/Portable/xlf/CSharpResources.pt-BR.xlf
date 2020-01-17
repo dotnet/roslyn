@@ -22,6 +22,11 @@
         <target state="translated">Para usar '@$' em vez de '$@' em uma cadeia de caracteres textual interpolada, use a versão de linguagem {0} ou superior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">Não é possível usar um tipo de referência que permite valor nulo na criação do objeto.</target>
@@ -5933,8 +5938,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">Um campo somente leitura não pode ser atribuído (exceto em um construtor ou inicializador de variável)</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">Um campo somente leitura não pode ser atribuído (exceto em um construtor ou inicializador de variável)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

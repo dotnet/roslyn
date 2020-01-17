@@ -168,6 +168,12 @@
   <data name="Adding_projects_is_not_supported" xml:space="preserve">
     <value>Adding projects is not supported.</value>
   </data>
+  <data name="Workspace_error" xml:space="preserve">
+    <value>Workspace error</value>
+  </data>
+  <data name="Error_reading_content_of_source_file_0_1" xml:space="preserve">
+    <value>Error reading content of source file '{0}' -- '{1}'.</value>
+  </data>
   <data name="Workspace_is_not_empty" xml:space="preserve">
     <value>Workspace is not empty.</value>
   </data>
@@ -480,8 +486,8 @@
   <data name="Add_braces_to_0_statement" xml:space="preserve">
     <value>Add braces to '{0}' statement.</value>
   </data>
-  <data name="Options_did_not_come_from_Workspace" xml:space="preserve">
-    <value>Options did not come from Workspace</value>
+  <data name="Options_did_not_come_from_specified_Solution" xml:space="preserve">
+    <value>Options did not come from specified Solution</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>Enable</value>

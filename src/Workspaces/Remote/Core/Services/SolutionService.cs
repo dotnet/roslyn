@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -48,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public Task<SolutionInfo> GetSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+        public Task<(SolutionInfo, SerializableOptionSet)> GetSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
-            return SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, solutionChecksum, cancellationToken);
+            return SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, solutionChecksum, cancellationToken);
         }
 
         public Task<Solution> GetSolutionAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
@@ -143,20 +144,20 @@ namespace Microsoft.CodeAnalysis.Remote
             // we need new solution. bulk sync all asset for the solution first.
             await _assetService.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
-            // get new solution info
-            var solutionInfo = await GetSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+            // get new solution info and options
+            var (solutionInfo, options) = await GetSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             if (fromPrimaryBranch)
             {
                 // if the solutionChecksum is for primary branch, update primary workspace cache with new solution
-                if (PrimaryWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion, out var solution))
+                if (PrimaryWorkspace.TryAddSolutionIfPossible(solutionInfo, workspaceVersion, options, out var solution))
                 {
                     return solution;
                 }
             }
 
             // otherwise, just return new solution
-            var workspace = new TemporaryWorkspace(solutionInfo);
+            var workspace = new TemporaryWorkspace(solutionInfo, options);
             return workspace.CurrentSolution;
         }
 

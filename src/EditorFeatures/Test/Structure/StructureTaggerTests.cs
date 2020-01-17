@@ -41,8 +41,8 @@ namespace MyNamespace
 }";
 
             using var workspace = TestWorkspace.CreateCSharp(code);
-            workspace.Options = workspace.Options.WithChangedOption(
-BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true)));
 
             var tags = await GetTagsFromWorkspaceAsync(workspace);
 

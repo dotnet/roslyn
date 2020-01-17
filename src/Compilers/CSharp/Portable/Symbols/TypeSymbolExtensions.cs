@@ -491,16 +491,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)type != null ? type.SpecialType : SpecialType.None;
         }
 
-        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
-            HashSet<DiagnosticInfo> localUseSiteDiagnostics = useSiteDiagnostics;
+            HashSet<DiagnosticInfo>? localUseSiteDiagnostics = useSiteDiagnostics;
             var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
                                         canDigThroughNullable: true); // System.Nullable is public
             useSiteDiagnostics = localUseSiteDiagnostics;
             return result is null;
         }
 
-        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             switch (type.TypeKind)
             {
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol? GetNonErrorGuess(this TypeSymbol type)
         {
             var result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
-            RoslynDebug.Assert((object)result == null || !result.IsErrorType());
+            RoslynDebug.Assert((object?)result == null || !result.IsErrorType());
             return result;
         }
 
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (type.Type.ContainsTupleNames())
                 {
-                    SynthesizedAttributeData attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
+                    SynthesizedAttributeData? attr = compilation.SynthesizeTupleNamesAttribute(type.Type);
                     if (attr != null)
                     {
                         builder.Add(attr);
@@ -1637,14 +1637,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (compilation.ShouldEmitNullableAttributes(declaringSymbol))
                 {
-                    SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
+                    SynthesizedAttributeData? attr = moduleBuilder.SynthesizeNullableAttributeIfNecessary(declaringSymbol, declaringSymbol.GetNullableContextValue(), type);
                     if (attr != null)
                     {
                         builder.Add(attr);
                     }
                 }
             }
-
 
             return new Cci.TypeReferenceWithAttributes(typeRef, builder.ToImmutableAndFree());
         }

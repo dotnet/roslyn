@@ -1,6 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// #define LOG
+
+using System;
 using System.Collections.Immutable;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,6 +18,12 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
     internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> : DiagnosticAnalyzer, IBuiltInAnalyzer where TLanguageKindEnum : struct
     {
+#if LOG
+        private static string _logFile = @"c:\temp\simplifytypenames.txt";
+        private static object _logGate = new object();
+        private static readonly Regex s_newlinePattern = new Regex(@"[\r\n]+");
+#endif
+
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Names), FeaturesResources.ResourceManager, typeof(FeaturesResources));
@@ -150,6 +161,28 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
+
+#if LOG
+            var sourceText = tree.GetText(cancellationToken);
+            sourceText.GetLineAndOffset(issueSpan.Start, out var startLineNumber, out var startOffset);
+            sourceText.GetLineAndOffset(issueSpan.End, out var endLineNumber, out var endOffset);
+            var logLine = tree.FilePath + "," + startLineNumber + "\t" + diagnosticId + "\t" + inDeclaration + "\t";
+
+            var leading = sourceText.ToString(TextSpan.FromBounds(
+                sourceText.Lines[startLineNumber].Start, issueSpan.Start));
+            var mid = sourceText.ToString(issueSpan);
+            var trailing = sourceText.ToString(TextSpan.FromBounds(
+                issueSpan.End, sourceText.Lines[endLineNumber].End));
+
+            var contents = leading + "[|" + s_newlinePattern.Replace(mid, " ") + "|]" + trailing;
+            logLine += contents + "\r\n";
+
+            lock (_logGate)
+            {
+                File.AppendAllText(_logFile, logLine);
+            }
+#endif
+
             return true;
         }
 
