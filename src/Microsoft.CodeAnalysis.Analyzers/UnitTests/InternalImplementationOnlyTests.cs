@@ -62,9 +62,9 @@ class SomeOtherClass : IMyOtherInterface { }";
                     ExpectedDiagnostics =
                     {
                         // Test0.cs(2,7): error RS1009: Type SomeClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
-                        VerifyCS.Diagnostic().WithSpan(2, 7, 2, 10).WithArguments("SomeClass", "IMyInterface"),
+                        VerifyCS.Diagnostic().WithSpan(2, 7, 2, 16).WithArguments("SomeClass", "IMyInterface"),
                         // Test0.cs(4,7): error RS1009: Type SomeOtherClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
-                        VerifyCS.Diagnostic().WithSpan(4, 7, 4, 10).WithArguments("SomeOtherClass", "IMyInterface"),
+                        VerifyCS.Diagnostic().WithSpan(4, 7, 4, 21).WithArguments("SomeOtherClass", "IMyInterface"),
                     },
                 },
                 SolutionTransforms =
@@ -320,61 +320,61 @@ class SomeOtherClass : Microsoft.CodeAnalysis.Operations.IInvocationOperation { 
                     ExpectedDiagnostics =
                     {
                         // Test0.cs(3,7): error RS1009: Type SomeClass cannot implement interface IOperation because IOperation is not available for public implementation.
-                        VerifyCS.Diagnostic().WithSpan(3, 7, 3, 10).WithArguments("SomeClass", "IOperation"),
+                        VerifyCS.Diagnostic().WithSpan(3, 7, 3, 16).WithArguments("SomeClass", "IOperation"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Accept(OperationVisitor)'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor)"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor)"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult>, TArgument)'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>, TArgument)"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>, TArgument)"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Children'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Children"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Children"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.ConstantValue'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.ConstantValue"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.ConstantValue"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.IsImplicit'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.IsImplicit"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.IsImplicit"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Kind'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Kind"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Kind"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Language'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Language"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Language"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Parent'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Parent"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Parent"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.SemanticModel'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.SemanticModel"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.SemanticModel"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Syntax'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Syntax"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Syntax"),
                         // Test0.cs(3,13): error CS0535: 'SomeClass' does not implement interface member 'IOperation.Type'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 13, 3, 46).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Type"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(3, 19, 3, 52).WithArguments("SomeClass", "Microsoft.CodeAnalysis.IOperation.Type"),
                         // Test0.cs(4,7): error RS1009: Type SomeOtherClass cannot implement interface IOperation because IOperation is not available for public implementation.
-                        VerifyCS.Diagnostic().WithSpan(4, 7, 4, 10).WithArguments("SomeOtherClass", "IOperation"),
+                        VerifyCS.Diagnostic().WithSpan(4, 7, 4, 21).WithArguments("SomeOtherClass", "IOperation"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Accept(OperationVisitor)'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor)"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Operations.OperationVisitor)"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult>, TArgument)'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>, TArgument)"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>, TArgument)"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Children'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Children"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Children"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.ConstantValue'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.ConstantValue"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.ConstantValue"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.IsImplicit'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.IsImplicit"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.IsImplicit"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Kind'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Kind"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Kind"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Language'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Language"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Language"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Parent'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Parent"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Parent"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.SemanticModel'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.SemanticModel"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.SemanticModel"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Syntax'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Syntax"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Syntax"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IOperation.Type'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Type"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.IOperation.Type"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IInvocationOperation.Arguments'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.Arguments"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.Arguments"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IInvocationOperation.Instance'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.Instance"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.Instance"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IInvocationOperation.IsVirtual'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.IsVirtual"),
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.IsVirtual"),
                         // Test0.cs(4,13): error CS0535: 'SomeOtherClass' does not implement interface member 'IInvocationOperation.TargetMethod'
-                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 13, 4, 67).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.TargetMethod")
+                        DiagnosticResult.CompilerError("CS0535").WithSpan(4, 24, 4, 78).WithArguments("SomeOtherClass", "Microsoft.CodeAnalysis.Operations.IInvocationOperation.TargetMethod")
                     },
                 },
             }.RunAsync();
@@ -444,9 +444,9 @@ End Class
                     ExpectedDiagnostics =
                     {
                         // Test0.vb(2,7): error RS1009: Type SomeClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
-                        VerifyVB.Diagnostic().WithSpan(2, 7, 2, 10).WithArguments("SomeClass", "IMyInterface"),
+                        VerifyVB.Diagnostic().WithSpan(2, 7, 2, 16).WithArguments("SomeClass", "IMyInterface"),
                         // Test0.vb(6,7): error RS1009: Type SomeOtherClass cannot implement interface IMyInterface because IMyInterface is not available for public implementation.
-                        VerifyVB.Diagnostic().WithSpan(6, 7, 6, 10).WithArguments("SomeOtherClass", "IMyInterface"),
+                        VerifyVB.Diagnostic().WithSpan(6, 7, 6, 21).WithArguments("SomeOtherClass", "IMyInterface"),
                     },
                 },
                 SolutionTransforms =
@@ -512,7 +512,7 @@ End Class
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact(Skip = "FIXME")]
         public async Task Basic_VerifyISymbol()
         {
             var source = @"
@@ -696,7 +696,7 @@ End Class
             }.RunAsync();
         }
 
-        [Fact]
+        [Fact(Skip = "FIXME")]
         public async Task Basic_VerifyIOperation()
         {
             var source = @"
