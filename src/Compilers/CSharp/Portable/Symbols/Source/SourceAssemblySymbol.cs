@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _state.HasComplete(part);
         }
 
-        internal override void ForceComplete([NotNull] SourceLocation? locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
             while (true)
             {
@@ -1461,11 +1461,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyNetModuleAttributesBag!;
         }
 
-        internal CommonAssemblyWellKnownAttributeData GetNetModuleDecodedWellKnownAttributeData()
+        internal CommonAssemblyWellKnownAttributeData? GetNetModuleDecodedWellKnownAttributeData()
         {
             var attributesBag = this.GetNetModuleAttributesBag();
             Debug.Assert(attributesBag.IsSealed);
-            return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonAssemblyWellKnownAttributeData?)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// TODO: We should replace methods GetSourceDecodedWellKnownAttributeData and GetNetModuleDecodedWellKnownAttributeData with
         /// a single method GetDecodedWellKnownAttributeData, which merges DecodedWellKnownAttributeData from source and netmodule attributes.
         /// </remarks>
-        internal CommonAssemblyWellKnownAttributeData GetSourceDecodedWellKnownAttributeData()
+        internal CommonAssemblyWellKnownAttributeData? GetSourceDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazySourceAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -1570,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetSourceAttributesBag();
             }
 
-            return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonAssemblyWellKnownAttributeData?)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attributesBag?.IsDecodedWellKnownAttributeDataComputed == true)
             {
                 // Use already decoded attributes
-                return ((CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
+                return ((CommonAssemblyWellKnownAttributeData?)attributesBag.DecodedWellKnownAttributeData)?.ForwardedTypes;
             }
 
             attributesBag = null;
@@ -1604,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(attributesBag.IsSealed);
 
-            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            var wellKnownAttributeData = (CommonAssemblyWellKnownAttributeData?)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownAttributeData != null)
             {
                 SecurityWellKnownAttributeData securityData = wellKnownAttributeData.SecurityInformation;
@@ -1741,7 +1741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CommonAssemblyWellKnownAttributeData assemblyData = this.GetSourceDecodedWellKnownAttributeData();
+                CommonAssemblyWellKnownAttributeData? assemblyData = this.GetSourceDecodedWellKnownAttributeData();
                 return assemblyData != null && assemblyData.HasDebuggableAttribute;
             }
         }
@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                CommonAssemblyWellKnownAttributeData assemblyData = this.GetSourceDecodedWellKnownAttributeData();
+                CommonAssemblyWellKnownAttributeData? assemblyData = this.GetSourceDecodedWellKnownAttributeData();
                 return assemblyData != null && assemblyData.HasReferenceAssemblyAttribute;
             }
         }

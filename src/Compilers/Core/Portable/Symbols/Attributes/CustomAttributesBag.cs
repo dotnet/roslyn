@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -16,8 +18,8 @@ namespace Microsoft.CodeAnalysis
         where T : AttributeData
     {
         private ImmutableArray<T> _customAttributes;
-        private WellKnownAttributeData _decodedWellKnownAttributeData;
-        private EarlyWellKnownAttributeData _earlyDecodedWellKnownAttributeData;
+        private WellKnownAttributeData? _decodedWellKnownAttributeData;
+        private EarlyWellKnownAttributeData? _earlyDecodedWellKnownAttributeData;
         private int _state;
 
         /// <summary>
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         /// Stored early decoded data is immutable and cannot be updated further.
         /// </summary>
         /// <returns>Returns true if early decoded data were stored into the bag on this thread.</returns>
-        public bool SetEarlyDecodedWellKnownAttributeData(EarlyWellKnownAttributeData data)
+        public bool SetEarlyDecodedWellKnownAttributeData(EarlyWellKnownAttributeData? data)
         {
             WellKnownAttributeData.Seal(data);
             var setOnOurThread = Interlocked.CompareExchange(ref _earlyDecodedWellKnownAttributeData, data, null) == null;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis
         /// Stored decoded data is immutable and cannot be updated further.
         /// </summary>
         /// <returns>Returns true if decoded data were stored into the bag on this thread.</returns>
-        public bool SetDecodedWellKnownAttributeData(WellKnownAttributeData data)
+        public bool SetDecodedWellKnownAttributeData(WellKnownAttributeData? data)
         {
             WellKnownAttributeData.Seal(data);
             var setOnOurThread = Interlocked.CompareExchange(ref _decodedWellKnownAttributeData, data, null) == null;
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the decoded well-known attribute data (except the early data) in the bag. 
         /// </summary>
         /// <remarks>This property can only be accessed on the bag after <see cref="SetDecodedWellKnownAttributeData"/> has been invoked.</remarks>
-        public WellKnownAttributeData DecodedWellKnownAttributeData
+        public WellKnownAttributeData? DecodedWellKnownAttributeData
         {
             get
             {
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the early decoded well-known attribute data in the bag. 
         /// </summary>
         /// <remarks>This property can only be accessed on the bag after <see cref="SetEarlyDecodedWellKnownAttributeData"/> has been invoked.</remarks>
-        public EarlyWellKnownAttributeData EarlyDecodedWellKnownAttributeData
+        public EarlyWellKnownAttributeData? EarlyDecodedWellKnownAttributeData
         {
             get
             {
