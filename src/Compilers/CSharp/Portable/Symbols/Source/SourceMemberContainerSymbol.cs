@@ -2920,7 +2920,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (ParameterSymbol param in ctor.Parameters)
             {
-                string name = GeneratedNames.MakeBackingFieldName(param.Name);
                 var property = new SynthesizedRecordPropertySymbol(this, param);
                 if (!memberSignatures.Contains(property))
                 {

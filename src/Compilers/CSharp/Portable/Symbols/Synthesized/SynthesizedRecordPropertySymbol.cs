@@ -15,17 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedRecordPropertySymbol : SourceOrRecordPropertySymbol
     {
-        private readonly NamedTypeSymbol _containingType;
         private readonly ParameterSymbol _backingParameter;
-
-        internal override SynthesizedBackingFieldSymbol BackingField { get; }
 
         public SynthesizedRecordPropertySymbol(
             NamedTypeSymbol containingType,
             ParameterSymbol backingParameter)
             : base(backingParameter.Locations[0])
         {
-            _containingType = containingType;
+            ContainingType = containingType;
             _backingParameter = backingParameter;
             string name = backingParameter.Name;
             BackingField = new SynthesizedBackingFieldSymbol(
@@ -36,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasInitializer: backingParameter.HasExplicitDefaultValue);
             GetMethod = new GetAccessorSymbol(this, name);
         }
+
+        internal override SynthesizedBackingFieldSymbol BackingField { get; }
 
         internal override bool IsAutoProperty => true;
 
@@ -55,7 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
-        public override Symbol ContainingSymbol => _containingType;
+        public override NamedTypeSymbol ContainingType { get; }
+
+        public override Symbol ContainingSymbol => ContainingType;
 
         public override ImmutableArray<Location> Locations => _backingParameter.Locations;
 

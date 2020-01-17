@@ -3,6 +3,7 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var param in Parameters)
             {
                 var members = containing.GetMembers(param.Name);
-                if (members.Length == 1 && members[0] is SynthesizedRecordPropertySymbol prop)
+                if (members.SingleOrDefault() is SynthesizedRecordPropertySymbol prop)
                 {
                     var field = prop.BackingField;
                     statements.Add(F.Assignment(F.Field(F.This(), field), F.Parameter(param)));
