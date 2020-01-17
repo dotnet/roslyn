@@ -15,6 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
     {
         private static class RegistryItemConverter
         {
+            private const uint FullyOpaqueAlpha = 0xFF000000;
+            private const uint RegistryVersion = 0x0B;
+
             public static ImmutableArray<RegistryItem> Convert(ColorScheme scheme)
             {
                 return scheme.Themes
@@ -43,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 WriteDWord(bytes, 0);
 
                 // Write the Version into the header.
-                WriteDWord(bytes, 11);
+                WriteDWord(bytes, RegistryVersion);
 
                 // Write the category count into the header.
                 WriteDWord(bytes, 1);
@@ -107,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     // Add back a fully opaque alpha value for RGB colors
                     if (color.BackgroundType == (int)__VSCOLORTYPE.CT_RAW)
                     {
-                        background |= 0xFF000000;
+                        background |= FullyOpaqueAlpha;
                     }
 
                     WriteDWord(bytes, background);
@@ -122,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                     // Add back a fully opaque alpha value for RGB colors
                     if (color.ForegroundType == (int)__VSCOLORTYPE.CT_RAW)
                     {
-                        foreground |= 0xFF000000;
+                        foreground |= FullyOpaqueAlpha;
                     }
 
                     WriteDWord(bytes, foreground);

@@ -127,8 +127,7 @@
             <GroupBox x:Uid="ClassificationsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
                 <StackPanel>
-                    <ComboBox x:Name="Editor_color_scheme" 
-                              IsEditable="false">
+                    <ComboBox x:Name="Editor_color_scheme" IsEditable="false">
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_Enhanced}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_Enhanced_Tag}" />
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
                     </ComboBox>

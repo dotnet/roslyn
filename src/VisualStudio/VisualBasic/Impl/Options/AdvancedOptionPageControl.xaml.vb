@@ -84,12 +84,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
         ' we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         Friend Overrides Sub OnLoad()
-            Dim isKnownTheme = _colorSchemeApplier.IsSupportedTheme()
+            Dim isSupportedTheme = _colorSchemeApplier.IsSupportedTheme()
             Dim isCustomized = _colorSchemeApplier.IsThemeCustomized()
 
-            Editor_color_scheme.Visibility = If(isKnownTheme, Visibility.Visible, Visibility.Collapsed)
-            Customized_Theme_Warning.Visibility = If(isKnownTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
-            Custom_VS_Theme_Warning.Visibility = If(isKnownTheme, Visibility.Collapsed, Visibility.Visible)
+            Editor_color_scheme.Visibility = If(isSupportedTheme, Visibility.Visible, Visibility.Collapsed)
+            Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
+            Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
 
             MyBase.OnLoad()
         End Sub

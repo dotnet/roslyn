@@ -104,8 +104,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             {
                 // Look up the value from the new roamed theme property first and
                 // fallback to the original roamed theme property if that fails.
-                var themeIdString = _workspace.Options.GetOption(VisualStudioColorTheme.CurrentTheme)
-                    ?? _workspace.Options.GetOption(VisualStudioColorTheme.CurrentThemeNew);
+                var themeIdString = _workspace.Options.GetOption(VisualStudioColorTheme.CurrentThemeNew)
+                    ?? _workspace.Options.GetOption(VisualStudioColorTheme.CurrentTheme);
 
                 return Guid.TryParse(themeIdString, out var themeId) ? themeId : Guid.Empty;
             }

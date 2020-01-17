@@ -86,12 +86,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         // we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         internal override void OnLoad()
         {
-            var isKnownTheme = _colorSchemeApplier.IsSupportedTheme();
+            var isSupportedTheme = _colorSchemeApplier.IsSupportedTheme();
             var isThemeCustomized = _colorSchemeApplier.IsThemeCustomized();
 
-            Editor_color_scheme.Visibility = isKnownTheme ? Visibility.Visible : Visibility.Collapsed;
-            Customized_Theme_Warning.Visibility = isKnownTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
-            Custom_VS_Theme_Warning.Visibility = isKnownTheme ? Visibility.Collapsed : Visibility.Visible;
+            Editor_color_scheme.Visibility = isSupportedTheme ? Visibility.Visible : Visibility.Collapsed;
+            Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;
+            Custom_VS_Theme_Warning.Visibility = isSupportedTheme ? Visibility.Collapsed : Visibility.Visible;
 
             base.OnLoad();
         }
