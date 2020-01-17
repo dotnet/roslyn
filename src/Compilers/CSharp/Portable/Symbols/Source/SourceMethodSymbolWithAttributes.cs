@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Called when this thread loaded the method's attributes. For method symbols with completion state.
         /// </summary>
-        protected virtual void NoteAttributesComplete(bool forReturnType) { }
+        protected abstract void NoteAttributesComplete(bool forReturnType);
 
         /// <summary>
         /// Gets the attributes applied on this symbol.

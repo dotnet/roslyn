@@ -340,6 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(Syntax.AttributeLists);
         }
 
+        protected override void NoteAttributesComplete(bool forReturnType) { }
+
         public override Symbol? AssociatedSymbol => null;
 
         public override Accessibility DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(_declarationModifiers);
