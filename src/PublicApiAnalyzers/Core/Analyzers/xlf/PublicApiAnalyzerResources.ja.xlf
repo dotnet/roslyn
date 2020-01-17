@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
         <source>Add all items in document '{0}' to the public API</source>
-        <target state="new">Add all items in document '{0}' to the public API</target>
+        <target state="translated">ドキュメント '{0}' 内のすべての項目のパブリック API への追加</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
         <source>Add all items in project '{0}' to the public API</source>
-        <target state="new">Add all items in project '{0}' to the public API</target>
+        <target state="translated">プロジェクト '{0}' 内のすべての項目のパブリック API への追加</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
         <source>Add all items in the solution to the public API</source>
-        <target state="new">Add all items in the solution to the public API</target>
+        <target state="translated">ソリューション内のすべての項目のパブリック API への追加</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
@@ -134,17 +134,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">{0} の暗黙的なコンストラクター </target>
+        <target state="translated">'{0}' の暗黙的なコンストラクター</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} の暗黙的な get アクセサー</target>
+        <target state="translated">'{0}' の暗黙的な get アクセサー</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} の暗黙的な set アクセサー</target>
+        <target state="translated">'{0}' の暗黙的な set アクセサー</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

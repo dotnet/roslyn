@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
         <source>Add all items in document '{0}' to the public API</source>
-        <target state="new">Add all items in document '{0}' to the public API</target>
+        <target state="translated">Alle Elemente im Dokument "{0}" der öffentlichen API hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
         <source>Add all items in project '{0}' to the public API</source>
-        <target state="new">Add all items in project '{0}' to the public API</target>
+        <target state="translated">Alle Elemente im Projekt "{0}" der öffentlichen API hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
         <source>Add all items in the solution to the public API</source>
-        <target state="new">Add all items in the solution to the public API</target>
+        <target state="translated">Alle Elemente in der Projektmappe der öffentlichen API hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
@@ -134,17 +134,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">Impliziter Konstruktor für {0}</target>
+        <target state="translated">Impliziter Konstruktor für "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">Impliziter get-Accessor für "{0}"</target>
+        <target state="translated">Impliziter get-Accessor für "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">Impliziter set-Accessor für "{0}"</target>
+        <target state="translated">Impliziter set-Accessor für "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">

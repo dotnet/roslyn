@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
         <source>Add all items in document '{0}' to the public API</source>
-        <target state="new">Add all items in document '{0}' to the public API</target>
+        <target state="translated">'{0}' belgesindeki tüm öğeleri genel API'ye ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
         <source>Add all items in project '{0}' to the public API</source>
-        <target state="new">Add all items in project '{0}' to the public API</target>
+        <target state="translated">'{0}' projesindeki tüm öğeleri genel API'ye ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
         <source>Add all items in the solution to the public API</source>
-        <target state="new">Add all items in the solution to the public API</target>
+        <target state="translated">Çözümdeki tüm öğeleri genel API'ye ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
@@ -134,17 +134,17 @@
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
         <source>implicit constructor for '{0}'</source>
-        <target state="needs-review-translation">{0} öğesine yönelik örtük oluşturucu</target>
+        <target state="translated">'{0}' için örtük oluşturucu</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
         <source>implicit get-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} için örtük get erişimcisi</target>
+        <target state="translated">'{0}' için örtük get erişimcisi</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
         <source>implicit set-accessor for '{0}'</source>
-        <target state="needs-review-translation">{0} için örtük set erişimcisi</target>
+        <target state="translated">'{0}' için örtük set erişimcisi</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
