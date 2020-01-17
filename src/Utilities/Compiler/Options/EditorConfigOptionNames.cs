@@ -121,9 +121,12 @@ namespace Analyzer.Utilities
         public const string EnumValuesPrefixTrigger = "enum_values_prefix_trigger";
 
         /// <summary>
-        /// String option to configure names of types and their suffixes (separated by '|').
-        /// Entries should follow the FullyQualifiedNamedType:RequiredSuffix format.
-        /// Note that in case of a duplicated type name, only the first suffix is kept.
+        /// String option to configure names of types (separated by '|'), with their suffixes (separated by '->').
+        /// Configurable rules: CA1710 (https://docs.microsoft.com/visualstudio/code-quality/ca1710-identifiers-should-have-correct-suffix).
+        /// Allowed type name formats:
+        ///   1. Type name only (includes all types with the name, regardless of the containing type or namespace)
+        ///   2. Fully qualified names in the symbol's documentation ID format: https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format
+        ///      with an optional "T:" prefix.
         /// </summary>
         public const string AdditionalRequiredSuffixes = "additional_required_suffixes";
 

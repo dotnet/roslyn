@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
 
@@ -48,20 +48,20 @@ namespace Analyzer.Utilities
                     ? getSymbolNamePartsFunc(symbolName)
                     : new NameParts(symbolName);
 
-                if (parts.TypeName.Equals(".ctor", StringComparison.Ordinal) ||
-                    parts.TypeName.Equals(".cctor", StringComparison.Ordinal) ||
-                    !parts.TypeName.Contains(".") && !parts.TypeName.Contains(":"))
+                if (parts.SymbolName.Equals(".ctor", StringComparison.Ordinal) ||
+                    parts.SymbolName.Equals(".cctor", StringComparison.Ordinal) ||
+                    !parts.SymbolName.Contains(".") && !parts.SymbolName.Contains(":"))
                 {
-                    if (!namesBuilder.ContainsKey(parts.TypeName))
+                    if (!namesBuilder.ContainsKey(parts.SymbolName))
                     {
-                        namesBuilder.Add(parts.TypeName, parts.Suffix);
+                        namesBuilder.Add(parts.SymbolName, parts.Value);
                     }
                 }
                 else
                 {
-                    var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || parts.TypeName.StartsWith(optionalPrefix, StringComparison.Ordinal))
-                        ? parts.TypeName
-                        : optionalPrefix + parts.TypeName;
+                    var nameWithPrefix = (string.IsNullOrEmpty(optionalPrefix) || parts.SymbolName.StartsWith(optionalPrefix, StringComparison.Ordinal))
+                        ? parts.SymbolName
+                        : optionalPrefix + parts.SymbolName;
 
 #pragma warning disable CA1307 // Specify StringComparison - https://github.com/dotnet/roslyn-analyzers/issues/1552
                     // Documentation comment ID for constructors uses '#ctor', but '#' is a comment start token for editorconfig.
@@ -85,14 +85,14 @@ namespace Analyzer.Utilities
                             {
                                 if (!symbolsBuilder.ContainsKey(constituentNamespace))
                                 {
-                                    symbolsBuilder.Add(constituentNamespace, parts.Suffix);
+                                    symbolsBuilder.Add(constituentNamespace, parts.Value);
                                 }
                             }
                         }
 
                         if (!symbolsBuilder.ContainsKey(symbol))
                         {
-                            symbolsBuilder.Add(symbol, parts.Suffix);
+                            symbolsBuilder.Add(symbol, parts.Value);
                         }
                     }
                 }
@@ -111,38 +111,38 @@ namespace Analyzer.Utilities
         public bool Contains(ISymbol symbol)
             => _symbols.ContainsKey(symbol) || _names.ContainsKey(symbol.Name);
 
-        public bool TryGetSuffix(ISymbol symbol, [NotNullWhen(true)] out string? suffix) =>
-            _symbols.TryGetValue(symbol, out suffix) || _names.TryGetValue(symbol.Name, out suffix);
+        /// <summary>
+        /// Gets the value associated with the specified symbol in the option specification.
+        /// </summary>
+        public bool TryGetValue(ISymbol symbol, [NotNullWhen(true)] out string? value) =>
+            _symbols.TryGetValue(symbol, out value) || _names.TryGetValue(symbol.Name, out value);
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as SymbolNamesOption);
-        }
+        public override bool Equals(object obj) => Equals(obj as SymbolNamesOption);
 
         public bool Equals(SymbolNamesOption? other)
-        {
-            return other != null &&
-                _names.Count == other._names.Count &&
-                _symbols.Count == other._symbols.Count &&
-                _names.Keys.All(key => other._names.ContainsKey(key) && string.Equals(_names[key], other._names[key], StringComparison.Ordinal)) &&
-                _symbols.Keys.All(key => other._symbols.ContainsKey(key) && string.Equals(_symbols[key], other._symbols[key], StringComparison.Ordinal));
-        }
+            => other != null && _names.IsEqualTo(other._names) && _symbols.IsEqualTo(other._symbols);
 
         public override int GetHashCode()
-        {
-            return HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols));
-        }
+            => HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols));
 
+        /// <summary>
+        /// Represents the two parts of a symbol name option when the symbol name is tighted to some specific value.
+        /// This allows to link a value to a symbol while following the symbol's documentation ID format.
+        /// </summary>
+        /// <example>
+        /// On the rule CA1710, we allow user specific suffix to be registered for symbol names using the following format:
+        /// MyClass->Suffix or T:MyNamespace.MyClass->Suffix or N:MyNamespace->Suffix.
+        /// </example>
         public sealed class NameParts
         {
-            public NameParts(string typeName, string? suffix = null)
+            public NameParts(string symbolName, string? value = null)
             {
-                TypeName = typeName;
-                Suffix = suffix;
+                SymbolName = symbolName.Trim();
+                Value = value?.Trim();
             }
 
-            public string TypeName { get; }
-            public string? Suffix { get; }
+            public string SymbolName { get; }
+            public string? Value { get; }
         }
     }
 }

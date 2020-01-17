@@ -163,7 +163,6 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken)
             => options.GetSymbolNamesOption(EditorConfigOptionNames.DisallowedSymbolNames, namePrefixOpt: null, rule, compilation, cancellationToken);
 
-
         public static SymbolNamesOption GetAdditionalRequiredSuffixesOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
@@ -174,10 +173,11 @@ namespace Analyzer.Utilities
 
             static SymbolNamesOption.NameParts GetParts(string name)
             {
-                var lastIndexOfColon = name.LastIndexOf(':');
+                var split = name.Split(new[] { "->" }, StringSplitOptions.RemoveEmptyEntries);
 
-                return lastIndexOfColon > 0
-                    ? new SymbolNamesOption.NameParts(name.Substring(0, lastIndexOfColon), name.Substring(lastIndexOfColon + 1))
+                // If we don't find exactly one '->', we assume that there is no given suffix.
+                return split.Length == 2
+                    ? new SymbolNamesOption.NameParts(split[0], split[1])
                     : new SymbolNamesOption.NameParts(name);
             }
         }
