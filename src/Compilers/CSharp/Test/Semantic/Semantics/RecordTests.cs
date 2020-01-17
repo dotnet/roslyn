@@ -196,5 +196,21 @@ data class C(int X)
                 Diagnostic(ErrorCode.ERR_MemberReserved, "X").WithArguments("get_X", "C").WithLocation(2, 18)
             );
         }
+
+        [Fact]
+        public void RecordProperties_07()
+        {
+            var comp = CreateCompilation(@"
+data class C1(object P, object get_P);
+data class C2(object get_P, object P);");
+            comp.VerifyDiagnostics(
+                // (2,22): error CS0102: The type 'C1' already contains a definition for 'get_P'
+                // data class C1(object P, object get_P);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C1", "get_P").WithLocation(2, 22),
+                // (3,36): error CS0102: The type 'C2' already contains a definition for 'get_P'
+                // data class C2(object get_P, object P);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C2", "get_P").WithLocation(3, 36)
+            );
+        }
     }
 }

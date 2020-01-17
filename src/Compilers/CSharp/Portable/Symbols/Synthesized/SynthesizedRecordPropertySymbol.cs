@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedRecordPropertySymbol : SourceOrRecordPropertySymbol
     {
         private readonly ParameterSymbol _backingParameter;
+        internal override SynthesizedBackingFieldSymbol BackingField { get; }
+        public override MethodSymbol GetMethod { get; }
+        public override NamedTypeSymbol ContainingType { get; }
 
         public SynthesizedRecordPropertySymbol(
             NamedTypeSymbol containingType,
@@ -34,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetMethod = new GetAccessorSymbol(this, name);
         }
 
-        internal override SynthesizedBackingFieldSymbol BackingField { get; }
-
         internal override bool IsAutoProperty => true;
 
         public override RefKind RefKind => RefKind.None;
@@ -48,13 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsIndexer => false;
 
-        public override MethodSymbol GetMethod { get; }
-
         public override MethodSymbol? SetMethod => null;
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
-
-        public override NamedTypeSymbol ContainingType { get; }
 
         public override Symbol ContainingSymbol => ContainingType;
 
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Name = SourcePropertyAccessorSymbol.GetAccessorName(
                     paramName,
                     getNotSet: true,
-                    property.IsCompilationOutputWinMdObj());
+                    isWinMdOutput: false /* unused for getters */);
             }
 
             public override MethodKind MethodKind => MethodKind.PropertyGet;
@@ -145,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override Symbol AssociatedSymbol => _property;
 
-            public override Symbol ContainingSymbol => _property;
+            public override Symbol ContainingSymbol => _property.ContainingSymbol;
 
             public override ImmutableArray<Location> Locations => _property.Locations;
 
@@ -177,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override CallingConvention CallingConvention => CallingConvention.HasThis;
 
-            internal override bool GenerateDebugInfo => true;
+            internal override bool GenerateDebugInfo => false;
 
             public override DllImportData? GetDllImportData() => null;
 
