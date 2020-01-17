@@ -91,6 +91,14 @@ namespace Microsoft.CodeAnalysis
                         //
                         return ValueUsageInfo.Write;
 
+                    case IPropertySubpatternOperation _:
+                        // A declaration pattern within a property sub-pattern is a
+                        // write for the declared local.
+                        // For example, 'x' is defined and assigned the value from 'obj.Property' below:
+                        //      if (obj is { Property : int x })
+                        //
+                        return ValueUsageInfo.Write;
+
                     default:
                         Debug.Fail("Unhandled declaration pattern context");
 

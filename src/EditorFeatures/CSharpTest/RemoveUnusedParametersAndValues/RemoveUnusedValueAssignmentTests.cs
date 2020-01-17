@@ -7415,6 +7415,60 @@ public class Test
 }", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task LocalUsedWithPropertySubPattern()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public object P { get; }
+    void M()
+    {
+        C [|c|] = new C();
+        var x = c is { P : int i };
+    }
+}", new TestParameters(options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocalDefinedInPropertySubPattern_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : int [|i|] };
+    }
+}",
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : int _ };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : int [|i|] };
+    }
+}", new TestParameters(options: PreferUnusedLocal, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
         [WorkItem(38640, "https://github.com/dotnet/roslyn/issues/38640")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchExpressionArm_UnusedLocal_PreferDiscard()
