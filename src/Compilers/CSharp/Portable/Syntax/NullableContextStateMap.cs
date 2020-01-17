@@ -17,14 +17,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     internal readonly struct NullableContextState
     {
         internal int Position { get; }
-        internal bool? WarningsState { get; }
-        internal bool? AnnotationsState { get; }
+        internal State WarningsState { get; }
+        internal State AnnotationsState { get; }
 
-        internal NullableContextState(int position, bool? warningsState, bool? annotationsState)
+        internal NullableContextState(int position, State warningsState, State annotationsState)
         {
             Position = position;
             WarningsState = warningsState;
             AnnotationsState = annotationsState;
+        }
+
+        internal enum State : byte
+        {
+            Unknown,
+            Disabled,
+            Enabled,
+            ExplicitlyRestored
         }
     }
     internal sealed class NullableContextStateMap
@@ -61,14 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             // Generated files have an initial nullable context that is "disabled"
             return isGeneratedCode
-                ? new NullableContextState(position, warningsState: false, annotationsState: false)
-                : new NullableContextState(position, warningsState: null, annotationsState: null);
+                ? new NullableContextState(position, warningsState: NullableContextState.State.Disabled, annotationsState: NullableContextState.State.Disabled)
+                : new NullableContextState(position, warningsState: NullableContextState.State.Unknown, annotationsState: NullableContextState.State.Unknown);
         }
 
         internal NullableContextState GetContextState(int position)
         {
             // PositionComparer only checks the position, not the states
-            var searchContext = new NullableContextState(position, default, default);
+            var searchContext = new NullableContextState(position, warningsState: NullableContextState.State.Unknown, annotationsState: NullableContextState.State.Unknown);
             int index = _contexts.BinarySearch(searchContext, PositionComparer.Instance);
             if (index < 0)
             {
@@ -97,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             foreach (var context in _contexts)
             {
-                if (context.AnnotationsState == true || context.WarningsState == true)
+                if (context.AnnotationsState == NullableContextState.State.Enabled || context.WarningsState == NullableContextState.State.Enabled)
                 {
                     return true;
                 }
@@ -124,12 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 var position = nn.Location.SourceSpan.End;
-                var setting = nn.SettingToken.Kind() switch
+                var setting = (nn.SettingToken.Kind()) switch
                 {
-                    SyntaxKind.EnableKeyword => true,
-                    SyntaxKind.DisableKeyword => false,
-                    SyntaxKind.RestoreKeyword => (bool?)null,
-                    var kind => throw ExceptionUtilities.UnexpectedValue(kind)
+                    SyntaxKind.EnableKeyword => NullableContextState.State.Enabled,
+                    SyntaxKind.DisableKeyword => NullableContextState.State.Disabled,
+                    SyntaxKind.RestoreKeyword => NullableContextState.State.ExplicitlyRestored,
+                    var kind => throw ExceptionUtilities.UnexpectedValue(kind),
                 };
 
                 var context = nn.TargetToken.Kind() switch
