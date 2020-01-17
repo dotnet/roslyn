@@ -182,7 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            PostDecodeAllMethodAttributes(diagnostics);
             var returnsVoid = _lazyReturnType.IsVoidType();
             if (this.RefKind != RefKind.None && returnsVoid)
             {
@@ -449,27 +448,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
-        internal static void ReportAsyncParameterErrors(ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics, Location location)
-        {
-            foreach (var parameter in parameters)
-            {
-                var loc = parameter.Locations.Any() ? parameter.Locations[0] : location;
-                if (parameter.RefKind != RefKind.None)
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsUnsafe())
-                {
-                    diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
-                }
-                else if (parameter.Type.IsRestrictedType())
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
-                }
-            }
-        }
-
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
             Debug.Assert(this.IsPartial == state.HasComplete(CompletionPart.FinishMethodChecks),
@@ -483,36 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            Location errorLocation = this.Locations[0];
-
-            if (this.RefKind != RefKind.None)
-            {
-                ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
-            }
-            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-            }
-
-            for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-            {
-                var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
-                {
-                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                    break;
-                }
-            }
-
-            if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
-            {
-                diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
-            }
-
-            if (!diagnostics.HasAnyResolvedErrors())
-            {
-                ReportAsyncParameterErrors(_lazyParameters, diagnostics, errorLocation);
-            }
+            AsyncMethodChecks(diagnostics);
 
             CompleteAsyncMethodChecks(diagnostics, cancellationToken);
             diagnostics.Free();

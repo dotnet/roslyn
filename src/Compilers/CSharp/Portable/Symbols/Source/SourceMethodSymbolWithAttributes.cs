@@ -834,11 +834,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        // Called after all method attributes, return attributes, and parameter attributes have been initialized on this method.
-        protected void PostDecodeAllMethodAttributes(DiagnosticBag diagnostics)
+        protected void AsyncMethodChecks(DiagnosticBag diagnostics)
         {
             if (IsAsync)
             {
+                var errorLocation = this.Locations[0];
+
+                if (this.RefKind != RefKind.None)
+                {
+                    var returnTypeSyntax = this.SyntaxNode switch
+                    {
+                        MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
+                        LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
+                        var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
+                    };
+
+                    ReportBadRefToken(returnTypeSyntax, diagnostics);
+                }
+                else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                }
+
+                for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
+                {
+                    var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
+                    if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                        break;
+                    }
+                }
+
+                if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
+                {
+                    diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
+                }
+
+                if (!diagnostics.HasAnyResolvedErrors())
+                {
+                    ReportAsyncParameterErrors(diagnostics, errorLocation);
+                }
+
                 var iAsyncEnumerableType = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
                 if (ReturnType.OriginalDefinition.Equals(iAsyncEnumerableType) &&
                     GetInMethodSyntaxNode() is object)
@@ -850,13 +887,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Warn for CancellationToken parameters in async-iterators with no parameter decorated with [EnumeratorCancellation]
                         // There could be more than one parameter that could be decorated with [EnumeratorCancellation] so we warn on the method instead
-                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, Locations[0], this);
+                        diagnostics.Add(ErrorCode.WRN_UndecoratedCancellationTokenParameter, errorLocation, this);
                     }
 
                     if (enumeratorCancellationCount > 1)
                     {
                         // The [EnumeratorCancellation] attribute can only be used on one parameter
-                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, Locations[0]);
+                        diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, errorLocation);
                     }
                 }
             }

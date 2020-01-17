@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
-            PostDecodeAllMethodAttributes(_declarationDiagnostics);
+            AsyncMethodChecks(_declarationDiagnostics);
 
             addTo.AddRange(_declarationDiagnostics);
         }
@@ -184,11 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
             }
 
-            if (IsAsync)
-            {
-                SourceOrdinaryMethodSymbol.ReportAsyncParameterErrors(parameters, diagnostics, this.Locations[0]);
-            }
-
             lock (_declarationDiagnostics)
             {
                 if (_lazyParameters != null)
@@ -231,18 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // (specifically, local functions nested in expressions in the EE).
             if (compilation is object)
             {
-                if (this.IsAsync)
-                {
-                    if (this.RefKind != RefKind.None)
-                    {
-                        ReportBadRefToken(returnTypeSyntax, diagnostics);
-                    }
-                    else if (returnType.Type.IsBadAsyncReturn(compilation))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
-                    }
-                }
-
                 var location = returnTypeSyntax.Location;
                 if (_refKind == RefKind.RefReadOnly)
                 {
