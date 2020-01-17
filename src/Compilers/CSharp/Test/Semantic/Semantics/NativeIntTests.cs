@@ -1467,21 +1467,37 @@ $@"class Program
 
             getArgs(builder, "+", "nint", "nint nint.op_UnaryPlus(nint value)");
             getArgs(builder, "+", "nuint", "nuint nuint.op_UnaryPlus(nuint value)");
+            getArgs(builder, "+", "System.IntPtr");
+            getArgs(builder, "+", "System.UIntPtr");
             getArgs(builder, "-", "nint", "nint nint.op_UnaryNegation(nint value)");
             getArgs(builder, "-", "nuint", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint")); // PROTOTYPE: Should report ERR_BadUnaryOp.
-            getArgs(builder, "!", "nint", null);
-            getArgs(builder, "!", "nuint", null);
+            getArgs(builder, "-", "System.IntPtr");
+            getArgs(builder, "-", "System.UIntPtr");
+            getArgs(builder, "!", "nint");
+            getArgs(builder, "!", "nuint");
+            getArgs(builder, "!", "System.IntPtr");
+            getArgs(builder, "!", "System.UIntPtr");
             getArgs(builder, "~", "nint", "nint nint.op_OnesComplement(nint value)");
             getArgs(builder, "~", "nuint", "nuint nuint.op_OnesComplement(nuint value)");
+            getArgs(builder, "~", "System.IntPtr");
+            getArgs(builder, "~", "System.UIntPtr");
 
             getArgs(builder, "+", "nint?", "nint nint.op_UnaryPlus(nint value)");
             getArgs(builder, "+", "nuint?", "nuint nuint.op_UnaryPlus(nuint value)");
+            getArgs(builder, "+", "System.IntPtr?");
+            getArgs(builder, "+", "System.UIntPtr?");
             getArgs(builder, "-", "nint?", "nint nint.op_UnaryNegation(nint value)");
             getArgs(builder, "-", "nuint?", null, Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-operand").WithArguments("-", "nuint?")); // PROTOTYPE: Should report ERR_BadUnaryOp.
-            getArgs(builder, "!", "nint?", null);
-            getArgs(builder, "!", "nuint?", null);
+            getArgs(builder, "-", "System.IntPtr?");
+            getArgs(builder, "-", "System.UIntPtr?");
+            getArgs(builder, "!", "nint?");
+            getArgs(builder, "!", "nuint?");
+            getArgs(builder, "!", "System.IntPtr?");
+            getArgs(builder, "!", "System.UIntPtr?");
             getArgs(builder, "~", "nint?", "nint nint.op_OnesComplement(nint value)");
             getArgs(builder, "~", "nuint?", "nuint nuint.op_OnesComplement(nuint value)");
+            getArgs(builder, "~", "System.IntPtr?");
+            getArgs(builder, "~", "System.UIntPtr?");
 
             return builder;
         }
