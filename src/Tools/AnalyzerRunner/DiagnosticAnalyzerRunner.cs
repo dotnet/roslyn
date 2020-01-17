@@ -98,7 +98,7 @@ namespace AnalyzerRunner
                         }
 
                         var currentDocumentPerformance = await TestDocumentPerformanceAsync(_analyzers, project, documentId, _options, cancellationToken).ConfigureAwait(false);
-                        Console.WriteLine($"{document.FilePath ?? document.Name}: {currentDocumentPerformance.EditsPerSecond:0.00}");
+                        Console.WriteLine($"{document.FilePath ?? document.Name}: {currentDocumentPerformance.EditsPerSecond:0.00} ({currentDocumentPerformance.AllocatedBytesPerEdit} bytes)");
                         documentPerformance.Add(documentId, currentDocumentPerformance);
                     }
 
@@ -118,7 +118,7 @@ namespace AnalyzerRunner
                     foreach (var pair in projectGroup.Take(5))
                     {
                         var document = solution.GetDocument(pair.Key);
-                        Console.WriteLine($"    {document.FilePath ?? document.Name}: {pair.Value.EditsPerSecond:0.00}");
+                        Console.WriteLine($"    {document.FilePath ?? document.Name}: {pair.Value.EditsPerSecond:0.00} ({pair.Value.AllocatedBytesPerEdit} bytes)");
                     }
                 }
 
@@ -163,7 +163,7 @@ namespace AnalyzerRunner
 
             Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var stopwatch = Stopwatch.StartNew();
+            var stopwatch = PerformanceTracker.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
                 var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
@@ -174,7 +174,7 @@ namespace AnalyzerRunner
                 await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(tree), null, cancellationToken).ConfigureAwait(false);
             }
 
-            return new DocumentAnalyzerPerformance(analyzerOptionsInternal.TestDocumentIterations / stopwatch.Elapsed.TotalSeconds);
+            return new DocumentAnalyzerPerformance(analyzerOptionsInternal.TestDocumentIterations / stopwatch.Elapsed.TotalSeconds, stopwatch.AllocatedBytes / Math.Max(1, analyzerOptionsInternal.TestDocumentIterations));
         }
 
         private static void WriteDiagnosticResults(ImmutableArray<Tuple<ProjectId, Diagnostic>> diagnostics, string fileName)
@@ -458,15 +458,14 @@ namespace AnalyzerRunner
 
         private struct DocumentAnalyzerPerformance
         {
-            public DocumentAnalyzerPerformance(double editsPerSecond)
+            public DocumentAnalyzerPerformance(double editsPerSecond, long allocatedBytesPerEdit)
             {
                 EditsPerSecond = editsPerSecond;
+                AllocatedBytesPerEdit = allocatedBytesPerEdit;
             }
 
-            public double EditsPerSecond
-            {
-                get;
-            }
+            public double EditsPerSecond { get; }
+            public long AllocatedBytesPerEdit { get; }
         }
     }
 }
