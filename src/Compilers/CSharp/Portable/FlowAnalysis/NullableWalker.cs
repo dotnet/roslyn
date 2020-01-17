@@ -7420,8 +7420,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Update method based on inferred receiver type: see https://github.com/dotnet/roslyn/issues/29605.
-                SetResultType(node, awaitableInfo.GetResult.ReturnTypeWithAnnotations.ToTypeWithState());
+                var reinferredGetResult = _visitResult.RValueType.Type is NamedTypeSymbol taskLikeType
+                    ? awaitableInfo.GetResult.OriginalDefinition.AsMember(taskLikeType)
+                    : awaitableInfo.GetResult;
+
+                SetResultType(node, reinferredGetResult.ReturnTypeWithAnnotations.ToTypeWithState());
             }
 
             return result;
