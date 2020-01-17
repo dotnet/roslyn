@@ -1,25 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal sealed class FieldSymbol : Symbol, IFieldSymbol
     {
         private readonly Symbols.FieldSymbol _underlying;
-        private ITypeSymbol _lazyType;
+        private ITypeSymbol? _lazyType;
 
         public FieldSymbol(Symbols.FieldSymbol underlying)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             _underlying = underlying;
         }
 
         internal override CSharp.Symbol UnderlyingSymbol => _underlying;
 
-        ISymbol IFieldSymbol.AssociatedSymbol
+        ISymbol? IFieldSymbol.AssociatedSymbol
         {
             get
             {
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
-        IFieldSymbol IFieldSymbol.CorrespondingTupleField
+        IFieldSymbol? IFieldSymbol.CorrespondingTupleField
         {
             get
             {
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
 
-        object IFieldSymbol.ConstantValue => _underlying.ConstantValue;
+        object? IFieldSymbol.ConstantValue => _underlying.ConstantValue;
 
         #region ISymbol Members
 
@@ -82,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             visitor.VisitField(this);
         }
 
+        [return: MaybeNull]
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitField(this);
