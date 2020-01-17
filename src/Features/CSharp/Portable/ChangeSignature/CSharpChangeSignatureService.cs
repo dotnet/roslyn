@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
                 updatedSignature,
-                callsiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callsiteValue))));
+                callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression(callSiteValue))));
             var numSeparatorsToSkip = arguments.Count - newArguments.Count;
 
             // copy whitespace trivia from original position
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var newArguments = PermuteArguments(declarationSymbol, arguments.Select(a => UnifiedArgumentSyntax.Create(a)).ToList(),
                 updatedSignature,
-                 callsiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callsiteValue))),
+                 callSiteValue => UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callSiteValue))),
                  isReducedExtensionMethod);
 
             // copy whitespace trivia from original position

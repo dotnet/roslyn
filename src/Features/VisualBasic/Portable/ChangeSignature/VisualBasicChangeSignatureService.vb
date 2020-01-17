@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
                 Dim invocation = DirectCast(vbnode, InvocationExpressionSyntax)
-                Dim semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
 
                 Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))
@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(
                 declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature,
-                Function(callsiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callsiteValue))),
+                Function(callSiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callSiteValue))),
                 isReducedExtensionMethod)
 
             Dim numSeparatorsToSkip As Integer

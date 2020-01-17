@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static AddParameterDialog_InProc Create()
             => new AddParameterDialog_InProc();
 
-        public void FillCallsiteField(string callsiteValue)
+        public void FillCallSiteField(string callSiteValue)
         {
             using (var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout))
             {
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
                     var dialog = await GetDialogAsync(cancellationTokenSource.Token);
-                    dialog.CallsiteValueTextBox.Text = callsiteValue;
+                    dialog.CallSiteValueTextBox.Text = callSiteValue;
                 });
             }
         }

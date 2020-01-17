@@ -174,7 +174,7 @@ End Class");
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("Integer");
             AddParameterDialog.FillNameField("c");
-            AddParameterDialog.FillCallsiteField("stringC");
+            AddParameterDialog.FillCallSiteField("stringC");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
@@ -185,7 +185,7 @@ End Class");
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("Integer");
             AddParameterDialog.FillNameField("d");
-            AddParameterDialog.FillCallsiteField("2");
+            AddParameterDialog.FillCallSiteField("2");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 

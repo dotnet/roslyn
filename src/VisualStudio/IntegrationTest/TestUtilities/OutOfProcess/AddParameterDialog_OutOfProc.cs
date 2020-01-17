@@ -30,8 +30,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
             => _inProc.ClickCancel();
 
-        public void FillCallsiteField(string callsiteValue)
-            => _inProc.FillCallsiteField(callsiteValue);
+        public void FillCallSiteField(string callsiteValue)
+            => _inProc.FillCallSiteField(callsiteValue);
 
         public void FillNameField(string parameterName)
             => _inProc.FillNameField(parameterName);

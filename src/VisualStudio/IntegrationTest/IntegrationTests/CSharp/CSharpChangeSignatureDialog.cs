@@ -200,7 +200,7 @@ class C
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("int");
             AddParameterDialog.FillNameField("c");
-            AddParameterDialog.FillCallsiteField("2");
+            AddParameterDialog.FillCallSiteField("2");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
@@ -211,7 +211,7 @@ class C
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("int");
             AddParameterDialog.FillNameField("d");
-            AddParameterDialog.FillCallsiteField("3");
+            AddParameterDialog.FillCallSiteField("3");
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 
