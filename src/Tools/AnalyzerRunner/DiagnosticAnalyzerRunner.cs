@@ -45,6 +45,21 @@ namespace AnalyzerRunner
             }
 
             var solution = workspace.CurrentSolution;
+
+            // Make sure AD0001 and AD0002 are reported as errors
+            foreach (var projectId in solution.ProjectIds)
+            {
+                var project = solution.GetProject(projectId)!;
+                if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    continue;
+
+                var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
+                    .SetItem("AD0001", ReportDiagnostic.Error)
+                    .SetItem("AD0002", ReportDiagnostic.Error);
+                var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
+                solution = solution.WithProjectCompilationOptions(projectId, modifiedCompilationOptions);
+            }
+
             var stopwatch = PerformanceTracker.StartNew();
 
             var analysisResult = await GetAnalysisResultAsync(solution, _analyzers, _options, cancellationToken).ConfigureAwait(false);
@@ -132,14 +147,6 @@ namespace AnalyzerRunner
 
         private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
         {
-            // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
-                .Add("AD0001", ReportDiagnostic.Error)
-                .Add("AD0002", ReportDiagnostic.Error);
-            // Report exceptions during the analysis process as errors
-            var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
-            var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
-
             if (!analyzers.TryGetValue(project.Language, out var languageAnalyzers))
             {
                 languageAnalyzers = ImmutableArray<DiagnosticAnalyzer>.Empty;
@@ -148,7 +155,7 @@ namespace AnalyzerRunner
             var stopwatch = Stopwatch.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
-                Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
                 var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
@@ -352,17 +359,9 @@ namespace AnalyzerRunner
                 await Task.Yield();
             }
 
-            // update the project compilation options
-            var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
-                .Add("AD0001", ReportDiagnostic.Error)
-                .Add("AD0002", ReportDiagnostic.Error);
-            // Report exceptions during the analysis process as errors
-            var modifiedCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(modifiedSpecificDiagnosticOptions);
-            var processedProject = project.WithCompilationOptions(modifiedCompilationOptions);
-
             try
             {
-                Compilation compilation = await processedProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
 
                 var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
