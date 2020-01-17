@@ -836,7 +836,7 @@ public class MyAnalyzer
     internal static DiagnosticDescriptor Rule1 = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false);
     internal static DiagnosticDescriptor Rule2 = new DiagnosticDescriptor("""", new LocalizableResourceString("""", null, null),
         new LocalizableResourceString("""", null, null), """", DiagnosticSeverity.Warning, false);
-    public void Foo()
+    public void SomeMethod()
     {
         var diag = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false);
     }
@@ -852,7 +852,7 @@ Imports Microsoft.CodeAnalysis
 Public Class MyAnalyzer
     Friend Shared Rule1 As DiagnosticDescriptor = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False)
     Friend Shared Rule2 As DiagnosticDescriptor = New DiagnosticDescriptor("""", New LocalizableResourceString("""", Nothing, Nothing), New LocalizableResourceString("""", Nothing, Nothing), """", DiagnosticSeverity.Warning, False)
-    Public Sub Foo()
+    Public Sub SomeMethod()
         Dim diag = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False)
     End Sub
 End Class",
@@ -873,7 +873,7 @@ public class MyAnalyzer
     internal static DiagnosticDescriptor Rule1 = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false, customTags: """");
     internal static DiagnosticDescriptor Rule2 = new DiagnosticDescriptor("""", new LocalizableResourceString("""", null, null),
         new LocalizableResourceString("""", null, null), """", DiagnosticSeverity.Warning, false, customTags: """");
-    public void Foo()
+    public void SomeMethod()
     {
         var diag = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false, customTags: """");
     }
@@ -898,7 +898,7 @@ public class MyAnalyzer
     internal static DiagnosticDescriptor Rule3 = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false, null, null, new[] { """", """" });
     internal static DiagnosticDescriptor Rule4 = new DiagnosticDescriptor("""", new LocalizableResourceString("""", null, null),
         new LocalizableResourceString("""", null, null), """", DiagnosticSeverity.Warning, false, new LocalizableResourceString("""", null, null), """", new[] { """", """" });
-    public void Foo()
+    public void SomeMethod()
     {
         var diag = new DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, false, null, null, """");
     }
@@ -915,7 +915,7 @@ Public Class MyAnalyzer
     Friend Shared Rule2 As DiagnosticDescriptor = New DiagnosticDescriptor("""", New LocalizableResourceString("""", Nothing, Nothing), New LocalizableResourceString("""", Nothing, Nothing), """", DiagnosticSeverity.Warning, False, New LocalizableResourceString("""", Nothing, Nothing), """", """")
     Friend Shared Rule3 As DiagnosticDescriptor = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False, Nothing, Nothing, { """", """" })
     Friend Shared Rule4 As DiagnosticDescriptor = New DiagnosticDescriptor("""", New LocalizableResourceString("""", Nothing, Nothing), New LocalizableResourceString("""", Nothing, Nothing), """", DiagnosticSeverity.Warning, False, New LocalizableResourceString("""", Nothing, Nothing), """", { """", """" })
-    Public Sub Foo()
+    Public Sub SomeMethod()
         Dim diag = New DiagnosticDescriptor("""", """", """", """", DiagnosticSeverity.Warning, False, Nothing, Nothing, """")
     End Sub
 End Class",

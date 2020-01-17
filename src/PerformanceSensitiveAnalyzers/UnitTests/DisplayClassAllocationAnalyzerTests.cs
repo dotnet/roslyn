@@ -85,9 +85,9 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Foo() 
+    public void SomeMethod()
     {
-        var words = new[] { ""foo"", ""bar"", ""baz"", ""beer"" };
+        var words = new[] { ""aaaa"", ""bbbb"", ""cccc"", ""ddd"" };
         var actions = new List<Action>();
         foreach (string word in words) // <-- captured closure
         {
@@ -112,7 +112,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Sorter(int[] arr) 
+    public void Sorter(int[] arr)
     {
         System.Array.Sort(arr, delegate(int x, int y) { return x - y; });
     }
@@ -130,7 +130,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Sorter(int[] arr) 
+    public void Sorter(int[] arr)
     {
         System.Array.Sort(arr, (x, y) => x - y);
     }
@@ -148,7 +148,7 @@ using Roslyn.Utilities;
 public class MyClass
 {
     [PerformanceSensitive(""uri"")]
-    public void Sorter(int[] arr) 
+    public void Sorter(int[] arr)
     {
         int z = 2;
         System.Array.Sort(arr, delegate(int x, int y) { return x - z; });
