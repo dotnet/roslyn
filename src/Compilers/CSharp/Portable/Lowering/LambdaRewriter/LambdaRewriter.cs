@@ -329,14 +329,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
             {
-                if (scope.DeclaredEnvironments.Count > 0)
+                if (scope.DeclaredEnvironment is {} env)
                 {
                     Debug.Assert(!_frames.ContainsKey(scope.BoundNode));
-                    // At the moment, all variables declared in the same
-                    // scope always get assigned to the same environment
-                    Debug.Assert(scope.DeclaredEnvironments.Count == 1);
 
-                    var env = scope.DeclaredEnvironments[0];
                     var frame = MakeFrame(scope, env);
                     env.SynthesizedEnvironment = frame;
 
@@ -1432,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNode tmpScope = null;
                 Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
                 {
-                    if (scope.DeclaredEnvironments.Contains(closure.ContainingEnvironmentOpt))
+                    if (scope.DeclaredEnvironment == closure.ContainingEnvironmentOpt)
                     {
                         tmpScope = scope.BoundNode;
                     }
