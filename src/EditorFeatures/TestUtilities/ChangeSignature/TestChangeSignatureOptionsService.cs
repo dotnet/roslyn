@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
@@ -12,27 +15,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
         public bool IsCancelled = true;
-        public AddedParameterOrExistingIndex[] UpdatedSignature = null;
+        public AddedParameterOrExistingIndex[]? UpdatedSignature = null;
 
         [ImportingConstructor]
         public TestChangeSignatureOptionsService()
         {
         }
 
-        AddedParameterResult IChangeSignatureOptionsService.GetAddedParameter(Document document, int insertPosition)
+        AddedParameter? IChangeSignatureOptionsService.GetAddedParameter(Document document, int insertPosition)
         {
             throw new System.NotImplementedException();
         }
 
         ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
-            ISymbol symbol, int insertPosition, ParameterConfiguration parameters,
-            Document document)
+            Document document,
+            int insertPosition,
+            ISymbol symbol,
+            ParameterConfiguration parameters)
         {
             var list = parameters.ToListOfParameters();
-            var updateParameters = UpdatedSignature?.Select(item => item.IsExisting
-            ? list[item.OldIndex]
-            : item.AddedParameter).ToList();
-
+            List<Parameter?> updateParameters = UpdatedSignature != null
+                ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.AddedParameter).ToList()
+                : new List<Parameter?>();
             return new ChangeSignatureOptionsResult
             {
                 IsCancelled = IsCancelled,

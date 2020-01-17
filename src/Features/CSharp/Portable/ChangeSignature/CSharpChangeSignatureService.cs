@@ -152,7 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
             var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
 
-            if (parameters == null) { return 0; }
+            if (parameters == null)
+            {
+                return 0;
+            }
 
             if (parameters.Parameters.Count > 0 &&
                 parameters.Parameters.Last().Modifiers.Any(SyntaxKind.ParamsKeyword))
@@ -550,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             Func<AddedParameter, T> createNewParameterMethod) where T : SyntaxNode
         {
             var permuteDeclarationBase = base.PermuteDeclarationBase<T>(list, updatedSignature, createNewParameterMethod);
-            return SyntaxFactory.SeparatedList(permuteDeclarationBase.Item1, permuteDeclarationBase.Item2);
+            return SyntaxFactory.SeparatedList(permuteDeclarationBase.parameters, permuteDeclarationBase.separators);
         }
 
         protected override T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument)

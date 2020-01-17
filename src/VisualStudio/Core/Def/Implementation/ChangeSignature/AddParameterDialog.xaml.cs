@@ -77,31 +77,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             DialogResult = false;
         }
 
-        private void TypeNameContentControl_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void TypeOrNameContentControl_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             UIElement elementWithFocus = Keyboard.FocusedElement as UIElement;
 
             if (elementWithFocus is IWpfTextView)
             {
-                IntellisenseTextBox typeNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
+                IntellisenseTextBox typeOrNameTextBox = elementWithFocus.GetParentOfType<IntellisenseTextBox>();
 
-                if (typeNameTextBox != null)
+                if (typeOrNameTextBox != null)
                 {
-                    if (e.Key == Key.Escape && !typeNameTextBox.HasActiveIntellisenseSession)
+                    if (e.Key == Key.Escape && !typeOrNameTextBox.HasActiveIntellisenseSession)
                     {
                         e.Handled = true;
                     }
-                    else if (e.Key == Key.Enter && !typeNameTextBox.HasActiveIntellisenseSession)
+                    else if (e.Key == Key.Enter && !typeOrNameTextBox.HasActiveIntellisenseSession)
                     {
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
-                    else if (e.Key == Key.Tab && !typeNameTextBox.HasActiveIntellisenseSession)
+                    else if (e.Key == Key.Tab && !typeOrNameTextBox.HasActiveIntellisenseSession)
                     {
                         // Do nothing. This case is handled in parent control KeyDown events.
                     }
                     else if (e.Key == Key.Space &&
-                        (typeNameTextBox.ContainerName.Equals("NameContentControl") ||
-                        (typeNameTextBox.ContainerName.Equals("TypeContentControl") && _document.Project.Language.Equals(LanguageNames.CSharp))))
+                        (typeOrNameTextBox.ContainerName.Equals("NameContentControl") ||
+                        (typeOrNameTextBox.ContainerName.Equals("TypeContentControl") && _document.Project.Language.Equals(LanguageNames.CSharp))))
                     {
                         // Do nothing. We disallow spaces in the name field for both C# and VB, and in the type field for C#.
                         e.Handled = true;
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     else
                     {
                         // Let the editor control handle the keystrokes
-                        e.Handled = typeNameTextBox.HandleKeyDown();
+                        e.Handled = typeOrNameTextBox.HandleKeyDown();
                     }
                 }
             }

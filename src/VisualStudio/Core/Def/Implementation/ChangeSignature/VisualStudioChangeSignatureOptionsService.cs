@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -45,10 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public ChangeSignatureOptionsResult GetChangeSignatureOptions(
-            ISymbol symbol,
+            Document document,
             int insertPosition,
-            ParameterConfiguration parameters,
-            Document document)
+            ISymbol symbol,
+            ParameterConfiguration parameters)
         {
             var viewModel = new ChangeSignatureDialogViewModel(
                 parameters,
@@ -69,51 +71,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             return new ChangeSignatureOptionsResult { IsCancelled = true };
         }
 
-        public AddedParameterResult GetAddedParameter(Document document, int insertPosition)
+        public AddedParameter? GetAddedParameter(Document document, int insertPosition)
         {
-            var dialog = CreateAddParameterDialogAsync(document, insertPosition, CancellationToken.None).Result;
-            var result = dialog.ShowModal();
+            var dialog = CreateAddParameterDialog(document, insertPosition);
+            if (dialog != null)
+            {
+                var result = dialog.ShowModal();
 
-            if (result.HasValue && result.Value)
-            {
-                var viewModel = dialog.ViewModel;
-                return new AddedParameterResult
+                if (result.HasValue && result.Value)
                 {
-                    IsCancelled = false,
-                    AddedParameter = new AddedParameter(
-                        viewModel.TypeName,
-                        viewModel.ParameterName,
-                        viewModel.CallSiteValue)
-                };
+                    var viewModel = dialog.ViewModel;
+                    return new AddedParameter(
+                            viewModel.TypeName,
+                            viewModel.ParameterName,
+                            viewModel.CallSiteValue);
+                }
             }
-            else
-            {
-                return new AddedParameterResult { IsCancelled = true };
-            }
+
+            return null;
         }
 
-        private async Task<AddParameterDialog> CreateAddParameterDialogAsync(
-            Document document, int insertPosition, CancellationToken cancellationToken)
+        private AddParameterDialog? CreateAddParameterDialog(Document document, int insertPosition)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            // TODO to be addressed in this PR
+            // Should not create documentText here. Should move it later.
+            var syntaxTree = document.GetSyntaxTreeAsync(CancellationToken.None).Result;
+            if (syntaxTree == null)
+            {
+                return null;
+            }
+
+            var sourceText = syntaxTree.GetTextAsync(CancellationToken.None).Result;
             var documentText = sourceText.ToString();
 
             var rolesCollectionForTypeTextBox = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterTypeTextViewRole };
-            var rolesCollectionName = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
+            var rolesCollectionForNameTextBox = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
                 AddParameterTextViewRole, AddParameterNameTextViewRole };
 
             var languageService = document.GetRequiredLanguageService<IChangeSignatureLanguageService>();
-            var viewModels = await languageService.CreateViewModelsAsync(
+            var viewModels = languageService.CreateViewModels(
                 rolesCollectionForTypeTextBox,
-                rolesCollectionName,
+                rolesCollectionForNameTextBox,
                 insertPosition,
                 document,
                 documentText,
                 _contentType,
-                _intellisenseTextBoxViewModelFactory,
-                cancellationToken).ConfigureAwait(false);
+                _intellisenseTextBoxViewModelFactory);
 
             return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
         }

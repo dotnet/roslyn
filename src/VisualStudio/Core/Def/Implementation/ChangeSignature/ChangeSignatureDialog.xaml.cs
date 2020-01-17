@@ -134,9 +134,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var changeSignatureOptionsService = _viewModel.Document.Project.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
             var result = changeSignatureOptionsService.GetAddedParameter(_viewModel.Document, _viewModel.InsertPosition);
 
-            if (!result.IsCancelled)
+            if (result != null)
             {
-                _viewModel.AddParameter(result.AddedParameter);
+                _viewModel.AddParameter(result);
             }
 
             SetFocusToSelectedRow();

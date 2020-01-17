@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -15,6 +17,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public AddParameterDialogViewModel(INotificationService notificationService)
         {
             _notificationService = notificationService;
+            ParameterName = string.Empty;
+            CallSiteValue = string.Empty;
+            TypeName = string.Empty;
         }
 
         public string ParameterName { get; set; }
