@@ -2922,7 +2922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 string name = GeneratedNames.MakeBackingFieldName(param.Name);
                 var property = new SynthesizedRecordPropertySymbol(this, param);
-                if (memberSignatures.Add(property) && memberSignatures.Add(property.GetMethod))
+                if (!memberSignatures.Contains(property))
                 {
                     members.Add(property);
                     members.Add(property.GetMethod);

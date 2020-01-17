@@ -167,12 +167,34 @@ data class C(int X, int Y)
         public void RecordProperties_05()
         {
             var src = @"
-class C
+data class C(int X, int X)
 {
-    public int X = 3;
 }";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,25): error CS0100: The parameter name 'X' is a duplicate
+                // data class C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "X").WithArguments("X").WithLocation(2, 25),
+                // (2,25): error CS0102: The type 'C' already contains a definition for 'X'
+                // data class C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 25)
+            );
+        }
+
+        [Fact]
+        public void RecordProperties_06()
+        {
+            var src = @"
+data class C(int X)
+{
+    public void get_X() {}
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,18): error CS0082: Type 'C' already reserves a member called 'get_X' with the same parameter types
+                // data class C(int X)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "X").WithArguments("get_X", "C").WithLocation(2, 18)
+            );
         }
     }
 }
