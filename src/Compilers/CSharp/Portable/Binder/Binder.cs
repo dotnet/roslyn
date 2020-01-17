@@ -510,12 +510,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax)
         {
-            Error(diagnostics, code, syntax.GetLocation());
+            var location = syntax.GetLocation();
+            RoslynDebug.Assert(location is object);
+            Error(diagnostics, code, location);
         }
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, SyntaxNodeOrToken syntax, params object[] args)
         {
-            Error(diagnostics, code, syntax.GetLocation(), args);
+            var location = syntax.GetLocation();
+            RoslynDebug.Assert(location is object);
+            Error(diagnostics, code, location, args);
         }
 
         internal static void Error(DiagnosticBag diagnostics, ErrorCode code, Location location)
