@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string ParameterNameLabel { get { return ServicesVSResources.Parameter_Name; } }
 
-        public string CallsiteValueLabel { get { return ServicesVSResources.Callsite_Value; } }
+        public string CallsiteValueLabel { get { return ServicesVSResources.Call_site_value; } }
 
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
