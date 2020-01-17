@@ -7456,6 +7456,29 @@ public class Test
 
         [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarLocalDefinedInPropertySubPattern_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : var [|i|] };
+    }
+}",
+@"class C
+{
+    public object P { get; }
+    void M(C c)
+    {
+        var x = c is { P : _ };
+    }
+}", options: PreferDiscard, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(40499, "https://github.com/dotnet/roslyn/issues/40499")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task UnusedLocalDefinedInPropertySubPattern_PreferUnusedLocal()
         {
             await TestDiagnosticMissingAsync(
