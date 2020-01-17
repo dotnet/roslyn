@@ -126,6 +126,26 @@
   <data name="DeclarePublicApiDescription" xml:space="preserve">
     <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
+  <data name="AnnotatePublicApiTitle" xml:space="preserve">
+    <value>Annotate nullability of public types and members in the declared API</value>
+  </data>
+  <data name="AnnotatePublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is missing nullability annotations in the declared API.</value>
+  </data>
+  <data name="AnnotatePublicApiDescription" xml:space="preserve">
+    <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+
+  <data name="ShouldAnnotateApiFilesTitle" xml:space="preserve">
+    <value>Annotate nullability of types and members in the declared API</value>
+  </data>
+  <data name="ShouldAnnotateApiFilesMessage" xml:space="preserve">
+    <value>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</value>
+  </data>
+  <data name="ShouldAnnotateApiFilesDescription" xml:space="preserve">
+    <value>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  
   <data name="RemoveDeletedApiTitle" xml:space="preserve">
     <value>Remove deleted types and members from the declared API</value>
   </data>
@@ -154,7 +174,7 @@
     <value>The symbol '{0}' appears more than once in the public API files.</value>
   </data>
   <data name="PublicImplicitConstructorErrorMessageName" xml:space="preserve">
-    <value>implicit constructor for {0}</value>
+    <value>implicit constructor for '{0}'</value>
   </data>
   <data name="AvoidMultipleOverloadsWithOptionalParametersTitle" xml:space="preserve">
     <value>Do not add multiple public overloads with optional parameters</value>
@@ -169,10 +189,10 @@
     <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
   </data>
   <data name="PublicImplicitGetAccessor" xml:space="preserve">
-    <value>implicit get-accessor for {0}</value>
+    <value>implicit get-accessor for '{0}'</value>
   </data>
   <data name="PublicImplicitSetAccessor" xml:space="preserve">
-    <value>implicit set-accessor for {0}</value>
+    <value>implicit set-accessor for '{0}'</value>
   </data>
   <data name="PublicApiFilesMissingTitle" xml:space="preserve">
     <value>One or both of the public API files are missing</value>
@@ -188,5 +208,20 @@
   </data>
   <data name="AddAllItemsInTheSolutionToThePublicApiTitle" xml:space="preserve">
     <value>Add all items in the solution to the public API</value>
+  </data>
+  <data name="AnnotateAllItemsInDocumentToThePublicApiTitle" xml:space="preserve">
+    <value>Annotate all items in document '{0}' in the public API</value>
+  </data>
+  <data name="AnnotateAllItemsInProjectToThePublicApiTitle" xml:space="preserve">
+    <value>Annotate all items in project '{0}' in the public API</value>
+  </data>
+  <data name="AnnotateAllItemsInTheSolutionToThePublicApiTitle" xml:space="preserve">
+    <value>Annotate all items in the solution in the public API</value>
+  </data>
+  <data name="EnableNullableInProjectToThePublicApiTitle" xml:space="preserve">
+    <value>Enable nullability annotations in the public API for project '{0}'</value>
+  </data>
+  <data name="EnableNullableInTheSolutionToThePublicApiTitle" xml:space="preserve">
+    <value>Enable nullability annotations in the public API for the solution</value>
   </data>
 </root>

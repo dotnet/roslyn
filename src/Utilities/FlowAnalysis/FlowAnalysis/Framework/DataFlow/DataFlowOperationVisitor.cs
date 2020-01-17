@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
     {
+#pragma warning disable RS0030 // The symbol 'DiagnosticDescriptor.DiagnosticDescriptor.#ctor' is banned in this project: Use 'DiagnosticDescriptorHelper.Create' instead
         private static readonly DiagnosticDescriptor s_dummyDataflowAnalysisDescriptor = new DiagnosticDescriptor(
             id: "InterproceduralDataflow",
             title: string.Empty,
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.DataflowAndTelemetry);
+#pragma warning restore RS0030
 
         private readonly ImmutableHashSet<CaptureId> _lValueFlowCaptures;
         private readonly ImmutableDictionary<IOperation, TAbstractAnalysisValue>.Builder _valueCacheBuilder;
@@ -203,7 +205,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ExceptionNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemException);
             ContractNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticContractsContract);
             IDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
+            IAsyncDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
             TaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            ValueTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
             GenericTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksGenericTask);
             MonitorNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
             InterlockedNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingInterlocked);
@@ -3595,9 +3599,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected INamedTypeSymbol? IDisposableNamedType { get; }
 
         /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for "System.IAsyncDisposable"
+        /// </summary>
+        private INamedTypeSymbol? IAsyncDisposableNamedType { get; }
+
+        /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task"/>
         /// </summary>
         protected INamedTypeSymbol? TaskNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for System.Threading.Tasks.ValueTask/>
+        /// </summary>
+        private INamedTypeSymbol? ValueTaskNamedType { get; }
 
         /// <summary>
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.Threading.Tasks.Task{TResult}"/>
@@ -3655,5 +3669,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             return builder.ToImmutableAndFree();
         }
+
+        private protected bool IsDisposable([NotNullWhen(returnValue: true)]ITypeSymbol? type)
+            => type != null && type.IsDisposable(IDisposableNamedType, IAsyncDisposableNamedType);
+
+        private protected DisposeMethodKind GetDisposeMethodKind(IMethodSymbol method)
+            => method.GetDisposeMethodKind(IDisposableNamedType, IAsyncDisposableNamedType, TaskNamedType, ValueTaskNamedType);
     }
 }

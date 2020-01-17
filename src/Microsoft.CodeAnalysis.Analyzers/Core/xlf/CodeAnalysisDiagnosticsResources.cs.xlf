@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
-        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</target>
+        <target state="translated">Zděďte typ {0} z DiagnosticAnalyzer, nebo odeberte atributy DiagnosticAnalyzerAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
-        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</target>
+        <target state="translated">Typy označené jako DiagnosticAnalyzerAttribute by měly dědit z DiagnosticAnalyzer</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
@@ -50,6 +50,21 @@
       <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
         <source>Configure generated code analysis</source>
         <target state="translated">Nakonfigurovat analýzu vygenerovaného kódu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="translated">Hodnoty DiagnosticId pro analyzátory by neměly používat rezervovaná ID.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID.</source>
+        <target state="translated">{0} je rezervované ID diagnostiky.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs.</source>
+        <target state="translated">Nepoužívejte rezervovaná ID diagnostiky.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
@@ -135,6 +150,21 @@
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
         <target state="translated">Při registraci analyzátoru syntaxe, symbolů nebo operací musíte zadat minimálně jeden druh syntaxe, symbolu nebo operace. V opačném případě se registrovaná akce nikdy při analýze nevyvolá.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="translated">Hodnota customTags se používá jako způsob, jak povolit konkrétní akce a filtry v diagnostických popisovačích na základě konkrétních hodnot značek. Každý analyzátor Roslyn by měl mít alespoň jednu značku z třídy WellKnownDiagnosticTags.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
+        <target state="translated">Pokud chcete povolit filtrování metadat diagnostických popisovačů, zvažte poskytnutí nenulové hodnoty customTags pro konstruktor diagnostických popisovačů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
+        <target state="translated">Poskytněte konstruktoru diagnostických popisovačů nenulovou hodnotu customTags</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">

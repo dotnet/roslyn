@@ -4,17 +4,47 @@
     <body>
       <trans-unit id="AddAllItemsInDocumentToThePublicApiTitle">
         <source>Add all items in document '{0}' to the public API</source>
-        <target state="new">Add all items in document '{0}' to the public API</target>
+        <target state="translated">Přidat všechny položky v dokumentu {0} do veřejného rozhraní API</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInProjectToThePublicApiTitle">
         <source>Add all items in project '{0}' to the public API</source>
-        <target state="new">Add all items in project '{0}' to the public API</target>
+        <target state="translated">Přidat všechny položky v projektu {0} do veřejného rozhraní API</target>
         <note />
       </trans-unit>
       <trans-unit id="AddAllItemsInTheSolutionToThePublicApiTitle">
         <source>Add all items in the solution to the public API</source>
-        <target state="new">Add all items in the solution to the public API</target>
+        <target state="translated">Přidat všechny položky v řešení do veřejného rozhraní API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInDocumentToThePublicApiTitle">
+        <source>Annotate all items in document '{0}' in the public API</source>
+        <target state="translated">Přidat anotaci ke všem položkám v dokumentu {0} ve veřejném rozhraní API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInProjectToThePublicApiTitle">
+        <source>Annotate all items in project '{0}' in the public API</source>
+        <target state="translated">Přidat anotaci ke všem položkám v projektu {0} ve veřejném rozhraní API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotateAllItemsInTheSolutionToThePublicApiTitle">
+        <source>Annotate all items in the solution in the public API</source>
+        <target state="translated">Přidat anotaci ke všem položkám v řešení ve veřejném rozhraní API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiDescription">
+        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Všechny veřejné typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru PublicAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiMessage">
+        <source>Symbol '{0}' is missing nullability annotations in the declared API.</source>
+        <target state="translated">U symbolu {0} chybí v deklarovaném rozhraní API anotace o možnosti použití hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AnnotatePublicApiTitle">
+        <source>Annotate nullability of public types and members in the declared API</source>
+        <target state="translated">Přidat anotace o možnosti použití hodnoty null u veřejných typů a členů v deklarovaném rozhraní API</target>
         <note />
       </trans-unit>
       <trans-unit id="AvoidMultipleOverloadsWithOptionalParametersMessage">
@@ -50,6 +80,16 @@
       <trans-unit id="DuplicateSymbolsInPublicApiFilesTitle">
         <source>Do not duplicate symbols in public API files</source>
         <target state="translated">Neduplikovat symboly v souborech veřejných rozhraní API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInProjectToThePublicApiTitle">
+        <source>Enable nullability annotations in the public API for project '{0}'</source>
+        <target state="translated">Povolit anotace o možnosti použití hodnoty null ve veřejném rozhraní API pro projekt {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EnableNullableInTheSolutionToThePublicApiTitle">
+        <source>Enable nullability annotations in the public API for the solution</source>
+        <target state="translated">Povolit anotace o možnosti použití hodnoty null ve veřejném rozhraní API pro řešení</target>
         <note />
       </trans-unit>
       <trans-unit id="ExposedNoninstantiableTypeMessage">
@@ -93,17 +133,17 @@
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitConstructorErrorMessageName">
-        <source>implicit constructor for {0}</source>
+        <source>implicit constructor for '{0}'</source>
         <target state="translated">implicitní konstruktor pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitGetAccessor">
-        <source>implicit get-accessor for {0}</source>
+        <source>implicit get-accessor for '{0}'</source>
         <target state="translated">implicitní přístupový objekt get pro {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicImplicitSetAccessor">
-        <source>implicit set-accessor for {0}</source>
+        <source>implicit set-accessor for '{0}'</source>
         <target state="translated">implicitní přístupový objekt set pro {0}</target>
         <note />
       </trans-unit>
@@ -120,6 +160,21 @@
       <trans-unit id="RemoveDeletedApiTitle">
         <source>Remove deleted types and members from the declared API</source>
         <target state="translated">Odebrat odstraněné typy a členy z deklarovaného rozhraní API</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesDescription">
+        <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="translated">Všechny veřejné typy a členy by se měly deklarovat s anotacemi o možnosti použití hodnoty null v souboru PublicAPI.txt. To přitáhne pozornost ke změnám možnosti použití hodnoty null u rozhraní API při revizích a v historii správy zdrojového kódu a pomůže předejít změnám způsobujícím chybu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesMessage">
+        <source>PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.</source>
+        <target state="translated">V souboru PublicAPI.txt chybí #nullable enable, takže se nezaznamenají anotace o možnosti použití hodnoty null u rozhraní API. Doporučuje se toto sledování povolit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ShouldAnnotateApiFilesTitle">
+        <source>Annotate nullability of types and members in the declared API</source>
+        <target state="translated">Přidat anotace o možnosti použití hodnoty null u typů a členů v deklarovaném rozhraní API</target>
         <note />
       </trans-unit>
     </body>

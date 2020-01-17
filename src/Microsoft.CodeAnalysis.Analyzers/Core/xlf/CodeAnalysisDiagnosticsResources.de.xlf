@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerMessage">
         <source>Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</source>
-        <target state="new">Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s).</target>
+        <target state="translated">Übernehmen Sie den Typ "{0}" von DiagnosticAnalyzer, oder entfernen Sie DiagnosticAnalyzerAttribute(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="ClassIsNotDiagnosticAnalyzerTitle">
         <source>Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</source>
-        <target state="new">Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer.</target>
+        <target state="translated">Mit DiagnosticAnalyzerAttribute(s) gekennzeichnete Typen müssen von DiagnosticAnalyzer erben.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompareSymbolsCorrectlyCodeFix">
@@ -50,6 +50,21 @@
       <trans-unit id="ConfigureGeneratedCodeAnalysisTitle">
         <source>Configure generated code analysis</source>
         <target state="translated">Konfigurieren der Analyse von generiertem Code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
+        <source>DiagnosticId for analyzers should not use reserved IDs.</source>
+        <target state="new">DiagnosticId for analyzers should not use reserved IDs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdMessage">
+        <source>'{0}' is a reserved diagnostic ID.</source>
+        <target state="new">'{0}' is a reserved diagnostic ID.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseReservedDiagnosticIdTitle">
+        <source>Do not use reserved diagnostic IDs.</source>
+        <target state="new">Do not use reserved diagnostic IDs.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableConcurrentExecutionDescription">
@@ -135,6 +150,21 @@
       <trans-unit id="MissingKindArgumentToRegisterActionDescription">
         <source>You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.</source>
         <target state="translated">Sie müssen mindestens eine Variante für Syntax, Symbol oder Vorgang angeben, wenn Sie eine Syntax-, Symbol- oder Vorgangsanalyseaktion registrieren. Andernfalls wird die registrierte Aktion während der Analyse nicht aufgerufen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorDescription">
+        <source>The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.</source>
+        <target state="translated">Der Wert "customTags" wird verwendet, um bestimmte Aktionen und Filter für Diagnosedeskriptoren basierend auf den spezifischen Werten der Tags zu aktivieren. Jedes Roslyn-Analysetool muss mindestens ein Tag aus der Klasse "WellKnownDiagnosticTags" aufweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorMessage">
+        <source>Consider providing a non-null 'customTags' to diagnostic descriptor constructor to enable metatada filtering of diagnostic descriptors.</source>
+        <target state="translated">Erwägen Sie die Bereitstellung eines customTags-Werts ungleich NULL für den Konstruktor des Diagnosedeskriptors, um die Metadatenfilterung von Diagnosedeskriptoren zu aktivieren.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ProvideCustomTagsInDescriptorTitle">
+        <source>Provide non-null 'customTags' value to diagnostic descriptor constructor.</source>
+        <target state="translated">Geben Sie einen customTags-Wert ungleich NULL für den Konstruktor des Diagnosedeskriptors an.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSymbolKindArgumentToRegisterActionMessage">

@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// TODO(dotpaul): Enable nullable analysis.
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -77,9 +74,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         {
         }
 
-        internal ValueContentAbstractValueCallback MapFromValueContentAbstractValue { get; }
+        internal ValueContentAbstractValueCallback? MapFromValueContentAbstractValue { get; }
 
-        internal PointsToAbstractValueCallback MapFromPointsToAbstractValue { get; }
+        internal PointsToAbstractValueCallback? MapFromPointsToAbstractValue { get; }
 
         internal ImmutableArray<PropertySetAbstractValueKind> PropertyAbstractValues { get; }
 
@@ -111,7 +108,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return this.Equals(obj as ConstructorMapper);
         }
 
-        public bool Equals(ConstructorMapper other)
+        public bool Equals(ConstructorMapper? other)
         {
             return other != null
                 && this.MapFromValueContentAbstractValue == other.MapFromValueContentAbstractValue

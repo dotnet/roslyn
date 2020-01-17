@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#pragma warning disable CA1305
+
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -235,7 +237,7 @@ public class C
                 // Test0.cs(2,14): error RS0016: Symbol 'C' is not part of the declared API.
                 GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"),
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-                GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit constructor for C"),
+                GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C")),
                 // Test0.cs(4,16): error RS0016: Symbol 'Field' is not part of the declared API.
                 GetCSharpResultAt(4, 16, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Field"),
                 // Test0.cs(5,27): error RS0016: Symbol 'Property.get' is not part of the declared API.
@@ -282,7 +284,7 @@ End Class
                 // Test0.vb(4,14): warning RS0016: Symbol 'C' is not part of the declared API.
                 GetBasicResultAt(4, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C"),
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
-                GetBasicResultAt(4, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit constructor for C"),
+                GetBasicResultAt(4, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.PublicImplicitConstructorErrorMessageName, "C")),
                 // Test0.vb(5,12): warning RS0016: Symbol 'Field' is not part of the declared API.
                 GetBasicResultAt(5, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Field"),
                 // Test0.vb(8,9): warning RS0016: Symbol 'Property' is not part of the declared API.
@@ -292,11 +294,11 @@ End Class
                 // Test0.vb(17,16): warning RS0016: Symbol 'Method' is not part of the declared API.
                 GetBasicResultAt(17, 16, DeclarePublicApiAnalyzer.DeclareNewApiRule, "Method"),
                 // Test0.vb(20,30): warning RS0016: Symbol 'implicit get-accessor for ReadOnlyAutoProperty' is not part of the declared API.
-                GetBasicResultAt(20, 30, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit get-accessor for ReadOnlyAutoProperty"),
+                GetBasicResultAt(20, 30, DeclarePublicApiAnalyzer.DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.PublicImplicitGetAccessor, "ReadOnlyAutoProperty")),
                 // Test0.vb(21,21): warning RS0016: Symbol 'implicit get-accessor for NormalAutoProperty' is not part of the declared API.
-                GetBasicResultAt(21, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit get-accessor for NormalAutoProperty"),
+                GetBasicResultAt(21, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.PublicImplicitGetAccessor, "NormalAutoProperty")),
                 // Test0.vb(21,21): warning RS0016: Symbol 'implicit set-accessor for NormalAutoProperty' is not part of the declared API.
-                GetBasicResultAt(21, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, "implicit set-accessor for NormalAutoProperty"));
+                GetBasicResultAt(21, 21, DeclarePublicApiAnalyzer.DeclareNewApiRule, string.Format(PublicApiAnalyzerResources.PublicImplicitSetAccessor, "NormalAutoProperty")));
         }
 
         [Fact(), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
@@ -923,6 +925,128 @@ C.Property.set -> void";
         }
 
         [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithoutNullability()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0037:{|RS0016:NewField|}|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C
+C.C() -> void";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.NewField -> string";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithNullability()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0016:NewField|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var unshippedText = @"C
+C.C() -> void";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.NewField -> string?";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullability()
+        {
+            var source = @"
+public class C
+{
+    public string {|RS0016:ChangedField|}; // oblivious
+}
+";
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}";
+            var unshippedText = @"C
+C.C() -> void
+{|RS0017:C.ChangedField -> string?|}";
+            var fixedUnshippedText = @"C
+C.C() -> void
+C.ChangedField -> string";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task ApiFileShippedWithDuplicateNullableEnable()
+        {
+            var source = @"
+public class C
+{
+}
+";
+
+            string shippedText = $@"
+{DeclarePublicApiAnalyzer.NullableEnable}
+{DeclarePublicApiAnalyzer.NullableEnable}
+";
+
+            string unshippedText = $@"";
+
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesInvalid)
+                .WithArguments(DeclarePublicApiAnalyzer.InvalidReasonMisplacedNullableEnable);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
+        }
+
+        [Fact]
+        public async Task ApiFileUnshippedWithDuplicateNullableEnable()
+        {
+            var source = @"
+public class C
+{
+}
+";
+
+            string shippedText = $@"";
+
+            string unshippedText = $@"
+{DeclarePublicApiAnalyzer.NullableEnable}
+{DeclarePublicApiAnalyzer.NullableEnable}
+";
+
+            var expected = new DiagnosticResult(DeclarePublicApiAnalyzer.PublicApiFilesInvalid)
+                .WithArguments(DeclarePublicApiAnalyzer.InvalidReasonMisplacedNullableEnable);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
+        }
+
+        [Fact]
+        public async Task ApiFileShippedWithoutNullableEnable_AvoidUnnecessaryDiagnostic()
+        {
+            var source = @"
+public class C
+{
+}
+";
+
+            string shippedText = $@"C
+C.C() -> void";
+
+            string unshippedText = $@"";
+
+            // Only oblivious APIs, so no need to warn about lack of '#nullable enable'
+            await VerifyCSharpAsync(source, shippedText, unshippedText, System.Array.Empty<DiagnosticResult>());
+        }
+
+        [Fact]
         public async Task TestAddAndRemoveMembers_CSharp_Fix()
         {
             // Unshipped file has a state 'ObsoleteField' entry and a missing 'NewField' entry.
@@ -931,7 +1055,7 @@ public class C
 {
     public int Field;
     public int Property { get; set; }
-    public void Method() { } 
+    public void Method() { }
     public int ArrowExpressionProperty => 0;
 
     public int {|RS0016:NewField|};
@@ -1013,6 +1137,26 @@ public class C
             // previously method had no params, so the fix should remove the previous overload.
             var unshippedText = @"{|RS0017:C.Method() -> void|}";
             var fixedUnshippedText = @"C.Method(int p1) -> void";
+
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix_WithNullability()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public void {|RS0016:Method|}(object? p1){ }
+}
+";
+
+            var shippedText = $@"{DeclarePublicApiAnalyzer.NullableEnable}
+C";
+            // previously method had no params, so the fix should remove the previous overload.
+            var unshippedText = @"{|RS0017:C.Method(string p1) -> void|}";
+            var fixedUnshippedText = @"C.Method(object? p1) -> void";
 
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }

@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\MetaCompilation.Analyzers\UnitTests\MetaCompilation.Analyzers.UnitTests.csproj" />
     <ProjectReference Include="..\..\Test.Utilities\Test.Utilities.csproj" />
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj" />
     <ProjectReference Include="..\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" />

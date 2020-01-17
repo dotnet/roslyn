@@ -1,19 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
-using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class UnsupportedSymbolKindArgumentRuleTests : DiagnosticAnalyzerTestBase
+    public class UnsupportedSymbolKindArgumentRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnostic()
         {
             var source = @"
 using System;
@@ -78,11 +76,11 @@ class MyAnalyzer : DiagnosticAnalyzer
                 GetCSharpExpectedDiagnostic(40, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
             };
 
-            VerifyCSharp(source, expected);
+            await VerifyCS.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void VisualBasic_VerifyRegisterSymbolActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterSymbolActionDiagnostic()
         {
             var source = @"
 Imports System
@@ -144,11 +142,11 @@ End Class
                 GetBasicExpectedDiagnostic(37, 13, unsupportedSymbolKind: SymbolKind.TypeParameter),
             };
 
-            VerifyBasic(source, expected);
+            await VerifyVB.VerifyAnalyzerAsync(source, expected);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -179,7 +177,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             SymbolKind.Property);
 
         // Overload resolution failure
-        context.RegisterSymbolAction(AnalyzeSyntax,
+        context.RegisterSymbolAction({|CS1503:AnalyzeSyntax|},
             SymbolKind.Event,
             SymbolKind.Field,
             SymbolKind.Method,
@@ -197,11 +195,11 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -230,7 +228,7 @@ Class MyAnalyzer
             SymbolKind.Property)
 
         ' Overload resolution failure
-        context.RegisterSymbolAction(AddressOf AnalyzeSyntax,
+        context.{|BC30518:RegisterSymbolAction|}(AddressOf AnalyzeSyntax,
             SymbolKind.Alias)
     End Sub
 
@@ -242,36 +240,26 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
-        }
-
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new CSharpRegisterActionAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new BasicRegisterActionAnalyzer();
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            return GetExpectedDiagnostic(LanguageNames.CSharp, line, column, unsupportedSymbolKind);
+            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule,
+                line, column, unsupportedSymbolKind);
         }
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            return GetExpectedDiagnostic(LanguageNames.VisualBasic, line, column, unsupportedSymbolKind);
+            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule,
+                line, column, unsupportedSymbolKind);
         }
 
-        private static DiagnosticResult GetExpectedDiagnostic(string language, int line, int column, SymbolKind unsupportedSymbolKind)
+        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, SymbolKind unsupportedSymbolKind)
         {
-            string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";
-            return new DiagnosticResult(DiagnosticIds.UnsupportedSymbolKindArgumentRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
-                .WithLocation(fileName, line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage)
-                .WithArguments(unsupportedSymbolKind.ToString());
+            return new DiagnosticResult(rule)
+                .WithLocation(line, column)
+                .WithArguments(unsupportedSymbolKind);
         }
     }
 }

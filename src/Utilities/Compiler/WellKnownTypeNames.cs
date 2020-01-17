@@ -14,9 +14,11 @@ namespace Analyzer.Utilities
         public const string SystemSystemException = "System.SystemException";
         public const string SystemDiagnosticContractsContract = "System.Diagnostics.Contracts.Contract";
         public const string SystemIDisposable = "System.IDisposable";
+        public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemThreadingMonitor = "System.Threading.Monitor";
         public const string SystemThreadingTasksTask = "System.Threading.Tasks.Task";
         public const string SystemThreadingTasksGenericTask = "System.Threading.Tasks.Task`1";
+        public const string SystemThreadingTasksValueTask = "System.Threading.Tasks.ValueTask";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemIEquatable1 = "System.IEquatable`1";
@@ -447,8 +449,17 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeInteropServicesComSourceInterfacesAttribute = "System.Runtime.InteropServices.ComSourceInterfacesAttribute";
         public const string MicrosoftCodeAnalysisDiagnosticsGeneratedCodeAnalysisFlags = "Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags";
         public const string MicrosoftCodeAnalysisCSharpCSharpCompilation = "Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
-        public const string SystemIAsyncDisposable = "System.IAsyncDisposable";
         public const string SystemRuntimeInteropServicesCoClassAttribute = "System.Runtime.InteropServices.CoClassAttribute";
         public const string SystemIProgress1 = "System.IProgress`1";
+        public const string SystemComponentModelDesignerAttribute = "System.ComponentModel.DesignerAttribute";
+        public const string SystemWebHttpRouteAttribute = "System.Web.Http.RouteAttribute";
+        public const string SystemWebMvcHttpHeadAttribute = "System.Web.Mvc.HttpHeadAttribute";
+        public const string SystemWebMvcHttpOptionsAttribute = "System.Web.Mvc.HttpOptionsAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpGetAttribute = "Microsoft.AspNetCore.Mvc.HttpGetAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpHeadAttribute = "Microsoft.AspNetCore.Mvc.HttpHeadAttribute";
+        public const string MicrosoftAspNetCoreMvcHttpOptionsAttribute = "Microsoft.AspNetCore.Mvc.HttpOptionsAttribute";
+        public const string MicrosoftAspNetCoreMvcRouteAttribute = "Microsoft.AspNetCore.Mvc.RouteAttribute";
+        public const string SystemWebHttpApplication = "System.Web.HttpApplication";
+        public const string SystemRuntimeInteropServicesOutAttribute = "System.Runtime.InteropServices.OutAttribute";
     }
 }

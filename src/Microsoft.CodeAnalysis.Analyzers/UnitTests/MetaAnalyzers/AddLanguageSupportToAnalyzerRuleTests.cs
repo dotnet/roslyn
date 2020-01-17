@@ -1,18 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Analyzer.Utilities;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.DiagnosticAnalyzerAttributeAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
-    public class AddLanguageSupportToAnalyzerRuleTests : DiagnosticAnalyzerTestBase
+    public class AddLanguageSupportToAnalyzerRuleTests
     {
         [Fact]
-        public void CSharp_VerifyDiagnostic()
+        public async Task CSharp_VerifyDiagnostic()
         {
             var source = @"
 using System;
@@ -38,14 +39,22 @@ class MyAnalyzer : DiagnosticAnalyzer
             DiagnosticResult expected = GetCSharpExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.VisualBasic);
 
             // Verify diagnostic if analyzer assembly doesn't reference C# code analysis assembly.
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, expected: expected);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
+                TestState =
+                {
+                    Sources = { source },
+                    ExpectedDiagnostics = { expected },
+                },
+            }.RunAsync();
 
             // Verify no diagnostic if analyzer assembly references C# code analysis assembly.
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_VerifyDiagnostic()
+        public async Task VisualBasic_VerifyDiagnostic()
         {
             var source = @"
 Imports System
@@ -69,14 +78,22 @@ End Class
             DiagnosticResult expected = GetBasicExpectedDiagnostic(7, 2, "MyAnalyzer", missingLanguageName: LanguageNames.CSharp);
 
             // Verify diagnostic if analyzer assembly doesn't reference VB code analysis assembly.
-            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis, expected: expected);
+            await new VerifyVB.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
+                TestState =
+                {
+                    Sources = { source },
+                    ExpectedDiagnostics = { expected },
+                },
+            }.RunAsync();
 
             // Verify no diagnostic if analyzer assembly references VB code analysis assembly.
-            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void CSharp_NoDiagnosticCases()
+        public async Task CSharp_NoDiagnosticCases()
         {
             var source = @"
 using System;
@@ -121,12 +138,17 @@ public abstract class MyAbstractAnalyzer : DiagnosticAnalyzer
 {
 }
 ";
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
-            VerifyCSharp(source, referenceFlags: ReferenceFlags.None);
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
+                TestState = { Sources = { source } },
+            }.RunAsync();
+
+            await VerifyCS.VerifyAnalyzerAsync(source);
         }
 
         [Fact]
-        public void VisualBasic_NoDiagnosticCases()
+        public async Task VisualBasic_NoDiagnosticCases()
         {
             var source = @"
 Imports System
@@ -165,18 +187,13 @@ Public MustInherit Class MyAbstractAnalyzer
 	Inherits DiagnosticAnalyzer
 End Class
 ";
-            VerifyBasic(source, referenceFlags: ReferenceFlags.RemoveCodeAnalysis);
-            VerifyBasic(source, referenceFlags: ReferenceFlags.None);
-        }
+            await new VerifyVB.Test
+            {
+                ReferenceAssemblies = AdditionalMetadataReferences.DefaultWithoutRoslynSymbols,
+                TestState = { Sources = { source } },
+            }.RunAsync();
 
-        protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
-        {
-            return new DiagnosticAnalyzerAttributeAnalyzer();
-        }
-
-        protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
-        {
-            return new DiagnosticAnalyzerAttributeAnalyzer();
+            await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
@@ -191,9 +208,8 @@ End Class
 
         private static DiagnosticResult GetExpectedDiagnostic(int line, int column, string analyzerTypeName, string missingLanguageName)
         {
-            return new DiagnosticResult(DiagnosticIds.AddLanguageSupportToAnalyzerRuleId, DiagnosticHelpers.DefaultDiagnosticSeverity)
+            return new DiagnosticResult(DiagnosticAnalyzerAttributeAnalyzer.AddLanguageSupportToAnalyzerRule)
                 .WithLocation(line, column)
-                .WithMessageFormat(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage)
                 .WithArguments(analyzerTypeName, missingLanguageName);
         }
     }
