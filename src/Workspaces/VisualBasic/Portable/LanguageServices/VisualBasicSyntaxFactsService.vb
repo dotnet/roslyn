@@ -1333,6 +1333,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
         End Function
 
+        Public Function IsLeftSideOfCompoundAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfCompoundAssignment
+            ' VB does not support compound assignments.
+            Return False
+        End Function
+
         Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
             Return TryCast(node, AssignmentStatementSyntax)?.Right
         End Function

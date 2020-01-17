@@ -28,7 +28,13 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             { PropertyNames.DesignTimeBuild, bool.TrueString },
 
             // this will force CoreCompile task to execute even if all inputs and outputs are up to date
+#if NETCOREAPP
+            { PropertyNames.NonExistentFile, "__NonExistentSubDir__\\__NonExistentFile__" },
+#else
+            // Setting `BuildingInsideVisualStudio` indirectly sets NonExistentFile:
+            // https://github.com/microsoft/msbuild/blob/ab9b2f36a5ff7a85f842b205d5529e77fdc9d7ab/src/Tasks/Microsoft.Common.CurrentVersion.targets#L3462-L3470
             { PropertyNames.BuildingInsideVisualStudio, bool.TrueString },
+#endif
 
             { PropertyNames.BuildProjectReferences, bool.FalseString },
             { PropertyNames.BuildingProject, bool.FalseString },

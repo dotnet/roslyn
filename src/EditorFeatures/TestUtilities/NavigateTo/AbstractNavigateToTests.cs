@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             using (var workspace = SetupWorkspace(content, createTrackingService))
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)));
                 await body(workspace);
             }
         }

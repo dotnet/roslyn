@@ -171,8 +171,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfAssignmentStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfAssignmentExpressionOrStatement(SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
-        // Left side of any assignment (for example  *=  or += )
+        // Left side of any assignment (for example = or ??= or *=  or += )
         bool IsLeftSideOfAnyAssignment(SyntaxNode node);
+        // Left side of compound assignment (for example ??= or *=  or += )
+        bool IsLeftSideOfCompoundAssignment(SyntaxNode node);
         SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
 
         bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node);

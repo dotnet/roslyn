@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return base.GetSpansToTag(textView, subjectBuffer);
             }
 
-            return new[] { visibleSpanOpt.Value };
+            return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
         protected override Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)

@@ -126,7 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     allowDecompilation = notificationService.ConfirmMessageBox(ServicesVSResources.Decompiler_Legal_Notice_Message, ServicesVSResources.Decompiler_Legal_Notice_Title, NotificationSeverity.Warning);
                     if (allowDecompilation)
                     {
-                        project.Solution.Workspace.Options = project.Solution.Workspace.Options.WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true);
+                        var workspace = project.Solution.Workspace;
+                        workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                            .WithChangedOption(FeatureOnOffOptions.AcceptedDecompilerDisclaimer, true)));
                     }
                 }
             }

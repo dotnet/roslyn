@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             return result;
         }
 
-        public static DiagnosticAnalysisResult CreateFromSerialization(
+        public static DiagnosticAnalysisResult Create(
             Project project,
             VersionStamp version,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> syntaxLocalMap,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
         public static DiagnosticAnalysisResult CreateFromBuilder(DiagnosticAnalysisResultBuilder builder)
         {
-            return CreateFromSerialization(
+            return Create(
                 builder.Project,
                 builder.Version,
                 builder.SyntaxLocals,

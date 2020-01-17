@@ -80,6 +80,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
+        [WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
+        public static void TestPascalCaseRuleWithKeyCapitalization()
+        {
+            var dictionary = new Dictionary<string, string>()
+            {
+                ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.severity"] = "warning",
+                ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.symbols"] = "Method_and_Property_symbols",
+                ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.style"] = "Pascal_Case_style",
+                ["dotnet_naming_symbols.method_and_property_symbols.applicable_kinds"] = "method,property",
+                ["dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities"] = "*",
+                ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
+            };
+            var result = ParseDictionary(dictionary);
+            var namingRule = Assert.Single(result.NamingRules);
+            var namingStyle = Assert.Single(result.NamingStyles);
+            var symbolSpec = Assert.Single(result.SymbolSpecifications);
+            Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
+            Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
+            Assert.Equal(ReportDiagnostic.Warn, namingRule.EnforcementLevel);
+        }
+
+        [Fact]
         public static void TestAsyncMethodsAndLocalFunctionsRule()
         {
             var dictionary = new Dictionary<string, string>()

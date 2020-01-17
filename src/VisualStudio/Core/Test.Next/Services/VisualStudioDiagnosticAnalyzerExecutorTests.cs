@@ -53,7 +53,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))));
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
 
                 diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
@@ -75,7 +76,8 @@ End Class";
             using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.Silent));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(false, NotificationOption.Silent))));
 
                 var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
@@ -83,7 +85,8 @@ End Class";
                 Assert.True(analyzerResult.IsEmpty);
 
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Error));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(CodeStyleOptions.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption<bool>(true, NotificationOption.Error))));
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType);
 
                 var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);
@@ -182,7 +185,8 @@ End Class";
                     CancellationToken.None));
 
                 // set option
-                workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion))));
 
                 // run analysis
                 var project = workspace.CurrentSolution.Projects.First();
@@ -277,9 +281,10 @@ End Class";
                 TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider()) :
                 TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider());
 
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                                     .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
                                      .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution);
+                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
             return workspace;
         }

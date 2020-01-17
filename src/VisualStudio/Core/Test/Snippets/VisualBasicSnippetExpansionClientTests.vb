@@ -343,10 +343,10 @@ End Class</Test>
             Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
                 Dim document = workspace.Documents.Single()
 
-                workspace.Options = workspace.Options _
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
                     .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
-                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
+                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)))
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
