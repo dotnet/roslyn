@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TypeSymbol? GetNonErrorGuess(this TypeSymbol type)
         {
             var result = ExtendedErrorTypeSymbol.ExtractNonErrorType(type);
-            RoslynDebug.Assert((object)result == null || !result.IsErrorType());
+            RoslynDebug.Assert((object?)result == null || !result.IsErrorType());
             return result;
         }
 
