@@ -224,12 +224,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Syntax.NullableContextState context = ((CSharpSyntaxTree)syntaxTree).GetNullableContextState(position);
 
-            if (context.AnnotationsState != null)
+            return context.AnnotationsState switch
             {
-                return context.AnnotationsState.GetValueOrDefault();
-            }
-
-            return AreNullableAnnotationsGloballyEnabled(context.AnnotationsExplicitlyRestored);
+                Syntax.NullableContextState.State.Enabled => true,
+                Syntax.NullableContextState.State.Disabled => false,
+                Syntax.NullableContextState.State.ExplicitlyRestored => GetGlobalAnnotationState(),
+                Syntax.NullableContextState.State.Unknown => AreNullableAnnotationsGloballyEnabled(),
+                _ => throw ExceptionUtilities.UnexpectedValue(context.AnnotationsState)
+            };
         }
 
         internal bool AreNullableAnnotationsEnabled(SyntaxToken token)
@@ -238,10 +240,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AreNullableAnnotationsEnabled(token.SyntaxTree, token.SpanStart);
         }
 
-        internal virtual bool AreNullableAnnotationsGloballyEnabled(bool annotationsExplicitlyRestored = false)
+        internal virtual bool AreNullableAnnotationsGloballyEnabled()
         {
             RoslynDebug.Assert(Next is object);
-            return Next.AreNullableAnnotationsGloballyEnabled(annotationsExplicitlyRestored);
+            return Next.AreNullableAnnotationsGloballyEnabled();
+        }
+
+        protected bool GetGlobalAnnotationState()
+        {
+            switch (Compilation.Options.NullableContextOptions)
+            {
+                case NullableContextOptions.Enable:
+                case NullableContextOptions.Annotations:
+                    return true;
+
+                case NullableContextOptions.Disable:
+                case NullableContextOptions.Warnings:
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(Compilation.Options.NullableContextOptions);
+            }
         }
 
         /// <summary>

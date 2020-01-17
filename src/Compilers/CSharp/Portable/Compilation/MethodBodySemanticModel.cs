@@ -172,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(binder != null);
 
-            Binder executablebinder = new ExecutableCodeBinder(body, methodSymbol, binder ?? this.RootBinder);
-            executablebinder = new WithNullableContextBinder(SyntaxTree, position, executablebinder);
+            Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
+            executablebinder = new ExecutableCodeBinder(body, methodSymbol, executablebinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
             // be influenced by any existing code in the body.

@@ -157,21 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool AreNullableAnnotationsGloballyEnabled(bool annotationsExplicitlyRestored = false)
+        internal override bool AreNullableAnnotationsGloballyEnabled()
         {
-            switch (Compilation.Options.NullableContextOptions)
-            {
-                case NullableContextOptions.Enable:
-                case NullableContextOptions.Annotations:
-                    return true;
-
-                case NullableContextOptions.Disable:
-                case NullableContextOptions.Warnings:
-                    return false;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(Compilation.Options.NullableContextOptions);
-            }
+            return GetGlobalAnnotationState();
         }
 
         internal override Binder? GetBinder(SyntaxNode node)

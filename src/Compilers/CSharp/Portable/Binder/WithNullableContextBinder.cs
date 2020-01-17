@@ -18,11 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _position = position;
         }
 
-        internal override bool AreNullableAnnotationsGloballyEnabled(bool annotationsExplicitlyRestored = false)
+        internal override bool AreNullableAnnotationsGloballyEnabled()
         {
-            return annotationsExplicitlyRestored
-                ? Next.AreNullableAnnotationsGloballyEnabled(annotationsExplicitlyRestored)
-                : Next.AreNullableAnnotationsEnabled(_syntaxTree, _position);
+            return Next.AreNullableAnnotationsEnabled(_syntaxTree, _position);
         }
     }
 }

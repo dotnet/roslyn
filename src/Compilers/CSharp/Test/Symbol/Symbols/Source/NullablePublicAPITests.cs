@@ -4076,8 +4076,8 @@ class C
             var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
 
             var arrow = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(@"
-            #nullable disable
-            M(out C c)"));
+#nullable disable
+M(out C c)"));
             Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, arrow, out var speculativeModel));
 
             var type2 = arrow.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
