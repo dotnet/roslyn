@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         private void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
-            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, null, previewWorkspace.CurrentSolution);
+            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, previewWorkspace.CurrentSolution);
             var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
             var compilation = project.GetCompilationAsync().Result;

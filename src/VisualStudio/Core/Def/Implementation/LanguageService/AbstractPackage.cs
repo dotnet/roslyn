@@ -10,8 +10,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     {
         protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
         {
-            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
-            await LoadComponentsAsync(cancellationToken).ConfigureAwait(false);
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+            // Trying to await them will throw.
+            if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsZombie)
+            {
+                await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
+                await LoadComponentsAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);

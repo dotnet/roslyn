@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#nullable enable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A binder that knows no symbols and will not delegate further.
     /// </summary>
-    internal partial class BuckStopsHereBinder : Binder
+    internal class BuckStopsHereBinder : Binder
     {
         internal BuckStopsHereBinder(CSharpCompilation compilation)
             : base(compilation)
         {
         }
 
-        internal override ImportChain ImportChain
+        internal override ImportChain? ImportChain
         {
             get
             {
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Imports.Empty;
         }
 
-        protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
+        protected override SourceLocalSymbol? LookupLocal(SyntaxToken nameToken)
         {
             return null;
         }
 
-        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        protected override LocalFunctionSymbol? LookupLocalFunction(SyntaxToken nameToken)
         {
             return null;
         }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override LocalSymbol LocalInProgress
+        internal override LocalSymbol? LocalInProgress
         {
             get
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol BreakLabel
+        internal override GeneratedLabelSymbol? BreakLabel
         {
             get
             {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol ContinueLabel
+        internal override GeneratedLabelSymbol? ContinueLabel
         {
             get
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override BoundExpression ConditionalReceiverExpression
+        internal override BoundExpression? ConditionalReceiverExpression
         {
             get
             {
@@ -143,13 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // This should only be called in the context of syntactically incorrect programs.  In other
         // contexts statements are surrounded by some enclosing method or lambda.
-        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType()
         {
             // There's supposed to be an enclosing method or lambda.
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override Symbol ContainingMemberOrLambda
+        internal override Symbol? ContainingMemberOrLambda
         {
             get
             {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override Binder GetBinder(SyntaxNode node)
+        internal override Binder? GetBinder(SyntaxNode node)
         {
             return null;
         }

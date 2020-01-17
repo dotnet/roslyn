@@ -77,12 +77,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
             return Task.CompletedTask;
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         protected virtual MessageFilter RegisterMessageFilter()
             => new MessageFilter();
 
@@ -93,17 +87,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
         }
 
         /// <summary>
-        /// This method provides the implementation for <see cref="IDisposable.Dispose"/>. This method via the
-        /// <see cref="IDisposable"/> interface (i.e. <paramref name="disposing"/> is <see langword="true"/>) if the
-        /// constructor completes successfully. The <see cref="InitializeAsync"/> may or may not have completed
-        /// successfully.
+        /// This method provides the implementation for <see cref="IDisposable.Dispose"/>.
+        /// This method is called via the <see cref="IDisposable"/> interface if the constructor completes successfully.
+        /// The <see cref="InitializeAsync"/> may or may not have completed successfully.
         /// </summary>
-        protected virtual void Dispose(bool disposing)
+        public virtual void Dispose()
         {
-            if (disposing)
-            {
-                _messageFilter.Dispose();
-            }
+            _messageFilter.Dispose();
         }
 
         protected KeyPress Ctrl(VirtualKey virtualKey)

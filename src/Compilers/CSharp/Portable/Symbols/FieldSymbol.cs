@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a field in a class, struct or enum
     /// </summary>
-    internal abstract partial class FieldSymbol : Symbol, IFieldSymbol
+    internal abstract partial class FieldSymbol : Symbol, IFieldSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract int? TypeLayoutOffset { get; }
 
-        internal FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        internal virtual FieldSymbol AsMember(NamedTypeSymbol newOwner)
         {
             Debug.Assert(this.IsDefinition);
             Debug.Assert(ReferenceEquals(newOwner.OriginalDefinition, this.ContainingSymbol.OriginalDefinition));
@@ -384,17 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// Is this a field of a tuple type?
-        /// </summary>
-        public virtual bool IsTupleField
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
         /// Returns True when field symbol is not mapped directly to a field in the underlying tuple struct.
         /// </summary>
         public virtual bool IsVirtualTupleField
@@ -425,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                return ContainingType.IsTupleType ? this : null;
             }
         }
 
@@ -442,6 +432,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if a given field is a tuple element
+        /// </summary>
+        internal bool IsTupleElement()
+        {
+            return this.CorrespondingTupleField is object;
+        }
+
+        /// <summary>
         /// If this is a field representing a tuple element,
         /// returns the index of the element (zero-based).
         /// Otherwise returns -1
@@ -454,58 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        #region IFieldSymbol Members
+        bool IFieldSymbolInternal.IsVolatile => this.IsVolatile;
 
-        ISymbol? IFieldSymbol.AssociatedSymbol
+        protected override ISymbol CreateISymbol()
         {
-            get
-            {
-                return this.AssociatedSymbol;
-            }
+            return new PublicModel.FieldSymbol(this);
         }
-
-        ITypeSymbol IFieldSymbol.Type
-        {
-            get
-            {
-                return this.Type;
-            }
-        }
-
-        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => TypeWithAnnotations.ToPublicAnnotation();
-
-        ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
-        {
-            get { return this.TypeWithAnnotations.CustomModifiers; }
-        }
-
-        IFieldSymbol IFieldSymbol.OriginalDefinition
-        {
-            get { return this.OriginalDefinition; }
-        }
-
-        IFieldSymbol? IFieldSymbol.CorrespondingTupleField
-        {
-            get { return this.CorrespondingTupleField; }
-        }
-
-        #endregion
-
-        #region ISymbol Members
-
-        public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitField(this);
-        }
-
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-            return visitor.VisitField(this);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'TResult' is a non-nullable reference type.
-        }
-
-        #endregion
     }
 }

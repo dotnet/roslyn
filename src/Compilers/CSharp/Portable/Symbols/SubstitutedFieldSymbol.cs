@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyType == null)
             {
-                var type = _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound));
+                var type = _containingType.TypeSubstitution.SubstituteType(OriginalDefinition.GetFieldType(fieldsBeingBound));
                 Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
 
@@ -54,6 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _underlyingField;
+            }
+        }
+
+        public override bool IsImplicitlyDeclared
+        {
+            get
+            {
+                if (this.ContainingType.IsTupleType && this.IsDefaultTupleElement)
+                {
+                    // To improve backwards compatibility with earlier implementation of tuples,
+                    // we pretend that default tuple element fields are implicitly declared, despite having locations
+                    return true;
+                }
+
+                return base.IsImplicitlyDeclared;
             }
         }
 

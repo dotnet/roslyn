@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         public async Task<LSP.CompletionItem> HandleRequestAsync(Solution solution, LSP.CompletionItem completionItem,
-            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken, bool keepThreadContext)
+            LSP.ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             CompletionResolveData data;
             if (completionItem.Data is CompletionResolveData)
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(keepThreadContext);
+            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var completionService = document.Project.LanguageServices.GetService<CompletionService>();
-            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(keepThreadContext);
+            var list = await completionService.GetCompletionsAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (list == null)
             {
                 return completionItem;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(keepThreadContext);
+            var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
             var lspVSClientCapability = clientCapabilities?.HasVisualStudioLspCapability() == true;
             LSP.CompletionItem resolvedCompletionItem;

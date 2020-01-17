@@ -7,27 +7,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
     /// </summary>
     internal class AnalyzerActionCounts
     {
-        internal static readonly AnalyzerActionCounts Empty = new AnalyzerActionCounts(null);
+        internal static readonly AnalyzerActionCounts Empty = new AnalyzerActionCounts(in AnalyzerActions.Empty);
 
-        internal AnalyzerActionCounts(AnalyzerActions analyzerActions) :
+        internal AnalyzerActionCounts(in AnalyzerActions analyzerActions) :
             this(
-                analyzerActions?.CompilationStartActionsCount ?? 0,
-                analyzerActions?.CompilationEndActionsCount ?? 0,
-                analyzerActions?.CompilationActionsCount ?? 0,
-                analyzerActions?.SyntaxTreeActionsCount ?? 0,
-                analyzerActions?.SemanticModelActionsCount ?? 0,
-                analyzerActions?.SymbolActionsCount ?? 0,
-                analyzerActions?.SymbolStartActionsCount ?? 0,
-                analyzerActions?.SymbolEndActionsCount ?? 0,
-                analyzerActions?.SyntaxNodeActionsCount ?? 0,
-                analyzerActions?.CodeBlockStartActionsCount ?? 0,
-                analyzerActions?.CodeBlockEndActionsCount ?? 0,
-                analyzerActions?.CodeBlockActionsCount ?? 0,
-                analyzerActions?.OperationActionsCount ?? 0,
-                analyzerActions?.OperationBlockStartActionsCount ?? 0,
-                analyzerActions?.OperationBlockEndActionsCount ?? 0,
-                analyzerActions?.OperationBlockActionsCount ?? 0,
-                analyzerActions?.Concurrent ?? false)
+                analyzerActions.CompilationStartActionsCount,
+                analyzerActions.CompilationEndActionsCount,
+                analyzerActions.CompilationActionsCount,
+                analyzerActions.SyntaxTreeActionsCount,
+                analyzerActions.SemanticModelActionsCount,
+                analyzerActions.SymbolActionsCount,
+                analyzerActions.SymbolStartActionsCount,
+                analyzerActions.SymbolEndActionsCount,
+                analyzerActions.SyntaxNodeActionsCount,
+                analyzerActions.CodeBlockStartActionsCount,
+                analyzerActions.CodeBlockEndActionsCount,
+                analyzerActions.CodeBlockActionsCount,
+                analyzerActions.OperationActionsCount,
+                analyzerActions.OperationBlockStartActionsCount,
+                analyzerActions.OperationBlockEndActionsCount,
+                analyzerActions.OperationBlockActionsCount,
+                analyzerActions.Concurrent)
         {
         }
 

@@ -82,12 +82,9 @@ class Program
     }
 }
 ";
-            var documentation = $@"
-{WorkspacesResources.Usage_colon}
-  int x = await Goo();";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Goo<T>()", documentation, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"({CSharpFeaturesResources.awaitable}) Task<int> Program.Goo<T>()", methodDocumentation: string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Enable the script case when we have support for extension methods in scripts
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false, sourceCodeKind: Microsoft.CodeAnalysis.SourceCodeKind.Regular);

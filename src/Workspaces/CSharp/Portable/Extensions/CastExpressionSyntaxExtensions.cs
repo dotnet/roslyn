@@ -236,12 +236,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType)
+        private static bool EnumCastDefinitelyCantBeRemoved(CastExpressionSyntax cast, ITypeSymbol expressionType, ITypeSymbol castType)
         {
-            if (expressionType != null
-                && expressionType.IsEnumType()
-                && cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            if (expressionType is null || !expressionType.IsEnumType())
             {
+                return false;
+            }
+
+            var outerExpression = cast.WalkUpParentheses();
+            if (outerExpression.IsParentKind(SyntaxKind.UnaryMinusExpression, SyntaxKind.UnaryPlusExpression))
+            {
+                // -(NumericType)value
+                // +(NumericType)value
+                return true;
+            }
+
+            if (castType.IsNumericType() && !outerExpression.IsParentKind(SyntaxKind.CastExpression))
+            {
+                if (outerExpression.Parent is BinaryExpressionSyntax
+                    || outerExpression.Parent is PrefixUnaryExpressionSyntax)
+                {
+                    // Let the parent code handle this, since it could be something like this:
+                    //
+                    //   (int)enumValue > 0
+                    //   ~(int)enumValue
+                    return false;
+                }
+
+                // Explicit enum cast to numeric type, but not part of a chained cast or binary expression
                 return true;
             }
 
@@ -344,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType))
+            if (EnumCastDefinitelyCantBeRemoved(cast, expressionType, castType))
             {
                 return false;
             }
@@ -500,7 +522,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     expressionToCastType.IsImplicit &&
                     (expressionToCastType.IsNumeric || expressionToCastType.IsConstantExpression))
                 {
-                    return true;
+                    // Some implicit numeric conversions can cause loss of precision and must not be removed.
+                    return !IsRequiredImplicitNumericConversion(expressionType, castType);
                 }
 
                 if (!castToOuterType.IsBoxing &&

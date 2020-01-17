@@ -1382,7 +1382,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }
 
@@ -1431,7 +1431,7 @@ namespace System
     [CompilerGenerated, TypeIdentifier(""f9c2d51d-4f44-45f0-9eda-c9d599b58257"", ""ValueTuple"")]
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }
 
@@ -1477,7 +1477,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }
 ";
@@ -1510,18 +1510,18 @@ public class C
 
             var expectedDiagnostics = new[]
             {
-                // (8,12): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                // (8,12): error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //     public (int, int) TestTuple()
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(int, int)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(8, 12),
-                // (4,19): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(int, int)").WithArguments("(T1, T2)").WithLocation(8, 12),
+                // (4,19): error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //     public System.ValueTuple<string, string> TestValueTuple()
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "ValueTuple<string, string>").WithArguments("System.ValueTuple<T1, T2>").WithLocation(4, 19),
-                // (14,16): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "ValueTuple<string, string>").WithArguments("(T1, T2)").WithLocation(4, 19),
+                // (14,16): error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //         return (1, 2);
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
-                // (19,31): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("(T1, T2)").WithLocation(14, 16),
+                // (19,31): error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //         var resultingTuple = ((x, y) = new C());
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 31)
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("(T1, T2)").WithLocation(19, 31)
             };
 
             var comp1 = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseDll,
@@ -1551,7 +1551,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }
 
@@ -1572,8 +1572,8 @@ public interface ITest2 : ITest1 { }
 
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("(T1, T2)").WithLocation(1, 1),
                 // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
@@ -1604,7 +1604,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }
 
@@ -1625,8 +1625,8 @@ public interface ITest2 : ITest1 { }
 
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("(T1, T2)").WithLocation(1, 1),
                 // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
@@ -1700,7 +1700,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }
 
@@ -1716,14 +1716,14 @@ public struct Test1
             string source = @"
 public interface ITest2
 {
-    void M(Test1 x); 
+    void M(Test1 x);
 }
 ";
 
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("(T1, T2)").WithLocation(1, 1),
                 // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
@@ -1754,7 +1754,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -1790,8 +1790,8 @@ public class C
 
             var expectedDiagnostics = new DiagnosticDescription[]
             {
-                // error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1),
+                // error CS1768: Type '(T1, T2)' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("(T1, T2)").WithLocation(1, 1),
                 // error CS1768: Type 'S<T>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType).WithArguments("S<T>").WithLocation(1, 1)
             };
@@ -1837,7 +1837,7 @@ namespace System
 {
     public struct ValueTuple<T1, T2>
     {
-        public ValueTuple(T1 item1, T2 item2) { }
+        public ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
 
@@ -2050,8 +2050,8 @@ public struct S1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2065,8 +2065,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2080,8 +2080,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2095,8 +2095,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
@@ -2175,8 +2175,8 @@ public struct S1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2190,8 +2190,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2205,8 +2205,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2220,8 +2220,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -2300,8 +2300,8 @@ public struct S1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2315,8 +2315,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2330,8 +2330,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2345,8 +2345,8 @@ public struct S1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].Value).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", ((TypeSymbol)args[1].ValueInternal).ContainingAssembly.Name);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -2412,8 +2412,8 @@ interface AttrTest1
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2427,8 +2427,8 @@ interface AttrTest1
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -2508,8 +2508,8 @@ public struct S2<T>
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2523,8 +2523,8 @@ public struct S2<T>
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {new CSharpCompilationReference(localTypes2),
@@ -2538,8 +2538,8 @@ public struct S2<T>
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
 
             compilation = CreateCompilation("", options: TestOptions.ReleaseDll,
                                                         references: new MetadataReference[] {localTypes2Image,
@@ -2553,8 +2553,8 @@ public struct S2<T>
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
-            Assert.Equal("Pia", ((TypeSymbol)args[0].Value).ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].Value);
+            Assert.Equal("Pia", ((TypeSymbol)args[0].ValueInternal).ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(args[1].ValueInternal);
         }
 
         [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
@@ -2636,23 +2636,23 @@ public struct Test
             var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, assemblyName: "Pia");
 
             string consumer1 = @"
-public class UsePia1 
+public class UsePia1
 {
     public static Test M1()
     {
         return default;
     }
-} 
+}
 ";
 
             string consumer2 = @"
-class UsePia2 
+class UsePia2
 {
     public static void Main()
     {
         UsePia1.M1();
     }
-} 
+}
 ";
 
             foreach (MetadataReference piaRef in new[] { piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference() })

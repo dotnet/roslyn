@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
             // create new buffer with cloned content
             var clonedBuffer = EditorFactory.CreateBuffer(
-                buffer.ContentType.TypeName,
                 workspace.ExportProvider,
+                buffer.ContentType,
                 buffer.CurrentSnapshot.GetText());
 
             var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
@@ -127,12 +127,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker);
+
             if (options != null)
             {
+                var optionSet = workspace.Options;
                 foreach (var option in options)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
+                    optionSet = optionSet.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
                 }
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(optionSet));
             }
 
             // set up caret position

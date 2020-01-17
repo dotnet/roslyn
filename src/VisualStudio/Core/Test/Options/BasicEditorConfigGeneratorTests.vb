@@ -59,9 +59,6 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:sil
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # Expression-level preferences
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-csharp_style_throw_expression = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
@@ -74,6 +71,7 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_simplified_interpolation = true:suggestion
 
 # Field preferences
 dotnet_style_readonly_field = true:suggestion
@@ -84,7 +82,7 @@ dotnet_code_quality_unused_parameters = all:suggestion
 #### VB Coding Conventions ####
 
 # Modifier preferences
-visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
+visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator:silent
 
 # Expression-level preferences
 visual_basic_style_unused_value_assignment_preference = unused_local_variable:suggestion
@@ -186,9 +184,6 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:sil
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:silent
 
 # Expression-level preferences
-csharp_style_deconstructed_variable_declaration = true:suggestion
-csharp_style_inlined_variable_declaration = true:suggestion
-csharp_style_throw_expression = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = false:error
@@ -201,6 +196,7 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_simplified_interpolation = true:suggestion
 
 # Field preferences
 dotnet_style_readonly_field = true:suggestion
@@ -211,7 +207,7 @@ dotnet_code_quality_unused_parameters = all:suggestion
 #### VB Coding Conventions ####
 
 # Modifier preferences
-visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator
+visual_basic_preferred_modifier_order = partial,default,private,protected,public,friend,notoverridable,overridable,mustoverride,overloads,overrides,mustinherit,notinheritable,static,shared,shadows,readonly,writeonly,dim,const,withevents,widening,narrowing,custom,async,iterator:silent
 
 # Expression-level preferences
 visual_basic_style_unused_value_assignment_preference = unused_local_variable:suggestion

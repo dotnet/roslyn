@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        IMethodSymbol? ISynthesizedMethodBodyImplementationSymbol.Method
+        IMethodSymbolInternal? ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
         }

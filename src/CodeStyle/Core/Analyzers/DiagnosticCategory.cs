@@ -4,6 +4,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class DiagnosticCategory
     {
-        public static readonly string Style = CodeStyleResources.Style;
+        public const string Style = nameof(Style);
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _tupleElementIndex;
 
         private readonly ImmutableArray<Location> _locations;
-        private readonly DiagnosticInfo _useSiteDiagnosticInfo;
+        private readonly DiagnosticInfo? _useSiteDiagnosticInfo;
         private readonly TupleErrorFieldSymbol _correspondingDefaultField;
 
         // default tuple elements like Item1 or Item20 could be provided by the user or
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol container,
             string name,
             int tupleElementIndex,
-            Location location,
+            Location? location,
             TypeWithAnnotations type,
-            DiagnosticInfo useSiteDiagnosticInfo,
+            DiagnosticInfo? useSiteDiagnosticInfo,
             bool isImplicitlyDeclared,
-            TupleErrorFieldSymbol correspondingDefaultFieldOpt)
+            TupleErrorFieldSymbol? correspondingDefaultFieldOpt)
 
             : base(container, name, isPublic: true, isReadOnly: false, isStatic: false)
         {
@@ -49,21 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _type = type;
             _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
             _useSiteDiagnosticInfo = useSiteDiagnosticInfo;
-            _tupleElementIndex = (object)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;
+            _tupleElementIndex = (object?)correspondingDefaultFieldOpt == null ? tupleElementIndex << 1 : (tupleElementIndex << 1) + 1;
             _isImplicitlyDeclared = isImplicitlyDeclared;
 
             Debug.Assert((correspondingDefaultFieldOpt == null) == this.IsDefaultTupleElement);
             Debug.Assert(correspondingDefaultFieldOpt == null || correspondingDefaultFieldOpt.IsDefaultTupleElement);
 
             _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
-        }
-
-        public override bool IsTupleField
-        {
-            get
-            {
-                return true;
-            }
         }
 
         /// <summary>
@@ -99,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Failed to find one
                 return null;
+            }
+        }
+
+        public override FieldSymbol OriginalDefinition
+        {
+            get
+            {
+                return this;
             }
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override DiagnosticInfo? GetUseSiteDiagnostic()
         {
             return _useSiteDiagnosticInfo;
         }

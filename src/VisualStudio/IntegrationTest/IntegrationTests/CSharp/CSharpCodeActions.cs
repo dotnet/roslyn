@@ -491,15 +491,15 @@ public class P2 { }");
                 "Generate nested class 'Stream'",
                 "Generate new type...",
                 "Remove unused variable",
-                "Configure or Suppress issues",
+                "Suppress or Configure issues",
+                "Suppress CS0168",
+                "in Source",
                 "Configure CS0168 severity",
                 "None",
                 "Silent",
                 "Suggestion",
                 "Warning",
                 "Error",
-                "Suppress CS0168",
-                "in Source"
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
@@ -538,15 +538,15 @@ namespace NS
                 "Generate nested class 'Foober'",
                 "Generate new type...",
                 "Goober - using N;",
-                "Configure or Suppress issues",
+                "Suppress or Configure issues",
+                "Suppress CS0168",
+                "in Source",
                 "Configure CS0168 severity",
                 "None",
                 "Silent",
                 "Suggestion",
                 "Warning",
                 "Error",
-                "Suppress CS0168",
-                "in Source",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true);
@@ -578,17 +578,17 @@ class Program
                 "Introduce constant for all occurrences of '2'",
                 "Introduce local constant for '2'",
                 "Introduce local constant for all occurrences of '2'",
-                "Extract Method",
+                "Extract method",
                 generateImplicitTitle,
-                "Configure or Suppress issues",
+                "Suppress or Configure issues",
+                "Suppress CS0612",
+                "in Source",
                 "Configure CS0612 severity",
                 "None",
                 "Silent",
                 "Suggestion",
                 "Warning",
                 "Error",
-                "Suppress CS0612",
-                "in Source",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: generateImplicitTitle, ensureExpectedItemsAreOrdered: true);
@@ -644,7 +644,7 @@ public class Program
 
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38198"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public void ConfigureCodeStyleOptionValueAndSeverity()
         {
             SetUpEditor(@"
@@ -661,7 +661,10 @@ public class Program
             {
                 "Use discard '__'",  // IDE0059
                 "Use explicit type instead of 'var'",   // IDE0008
-                "Configure or Suppress issues",
+                "Introduce local",
+                    "Introduce local for 'new Program()'",
+                    "Introduce local for all occurrences of 'new Program()'",
+                "Suppress or Configure issues",
                     "Configure IDE0008 code style",
                         "csharp__style__var__elsewhere",
                             "true",
@@ -678,6 +681,10 @@ public class Program
                         "Suggestion",
                         "Warning",
                         "Error",
+                    "Suppress IDE0059",
+                        "in Source",
+                        "in Suppression File",
+                        "in Source (attribute)",
                     "Configure IDE0059 code style",
                         "unused__local__variable",
                         "discard__variable",
@@ -687,10 +694,6 @@ public class Program
                         "Suggestion",
                         "Warning",
                         "Error",
-                    "Suppress IDE0059",
-                        "in Source",
-                        "in Suppression File",
-                        "in Source (attribute)",
             };
 
             VisualStudio.Editor.Verify.CodeActions(expectedItems, ensureExpectedItemsAreOrdered: true);

@@ -35,14 +35,12 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCSharpLanguageServer.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynVisualBasicLanguageServer.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynLanguageServer.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteHost64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCodeAnalysis64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynCSharpLanguageServer64.servicehub.service.json" />
-    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynVisualBasicLanguageServer64.servicehub.service.json" />
+    <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynLanguageServer64.servicehub.service.json" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="SolutionExplorerShim" Path="|SolutionExplorerShim|" />
@@ -66,13 +64,8 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
     <Asset Type="Microsoft.VisualStudio.CodeLensComponent" d:Source="File" Path="Microsoft.VisualStudio.LanguageServices.CodeLens.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Apex.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.CodeLens.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.Debugger.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.TypeScript.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.LiveShare.dll" />

@@ -243,7 +243,7 @@ System.Console$$.WriteLine(message)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Assert.Null(VsLanguageBlock.GetCurrentBlock(
-                    hostDocument.TextBuffer.CurrentSnapshot,
+                    hostDocument.GetTextBuffer().CurrentSnapshot,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None))
             End Using
@@ -261,7 +261,7 @@ System.Console$$.WriteLine(message)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Dim tuple = VsLanguageBlock.GetCurrentBlock(
-                    hostDocument.TextBuffer.CurrentSnapshot,
+                    hostDocument.GetTextBuffer().CurrentSnapshot,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
 

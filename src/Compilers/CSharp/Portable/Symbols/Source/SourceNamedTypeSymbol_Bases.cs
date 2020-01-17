@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol baseType = null;
             SourceLocation baseTypeLocation = null;
 
-            var interfaceLocations = SpecializedCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
+            var interfaceLocations = SpecializedSymbolCollections.GetPooledSymbolDictionaryInstance<NamedTypeSymbol, SourceLocation>();
 
             foreach (var decl in this.declaration.Declarations)
             {

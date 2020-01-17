@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationFieldSymbol : CodeGenerationSymbol, IFieldSymbol
     {
         public ITypeSymbol Type { get; }
-        public NullableAnnotation NullableAnnotation => Type.GetNullability();
+        public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
         public object ConstantValue { get; }
         public bool HasConstantValue { get; }
 

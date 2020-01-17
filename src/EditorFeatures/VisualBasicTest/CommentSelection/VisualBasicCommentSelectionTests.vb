@@ -88,7 +88,7 @@ End Module</code>
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())
 
-                Assert.Equal(expected, doc.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(expected, doc.GetTextBuffer().CurrentSnapshot.GetText())
             End Using
         End Sub
 

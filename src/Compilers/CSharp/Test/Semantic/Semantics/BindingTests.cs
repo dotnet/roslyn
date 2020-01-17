@@ -2168,10 +2168,7 @@ class C<T> : System.Attribute { }";
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(3, 20),
                 // (3,18): error CS0540: 'I.M()': containing type does not implement interface 'I'
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("I.M()", "I").WithLocation(3, 18),
-                // (3,20): error CS0539: 'I.M()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("I.M()").WithLocation(3, 20)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("I.M()", "I").WithLocation(3, 18)
                 );
         }
 

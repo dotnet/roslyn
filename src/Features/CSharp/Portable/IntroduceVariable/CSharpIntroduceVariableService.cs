@@ -146,6 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return true;
         }
 
+        protected override bool IsExpressionInStaticLocalFunction(ExpressionSyntax expression)
+        {
+            var localFunction = expression.GetAncestor<LocalFunctionStatementSyntax>();
+            return localFunction != null && localFunction.Modifiers.Any(SyntaxKind.StaticKeyword);
+        }
+
         protected override TNode RewriteCore<TNode>(
             TNode node,
             SyntaxNode replacementNode,

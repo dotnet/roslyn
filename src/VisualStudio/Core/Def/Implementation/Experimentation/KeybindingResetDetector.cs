@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     break;
             }
 
-            _workspace.Options = options;
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
             if (options.GetOption(KeybindingResetOptions.NeedsReset))
             {
                 ShowGoldBar();
@@ -352,29 +352,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             KeybindingsResetLogger.Log("KeybindingsReset");
 
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
         }
 
         private void OpenExtensionsHyperlink()
         {
             ThisCanBeCalledOnAnyThread();
 
-            if (!BrowserHelper.TryGetUri(KeybindingsFwLink, out var fwLink))
-            {
-                // We're providing a constant, known-good link. This should be impossible.
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            BrowserHelper.StartBrowser(fwLink);
+            BrowserHelper.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
         }
 
         private void NeverShowAgain()
         {
-            _workspace.Options = _workspace.Options.WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
-                                                   .WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
+                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.

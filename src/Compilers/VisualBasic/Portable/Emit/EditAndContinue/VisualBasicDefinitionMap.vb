@@ -19,17 +19,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits DefinitionMap
 
         Private ReadOnly _metadataDecoder As MetadataDecoder
+        Private ReadOnly _mapToMetadata As VisualBasicSymbolMatcher
+        Private ReadOnly _mapToPrevious As VisualBasicSymbolMatcher
 
         Public Sub New(edits As IEnumerable(Of SemanticEdit),
                        metadataDecoder As MetadataDecoder,
                        mapToMetadata As VisualBasicSymbolMatcher,
                        mapToPrevious As VisualBasicSymbolMatcher)
 
-            MyBase.New(edits, mapToMetadata, mapToPrevious)
+            MyBase.New(edits)
 
             Debug.Assert(metadataDecoder IsNot Nothing)
+            Debug.Assert(mapToMetadata IsNot Nothing)
+
             _metadataDecoder = metadataDecoder
+            _mapToMetadata = mapToMetadata
+            _mapToPrevious = If(mapToPrevious, mapToMetadata)
         End Sub
+
+        Protected Overrides ReadOnly Property MapToMetadataSymbolMatcher As SymbolMatcher
+            Get
+                Return _mapToMetadata
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property MapToPreviousSymbolMatcher As SymbolMatcher
+            Get
+                Return _mapToPrevious
+            End Get
+        End Property
+
+        Protected Overrides Function GetISymbolInternalOrNull(symbol As ISymbol) As ISymbolInternal
+            Return TryCast(symbol, Symbol)
+        End Function
 
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
             Get
@@ -41,12 +63,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return VisualBasicLambdaSyntaxFacts.Instance
         End Function
 
-        Friend Function TryGetAnonymousTypeName(template As IAnonymousTypeTemplateSymbolInternal, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
-            Return mapToPrevious.TryGetAnonymousTypeName(template, name, index)
+        Friend Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
+            Return _mapToPrevious.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeDefinitionHandle) As Boolean
-            Dim other = TryCast(mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -57,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventDefinitionHandle) As Boolean
-            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEEventSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEEventSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -68,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldDefinitionHandle) As Boolean
-            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEFieldSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEFieldSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -79,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
-            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEMethodSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEMethodSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -90,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
-            Dim other = TryCast(mapToMetadata.MapDefinition(def), PEPropertySymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEPropertySymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -100,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Protected Overrides Function TryGetStateMachineType(methodHandle As EntityHandle) As ITypeSymbol
+        Protected Overrides Function TryGetStateMachineType(methodHandle As EntityHandle) As ITypeSymbolInternal
             Dim typeName As String = Nothing
             If _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, typeName) OrElse
                _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, typeName) Then
@@ -111,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Nothing
         End Function
 
-        Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbol,
+        Protected Overrides Sub GetStateMachineFieldMapFromMetadata(stateMachineType As ITypeSymbolInternal,
                                                                     localSlotDebugInfo As ImmutableArray(Of LocalSlotDebugInfo),
                                                                     <Out> ByRef hoistedLocalMap As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer),
                                                                     <Out> ByRef awaiterMap As IReadOnlyDictionary(Of Cci.ITypeReference, Integer),
@@ -123,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)
             Dim maxAwaiterSlotIndex = -1
 
-            For Each member In stateMachineType.GetMembers()
+            For Each member In DirectCast(stateMachineType, TypeSymbol).GetMembers()
                 If member.Kind = SymbolKind.Field Then
                     Dim name = member.Name
                     Dim slotIndex As Integer

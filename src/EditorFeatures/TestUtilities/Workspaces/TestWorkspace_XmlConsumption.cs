@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 extern alias WORKSPACES;
 
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,8 +22,6 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
+        public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = false, ExportProvider exportProvider = null)
         {
             return Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
         }
@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 foreach (var document in project.Documents)
                 {
                     Assert.True(document.IsLinkFile || documentFilePaths.Add(document.FilePath));
+
+                    workspace.Documents.Add(document);
                 }
             }
 
@@ -126,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             foreach (var submission in submissions)
             {
                 projectNameToTestHostProject.Add(submission.Name, submission);
+                workspace.Documents.Add(submission.Documents.Single());
             }
 
             var solution = new TestHostSolution(projectNameToTestHostProject.Values.ToArray());
@@ -170,10 +173,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     if (openDocuments)
                     {
-                        workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer(), isCurrentContext: !document.IsLinkFile);
+                        // This implicitly opens the document in the workspace by fetching the container.
+                        document.GetOpenTextContainer();
                     }
-
-                    workspace.Documents.Add(document);
                 }
             }
 
@@ -200,14 +202,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var languageServices = workspace.Services.GetLanguageServices(languageName);
-                var contentTypeLanguageService = languageServices.GetService<IContentTypeLanguageService>();
-
-                var contentType = contentTypeLanguageService.GetDefaultContentType();
-                var textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
 
                 // The project
 
-                var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Script);
+                var document = new TestHostDocument(exportProvider, languageServices, code, submissionName, cursorPosition, spans, SourceCodeKind.Script);
                 var documents = new List<TestHostDocument> { document };
 
                 if (languageName == NoCompilationConstants.LanguageName)
@@ -745,13 +743,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             MarkupTestFile.GetPositionAndSpans(markupCode,
                 out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
-            // For linked files, use the same ITextBuffer for all linked documents
-            if (!filePathToTextBufferMap.TryGetValue(filePath, out var textBuffer))
-            {
-                textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
-                filePathToTextBufferMap.Add(filePath, textBuffer);
-            }
-
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
             if (documentServiceProvider == null)
@@ -764,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             return new TestHostDocument(
-                exportProvider, languageServiceProvider, textBuffer, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
+                exportProvider, languageServiceProvider, code, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
 
         internal static TestHostDocument CreateDocument(
@@ -791,12 +782,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             var documentServiceProvider = GetDocumentServiceProvider(documentElement);
-            var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
-            var contentType = contentTypeLanguageService.GetDefaultContentType();
-            var textBuffer = EditorFactory.CreateBuffer(contentType.TypeName, exportProvider, code);
 
             return new TestHostDocument(
-                exportProvider, languageServiceProvider, textBuffer, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
+                exportProvider, languageServiceProvider, code, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
         }
 
 #nullable enable
@@ -922,7 +910,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var references = CreateCommonReferences(workspace, element);
             foreach (var reference in element.Elements(MetadataReferenceElementName))
             {
-                references.Add(MetadataReference.CreateFromFile(reference.Value));
+                // Read the image to an ImmutableArray<byte>, since the GC does a better job of tracking these than
+                // Marshal.AllocHGlobal and thus knowing when it's necessary to run finalizers to clean up old Metadata
+                // objects that are no longer in use. There are no public APIs available to directly dispose of these
+                // images, so we are relying on GC running finalizers to avoid OutOfMemoryException during tests.
+                var content = File.ReadAllBytes(reference.Value);
+                var peImage = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref content);
+                references.Add(MetadataReference.CreateFromImage(peImage, filePath: reference.Value));
             }
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
@@ -971,13 +965,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)commonReferencesAttribute).HasValue &&
                 ((bool?)commonReferencesAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef_v4_0_30319_17929);
                     references.Add(TestBase.SystemXmlRef);
                     references.Add(TestBase.SystemXmlLinqRef);
                 }
+            }
+
+            var commonReferencesWithoutValueTupleAttribute = element.Attribute(CommonReferencesWithoutValueTupleAttributeName);
+            if (commonReferencesWithoutValueTupleAttribute != null &&
+                ((bool?)commonReferencesWithoutValueTupleAttribute).HasValue &&
+                ((bool?)commonReferencesWithoutValueTupleAttribute).Value)
+            {
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
             }
 
             var winRT = element.Attribute(CommonReferencesWinRTAttributeName);

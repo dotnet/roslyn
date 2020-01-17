@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 
@@ -91,6 +92,11 @@ namespace Microsoft.CodeAnalysis.Emit
             this.NewSymbol = newSymbol;
             this.PreserveLocalVariables = preserveLocalVariables;
             this.SyntaxMap = syntaxMap;
+        }
+
+        internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode> syntaxMap = null, bool preserveLocalVariables = false)
+        {
+            return new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, preserveLocalVariables);
         }
 
         public override int GetHashCode()

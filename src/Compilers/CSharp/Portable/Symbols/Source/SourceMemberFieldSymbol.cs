@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool modifierErrors,
             DiagnosticBag diagnostics)
-            : base(containingType, modifiers, declarator.Identifier.ValueText, declarator.GetReference(), declarator.Identifier.GetLocation())
+            : base(containingType, modifiers, declarator.Identifier.ValueText ?? "", declarator.GetReference(), declarator.Identifier.GetLocation())
         {
             _hasInitializer = declarator.Initializer != null;
 

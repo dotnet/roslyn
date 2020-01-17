@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void Equality()
         {
-            var c = CreateCompilation(@"
+            var c = (Compilation)CreateCompilation(@"
 class E1
 {
     public E GetEnumerator() { return null; }
@@ -30,18 +30,18 @@ class E2
     public void Dispose() { }
 }
 ");
-            var e1 = (TypeSymbol)c.GlobalNamespace.GetMembers("E1").Single();
-            var ge1 = (MethodSymbol)e1.GetMembers("GetEnumerator").Single();
-            var mn1 = (MethodSymbol)e1.GetMembers("MoveNext").Single();
-            var cur1 = (PropertySymbol)e1.GetMembers("Current").Single();
-            var disp1 = (MethodSymbol)e1.GetMembers("Dispose").Single();
+            var e1 = (ITypeSymbol)c.GlobalNamespace.GetMembers("E1").Single();
+            var ge1 = (IMethodSymbol)e1.GetMembers("GetEnumerator").Single();
+            var mn1 = (IMethodSymbol)e1.GetMembers("MoveNext").Single();
+            var cur1 = (IPropertySymbol)e1.GetMembers("Current").Single();
+            var disp1 = (IMethodSymbol)e1.GetMembers("Dispose").Single();
             var conv1 = Conversion.Identity;
 
-            var e2 = (TypeSymbol)c.GlobalNamespace.GetMembers("E2").Single();
-            var ge2 = (MethodSymbol)e2.GetMembers("GetEnumerator").Single();
-            var mn2 = (MethodSymbol)e2.GetMembers("MoveNext").Single();
-            var cur2 = (PropertySymbol)e2.GetMembers("Current").Single();
-            var disp2 = (MethodSymbol)e2.GetMembers("Dispose").Single();
+            var e2 = (ITypeSymbol)c.GlobalNamespace.GetMembers("E2").Single();
+            var ge2 = (IMethodSymbol)e2.GetMembers("GetEnumerator").Single();
+            var mn2 = (IMethodSymbol)e2.GetMembers("MoveNext").Single();
+            var cur2 = (IPropertySymbol)e2.GetMembers("Current").Single();
+            var disp2 = (IMethodSymbol)e2.GetMembers("Dispose").Single();
             var conv2 = Conversion.NoConversion;
 
             EqualityTesting.AssertEqual(default(ForEachStatementInfo), default(ForEachStatementInfo));

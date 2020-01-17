@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 {
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 
         protected override IEnumerable<IVsEditorFactory> CreateEditorFactories()
         {
-            return new IVsEditorFactory[] { };
+            return SpecializedCollections.EmptyEnumerable<IVsEditorFactory>();
         }
 
         protected override CSharpLspLanguageService CreateLanguageService() => new CSharpLspLanguageService(this);

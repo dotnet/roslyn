@@ -84,16 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
 
-        /// <summary>
-        /// Feature to enable <see cref="CompilerFeatureFlags.RunNullableAnalysis"/> in the compiler flags for all csharp projects.
-        /// 0 = default, which leaves the flag unset.
-        /// 1 = set to true
-        /// -1 = set to false
-        /// </summary>
-        public static readonly Option<int> UseNullableReferenceTypeAnalysis = new Option<int>(
-            nameof(FeatureOnOffOptions), nameof(UseNullableReferenceTypeAnalysis), defaultValue: 0,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.CSharp.{nameof(UseNullableReferenceTypeAnalysis)}"));
-
         // Note: no storage location since this is intentionally a session variable
         public static readonly Option<bool> AcceptedDecompilerDisclaimer = new Option<bool>(
             nameof(FeatureOnOffOptions), nameof(AcceptedDecompilerDisclaimer), defaultValue: false);

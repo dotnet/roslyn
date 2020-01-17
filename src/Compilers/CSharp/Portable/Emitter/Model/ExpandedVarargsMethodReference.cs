@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -206,7 +207,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private static void Append(PooledStringBuilder result, object value)
         {
-            var symbol = value as ISymbol;
+            Debug.Assert(!(value is ISymbol));
+
+            var symbol = (value as ISymbolInternal)?.GetISymbol();
 
             if (symbol != null)
             {

@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
                 currentStatementSpan,
                 componentModel,
                 serviceProvider,
-                componentModel.GetService<IContentTypeRegistryService>().GetContentType(StringConstants.CSharpLspContentTypeName))
+                componentModel.GetService<IContentTypeRegistryService>().GetContentType(ContentTypeNames.CSharpLspContentTypeName))
         {
         }
 

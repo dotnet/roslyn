@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseImplicitTypeDiagnosticId = "IDE0007";
         public const string UseExplicitTypeDiagnosticId = "IDE0008";
         public const string AddQualificationDiagnosticId = "IDE0009";
-        public const string PopulateSwitchDiagnosticId = "IDE0010";
+        public const string PopulateSwitchStatementDiagnosticId = "IDE0010";
         public const string AddBracesDiagnosticId = "IDE0011";
 
         // IDE0012-IDE0015 deprecated and replaced with PreferBuiltInOrFrameworkTypeDiagnosticId (IDE0049)
@@ -113,6 +113,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
         public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
+        public const string UseSystemHashCode = "IDE0070";
+
+        public const string SimplifyInterpolationId = "IDE0071";
+
+        public const string PopulateSwitchExpressionDiagnosticId = "IDE0072";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -122,5 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
         public const string UnboundConstructorId = "IDE1008";
+
+        // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
     }
 }

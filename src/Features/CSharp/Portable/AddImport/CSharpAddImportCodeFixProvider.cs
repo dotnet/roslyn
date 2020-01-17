@@ -117,6 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS0281 = nameof(CS0281);
 
+        /// <summary>
+        /// 'X' does not contain a definition for 'Y' and no extension method 'Y' accepting a first argument of type 'X' could be found (are you missing a using directive for 'System'?)
+        /// Specialized for WinRT
+        /// </summary>
+        public const string CS4036 = nameof(CS4036);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -143,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS1955,
                     CS0428,
                     CS7036,
-                    CS0281));
+                    CS0281,
+                    CS4036));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]

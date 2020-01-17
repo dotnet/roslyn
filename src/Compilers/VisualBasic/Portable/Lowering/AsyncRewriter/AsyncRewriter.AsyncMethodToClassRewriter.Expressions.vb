@@ -164,7 +164,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim builder As New SpillBuilder()
-                If rewritten.OperatorKind = BinaryOperatorKind.AndAlso OrElse rewritten.OperatorKind = BinaryOperatorKind.OrElse Then
+                Dim operatorKind As BinaryOperatorKind = rewritten.OperatorKind And BinaryOperatorKind.OpMask
+                Debug.Assert(operatorKind = (rewritten.OperatorKind And Not (BinaryOperatorKind.IsOperandOfConditionalBranch Or BinaryOperatorKind.OptimizableForConditionalBranch)))
+                If operatorKind = BinaryOperatorKind.AndAlso OrElse operatorKind = BinaryOperatorKind.OrElse Then
                     ' NOTE: Short circuit operators need to evaluate the right optionally
                     Dim spilledLeft = SpillValue(left, builder)
 
@@ -172,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     builder.AddLocal(tempLocal)
 
                     builder.AddStatement(
-                        If(rewritten.OperatorKind = BinaryOperatorKind.AndAlso,
+                        If(operatorKind = BinaryOperatorKind.AndAlso,
                            Me.F.If(condition:=spilledLeft,
                                    thenClause:=MakeAssignmentStatement(right, tempLocal, builder),
                                    elseClause:=MakeAssignmentStatement(Me.F.Literal(False), tempLocal)),

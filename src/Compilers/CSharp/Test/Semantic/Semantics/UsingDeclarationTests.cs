@@ -670,7 +670,7 @@ class C
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -686,27 +686,17 @@ class C
         await using IAsyncDisposable x = null;
     }
 }
-namespace System
-{
-    public interface IAsyncDisposable
-    {
-        System.Threading.Tasks.ValueTask DisposeAsync();
-    }
-}";
-            // https://github.com/dotnet/roslyn/issues/32318 Diagnostics should be tuned. There should only be a parsing error for `using declarations` feature.
+";
             var expected = new[]
             {
-                // (8,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         await using IAsyncDisposable x = null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(8, 9),
                 // (8,15): error CS8652: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         await using IAsyncDisposable x = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "using").WithArguments("using declarations", "8.0").WithLocation(8, 15)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
@@ -782,7 +772,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (7,15): error CS0106: The modifier 'public' is not valid for this item
                 //         using public readonly var x = (IDisposable)null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 15),

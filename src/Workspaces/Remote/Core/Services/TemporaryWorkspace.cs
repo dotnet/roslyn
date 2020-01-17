@@ -16,19 +16,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private TemporaryWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteTemporaryWorkspace)
         {
-            Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
+            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
 
-            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory>();
+            var documentOptionsProviderFactories = ((IMefHostExportProvider)Services.HostServices).GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
 
-            foreach (var factory in documentOptionsProviderFactories)
-            {
-                var documentOptionsProvider = factory.Value.TryCreate(this);
-
-                if (documentOptionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(documentOptionsProvider);
-                }
-            }
+            RegisterDocumentOptionProviders(documentOptionsProviderFactories);
         }
 
         public TemporaryWorkspace(Solution solution) : this()
@@ -36,9 +28,10 @@ namespace Microsoft.CodeAnalysis.Remote
             this.SetCurrentSolution(solution);
         }
 
-        public TemporaryWorkspace(SolutionInfo solutionInfo) : this()
+        public TemporaryWorkspace(SolutionInfo solutionInfo, SerializableOptionSet options) : this()
         {
             this.OnSolutionAdded(solutionInfo);
+            this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
         }
 
         // for now, temproary workspace is not mutable. consumer can still freely fork solution as they wish

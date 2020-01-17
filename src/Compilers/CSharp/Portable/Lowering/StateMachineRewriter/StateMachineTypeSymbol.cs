@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
         {
             get { return KickoffMethod; }
         }
@@ -92,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _attributes;
         }
+
+        public sealed override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
     }
