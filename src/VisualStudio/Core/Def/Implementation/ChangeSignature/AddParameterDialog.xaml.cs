@@ -65,6 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
             ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
 
+            ViewModel.CallSiteValue = CallsiteValueTextBox.Text;
+
             if (ViewModel.TrySubmit(_document))
             {
                 DialogResult = true;
