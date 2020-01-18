@@ -18,8 +18,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
-    using static SyntaxFactory;
-
     internal class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
     {
         public static readonly ExpressionSimplifier Instance = new ExpressionSimplifier();
@@ -191,17 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 }
             }
 
-            replacementNode = GetNameWithTriviaMoved(memberAccess);
+            replacementNode = memberAccess.GetNameWithTriviaMoved();
             issueSpan = memberAccess.Expression.Span;
 
             return CanReplaceWithReducedName(
                 memberAccess, replacementNode, semanticModel, symbol, cancellationToken);
         }
-
-        public static SimpleNameSyntax GetNameWithTriviaMoved(MemberAccessExpressionSyntax memberAccess)
-            => memberAccess.Name
-                .WithLeadingTrivia<SimpleNameSyntax>(GetLeadingTriviaForSimplifiedMemberAccess(memberAccess))
-                .WithTrailingTrivia<SimpleNameSyntax>(memberAccess.GetTrailingTrivia());
 
         private static void GetReplacementCandidates(
             SemanticModel semanticModel,
@@ -266,25 +259,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 return obj?.OriginalDefinition.GetHashCode() ?? 0;
             }
-        }
-
-        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(MemberAccessExpressionSyntax memberAccess)
-        {
-            // We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
-            // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
-            // aggressive formatting. Otherwise, formatter will see this elastic trivia added by the expander and use that as a cue to introduce unnecessary blank lines
-            // etc. around the user's original code.
-            return TriviaList(WithoutElasticTrivia(
-                memberAccess.GetLeadingTrivia()
-                    .AddRange(memberAccess.Expression.GetTrailingTrivia())
-                    .AddRange(memberAccess.OperatorToken.LeadingTrivia)
-                    .AddRange(memberAccess.OperatorToken.TrailingTrivia)
-                    .AddRange(memberAccess.Name.GetLeadingTrivia())));
-        }
-
-        private static IEnumerable<SyntaxTrivia> WithoutElasticTrivia(IEnumerable<SyntaxTrivia> list)
-        {
-            return list.Where(t => !t.IsElastic());
         }
 
         private static bool TrySimplify(
@@ -582,6 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             return node.IsKind(SyntaxKind.IdentifierName);
+        }
+
+        protected static bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression, SemanticModel semanticModel)
+        {
+            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None);
+            return speculationAnalyzer.ReplacementChangesSemantics();
         }
     }
 }

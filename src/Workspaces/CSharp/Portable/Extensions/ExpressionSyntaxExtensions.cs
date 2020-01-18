@@ -985,5 +985,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                     .WithSemicolonToken(semicolonToken);
             }
         }
+
+        public static bool IsDirectChildOfMemberAccessExpression(this ExpressionSyntax expression) =>
+            expression?.Parent is MemberAccessExpressionSyntax;
+
+        public static bool InsideCrefReference(this ExpressionSyntax expression)
+            => expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>() != null;
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         /// </summary>
         /// <param name="specialType">The <see cref="SpecialType"/> of this type.</param>
         /// <returns>The keyword kind for a given special type, or SyntaxKind.None if the type name is not a predefined type.</returns>
-        public static SyntaxKind GetPredefinedKeywordKind(SpecialType specialType)
+        protected static SyntaxKind GetPredefinedKeywordKind(SpecialType specialType)
             => specialType switch
             {
                 SpecialType.System_Boolean => SyntaxKind.BoolKeyword,
@@ -53,18 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 SpecialType.System_Void => SyntaxKind.VoidKeyword,
                 _ => SyntaxKind.None,
             };
-
-        protected static bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression, SemanticModel semanticModel)
-        {
-            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None);
-            return speculationAnalyzer.ReplacementChangesSemantics();
-        }
-
-        protected static bool InsideCrefReference(ExpressionSyntax expression)
-        {
-            var crefAttribute = expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>();
-            return crefAttribute != null;
-        }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/23582",
@@ -192,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        protected static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
+        private static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
         {
             var current = expression;
             while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
@@ -207,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                   SyntaxKind.QualifiedName);
         }
 
-        protected static bool HasUsingAliasDirective(SyntaxNode syntax)
+        private static bool HasUsingAliasDirective(SyntaxNode syntax)
         {
             SyntaxList<UsingDirectiveSyntax> usings;
             SyntaxList<MemberDeclarationSyntax> members;
@@ -414,25 +402,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return nameOfInvocationExpr != null;
         }
 
-        protected static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet, SemanticModel semanticModel)
-        {
-            return !IsInMemberAccessContext(name) &&
-                   !InsideCrefReference(name) &&
-                   !InsideNameOfExpression(name, semanticModel) &&
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, semanticModel.Language);
-        }
-
         protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
         {
             if (!SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language))
                 return false;
 
-            return (IsInMemberAccessContext(expression) || InsideCrefReference(expression)) &&
+            return (expression.IsDirectChildOfMemberAccessExpression() || expression.InsideCrefReference()) &&
                    !InsideNameOfExpression(expression, semanticModel);
         }
-
-        public static bool IsInMemberAccessContext(ExpressionSyntax expression) =>
-            expression?.Parent is MemberAccessExpressionSyntax;
 
         protected static bool WillConflictWithExistingLocal(
             ExpressionSyntax expression, ExpressionSyntax simplifiedNode, SemanticModel semanticModel)
@@ -446,6 +423,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             return false;
         }
-
     }
 }

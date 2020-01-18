@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             NameSyntax name, TypeSyntax replacement,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!InsideCrefReference(name))
+            if (!name.InsideCrefReference())
                 return false;
 
             if (name.Parent is QualifiedCrefSyntax qualifiedCrefParent && qualifiedCrefParent.Container == name)
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
             }
 
-            if (!InsideCrefReference(name))
+            if (!name.InsideCrefReference())
             {
                 // Nullable<T> can always be simplified to T? outside crefs.
                 return true;
@@ -665,40 +665,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static SyntaxNode FindImmediatelyEnclosingLocalVariableDeclarationSpace(SyntaxNode syntax)
-        {
-            for (var declSpace = syntax; declSpace != null; declSpace = declSpace.Parent)
-            {
-                switch (declSpace.Kind())
-                {
-                    // These are declaration-space-defining syntaxes, by the spec:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                    case SyntaxKind.Block:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.AnonymousMethodExpression:
-                    case SyntaxKind.SwitchStatement:
-                    case SyntaxKind.ForEachKeyword:
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.UsingStatement:
-
-                    // SPEC VIOLATION: We also want to stop walking out if, say, we are in a field
-                    // initializer. Technically according to the wording of the spec it should be
-                    // legal to use a simple name inconsistently inside a field initializer because
-                    // it does not define a local variable declaration space. In practice of course
-                    // we want to check for that. (As the native compiler does as well.)
-
-                    case SyntaxKind.FieldDeclaration:
-                        return declSpace;
-                }
-            }
-
-            return null;
-        }
-
         private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
         {
             // Whereas most of the time we do not want to reduce namespace names, We will
@@ -750,6 +716,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             }
 
             return false;
+        }
+
+        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet, SemanticModel semanticModel)
+        {
+            return !name.IsDirectChildOfMemberAccessExpression() &&
+                   !name.InsideCrefReference() &&
+                   !InsideNameOfExpression(name, semanticModel) &&
+                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, semanticModel.Language);
         }
     }
 }
