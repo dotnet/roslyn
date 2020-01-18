@@ -249,7 +249,6 @@ class C{i}
                 new AddedParameterOrExistingIndex(new AddedParameter("int", "newIntegerParameter", "123")) };
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
-            testState.TestChangeSignatureOptionsService.IsCancelled = false;
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
             var result = testState.ChangeSignature();
 

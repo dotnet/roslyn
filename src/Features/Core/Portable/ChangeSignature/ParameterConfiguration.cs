@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal sealed class ParameterConfiguration
     {
-        public readonly Parameter? ThisParameter;
+        public readonly ExistingParameter? ThisParameter;
         public readonly ImmutableArray<Parameter> ParametersWithoutDefaultValues;
         public readonly ImmutableArray<Parameter> RemainingEditableParameters;
-        public readonly Parameter? ParamsParameter;
+        public readonly ExistingParameter? ParamsParameter;
         public readonly int SelectedIndex;
 
         public ParameterConfiguration(
-            Parameter? thisParameter,
+            ExistingParameter? thisParameter,
             ImmutableArray<Parameter> parametersWithoutDefaultValues,
             ImmutableArray<Parameter> remainingEditableParameters,
-            Parameter? paramsParameter,
+            ExistingParameter? paramsParameter,
             int selectedIndex)
         {
             ThisParameter = thisParameter;
@@ -30,23 +30,24 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(List<Parameter?> parameters, bool isExtensionMethod, int selectedIndex)
+        public static ParameterConfiguration Create(IEnumerable<Parameter?> parameters, bool isExtensionMethod, int selectedIndex)
         {
-            Parameter? thisParameter = null;
+            var parametersList = parameters.ToList();
+            ExistingParameter? thisParameter = null;
             var parametersWithoutDefaultValues = ImmutableArray.CreateBuilder<Parameter>();
             var remainingReorderableParameters = ImmutableArray.CreateBuilder<Parameter>();
-            Parameter? paramsParameter = null;
+            ExistingParameter? paramsParameter = null;
 
-            if (parameters.Count > 0 && isExtensionMethod)
+            if (parametersList.Count > 0 && isExtensionMethod)
             {
-                thisParameter = parameters[0];
-                parameters.RemoveAt(0);
+                thisParameter = parametersList[0] as ExistingParameter;
+                parametersList.RemoveAt(0);
             }
 
-            if (parameters.Count > 0 && (parameters[parameters.Count - 1] as ExistingParameter)?.Symbol.IsParams == true)
+            if (parametersList.Count > 0 && (parametersList[parametersList.Count - 1] as ExistingParameter)?.Symbol.IsParams == true)
             {
-                paramsParameter = parameters[parameters.Count - 1];
-                parameters.RemoveAt(parameters.Count - 1);
+                paramsParameter = parametersList[parametersList.Count - 1] as ExistingParameter;
+                parametersList.RemoveAt(parametersList.Count - 1);
             }
 
             var seenDefaultValues = false;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         }
 
         internal ParameterConfiguration WithoutAddedParameters()
-            => Create(ToListOfParameters().OfType<ExistingParameter>().ToList<Parameter?>(), ThisParameter != null, selectedIndex: 0);
+            => Create(ToListOfParameters().OfType<ExistingParameter>(), ThisParameter != null, selectedIndex: 0);
 
         public List<Parameter> ToListOfParameters()
         {

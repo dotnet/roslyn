@@ -1,7 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
@@ -31,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
 
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly OLE.Interop.IServiceProvider _serviceProvider;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+        private readonly SVsServiceProvider _services;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,28 +49,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _textEditorFactoryService = textEditorFactoryService;
-            _serviceProvider = (OLE.Interop.IServiceProvider)services.GetService(typeof(OLE.Interop.IServiceProvider));
+            _services = services;
             _projectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        public IntellisenseTextBoxViewModel[] CreateIntellisenseTextBoxViewModels(
+        public async Task<IntellisenseTextBoxViewModel[]?> CreateIntellisenseTextBoxViewModelsAsync(
           Document document,
           IContentType contentType,
-          string contentString,
-          Func<ITextSnapshot, ITrackingSpan[]> createSpansMethod,
+          int insertPosition,
+          string textToInsert,
+          Func<ITextSnapshot, int, ITrackingSpan[]> createSpansMethod,
           string[][] rolesCollections)
         {
-            var vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(_serviceProvider, contentType) as IVsTextLines;
+            var serviceProvider = (OLE.Interop.IServiceProvider)_services.GetService(typeof(OLE.Interop.IServiceProvider));
+
+            var syntaxTree = await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
+            if (syntaxTree == null)
+            {
+                return null;
+            }
+
+            var sourceText = await syntaxTree.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+            var documentText = sourceText.ToString();
+
+            var contentString = documentText.Insert(insertPosition, textToInsert);
+
+            var vsTextLines = _editorAdaptersFactoryService.CreateVsTextBufferAdapter(serviceProvider, contentType) as IVsTextLines;
+            if (vsTextLines == null)
+            {
+                return null;
+            }
+
             vsTextLines.InitializeContent(contentString, contentString.Length);
 
             var originalContextBuffer = _editorAdaptersFactoryService.GetDataBuffer(vsTextLines);
-            // Get the workspace, and from there, the solution and document containing this buffer.
-            // If there's an ExternalSource, we won't get a document. Give up in that case.
             var solution = document.Project.Solution;
 
             // Wrap the original ContextBuffer in a projection buffer that we can make read-only
             var contextBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
-                new object[] { originalContextBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive) }, ProjectionBufferOptions.None, contentType);
+                new object[] { originalContextBuffer.CurrentSnapshot.CreateTrackingSpan(Span.FromBounds(0, originalContextBuffer.CurrentSnapshot.Length), SpanTrackingMode.EdgeInclusive) }, ProjectionBufferOptions.None, contentType);
 
             // Make projection readonly so we can't edit it by mistake.
             using (var regionEdit = contextBuffer.CreateReadOnlyRegionEdit())
@@ -77,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
 
             // Put it all into a projection buffer
             var projectionBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
-                createSpansMethod(contextBuffer.CurrentSnapshot),
+                createSpansMethod(contextBuffer.CurrentSnapshot, insertPosition),
                 ProjectionBufferOptions.None, contentType);
 
             // Fork the solution using this new primary buffer for the document and all of its linked documents.
@@ -103,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             {
                 var roleSet = _textEditorFactoryService.CreateTextViewRoleSet(rolesCollections[i]);
 
-                var vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(_serviceProvider, roleSet);
+                var vsTextView = _editorAdaptersFactoryService.CreateVsTextViewAdapter(serviceProvider, roleSet);
 
                 vsTextView.Initialize(
                     vsTextLines,
@@ -111,7 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
                     (uint)TextViewInitFlags3.VIF_NO_HWND_SUPPORT,
                     s_InitViews);
 
-                // Here we need ITextViewModelProvider handling the corresponding role.
                 var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
                 wpfTextView.TextBuffer.ChangeContentType(contentType, null);
 

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsFromDelegateInvoke(
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId, Document document, CancellationToken cancellationToken);
 
-        public abstract SyntaxNode ChangeSignature(
+        public abstract Task<SyntaxNode> ChangeSignatureAsync(
             Document document,
             ISymbol declarationSymbol,
             SyntaxNode potentiallyUpdatedNode,
@@ -63,25 +65,26 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             var context = GetContextAsync(document, position, restrictToDeclarations: false, cancellationToken: cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
-            if (context is ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext)
+            switch (context)
             {
-                return ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            }
-            else
-            {
-                var cannotChangeSignatureAnalyzedContext = context as CannotChangeSignatureAnalyzedContext;
-                switch (cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason)
-                {
-                    case CannotChangeSignatureReason.DefinedInMetadata:
-                        errorHandler(FeaturesResources.The_member_is_defined_in_metadata, NotificationSeverity.Error);
-                        break;
-                    case CannotChangeSignatureReason.IncorrectKind:
-                        errorHandler(FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate, NotificationSeverity.Error);
-                        break;
-                }
+                case ChangeSignatureAnalyzedSucceedContext changeSignatureAnalyzedSucceedContext:
+                    return ChangeSignatureWithContextAsync(changeSignatureAnalyzedSucceedContext, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                case CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext:
+                    switch (cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason)
+                    {
+                        case CannotChangeSignatureReason.DefinedInMetadata:
+                            errorHandler(FeaturesResources.The_member_is_defined_in_metadata, NotificationSeverity.Error);
+                            break;
+                        case CannotChangeSignatureReason.IncorrectKind:
+                            errorHandler(FeaturesResources.You_can_only_change_the_signature_of_a_constructor_indexer_method_or_delegate, NotificationSeverity.Error);
+                            break;
+                    }
 
-                return new ChangeSignatureResult(succeeded: false);
+                    break;
             }
+
+            return new ChangeSignatureResult(succeeded: false);
+
         }
 
         internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
@@ -134,7 +137,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().Select(p => new ExistingParameter(p)).ToList<Parameter>(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
+            var parameterConfiguration = ParameterConfiguration.Create(
+                symbol.GetParameters().Select(p => new ExistingParameter(p)),
+                symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalyzedSucceedContext(
                 document, insertPosition, symbol, parameterConfiguration);
@@ -143,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)
         {
             var options = GetChangeSignatureOptions(context);
-            if (options.IsCancelled)
+            if (options == null)
             {
                 return new ChangeSignatureResult(succeeded: false);
             }
@@ -157,11 +162,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             return new ChangeSignatureResult(updatedSolution != null, updatedSolution, context.Symbol.ToDisplayString(), context.Symbol.GetGlyph(), options.PreviewChanges);
         }
 
-        internal ChangeSignatureOptionsResult GetChangeSignatureOptions(ChangeSignatureAnalyzedSucceedContext context)
+        internal ChangeSignatureOptionsResult? GetChangeSignatureOptions(ChangeSignatureAnalyzedSucceedContext context)
         {
             var changeSignatureOptionsService = context.Solution.Workspace.Services.GetService<IChangeSignatureOptionsService>();
 
-            return changeSignatureOptionsService.GetChangeSignatureOptions(
+            return changeSignatureOptionsService?.GetChangeSignatureOptions(
                 context.Document, context.InsertPosition, context.Symbol, context.ParameterConfiguration);
         }
 
@@ -175,10 +180,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 var streamingProgress = new StreamingProgressCollector(
                     StreamingFindReferencesProgress.Instance);
 
-                IImmutableSet<Document> documents = null;
                 var engine = new FindReferencesSearchEngine(
                     solution,
-                    documents,
+                    documents: ImmutableSortedSet<Document>.Empty,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
                     FindReferencesSearchOptions.Default,
@@ -202,9 +206,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var hasLocationsInMetadata = false;
 
-            var symbols = FindChangeSignatureReferencesAsync(
+            var symbols = await FindChangeSignatureReferencesAsync(
                 SymbolAndProjectId.Create(declaredSymbol, context.Document.Project.Id),
-                context.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                context.Solution, cancellationToken).ConfigureAwait(false);
 
             var declaredSymbolParametersCount = declaredSymbol.GetParameters().Length;
 
@@ -340,7 +344,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var newRoot = root.ReplaceNodes(nodes, (originalNode, potentiallyUpdatedNode) =>
                 {
-                    return updater.ChangeSignature(doc, definitionToUse[originalNode], potentiallyUpdatedNode, originalNode, CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature), cancellationToken);
+                    return updater.ChangeSignatureAsync(
+                        doc,
+                        definitionToUse[originalNode],
+                        potentiallyUpdatedNode,
+                        originalNode,
+                        CreateCompensatingSignatureChange(definitionToUse[originalNode], options.UpdatedSignature),
+                        cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
                 });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
@@ -445,6 +455,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 if (!param.IsParams)
                 {
+                    // If seen a named argument before, add names for subsequent ones.
                     if ((seenNamedArgument || actualIndex != expectedIndex) && !argument.IsNamed)
                     {
 

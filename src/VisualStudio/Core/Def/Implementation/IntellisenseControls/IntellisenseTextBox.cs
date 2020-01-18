@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.ComponentModel.Design;
+using System.Composition;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
@@ -9,7 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -36,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <summary>
         /// The reference to the next command handler in the view filter chain
         /// </summary>
-        private IOleCommandTarget _nextCommandTarget = null;
+        private IOleCommandTarget? _nextCommandTarget = null;
 
         /// <summary>
         /// Used for instructing the editor control to carry out certain operations
@@ -46,13 +48,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <summary>
         /// Appearance category of text view in the intellisense textbox
         /// </summary>
-        private const string AppearanceCategory = "IntellisenseTextBlock";
+        public const string AppearanceCategory = "IntellisenseTextBlock";
 
         public readonly string ContainerName;
 
-        public IntellisenseTextBox(IntellisenseTextBoxViewModel viewModel, ContentControl container)
+        private readonly IClassificationFormatMap _classificationFormatMap;
+        private readonly IVsEditorAdaptersFactoryService _editorAdapterFactory;
+
+        public IntellisenseTextBox(
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IClassificationFormatMap classificationFormatMap,
+            IVsEditorAdaptersFactoryService editorAdapterFactory,
+            IntellisenseTextBoxViewModel viewModel,
+            ContentControl container) : base()
         {
-            this.InitializeEditorControl(viewModel, container);
+            _classificationFormatMap = classificationFormatMap;
+            _editorAdapterFactory = editorAdapterFactory;
+
+            this._editorOperations = editorOperationsFactoryService.GetEditorOperations(viewModel.WpfTextView);
+
+            // Sets editor options that control its final look
+            IEditorOptions? editorOptions = viewModel.WpfTextView.Properties.GetProperty(typeof(IEditorOptions)) as IEditorOptions;
+            if (editorOptions != null)
+            {
+                editorOptions.SetOptionValue("TextViewHost/ZoomControl", false);
+                editorOptions.SetOptionValue(DefaultWpfViewOptions.AppearanceCategory, AppearanceCategory);
+            }
+
+            Typeface typeface = new Typeface(container.FontFamily, container.FontStyle, container.FontWeight, container.FontStretch);
+            _classificationFormatMap.DefaultTextProperties = _classificationFormatMap.DefaultTextProperties.SetTypeface(typeface);
+            _classificationFormatMap.DefaultTextProperties = _classificationFormatMap.DefaultTextProperties.SetFontRenderingEmSize(container.FontSize);
+
+            ErrorHandler.ThrowOnFailure(viewModel.VsTextView.AddCommandFilter(this, out this._nextCommandTarget));
+
+            // Get the host control to render the view
+            this._textViewHost = _editorAdapterFactory.GetWpfTextViewHost(viewModel.VsTextView);
+
+            BindingOperations.SetBinding(_textViewHost.HostControl, AutomationProperties.NameProperty, new Binding { Source = container, Path = new PropertyPath(AutomationProperties.NameProperty) });
+            BindingOperations.SetBinding(_textViewHost.HostControl, AutomationProperties.LabeledByProperty, new Binding { Source = container, Path = new PropertyPath(AutomationProperties.LabeledByProperty) });
+
+            // For non-blurry text
+            TextOptions.SetTextFormattingMode(this._textViewHost.HostControl, TextFormattingMode.Display);
+            this._textViewHost.HostControl.Loaded += this.HostControl_Loaded;
+
+            this.AddLogicalChild(this._textViewHost.HostControl);
+            this.AddVisualChild(this._textViewHost.HostControl);
+
             ContainerName = container.Name;
         }
 
@@ -63,17 +104,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         {
             get
             {
-                if (this._textViewHost != null)
+                if (this._textViewHost.TextView.Properties.TryGetProperty(typeof(ICompletionBroker), out ICompletionBroker completionBroker))
                 {
-                    if (this._textViewHost.TextView.Properties.TryGetProperty(typeof(ICompletionBroker), out ICompletionBroker completionBroker))
-                    {
-                        return completionBroker.IsCompletionActive(this._textViewHost.TextView);
-                    }
+                    return completionBroker.IsCompletionActive(this._textViewHost.TextView);
+                }
 
-                    if (this._textViewHost.TextView.Properties.TryGetProperty(typeof(IIntellisenseSessionStack), out IIntellisenseSessionStack intellisenseSessionStack))
-                    {
-                        return intellisenseSessionStack.Sessions.Count > 0;
-                    }
+                if (this._textViewHost.TextView.Properties.TryGetProperty(typeof(IIntellisenseSessionStack), out IIntellisenseSessionStack intellisenseSessionStack))
+                {
+                    return intellisenseSessionStack.Sessions.Count > 0;
                 }
 
                 return false;
@@ -103,14 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <param name="index">child index</param>
         /// <returns>returns visual child</returns>
         protected override Visual GetVisualChild(int index)
-        {
-            if (this._textViewHost != null)
-            {
-                return this._textViewHost.HostControl;
-            }
-
-            return null;
-        }
+            => this._textViewHost.HostControl;
 
         /// <summary>
         /// Executes the given shell command
@@ -139,7 +170,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             // 3. For other commands, simply return with NOTSUPPORTED
             if (this.IsPassThroughCommand(ref pguidCmdGroup, cmdID))
             {
-                hr = this._nextCommandTarget.Exec(ref pguidCmdGroup, cmdID, cmdExecOpt, pvaIn, pvaOut);
+                if (this._nextCommandTarget != null)
+                {
+                    hr = this._nextCommandTarget.Exec(ref pguidCmdGroup, cmdID, cmdExecOpt, pvaIn, pvaOut);
+                }
             }
             else if ((pguidCmdGroup == VsMenus.guidStandardCommandSet97 && cmdID == StandardCommands.Cut.ID) ||
                     (pguidCmdGroup == VsMenus.guidStandardCommandSet2K && cmdID == (uint)VSConstants.VSStd2KCmdID.CUT))
@@ -195,8 +229,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
                 {
                     OLECMD[] cmdArray = new OLECMD[] { new OLECMD() };
                     cmdArray[0].cmdID = prgCmds[i].cmdID;
-                    int hr = this._nextCommandTarget.QueryStatus(ref pguidCmdGroup, 1, cmdArray, cmdText);
 
+                    if (this._nextCommandTarget == null)
+                    {
+                        continue;
+                    }
+
+                    int hr = this._nextCommandTarget.QueryStatus(ref pguidCmdGroup, 1, cmdArray, cmdText);
                     if (ErrorHandler.Failed(hr))
                     {
                         continue;
@@ -242,11 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <returns>return arrange size</returns>
         protected override Size ArrangeOverride(Size finalSize)
         {
-            if (this._textViewHost != null)
-            {
-                this._textViewHost.HostControl.Arrange(new Rect(new Point(0, 0), finalSize));
-            }
-
+            this._textViewHost.HostControl.Arrange(new Rect(new Point(0, 0), finalSize));
             return finalSize;
         }
 
@@ -257,79 +292,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         }
 
         /// <summary>
-        /// Initializes the editor control
-        /// </summary>
-        private void InitializeEditorControl(IntellisenseTextBoxViewModel viewModel, ContentControl container)
-        {
-            IComponentModel componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-
-            // Sets editor options that control its final look
-            IEditorOptions editorOptions = viewModel.WpfTextView.Properties.GetProperty(typeof(IEditorOptions)) as IEditorOptions;
-            editorOptions.SetOptionValue("TextViewHost/ZoomControl", false);
-            editorOptions.SetOptionValue(DefaultWpfViewOptions.AppearanceCategory, AppearanceCategory);
-
-            // Set the font used in the editor
-            // The editor will automatically choose the font, color for the text
-            // depending on the current language. Override the font information
-            // to have uniform look and feel in the parallel watch window
-            IClassificationFormatMapService classificationFormatMapService = componentModel.GetService<IClassificationFormatMapService>();
-            IClassificationFormatMap classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap(AppearanceCategory);
-            Typeface typeface = new Typeface(container.FontFamily, container.FontStyle, container.FontWeight, container.FontStretch);
-            classificationFormatMap.DefaultTextProperties = classificationFormatMap.DefaultTextProperties.SetTypeface(typeface);
-            classificationFormatMap.DefaultTextProperties = classificationFormatMap.DefaultTextProperties.SetFontRenderingEmSize(container.FontSize);
-
-            // Install this object in the text view command filter chain
-            IEditorOperationsFactoryService editorOperationsFactoryService = componentModel.GetService<IEditorOperationsFactoryService>();
-            if (editorOperationsFactoryService != null)
-            {
-                this._editorOperations = editorOperationsFactoryService.GetEditorOperations(viewModel.WpfTextView);
-            }
-
-            ErrorHandler.ThrowOnFailure(viewModel.VsTextView.AddCommandFilter(this, out this._nextCommandTarget));
-
-            // Get the host control to render the view
-            IVsEditorAdaptersFactoryService editorAdapterFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            this._textViewHost = editorAdapterFactory.GetWpfTextViewHost(viewModel.VsTextView);
-
-            BindingOperations.SetBinding(_textViewHost.HostControl, AutomationProperties.NameProperty, new Binding { Source = container, Path = new PropertyPath(AutomationProperties.NameProperty) });
-            BindingOperations.SetBinding(_textViewHost.HostControl, AutomationProperties.LabeledByProperty, new Binding { Source = container, Path = new PropertyPath(AutomationProperties.LabeledByProperty) });
-
-            // For non-blurry text
-            TextOptions.SetTextFormattingMode(this._textViewHost.HostControl, TextFormattingMode.Display);
-            this._textViewHost.HostControl.Loaded += this.HostControl_Loaded;
-
-            this.AddLogicalChild(this._textViewHost.HostControl);
-            this.AddVisualChild(this._textViewHost.HostControl);
-        }
-
-        /// <summary>
         /// Event handler for editor control load
         /// </summary>
         /// <param name="sender">Editor control</param>
         /// <param name="e">Event args</param>
         private void HostControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (this._textViewHost != null)
-            {
-                // Set the focus
-                this._textViewHost.TextView.VisualElement.Focus();
+            // Set the focus
+            this._textViewHost.TextView.VisualElement.Focus();
 
-                if (this._textViewHost != null)
-                {
-                    ITextSnapshot textSnapshot = this._textViewHost.TextView.TextSnapshot;
-                    if (this.Text.IsNullOrWhiteSpace())
-                    {
-                        // Select all text in the control if edit is not started by user keyboard input
-                        ITextSelection textSelection = this._textViewHost.TextView.Selection;
-                        textSelection.Select(new SnapshotSpan(textSnapshot, 0, textSnapshot.Length), false);
-                    }
-                    else
-                    {
-                        // Otherwise Move to caret to end
-                        ITextCaret textCaret = this._textViewHost.TextView.Caret;
-                        textCaret.MoveTo(new SnapshotPoint(textSnapshot, textSnapshot.Length));
-                    }
-                }
+            ITextSnapshot textSnapshot = this._textViewHost.TextView.TextSnapshot;
+            if (this.Text.IsNullOrWhiteSpace())
+            {
+                // Select all text in the control if edit is not started by user keyboard input
+                ITextSelection textSelection = this._textViewHost.TextView.Selection;
+                textSelection.Select(new SnapshotSpan(textSnapshot, 0, textSnapshot.Length), false);
+            }
+            else
+            {
+                // Otherwise Move to caret to end
+                ITextCaret textCaret = this._textViewHost.TextView.Caret;
+                textCaret.MoveTo(new SnapshotPoint(textSnapshot, textSnapshot.Length));
             }
         }
 
@@ -339,18 +322,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         /// <returns>True if cut and copy operation should be enabled</returns>
         private bool CanCutCopy()
         {
-            if (this._textViewHost != null)
-            {
-                ITextSelection textSelection = this._textViewHost.TextView.Selection;
+            ITextSelection textSelection = this._textViewHost.TextView.Selection;
 
-                if (textSelection.SelectedSpans != null && textSelection.SelectedSpans.Count > 0)
+            if (textSelection.SelectedSpans != null && textSelection.SelectedSpans.Count > 0)
+            {
+                foreach (SnapshotSpan snapshotSpan in textSelection.SelectedSpans)
                 {
-                    foreach (SnapshotSpan snapshotSpan in textSelection.SelectedSpans)
+                    if (snapshotSpan.Length > 0)
                     {
-                        if (snapshotSpan.Length > 0)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -476,7 +456,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             Guid editCmdGuid;
             int VariantSize = 16;
 
-            IVsFilterKeys2 filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
+            IVsFilterKeys2? filterKeys = Package.GetGlobalService(typeof(SVsFilterKeys)) as IVsFilterKeys2;
 
             if (filterKeys != null)
             {

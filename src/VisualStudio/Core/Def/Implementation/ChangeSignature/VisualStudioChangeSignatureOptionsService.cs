@@ -4,18 +4,14 @@
 
 using System;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -23,14 +19,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Host), Shared]
     internal class VisualStudioChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
-        public const string AddParameterTextViewRole = "AddParameter";
-        public const string AddParameterTypeTextViewRole = "AddParameterType";
-        public const string AddParameterNameTextViewRole = "AddParameterName";
-
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
-        private readonly IContentType _contentType;
+        private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IntellisenseTextBoxViewModelFactory _intellisenseTextBoxViewModelFactory;
+        private readonly IntellisenseTextBoxFactory _intellisenseTextBoxFactory;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -38,15 +31,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IClassificationFormatMapService classificationFormatMapService,
             ClassificationTypeMap classificationTypeMap,
             IContentTypeRegistryService contentTypeRegistryService,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory)
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
+            IntellisenseTextBoxFactory intellisenseTextBoxFactory)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
-            _contentType = contentTypeRegistryService.GetContentType(ContentTypeNames.CSharpContentType);
+            _contentTypeRegistryService = contentTypeRegistryService;
             _intellisenseTextBoxViewModelFactory = intellisenseTextBoxViewModelFactory;
+            _intellisenseTextBoxFactory = intellisenseTextBoxFactory;
         }
 
-        public ChangeSignatureOptionsResult GetChangeSignatureOptions(
+        public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
             Document document,
             int insertPosition,
             ISymbol symbol,
@@ -65,61 +60,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (result.HasValue && result.Value)
             {
-                return new ChangeSignatureOptionsResult { IsCancelled = false, UpdatedSignature = new SignatureChange(parameters, viewModel.GetParameterConfiguration()), PreviewChanges = viewModel.PreviewChanges };
-            }
-
-            return new ChangeSignatureOptionsResult { IsCancelled = true };
-        }
-
-        public AddedParameter? GetAddedParameter(Document document, int insertPosition)
-        {
-            var dialog = CreateAddParameterDialog(document, insertPosition);
-            if (dialog != null)
-            {
-                var result = dialog.ShowModal();
-
-                if (result.HasValue && result.Value)
-                {
-                    var viewModel = dialog.ViewModel;
-                    return new AddedParameter(
-                            viewModel.TypeName,
-                            viewModel.ParameterName,
-                            viewModel.CallSiteValue);
-                }
+                return new ChangeSignatureOptionsResult(new SignatureChange(parameters, viewModel.GetParameterConfiguration()), previewChanges: viewModel.PreviewChanges);
             }
 
             return null;
         }
 
-        private AddParameterDialog? CreateAddParameterDialog(Document document, int insertPosition)
+        public AddedParameter? GetAddedParameter(Document document, int insertPosition)
         {
-            // TODO to be addressed in this PR
-            // Should not create documentText here. Should move it later.
-            var syntaxTree = document.GetSyntaxTreeAsync(CancellationToken.None).Result;
-            if (syntaxTree == null)
+            var languageService = document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
+            var viewModelsCreationTask = languageService.CreateViewModelsAsync(
+                _contentTypeRegistryService, _intellisenseTextBoxViewModelFactory, document, insertPosition);
+
+            var dialog = new AddParameterDialog(viewModelsCreationTask, _intellisenseTextBoxFactory, document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
+            var result = dialog.ShowModal();
+
+            if (result.HasValue && result.Value)
             {
-                return null;
+                var viewModel = dialog.ViewModel;
+                return new AddedParameter(
+                        viewModel.TypeName,
+                        viewModel.ParameterName,
+                        viewModel.CallSiteValue);
             }
 
-            var sourceText = syntaxTree.GetTextAsync(CancellationToken.None).Result;
-            var documentText = sourceText.ToString();
-
-            var rolesCollectionForTypeTextBox = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
-                AddParameterTextViewRole, AddParameterTypeTextViewRole };
-            var rolesCollectionForNameTextBox = new[] { PredefinedTextViewRoles.Editable, PredefinedTextViewRoles.Interactive,
-                AddParameterTextViewRole, AddParameterNameTextViewRole };
-
-            var languageService = document.GetRequiredLanguageService<IChangeSignatureLanguageService>();
-            var viewModels = languageService.CreateViewModels(
-                rolesCollectionForTypeTextBox,
-                rolesCollectionForNameTextBox,
-                insertPosition,
-                document,
-                documentText,
-                _contentType,
-                _intellisenseTextBoxViewModelFactory);
-
-            return new AddParameterDialog(viewModels[0], viewModels[1], document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
+            return null;
         }
     }
 }

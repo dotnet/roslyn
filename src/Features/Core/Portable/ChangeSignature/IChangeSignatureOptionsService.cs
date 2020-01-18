@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <param name="symbol">the symbol for changing the signature</param>
         /// <param name="parameters">existing parameters of the symbol</param>
         /// <returns></returns>
-        ChangeSignatureOptionsResult GetChangeSignatureOptions(
+        ChangeSignatureOptionsResult? GetChangeSignatureOptions(
             Document document,
             int insertPosition,
             ISymbol symbol,

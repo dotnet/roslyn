@@ -113,7 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return default;
             }
 
-            var insertPosition = TryGetInsertPositionFromDeclaration(matchingNode);
+            int? insertPositionOpt = TryGetInsertPositionFromDeclaration(matchingNode);
+            if (insertPositionOpt == null)
+            {
+                return default;
+            }
+
+            int insertPosition = insertPositionOpt.Value;
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
@@ -148,13 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         // Find the position to insert the new parameter.
         // We will insert a new comma and a parameter.
-        private static int TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
+        private static int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
 
             if (parameters == null)
             {
-                return 0;
+                return null;
             }
 
             if (parameters.Parameters.Count > 0 &&
@@ -278,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
         }
 
-        public override SyntaxNode ChangeSignature(
+        public override async Task<SyntaxNode> ChangeSignatureAsync(
             Document document,
             ISymbol declarationSymbol,
             SyntaxNode potentiallyUpdatedNode,
@@ -289,7 +296,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
 
             // Update <param> tags.
-
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.ConstructorDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
@@ -303,7 +309,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update declarations parameter lists
-
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration))
             {
                 var method = (MethodDeclarationSyntax)updatedNode;
@@ -392,11 +397,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             // Update reference site argument lists
-
             if (updatedNode.IsKind(SyntaxKind.InvocationExpression))
             {
                 var invocation = (InvocationExpressionSyntax)updatedNode;
-                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var symbolInfo = semanticModel.GetSymbolInfo((InvocationExpressionSyntax)originalNode, cancellationToken);
                 var isReducedExtensionMethod = false;

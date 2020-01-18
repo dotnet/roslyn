@@ -315,7 +315,6 @@ public class C3
 
             using (var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml)))
             {
-                testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature.Select(i => new AddedParameterOrExistingIndex(i)).ToArray();
                 var result = testState.ChangeSignature();
 

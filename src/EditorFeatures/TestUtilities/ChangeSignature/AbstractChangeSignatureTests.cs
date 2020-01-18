@@ -25,19 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
             bool expectedCodeAction = true,
-            bool isCancelled = false,
             int[] updatedSignature = null,
             string expectedCode = null,
             int index = 0)
             => await TestChangeSignatureViaCodeActionAsync(
                 markup, updatedSignature?.Select(i => new AddedParameterOrExistingIndex(i)).ToArray(),
-                expectedCodeAction, isCancelled, expectedCode, index).ConfigureAwait(false);
+                expectedCodeAction, expectedCode, index).ConfigureAwait(false);
 
         internal async Task TestChangeSignatureViaCodeActionAsync(
             string markup,
             AddedParameterOrExistingIndex[] updatedSignature,
             bool expectedCodeAction = true,
-            bool isCancelled = false,
             string expectedCode = null,
             int index = 0)
         {
@@ -47,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
                 using (var workspace = CreateWorkspaceFromOptions(markup, testOptions))
                 {
                     var optionsService = workspace.Services.GetService<IChangeSignatureOptionsService>() as TestChangeSignatureOptionsService;
-                    optionsService.IsCancelled = isCancelled;
                     optionsService.UpdatedSignature = updatedSignature;
 
                     var refactoring = await GetCodeRefactoringAsync(workspace, testOptions);
@@ -99,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
         {
             using (var testState = ChangeSignatureTestState.Create(markup, languageName, parseOptions))
             {
-                testState.TestChangeSignatureOptionsService.IsCancelled = false;
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
                 var result = testState.ChangeSignature();
 

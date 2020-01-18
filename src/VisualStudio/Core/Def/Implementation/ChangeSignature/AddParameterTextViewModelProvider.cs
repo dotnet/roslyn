@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     [Export(typeof(ITextViewModelProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TextViewRole(VisualStudioChangeSignatureOptionsService.AddParameterTextViewRole)]
+    [TextViewRole(ChangeSignatureViewModelFactoryService.AddParameterTextViewRole)]
     internal class AddParameterTextViewModelProvider : ITextViewModelProvider
     {
         public IProjectionBufferFactoryService ProjectionBufferFactoryService { get; }
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // 4. The rest of the document.
             // Please note that for VB we should use another structure: start, name, " AS ", type, rest
             int index;
-            if (roles.Contains(VisualStudioChangeSignatureOptionsService.AddParameterTypeTextViewRole))
+            if (roles.Contains(ChangeSignatureViewModelFactoryService.AddParameterTypeTextViewRole))
             {
                 index = 1;
             }

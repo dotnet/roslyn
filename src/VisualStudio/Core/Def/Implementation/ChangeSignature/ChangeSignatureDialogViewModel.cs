@@ -25,10 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly INotificationService _notificationService;
         private readonly ParameterConfiguration _originalParameterConfiguration;
 
-        private readonly ParameterViewModel _thisParameter;
+        // This can be changed to ParameterViewModel if we will allow adding 'this' parameter.
+        private readonly ExistingParameterViewModel _thisParameter;
         private readonly List<ParameterViewModel> _parametersWithoutDefaultValues;
         private readonly List<ParameterViewModel> _parametersWithDefaultValues;
-        private readonly ParameterViewModel _paramsParameter;
+
+        // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
+        private readonly ExistingParameterViewModel _paramsParameter;
         private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
         public readonly int InsertPosition;
 
@@ -66,8 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
-            _parametersWithoutDefaultValues = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
-            _parametersWithDefaultValues = parameters.RemainingEditableParameters.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
+            _parametersWithoutDefaultValues = CreateParameterViewModels(parameters.ParametersWithoutDefaultValues, ref initialIndex);
+            _parametersWithDefaultValues = CreateParameterViewModels(parameters.RemainingEditableParameters, ref initialIndex);
 
             if (parameters.ParamsParameter != null)
             {
@@ -90,6 +93,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 this.SelectedIndex = selectedIndex;
             }
+        }
+
+        List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
+        {
+            var list = new List<ParameterViewModel>();
+            foreach (ExistingParameter existingParameter in parameters)
+            {
+                list.Add(new ExistingParameterViewModel(this, existingParameter, initialIndex));
+                initialIndex++;
+            }
+
+            return list;
         }
 
         public int GetStartingSelectionIndex()
@@ -240,9 +255,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             return new ParameterConfiguration(
                 _originalParameterConfiguration.ThisParameter,
-                _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToImmutableArray(),
-                _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.CreateParameter()).ToImmutableArray(),
-                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).CreateParameter(),
+                _parametersWithoutDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
+                _parametersWithDefaultValues.Where(p => !p.IsRemoved).Select(p => p.Parameter).ToImmutableArray(),
+                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.Parameter as ExistingParameter,
                 selectedIndex: -1);
         }
 
@@ -330,8 +345,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         break;
 
                     case AddedParameterViewModel addedParameterViewModel:
-                        var languageService = Document.GetLanguageService<IChangeSignatureLanguageService>();
-                        languageService.GeneratePreviewDisplayParts(addedParameterViewModel, displayParts);
+                        var languageService = Document.GetLanguageService<IChangeSignatureViewModelFactoryService>();
+                        displayParts.AddRange(languageService.GeneratePreviewDisplayParts(addedParameterViewModel));
                         break;
 
                     default:
@@ -440,8 +455,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             var canSubmit = AllParameters.Any(p => p.IsRemoved) ||
                 AllParameters.Any(p => p is AddedParameterViewModel) ||
-            !_parametersWithoutDefaultValues.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues.Cast<ExistingParameter>().Select(p => p.Symbol)) ||
-            !_parametersWithDefaultValues.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters.Cast<ExistingParameter>().Select(p => p.Symbol));
+            !_parametersWithoutDefaultValues.OfType<ExistingParameterViewModel>().Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues.Cast<ExistingParameter>().Select(p => p.Symbol)) ||
+            !_parametersWithDefaultValues.OfType<ExistingParameterViewModel>().Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters.Cast<ExistingParameter>().Select(p => p.Symbol));
 
             if (!canSubmit)
             {
@@ -543,110 +558,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             protected readonly ChangeSignatureDialogViewModel changeSignatureDialogViewModel;
 
+            public abstract Parameter Parameter { get; }
+
             public abstract string Type { get; }
-            public abstract string Parameter { get; }
+            public abstract string ParameterName { get; }
             public abstract bool IsRemoved { get; set; }
             public abstract string ShortAutomationText { get; }
-            public abstract string FullAutomationText { get; }
             public abstract bool IsDisabled { get; }
-            public abstract string Callsite { get; }
+            public abstract string CallSite { get; }
 
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
                 this.changeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
 
-            internal abstract Parameter CreateParameter();
-
             public abstract string InitialIndex { get; }
             public abstract string Modifier { get; }
             public abstract string Default { get; }
-            public abstract IParameterSymbol ParameterSymbol { get; }
-        }
 
-        public class AddedParameterViewModel : ParameterViewModel
-        {
-            private readonly AddedParameter _addedParameter;
-
-            public AddedParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, AddedParameter addedParameter)
-                : base(changeSignatureDialogViewModel)
-            {
-                _addedParameter = addedParameter;
-            }
-
-            public override string Type => _addedParameter.TypeName;
-
-            public override string Parameter => _addedParameter.ParameterName;
-
-            public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
-
-            public override string ShortAutomationText => $"{Type} {Parameter}";
-            public override string FullAutomationText
-            {
-                get
-                {
-                    var text = ServicesVSResources.Added_Parameter;
-
-                    text += $"{Modifier} {Type} {Parameter}";
-
-                    if (!string.IsNullOrWhiteSpace(Default))
-                    {
-                        text += $" = {Default}";
-                    }
-
-                    text += string.Format(ServicesVSResources.Inserting_call_site_value_0, Callsite);
-
-                    return text;
-                }
-            }
-
-            public override bool IsDisabled => false;
-            public override string Callsite
-            {
-                get
-                {
-                    if (!string.IsNullOrWhiteSpace(_addedParameter.CallSiteValue))
-                    {
-                        return _addedParameter.CallSiteValue;
-                    }
-
-                    return ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable;
-                }
-            }
-
-            internal override Parameter CreateParameter()
-                => new AddedParameter(Type, Parameter, Callsite);
-
-            public override string InitialIndex => ServicesVSResources.ChangeSignature_NewParameterIndicator;
-
-            // Newly added parameters cannot have modifiers yet
-            public override string Modifier => string.Empty;
-
-            // Only required parameters are supported currently
-            public override string Default => string.Empty;
-
-            // Use null as a marker that this is an added parameter
-            public override IParameterSymbol ParameterSymbol => null;
-        }
-
-        public class ExistingParameterViewModel : ParameterViewModel
-        {
-            public override IParameterSymbol ParameterSymbol { get; }
-
-            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, Parameter parameter, int initialIndex)
-                : base(changeSignatureDialogViewModel)
-            {
-                ParameterSymbol = (parameter as ExistingParameter).Symbol;
-                InitialIndex = initialIndex.ToString();
-            }
-
-            internal override Parameter CreateParameter()
-            {
-                return new ExistingParameter(ParameterSymbol);
-            }
-
-            public override string ShortAutomationText => $"{Type} {Parameter}";
-            public override string FullAutomationText
+            public virtual string FullAutomationText
             {
                 get
                 {
@@ -659,11 +589,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     return text;
                 }
             }
+        }
 
-            public override string Callsite => string.Empty;
+        public class AddedParameterViewModel : ParameterViewModel
+        {
+            public override Parameter Parameter => _addedParameter;
+            public readonly AddedParameter _addedParameter;
+
+            public AddedParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, AddedParameter addedParameter)
+                : base(changeSignatureDialogViewModel)
+            {
+                _addedParameter = addedParameter;
+            }
+
+            public override string Type => _addedParameter.TypeName;
+
+            public override string ParameterName => _addedParameter.ParameterName;
+
+            public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
+
+            public override string ShortAutomationText => $"{Type} {ParameterName}";
+            public override string FullAutomationText
+            {
+                get
+                {
+                    var baseText = base.FullAutomationText;
+                    return ServicesVSResources.Added_Parameter + baseText + string.Format(ServicesVSResources.Inserting_call_site_value_0, CallSite);
+                }
+            }
+
+            public override bool IsDisabled => false;
+
+            public override string CallSite => _addedParameter.CallSiteValue;
+
+            public override string InitialIndex => ServicesVSResources.ChangeSignature_NewParameterIndicator;
+
+            // Newly added parameters cannot have modifiers yet
+            public override string Modifier => string.Empty;
+
+            // Only required parameters are supported currently
+            public override string Default => string.Empty;
+        }
+
+#nullable enable
+
+        public class ExistingParameterViewModel : ParameterViewModel
+        {
+            public IParameterSymbol ParameterSymbol => _existingParameter.Symbol;
+
+            private readonly ExistingParameter _existingParameter;
+
+            public override Parameter Parameter => _existingParameter;
+
+            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, ExistingParameter existingParameter, int initialIndex)
+                : base(changeSignatureDialogViewModel)
+            {
+                _existingParameter = existingParameter;
+                InitialIndex = initialIndex.ToString();
+            }
+
+            public override string ShortAutomationText => $"{Type} {Parameter}";
+
+            public override string CallSite => string.Empty;
 
             public override string InitialIndex { get; }
 
+#nullable disable
             public override string Modifier
             {
                 get
@@ -705,9 +696,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
+#nullable enable
+
             public override string Type => ParameterSymbol.Type.ToDisplayString(s_parameterDisplayFormat);
 
-            public override string Parameter => ParameterSymbol.Name;
+            public override string ParameterName => ParameterSymbol.Name;
 
             public override string Default
             {

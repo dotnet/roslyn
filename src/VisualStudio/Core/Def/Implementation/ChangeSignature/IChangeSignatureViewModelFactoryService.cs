@@ -2,7 +2,7 @@
 
 #nullable enable
 
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
@@ -11,18 +11,15 @@ using static Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignat
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
-    internal interface IChangeSignatureLanguageService : ILanguageService
+    internal interface IChangeSignatureViewModelFactoryService : ILanguageService
     {
-        IntellisenseTextBoxViewModel[] CreateViewModels(
-            string[] rolesCollectionType,
-            string[] rolesCollectionName,
-            int insertPosition,
+        Task<ChangeSignatureIntellisenseTextBoxesViewModel?> CreateViewModelsAsync(
+            IContentTypeRegistryService contentTypeRegistryService,
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
             Document document,
-            string documentText,
-            IContentType contentType,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory);
+            int insertPosition);
 
-        void GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel, List<SymbolDisplayPart> displayParts);
+        SymbolDisplayPart[] GeneratePreviewDisplayParts(AddedParameterViewModel addedParameterViewModel);
 
         bool IsTypeNameValid(string typeName);
     }
