@@ -58,9 +58,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return AddCast(expression, targetType, semanticModel)
             End Function
 
-            Private Shared Function AddCast(expression As ExpressionSyntax, targetType As ITypeSymbol, semanticModel As SemanticModel) As ExpressionSyntax
+            Private Function AddCast(expression As ExpressionSyntax, targetType As ITypeSymbol, semanticModel As SemanticModel) As ExpressionSyntax
                 Dim wasCastAdded As Boolean = False
-                Dim result = expression.CastIfPossible(targetType, expression.SpanStart, semanticModel, wasCastAdded)
+                Dim result = expression.CastIfPossible(targetType, expression.SpanStart, semanticModel, wasCastAdded, _cancellationToken)
 
                 If wasCastAdded Then
                     result = result.Parenthesize()
