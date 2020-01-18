@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             text += "#if false // Decompilation log" + Environment.NewLine;
             text += logger.ToString();
-            text += "#endif";
+            text += "#endif" + Environment.NewLine;
 
             return document.WithText(SourceText.From(text));
         }

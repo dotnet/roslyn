@@ -13,27 +13,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
     internal class AssemblyResolver : IAssemblyResolver
     {
-        private readonly Compilation parentCompilation;
-        private readonly Dictionary<string, List<IAssemblySymbol>> cache = new Dictionary<string, List<IAssemblySymbol>>();
-        private readonly StringBuilder logger;
+        private readonly Compilation _parentCompilation;
+        private readonly Dictionary<string, List<IAssemblySymbol>> _cache = new Dictionary<string, List<IAssemblySymbol>>();
+        private readonly StringBuilder _logger;
 
         public AssemblyResolver(Compilation parentCompilation, StringBuilder logger)
         {
-            this.parentCompilation = parentCompilation;
-            this.logger = logger;
+            _parentCompilation = parentCompilation;
+            _logger = logger;
             BuildReferenceCache();
-            Log("{0} items in cache", cache.Count);
+            Log("'{0}' items in cache", _cache.Count);
+
+            void BuildReferenceCache()
+            {
+                foreach (var reference in _parentCompilation.GetReferencedAssemblySymbols())
+                {
+                    if (!_cache.TryGetValue(reference.Identity.Name, out var list))
+                    {
+                        list = new List<IAssemblySymbol>();
+                        _cache.Add(reference.Identity.Name, list);
+                    }
+
+                    list.Add(reference);
+                }
+            }
         }
 
         public PEFile Resolve(IAssemblyReference name)
         {
             Log("------------------");
-            Log("Resolve: {0}", name.FullName);
+            Log("Resolve: '{0}'", name.FullName);
 
             // First, find the correct list of assemblies by name
-            if (!cache.TryGetValue(name.Name, out var assemblies))
+            if (!_cache.TryGetValue(name.Name, out var assemblies))
             {
-                Log("Could not find by name: {0}", name.FullName);
+                Log("Could not find by name: '{0}'", name.FullName);
                 return null;
             }
 
@@ -42,17 +56,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // but still might have a version different from what the decompiler asks for.
             if (assemblies.Count == 1)
             {
-                Log("Found single assembly: {0}", assemblies[0]);
+                Log("Found single assembly: '{0}'", assemblies[0]);
                 if (assemblies[0].Identity.Version != name.Version)
                 {
-                    Log("WARN: Version mismatch!");
-                    Log("WARN: Expected: {0}, Got: {1}", name.Version, assemblies[0].Identity.Version);
+                    Log("WARN: Version mismatch. Expected: '{0}', Got: '{1}'!", name.Version, assemblies[0].Identity.Version);
                 }
                 return MakePEFile(assemblies[0]);
             }
 
             // There are multiple assemblies
-            Log("Found {0} assemblies for {1}:", assemblies.Count, name.Name);
+            Log("Found '{0}' assemblies for '{1}':", assemblies.Count, name.Name);
 
             // Get an exact match or highest version match from the list
             IAssemblySymbol highestVersion = null;
@@ -68,23 +81,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 if (version == name.Version && publicKeyToken.SequenceEqual(publicKeyTokenOfName))
                 {
                     exactMatch = assembly;
-                    Log("Found exact match: {0}", assembly);
+                    Log("Found exact match: '{0}'", assembly);
                 }
                 else if (highestVersion == null || highestVersion.Identity.Version < version)
                 {
                     highestVersion = assembly;
-                    Log("Found higher version match: {0}", assembly);
+                    Log("Found higher version match: '{0}'", assembly);
                 }
             }
 
             var chosen = exactMatch ?? highestVersion;
-            Log("Choosing version: {0}", chosen);
+            Log("Choosing version: '{0}'", chosen);
             return MakePEFile(chosen);
 
             PEFile MakePEFile(IAssemblySymbol assembly)
             {
                 // reference assemblies should be fine here, we only need the metadata of references.
-                var reference = parentCompilation.GetMetadataReference(assembly);
+                var reference = _parentCompilation.GetMetadataReference(assembly);
+                Log("Load from: '{0}'", reference.Display);
                 return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
             }
         }
@@ -92,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public PEFile ResolveModule(PEFile mainModule, string moduleName)
         {
             Log("-------------");
-            Log("ResolveModule: {0} of {1}", moduleName, mainModule.FullName);
+            Log("ResolveModule: '{0}' of '{1}'", moduleName, mainModule.FullName);
 
             // Primitive implementation to support multi-module assemblies
             // where all modules are located next to the main module.
@@ -104,27 +118,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 return null;
             }
 
-            Log("Found {0}", moduleFileName);
+            Log("Found '{0}'", moduleFileName);
             return new PEFile(moduleFileName, PEStreamOptions.PrefetchMetadata);
-        }
-
-        private void BuildReferenceCache()
-        {
-            foreach (var reference in parentCompilation.GetReferencedAssemblySymbols())
-            {
-                if (!cache.TryGetValue(reference.Identity.Name, out var list))
-                {
-                    list = new List<IAssemblySymbol>();
-                    cache.Add(reference.Identity.Name, list);
-                }
-
-                list.Add(reference);
-            }
         }
 
         private void Log(string format, params object[] args)
         {
-            logger.AppendFormat(format + Environment.NewLine, args);
+            _logger.AppendFormat(format + Environment.NewLine, args);
         }
     }
 }
