@@ -6148,14 +6148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NotNullWhenTrue and NotNullWhenFalse don't count on their own. Only NotNull (ie. both flags) matters.
                 annotations |= FlowAnalysisAnnotations.DisallowNull;
             }
-            if ((outwardAnnotations & FlowAnalysisAnnotations.DisallowNull) != 0)
-            {
-                annotations |= FlowAnalysisAnnotations.DisallowNull;
-            }
-            if ((outwardAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
-            {
-                annotations |= FlowAnalysisAnnotations.AllowNull;
-            }
             return annotations;
         }
 
