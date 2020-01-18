@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
     [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Default), Shared]
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
-        public bool IsCancelled = true;
         public AddedParameterOrExistingIndex[]? UpdatedSignature = null;
 
         [ImportingConstructor]
@@ -34,21 +33,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             ParameterConfiguration parameters)
         {
             var list = parameters.ToListOfParameters();
-            List<Parameter?> updateParameters = UpdatedSignature != null
-                ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.AddedParameter).ToList()
-                : new List<Parameter?>();
-            return new ChangeSignatureOptionsResult
-            {
-                IsCancelled = IsCancelled,
-                UpdatedSignature = new SignatureChange(
+            IEnumerable<Parameter?> updateParameters = UpdatedSignature != null
+                ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.AddedParameter)
+                : new Parameter?[0];
+            return new ChangeSignatureOptionsResult(new SignatureChange(
                     parameters,
                     UpdatedSignature == null
                     ? parameters
-                    : ParameterConfiguration.Create(
-                        updateParameters,
-                        parameters.ThisParameter != null,
-                        selectedIndex: 0))
-            };
+                    : ParameterConfiguration.Create(updateParameters, parameters.ThisParameter != null, selectedIndex: 0)), previewChanges: false);
         }
     }
 }

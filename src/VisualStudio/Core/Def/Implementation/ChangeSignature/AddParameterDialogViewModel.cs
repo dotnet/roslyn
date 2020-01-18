@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
     internal class AddParameterDialogViewModel : AbstractNotifyPropertyChanged
     {
-        private readonly INotificationService _notificationService;
+        private readonly INotificationService? _notificationService;
 
-        public AddParameterDialogViewModel(INotificationService notificationService)
+        public AddParameterDialogViewModel(INotificationService? notificationService)
         {
             _notificationService = notificationService;
             ParameterName = string.Empty;
@@ -53,12 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void SendFailureNotification(string message)
         {
-            _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
+            _notificationService?.SendNotification(message, severity: NotificationSeverity.Information);
         }
 
         private bool IsParameterTypeValid(string typeName, Document document)
         {
-            var languageService = document.GetRequiredLanguageService<IChangeSignatureLanguageService>();
+            var languageService = document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
             return languageService.IsTypeNameValid(typeName);
         }
 

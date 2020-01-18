@@ -26,8 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
             ChangeSignatureDocumentId = DocumentId.CreateNewId(project.Id);
             this.SetCurrentSolution(solution.AddDocument(ChangeSignatureDocumentId, Guid.NewGuid().ToString(), documentText));
 
-            this.TryApplyChanges(this.CurrentSolution.WithOptions(Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, true)));
-
             _backgroundCompiler = new BackgroundCompiler(this);
         }
 

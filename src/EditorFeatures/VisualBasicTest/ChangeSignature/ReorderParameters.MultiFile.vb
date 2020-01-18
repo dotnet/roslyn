@@ -51,7 +51,6 @@ class C
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
                 Dim result = testState.ChangeSignature()
 
@@ -105,7 +104,6 @@ class C
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
                 Dim result = testState.ChangeSignature()
 

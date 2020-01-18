@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ChangeSignatureDialogViewModel
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -371,7 +372,7 @@ class Test
             Dim finalParameterList = actualParameterList.Where(Function(p) Not p.IsRemoved)
             For index = 0 To permutation.Length - 1
                 Dim expected = originalParameterList(permutation(index))
-                Assert.Equal(expected, finalParameterList(index).ParameterSymbol)
+                Assert.Equal(expected, DirectCast(finalParameterList(index), ExistingParameterViewModel).ParameterSymbol)
             Next
         End Sub
 
@@ -402,7 +403,7 @@ class Test
             End If
 
             If parameterName IsNot Nothing Then
-                Assert.Equal(parameterName, parameter.Parameter)
+                Assert.Equal(parameterName, parameter.ParameterName)
             End If
 
             If defaultValue IsNot Nothing Then
@@ -441,7 +442,7 @@ class Test
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
 
                 Dim viewModel = New ChangeSignatureDialogViewModel(
-                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToList(), symbol.IsExtensionMethod(), selectedIndex:=0),
+                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspaceDoc,
                     insertPosition:=0,

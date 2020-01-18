@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return matchingNode
         End Function
 
-        Public Overrides Function ChangeSignature(document As Document, declarationSymbol As ISymbol, potentiallyUpdatedNode As SyntaxNode, originalNode As SyntaxNode, updatedSignature As SignatureChange, cancellationToken As CancellationToken) As SyntaxNode
+        Public Overrides Async Function ChangeSignatureAsync(document As Document, declarationSymbol As ISymbol, potentiallyUpdatedNode As SyntaxNode, originalNode As SyntaxNode, updatedSignature As SignatureChange, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse
                vbnode.IsKind(SyntaxKind.FunctionStatement) OrElse
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
                 Dim invocation = DirectCast(vbnode, InvocationExpressionSyntax)
-                Dim semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax))

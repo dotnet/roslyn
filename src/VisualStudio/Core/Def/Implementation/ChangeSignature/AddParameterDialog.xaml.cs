@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
@@ -16,8 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         public readonly AddParameterDialogViewModel ViewModel;
-        private readonly IntellisenseTextBoxViewModel _typeIntellisenseTextBoxViewModel;
-        private readonly IntellisenseTextBoxViewModel _nameIntellisenseTextBoxViewModel;
+        private readonly Task<ChangeSignatureIntellisenseTextBoxesViewModel?> _createIntellisenseTextBoxViewModelsTask;
         private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
@@ -32,16 +34,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
         public AddParameterDialog(
-            IntellisenseTextBoxViewModel typeIntellisenseTextBoxViewModel,
-            IntellisenseTextBoxViewModel nameIntellisenseTextBoxViewModel,
-            INotificationService notificationService,
+            Task<ChangeSignatureIntellisenseTextBoxesViewModel?> createViewModelsTask,
+            INotificationService? notificationService,
             Document document)
         {
             // The current implementation supports Add only.
             // The dialog should be initialized the other way if called for Edit.
             ViewModel = new AddParameterDialogViewModel(notificationService);
-            _typeIntellisenseTextBoxViewModel = typeIntellisenseTextBoxViewModel;
-            _nameIntellisenseTextBoxViewModel = nameIntellisenseTextBoxViewModel;
+            _createIntellisenseTextBoxViewModelsTask = createViewModelsTask;
+
             _document = document;
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = ViewModel;
@@ -51,13 +52,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void AddParameterDialog_Loaded(object sender, RoutedEventArgs e)
         {
-            IntellisenseTextBox typeTextBox = new IntellisenseTextBox(
-                _typeIntellisenseTextBoxViewModel, TypeContentControl);
-            this.TypeContentControl.Content = typeTextBox;
+            var viewModels = _createIntellisenseTextBoxViewModelsTask.Result;
 
-            IntellisenseTextBox nameTextBox = new IntellisenseTextBox(
-                _nameIntellisenseTextBoxViewModel, NameContentControl);
-            this.NameContentControl.Content = nameTextBox;
+            if (viewModels != null)
+            {
+                this.TypeContentControl.Content = new IntellisenseTextBox(
+                    viewModels.Value.TypeIntellisenseTextBoxViewModel, TypeContentControl);
+
+                this.NameContentControl.Content = new IntellisenseTextBox(
+                    viewModels.Value.NameIntellisenseTextBoxViewModel, NameContentControl);
+            }
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
@@ -80,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void TypeOrNameContentControl_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            UIElement elementWithFocus = Keyboard.FocusedElement as UIElement;
+            UIElement? elementWithFocus = Keyboard.FocusedElement as UIElement;
 
             if (elementWithFocus is IWpfTextView)
             {
