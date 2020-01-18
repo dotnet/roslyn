@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,17 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
     /// Contains helpers used by several simplifier subclasses.
     /// </summary>
     internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
+        : AbstractSimplifier<TSyntax, TSimplifiedSyntax>
         where TSyntax : SyntaxNode
         where TSimplifiedSyntax : SyntaxNode
     {
-        public abstract bool TrySimplify(
-            TSyntax syntax,
-            SemanticModel semanticModel,
-            OptionSet optionSet,
-            out TSimplifiedSyntax replacementNode,
-            out TextSpan issueSpan,
-            CancellationToken cancellationToken);
-
         /// <summary>
         /// Returns the predefined keyword kind for a given <see cref="SpecialType"/>.
         /// </summary>
