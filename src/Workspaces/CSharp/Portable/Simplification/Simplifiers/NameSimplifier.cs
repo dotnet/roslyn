@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var genericName = (GenericNameSyntax)name;
                 replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier)
-                    .WithLeadingTrivia<IdentifierNameSyntax>(genericName.GetLeadingTrivia())
-                    .WithTrailingTrivia<IdentifierNameSyntax>(genericName.GetTrailingTrivia());
+                    .WithLeadingTrivia(genericName.GetLeadingTrivia())
+                    .WithTrailingTrivia(genericName.GetTrailingTrivia());
 
                 issueSpan = genericName.TypeArgumentList.Span;
                 return CanReplaceWithReducedName(
@@ -294,8 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             }
 
                             replacementNode = SyntaxFactory.NullableType(oldType)
-                                .WithLeadingTrivia<NullableTypeSyntax>(name.GetLeadingTrivia())
-                                    .WithTrailingTrivia<NullableTypeSyntax>(name.GetTrailingTrivia());
+                                .WithLeadingTrivia(name.GetLeadingTrivia())
+                                    .WithTrailingTrivia(name.GetTrailingTrivia());
                             issueSpan = name.Span;
 
                             // we need to simplify the whole qualified name at once, because replacing the identifier on the left in
@@ -314,9 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 {
                     case SyntaxKind.AliasQualifiedName:
                         var simpleName = ((AliasQualifiedNameSyntax)name).Name
-                            .WithLeadingTrivia<SimpleNameSyntax>(name.GetLeadingTrivia());
+                            .WithLeadingTrivia(name.GetLeadingTrivia());
 
-                        simpleName = simpleName.ReplaceToken<SimpleNameSyntax>(simpleName.Identifier,
+                        simpleName = simpleName.ReplaceToken(simpleName.Identifier,
                             ((AliasQualifiedNameSyntax)name).Name.Identifier.CopyAnnotationsTo(
                                 simpleName.Identifier.WithLeadingTrivia(
                                     ((AliasQualifiedNameSyntax)name).Alias.Identifier.LeadingTrivia)));
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         break;
 
                     case SyntaxKind.QualifiedName:
-                        replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia<SimpleNameSyntax>(name.GetLeadingTrivia());
+                        replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia(name.GetLeadingTrivia());
                         issueSpan = ((QualifiedNameSyntax)name).Left.Span;
 
                         break;
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             if (canReduce)
             {
-                replacementNode = replacementNode.WithAdditionalAnnotations<TypeSyntax>(new SyntaxAnnotation(codeStyleOptionName));
+                replacementNode = replacementNode.WithAdditionalAnnotations(new SyntaxAnnotation(codeStyleOptionName));
             }
 
             return canReduce;
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 identifierToken.TrailingTrivia));
 
                         replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
-                            .WithLeadingTrivia<IdentifierNameSyntax>(name.GetLeadingTrivia());
+                            .WithLeadingTrivia(name.GetLeadingTrivia());
                         issueSpan = new TextSpan(identifierToken.Span.End - 9, 9);
 
                         return true;
