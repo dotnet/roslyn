@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             End If
 
             Dim replacementSyntax As ExpressionSyntax = Nothing
-            If Not expression.TryReduceOrSimplifyExplicitName(model, replacementSyntax, issueSpan, optionSet, cancellationToken) Then
+            If Not ExpressionSimplifier.Instance.TrySimplify(expression, model, optionSet, replacementSyntax, issueSpan, cancellationToken) Then
                 Return False
             End If
 

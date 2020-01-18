@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -31,11 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Dim replacementNode As ExpressionSyntax = Nothing
             Dim issueSpan As TextSpan
-            If Not node.TryReduceOrSimplifyExplicitName(semanticModel,
-                                                        replacementNode,
-                                                        issueSpan,
-                                                        optionSet,
-                                                        cancellationToken) Then
+            If Not ExpressionSimplifier.Instance.TrySimplify(
+                node, semanticModel, optionSet,
+                replacementNode, issueSpan, cancellationToken) Then
 
                 Return node
             End If
