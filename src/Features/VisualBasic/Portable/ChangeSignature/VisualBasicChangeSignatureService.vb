@@ -342,7 +342,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     isReducedExtensionMethod = True
                 End If
 
-                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, updatedSignature, declarationSymbol, isReducedExtensionMethod)
+                Dim signaturePermutationWithoutAddedParameters = updatedSignature.WithoutAddedParameters()
+                Dim newArguments = PermuteArgumentList(invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, declarationSymbol, isReducedExtensionMethod)
+                newArguments = AddNewArgumentsToList(newArguments, updatedSignature, isReducedExtensionMethod)
                 Return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
             End If
 
@@ -418,6 +420,66 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
 
             Return vbnode
+        End Function
+
+        Private Function AddNewArgumentsToList(
+            newArguments As SeparatedSyntaxList(Of ArgumentSyntax),
+            signaturePermutation As SignatureChange,
+            isReducedExtensionMethod As Boolean) As SeparatedSyntaxList(Of ArgumentSyntax)
+
+            Dim fullList = New List(Of ArgumentSyntax)
+            Dim separators = New List(Of SyntaxToken)
+
+            Dim updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters()
+            Dim indexInExistingList As Integer = 0
+            Dim seenNameEquals As Boolean = False
+
+            For i As Integer = 0 To updatedParameters.Count - 1
+                If updatedParameters(i) IsNot signaturePermutation.UpdatedConfiguration.ThisParameter Or Not isReducedExtensionMethod Then
+                    If TypeOf updatedParameters(i) Is AddedParameter Then
+                        Dim addedParameter = CType(updatedParameters(i), AddedParameter)
+                        If addedParameter.CallSiteValue <> Nothing Then
+                            If seenNameEquals Then
+                                fullList.Add(SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(addedParameter.Name)),
+                                                                          SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)))
+                            Else
+                                fullList.Add(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(addedParameter.CallSiteValue)))
+                            End If
+                            separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
+                        End If
+                    Else
+                        If indexInExistingList < newArguments.Count Then
+
+                            If newArguments(indexInExistingList).IsNamed Then
+                                seenNameEquals = True
+                            End If
+
+                            If indexInExistingList < newArguments.SeparatorCount Then
+                                separators.Add(newArguments.GetSeparator(indexInExistingList))
+                            End If
+
+                            fullList.Add(newArguments(indexInExistingList))
+                            indexInExistingList += 1
+                        End If
+                    End If
+                End If
+            Next
+
+            While indexInExistingList < newArguments.Count
+
+                If indexInExistingList < newArguments.SeparatorCount Then
+                    separators.Add(newArguments.GetSeparator(indexInExistingList))
+                End If
+
+                fullList.Add(newArguments(indexInExistingList))
+                indexInExistingList += 1
+            End While
+
+            If fullList.Count = separators.Count AndAlso separators.Count <> 0 Then
+                separators.Remove(separators.Last())
+            End If
+
+            Return SyntaxFactory.SeparatedList(fullList, separators)
         End Function
 
         Private Function PermuteArgumentList(

@@ -19,6 +19,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private ChangeSignatureDialog_OutOfProc ChangeSignatureDialog => VisualStudio.ChangeSignatureDialog;
 
+        private AddParameterDialog_OutOfProc AddParameterDialog => VisualStudio.AddParameterDialog;
+
         public BasicChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
             : base(instanceFactory, testOutputHelper, nameof(BasicChangeSignatureDialog))
         {
@@ -150,5 +152,101 @@ public class CSharpClass
 }";
             Assert.Contains(expectedText, actualText);
         }
-    }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyAddParameter()
+        {
+            SetUpEditor(@"
+Class C
+    Sub Method$$(a As Integer, b As String)
+    End Sub
+    Sub NewMethod()
+        Method(1, ""stringB"")
+    End Sub
+End Class");
+
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            // Add 'c'
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("Integer");
+            AddParameterDialog.FillNameField("c");
+            AddParameterDialog.FillCallSiteField("2");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            // Add 'd'
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("Integer");
+            AddParameterDialog.FillNameField("d");
+            AddParameterDialog.FillCallSiteField("3");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            // Remove 'c'
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.SelectParameter("Integer c");
+            ChangeSignatureDialog.ClickRemoveButton();
+
+            // Move 'd' between 'a' and 'b'
+            ChangeSignatureDialog.SelectParameter("Integer d");
+            ChangeSignatureDialog.ClickUpButton();
+            ChangeSignatureDialog.ClickUpButton();
+            ChangeSignatureDialog.ClickDownButton();
+
+            ChangeSignatureDialog.ClickAddButton();
+
+            // Add 'c' (as a String instead of an Integer this time)
+            // Note that 'c' does not have a callsite value.
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.FillTypeField("String");
+            AddParameterDialog.FillNameField("c");
+            AddParameterDialog.ClickOK();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.ClickOK();
+            ChangeSignatureDialog.VerifyClosed();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"
+Class C
+    Sub Method(a As Integer, d As Integer, b As String, c As String)
+    End Sub
+    Sub NewMethod()
+        Method(1, 3, ""stringB"", TODO)
+    End Sub
+End Class", actualText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public void VerifyAddParameterRefactoringCancelled()
+        {
+            SetUpEditor(@"
+Class C
+    Sub Method$$(a As Integer, b As String)
+    End Sub
+End Class");
+
+            ChangeSignatureDialog.Invoke();
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickAddButton();
+
+            AddParameterDialog.VerifyOpen();
+            AddParameterDialog.ClickCancel();
+            AddParameterDialog.VerifyClosed();
+
+            ChangeSignatureDialog.VerifyOpen();
+            ChangeSignatureDialog.ClickCancel();
+            ChangeSignatureDialog.VerifyClosed();
+            var actualText = VisualStudio.Editor.GetText();
+            Assert.Contains(@"
+Class C
+    Sub Method(a As Integer, b As String)
+    End Sub
+End Class", actualText);
+        }
 }
