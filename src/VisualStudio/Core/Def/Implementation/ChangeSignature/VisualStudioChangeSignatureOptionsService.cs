@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IntellisenseTextBoxViewModelFactory _intellisenseTextBoxViewModelFactory;
+        private readonly IntellisenseTextBoxFactory _intellisenseTextBoxFactory;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -30,12 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             IClassificationFormatMapService classificationFormatMapService,
             ClassificationTypeMap classificationTypeMap,
             IContentTypeRegistryService contentTypeRegistryService,
-            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory)
+            IntellisenseTextBoxViewModelFactory intellisenseTextBoxViewModelFactory,
+            IntellisenseTextBoxFactory intellisenseTextBoxFactory)
         {
             _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
             _classificationTypeMap = classificationTypeMap;
             _contentTypeRegistryService = contentTypeRegistryService;
             _intellisenseTextBoxViewModelFactory = intellisenseTextBoxViewModelFactory;
+            _intellisenseTextBoxFactory = intellisenseTextBoxFactory;
         }
 
         public ChangeSignatureOptionsResult? GetChangeSignatureOptions(
@@ -69,9 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var viewModelsCreationTask = languageService.CreateViewModelsAsync(
                 _contentTypeRegistryService, _intellisenseTextBoxViewModelFactory, document, insertPosition);
 
-            viewModelsCreationTask.Start();
-
-            var dialog = new AddParameterDialog(viewModelsCreationTask, document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
+            var dialog = new AddParameterDialog(viewModelsCreationTask, _intellisenseTextBoxFactory, document.Project.Solution.Workspace.Services.GetService<INotificationService>(), document);
             var result = dialog.ShowModal();
 
             if (result.HasValue && result.Value)

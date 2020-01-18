@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
 
             // Wrap the original ContextBuffer in a projection buffer that we can make read-only
             var contextBuffer = _projectionBufferFactoryService.CreateProjectionBuffer(null,
-                new object[] { originalContextBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive) }, ProjectionBufferOptions.None, contentType);
+                new object[] { originalContextBuffer.CurrentSnapshot.CreateTrackingSpan(Span.FromBounds(0, originalContextBuffer.CurrentSnapshot.Length), SpanTrackingMode.EdgeInclusive) }, ProjectionBufferOptions.None, contentType);
 
             // Make projection readonly so we can't edit it by mistake.
             using (var regionEdit = contextBuffer.CreateReadOnlyRegionEdit())

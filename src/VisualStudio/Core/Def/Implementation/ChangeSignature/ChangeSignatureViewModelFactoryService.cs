@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         protected ITrackingSpan[] CreateTrackingSpansHelper(ITextSnapshot snapshot, int contextPoint, int spaceBetweenTypeAndName)
         {
             // Get the previous span/text.
-            var previousStatementSpan = snapshot.CreateTrackingSpanFromStartToIndex(contextPoint, SpanTrackingMode.EdgeNegative);
+            var previousStatementSpan = snapshot.CreateTrackingSpan(Span.FromBounds(0, contextPoint), SpanTrackingMode.EdgeNegative);
 
             // Get the appropriate ITrackingSpan for the window the user is typing in.
             // mappedSpan1 is the 'Type' field for C# and 'Name' for VB.
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var mappedSpan2 = snapshot.CreateTrackingSpan(contextPoint + spaceBetweenTypeAndName, 0, SpanTrackingMode.EdgeExclusive);
 
             // Build the tracking span that includes the rest of the file.
-            var restOfFileSpan = snapshot.CreateTrackingSpanFromIndexToEnd(contextPoint + spaceBetweenTypeAndName, SpanTrackingMode.EdgePositive);
+            var restOfFileSpan = snapshot.CreateTrackingSpan(Span.FromBounds(contextPoint + spaceBetweenTypeAndName, snapshot.Length), SpanTrackingMode.EdgePositive);
 
             // This array as a whole should encompass the span of the entire file.
             return new ITrackingSpan[] { previousStatementSpan, mappedSpan1, spaceSpan, mappedSpan2, restOfFileSpan };

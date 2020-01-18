@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseControls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     {
         public readonly AddParameterDialogViewModel ViewModel;
         private readonly Task<ChangeSignatureIntellisenseTextBoxesViewModel?> _createIntellisenseTextBoxViewModelsTask;
+        private readonly IntellisenseTextBoxFactory _intellisenseTextBoxFactory;
         private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
@@ -35,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public AddParameterDialog(
             Task<ChangeSignatureIntellisenseTextBoxesViewModel?> createViewModelsTask,
+            IntellisenseTextBoxFactory intellisenseTextBoxFactory,
             INotificationService? notificationService,
             Document document)
         {
@@ -42,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             // The dialog should be initialized the other way if called for Edit.
             ViewModel = new AddParameterDialogViewModel(notificationService);
             _createIntellisenseTextBoxViewModelsTask = createViewModelsTask;
+            _intellisenseTextBoxFactory = intellisenseTextBoxFactory;
 
             _document = document;
             this.Loaded += AddParameterDialog_Loaded;
@@ -56,10 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (viewModels != null)
             {
-                this.TypeContentControl.Content = new IntellisenseTextBox(
+                var languageService = _document.GetRequiredLanguageService<IChangeSignatureViewModelFactoryService>();
+                this.TypeContentControl.Content = _intellisenseTextBoxFactory.Create(
                     viewModels.Value.TypeIntellisenseTextBoxViewModel, TypeContentControl);
 
-                this.NameContentControl.Content = new IntellisenseTextBox(
+                this.NameContentControl.Content = _intellisenseTextBoxFactory.Create(
                     viewModels.Value.NameIntellisenseTextBoxViewModel, NameContentControl);
             }
         }
