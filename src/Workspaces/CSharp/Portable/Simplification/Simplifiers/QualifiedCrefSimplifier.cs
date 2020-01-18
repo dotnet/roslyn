@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 // 1. Check for Predefined Types
                 if (symbol is INamedTypeSymbol namedSymbol)
                 {
-                    var keywordKind = ExpressionSyntaxExtensions.GetPredefinedKeywordKind(namedSymbol.SpecialType);
+                    var keywordKind = GetPredefinedKeywordKind(namedSymbol.SpecialType);
 
                     if (keywordKind != SyntaxKind.None)
                     {

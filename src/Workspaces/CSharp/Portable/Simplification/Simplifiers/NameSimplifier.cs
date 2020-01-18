@@ -1,27 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
-    internal class NameSyntaxSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
+    internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     {
-        public static readonly NameSyntaxSimplifier Instance = new NameSyntaxSimplifier();
+        public static readonly NameSimplifier Instance = new NameSimplifier();
 
-        private NameSyntaxSimplifier()
+        private NameSimplifier()
         {
         }
 
-
-        private static bool TryReduceName(
+        public override bool TrySimplify(
             NameSyntax name,
             SemanticModel semanticModel,
+            OptionSet optionSet,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
-            OptionSet optionSet,
             CancellationToken cancellationToken)
         {
             replacementNode = null;
@@ -72,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var genericName = (GenericNameSyntax)name;
                 replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier)
-                    .WithLeadingTrivia(genericName.GetLeadingTrivia())
-                    .WithTrailingTrivia(genericName.GetTrailingTrivia());
+                    .WithLeadingTrivia<IdentifierNameSyntax>(genericName.GetLeadingTrivia())
+                    .WithTrailingTrivia<IdentifierNameSyntax>(genericName.GetTrailingTrivia());
 
                 issueSpan = genericName.TypeArgumentList.Span;
                 return CanReplaceWithReducedName(
@@ -95,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 issueSpan = name.Span;
 
-                return name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel);
+                return CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel);
             }
             else
             {
@@ -166,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         }
 
                         // first check if this would be a valid reduction
-                        if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel))
+                        if (CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel))
                         {
                             // in case this alias name ends with "Attribute", we're going to see if we can also 
                             // remove that suffix.
@@ -285,14 +294,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             }
 
                             replacementNode = SyntaxFactory.NullableType(oldType)
-                                .WithLeadingTrivia(name.GetLeadingTrivia())
-                                    .WithTrailingTrivia(name.GetTrailingTrivia());
+                                .WithLeadingTrivia<NullableTypeSyntax>(name.GetLeadingTrivia())
+                                    .WithTrailingTrivia<NullableTypeSyntax>(name.GetTrailingTrivia());
                             issueSpan = name.Span;
 
                             // we need to simplify the whole qualified name at once, because replacing the identifier on the left in
                             // System.Nullable<int> alone would be illegal.
                             // If this fails we want to continue to try at least to remove the System if possible.
-                            if (name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel))
+                            if (CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel))
                             {
                                 return true;
                             }
@@ -305,9 +314,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 {
                     case SyntaxKind.AliasQualifiedName:
                         var simpleName = ((AliasQualifiedNameSyntax)name).Name
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                            .WithLeadingTrivia<SimpleNameSyntax>(name.GetLeadingTrivia());
 
-                        simpleName = simpleName.ReplaceToken(simpleName.Identifier,
+                        simpleName = simpleName.ReplaceToken<SimpleNameSyntax>(simpleName.Identifier,
                             ((AliasQualifiedNameSyntax)name).Name.Identifier.CopyAnnotationsTo(
                                 simpleName.Identifier.WithLeadingTrivia(
                                     ((AliasQualifiedNameSyntax)name).Alias.Identifier.LeadingTrivia)));
@@ -319,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         break;
 
                     case SyntaxKind.QualifiedName:
-                        replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia(name.GetLeadingTrivia());
+                        replacementNode = ((QualifiedNameSyntax)name).Right.WithLeadingTrivia<SimpleNameSyntax>(name.GetLeadingTrivia());
                         issueSpan = ((QualifiedNameSyntax)name).Left.Span;
 
                         break;
@@ -452,19 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             issueSpan = name.Span; // we want to show the whole name expression as unnecessary
 
-            var canReduce = name.CanReplaceWithReducedNameInContext(replacementNode, semanticModel);
+            var canReduce = CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel);
 
             if (canReduce)
             {
-                replacementNode = replacementNode.WithAdditionalAnnotations(new SyntaxAnnotation(codeStyleOptionName));
+                replacementNode = replacementNode.WithAdditionalAnnotations<TypeSyntax>(new SyntaxAnnotation(codeStyleOptionName));
             }
 
             return canReduce;
-        }
-
-        private static TypeSyntax CreatePredefinedTypeSyntax(ExpressionSyntax expression, SyntaxKind keywordKind)
-        {
-            return SyntaxFactory.PredefinedType(SyntaxFactory.Token(expression.GetLeadingTrivia(), keywordKind, expression.GetTrailingTrivia()));
         }
 
         private static bool TryReduceAttributeSuffix(
@@ -507,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                                 identifierToken.TrailingTrivia));
 
                         replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
-                            .WithLeadingTrivia(name.GetLeadingTrivia());
+                            .WithLeadingTrivia<IdentifierNameSyntax>(name.GetLeadingTrivia());
                         issueSpan = new TextSpan(identifierToken.Span.End - 9, 9);
 
                         return true;
@@ -551,126 +555,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool TrySimplify(
-            ExpressionSyntax expression,
-            SemanticModel semanticModel,
-            out ExpressionSyntax replacementNode,
-            out TextSpan issueSpan)
+        public static bool CanReplaceWithReducedNameInContext(
+            NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel)
         {
-            replacementNode = null;
-            issueSpan = default;
+            // Check for certain things that would prevent us from reducing this name in this context.
+            // For example, you can simplify "using a = System.Int32" to "using a = int" as it's simply
+            // not allowed in the C# grammar.
 
-            switch (expression.Kind())
+            if (IsNonNameSyntaxInUsingDirective(name, reducedName) ||
+                WillConflictWithExistingLocal(name, reducedName, semanticModel) ||
+                IsAmbiguousCast(name, reducedName) ||
+                IsNullableTypeInPointerExpression(reducedName) ||
+                IsNotNullableReplaceable(name, reducedName) ||
+                IsNonReducableQualifiedNameInUsingDirective(semanticModel, name, reducedName))
             {
-                case SyntaxKind.SimpleMemberAccessExpression:
-                    {
-                        var memberAccess = (MemberAccessExpressionSyntax)expression;
-                        if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
-                        {
-                            return false;
-                        }
+                return false;
+            }
 
-                        if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
-                        {
-                            // replacement node might not be in it's simplest form, so add simplify annotation to it.
-                            replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
-                                .WithAdditionalAnnotations(Simplifier.Annotation);
+            return true;
+        }
 
-                            // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel);
-                        }
+        private static bool ContainsOpenName(NameSyntax name)
+        {
+            if (name is QualifiedNameSyntax qualifiedName)
+            {
+                return ContainsOpenName(qualifiedName.Left) || ContainsOpenName(qualifiedName.Right);
+            }
+            else if (name is GenericNameSyntax genericName)
+            {
+                return genericName.IsUnboundGenericName;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-                        return false;
-                    }
+        private static bool CanReplaceWithReducedName(NameSyntax name, TypeSyntax reducedName, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var speculationAnalyzer = new SpeculationAnalyzer(name, reducedName, semanticModel, cancellationToken);
+            if (speculationAnalyzer.ReplacementChangesSemantics())
+            {
+                return false;
+            }
 
-                case SyntaxKind.QualifiedName:
-                    {
-                        var qualifiedName = (QualifiedNameSyntax)expression;
-                        if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
-                        {
-                            // replacement node might not be in it's simplest form, so add simplify annotation to it.
-                            replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)
-                                .WithAdditionalAnnotations(Simplifier.Annotation);
+            return NameSimplifier.CanReplaceWithReducedNameInContext(name, reducedName, semanticModel);
+        }
 
-                            // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel);
-                        }
+        private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
+        {
+            var isNotNullableReplaceable = false;
+            var isLeftSideOfDot = name.IsLeftSideOfDot();
+            var isRightSideOfDot = name.IsRightSideOfDot();
 
-                        return false;
-                    }
+            if (reducedName.Kind() == SyntaxKind.NullableType)
+            {
+                if (((NullableTypeSyntax)reducedName).ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
+                {
+                    isNotNullableReplaceable = true;
+                }
+                else
+                {
+                    isNotNullableReplaceable = name.IsLeftSideOfDot() || name.IsRightSideOfDot();
+                }
+            }
+
+            return isNotNullableReplaceable;
+        }
+
+        private static bool IsNullableTypeInPointerExpression(ExpressionSyntax simplifiedNode)
+        {
+            // Note: nullable type syntax is not allowed in pointer type syntax
+            if (simplifiedNode.Kind() == SyntaxKind.NullableType &&
+                simplifiedNode.DescendantNodes().Any(n => n is PointerTypeSyntax))
+            {
+                return true;
             }
 
             return false;
         }
 
-        private static bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression, SemanticModel semanticModel)
+        private static bool IsNonNameSyntaxInUsingDirective(ExpressionSyntax expression, ExpressionSyntax simplifiedNode)
         {
-            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None);
-            return speculationAnalyzer.ReplacementChangesSemantics();
+            return
+                expression.IsParentKind(SyntaxKind.UsingDirective) &&
+                !(simplifiedNode is NameSyntax);
         }
 
-        // Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
-        private static bool TrySimplifyMemberAccessOrQualifiedName(
-            ExpressionSyntax left,
-            ExpressionSyntax right,
-            SemanticModel semanticModel,
-            out ExpressionSyntax replacementNode,
-            out TextSpan issueSpan)
+        private static bool IsAmbiguousCast(ExpressionSyntax expression, ExpressionSyntax simplifiedNode)
         {
-            replacementNode = null;
-            issueSpan = default;
-
-            if (left != null && right != null)
+            // Can't simplify a type name in a cast expression if it would then cause the cast to be
+            // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
+            // (Bar)+1  then that's an arithmetic expression.
+            if (expression.IsParentKind(SyntaxKind.CastExpression))
             {
-                var leftSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, left);
-                if (leftSymbol != null && (leftSymbol.Kind == SymbolKind.NamedType))
+                var castExpression = (CastExpressionSyntax)expression.Parent;
+                if (castExpression.Type == expression)
                 {
-                    var rightSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, right);
-                    if (rightSymbol != null && (rightSymbol.IsStatic || rightSymbol.Kind == SymbolKind.NamedType))
+                    var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
+                    var reparsedCastExpression = SyntaxFactory.ParseExpression(newCastExpression.ToString());
+
+                    if (!reparsedCastExpression.IsKind(SyntaxKind.CastExpression))
                     {
-                        // Static member access or nested type member access.
-                        var containingType = rightSymbol.ContainingType;
-
-                        var enclosingSymbol = semanticModel.GetEnclosingSymbol(left.SpanStart);
-                        var enclosingTypeParametersInsideOut = new List<ISymbol>();
-
-                        while (enclosingSymbol != null)
-                        {
-                            if (enclosingSymbol is IMethodSymbol methodSymbol)
-                            {
-                                if (methodSymbol.TypeArguments.Length != 0)
-                                {
-                                    enclosingTypeParametersInsideOut.AddRange(methodSymbol.TypeArguments);
-                                }
-                            }
-
-                            if (enclosingSymbol is INamedTypeSymbol namedTypeSymbol)
-                            {
-                                if (namedTypeSymbol.TypeArguments.Length != 0)
-                                {
-                                    enclosingTypeParametersInsideOut.AddRange(namedTypeSymbol.TypeArguments);
-                                }
-                            }
-
-                            enclosingSymbol = enclosingSymbol.ContainingSymbol;
-                        }
-
-                        if (containingType != null && !containingType.Equals(leftSymbol))
-                        {
-                            if (leftSymbol is INamedTypeSymbol namedType &&
-                                containingType.TypeArguments.Length != 0)
-                            {
-                                return false;
-                            }
-
-                            // We have a static member access or a nested type member access using a more derived type.
-                            // Simplify syntax so as to use accessed member's most immediate containing type instead of the derived type.
-                            replacementNode = containingType.GenerateTypeSyntax()
-                                .WithLeadingTrivia(left.GetLeadingTrivia())
-                                .WithTrailingTrivia(left.GetTrailingTrivia());
-                            issueSpan = left.Span;
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -678,55 +665,91 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool CanReplaceWithReducedName(
-            MemberAccessExpressionSyntax memberAccess,
-            ExpressionSyntax reducedName,
-            SemanticModel semanticModel,
-            ISymbol symbol,
-            CancellationToken cancellationToken)
+        private static SyntaxNode FindImmediatelyEnclosingLocalVariableDeclarationSpace(SyntaxNode syntax)
         {
-            if (!IsThisOrTypeOrNamespace(memberAccess, semanticModel))
+            for (var declSpace = syntax; declSpace != null; declSpace = declSpace.Parent)
             {
-                return false;
-            }
-
-            var speculationAnalyzer = new SpeculationAnalyzer(memberAccess, reducedName, semanticModel, cancellationToken);
-            if (!speculationAnalyzer.SymbolsForOriginalAndReplacedNodesAreCompatible() ||
-                speculationAnalyzer.ReplacementChangesSemantics())
-            {
-                return false;
-            }
-
-            if (WillConflictWithExistingLocal(memberAccess, reducedName, semanticModel))
-            {
-                return false;
-            }
-
-            if (IsMemberAccessADynamicInvocation(memberAccess, semanticModel))
-            {
-                return false;
-            }
-
-            if (AccessMethodWithDynamicArgumentInsideStructConstructor(memberAccess, semanticModel))
-            {
-                return false;
-            }
-
-            if (memberAccess.Expression.Kind() == SyntaxKind.BaseExpression)
-            {
-                var enclosingNamedType = semanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken);
-                if (enclosingNamedType != null &&
-                    !enclosingNamedType.IsSealed &&
-                    symbol != null &&
-                    symbol.IsOverridable())
+                switch (declSpace.Kind())
                 {
-                    return false;
+                    // These are declaration-space-defining syntaxes, by the spec:
+                    case SyntaxKind.MethodDeclaration:
+                    case SyntaxKind.IndexerDeclaration:
+                    case SyntaxKind.OperatorDeclaration:
+                    case SyntaxKind.ConstructorDeclaration:
+                    case SyntaxKind.Block:
+                    case SyntaxKind.ParenthesizedLambdaExpression:
+                    case SyntaxKind.SimpleLambdaExpression:
+                    case SyntaxKind.AnonymousMethodExpression:
+                    case SyntaxKind.SwitchStatement:
+                    case SyntaxKind.ForEachKeyword:
+                    case SyntaxKind.ForStatement:
+                    case SyntaxKind.UsingStatement:
+
+                    // SPEC VIOLATION: We also want to stop walking out if, say, we are in a field
+                    // initializer. Technically according to the wording of the spec it should be
+                    // legal to use a simple name inconsistently inside a field initializer because
+                    // it does not define a local variable declaration space. In practice of course
+                    // we want to check for that. (As the native compiler does as well.)
+
+                    case SyntaxKind.FieldDeclaration:
+                        return declSpace;
                 }
             }
 
-            var invalidTransformation1 = ParserWouldTreatExpressionAsCast(reducedName, memberAccess);
+            return null;
+        }
 
-            return !invalidTransformation1;
+        private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
+        {
+            // Whereas most of the time we do not want to reduce namespace names, We will
+            // make an exception for namespaces with the global:: alias.
+            return IsQualifiedNameInUsingDirective(model, name) &&
+                !IsGlobalAliasQualifiedName(name);
+        }
+
+        private static bool IsQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name)
+        {
+            while (name.IsLeftSideOfQualifiedName())
+            {
+                name = (NameSyntax)name.Parent;
+            }
+
+            if (name.IsParentKind(SyntaxKind.UsingDirective) &&
+                ((UsingDirectiveSyntax)name.Parent).Alias == null)
+            {
+                // We're a qualified name in a using.  We don't want to reduce this name as people like
+                // fully qualified names in usings so they can properly tell what the name is resolving
+                // to.
+                // However, if this name is actually referencing the special Script class, then we do
+                // want to allow that to be reduced.
+
+                return !IsInScriptClass(model, name);
+            }
+
+            return false;
+        }
+
+        private static bool IsGlobalAliasQualifiedName(NameSyntax name)
+        {
+            // Checks whether the `global::` alias is applied to the name
+            return name is AliasQualifiedNameSyntax aliasName &&
+                aliasName.Alias.Identifier.IsKind(SyntaxKind.GlobalKeyword);
+        }
+
+        private static bool IsInScriptClass(SemanticModel model, NameSyntax name)
+        {
+            var symbol = model.GetSymbolInfo(name).Symbol as INamedTypeSymbol;
+            while (symbol != null)
+            {
+                if (symbol.IsScriptClass)
+                {
+                    return true;
+                }
+
+                symbol = symbol.ContainingType;
+            }
+
+            return false;
         }
     }
 }

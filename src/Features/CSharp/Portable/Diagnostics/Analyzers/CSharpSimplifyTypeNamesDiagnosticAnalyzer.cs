@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
                     ? ((BinaryExpressionSyntax)expression).Right
                     : expression;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify(expressionToCheck, model, optionSet, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;

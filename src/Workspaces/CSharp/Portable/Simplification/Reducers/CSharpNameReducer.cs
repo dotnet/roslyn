@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             else
             {
                 var expressionSyntax = (ExpressionSyntax)node;
-                if (!expressionSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out var expressionReplacement, out issueSpan, optionSet, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, optionSet, out var expressionReplacement, out issueSpan, cancellationToken))
                 {
                     return node;
                 }
