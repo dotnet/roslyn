@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -1740,11 +1741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // QualifiedCrefSyntax
 
                 var qualifiedReplacement = SyntaxFactory.QualifiedCref(replacement, qualifiedCrefParent.Member);
-                if (qualifiedCrefParent.TryReduceOrSimplifyQualifiedCref(
-                        semanticModel, qualifiedReplacement, out _, out _, cancellationToken))
-                {
+                if (QualifiedCrefSimplifier.CanSimplifyWithReplacement(qualifiedCrefParent, semanticModel, qualifiedReplacement, cancellationToken))
                     return true;
-                }
             }
             else if (name.Parent is QualifiedNameSyntax qualifiedParent && qualifiedParent.Left == name &&
                      replacement is NameSyntax replacementName)

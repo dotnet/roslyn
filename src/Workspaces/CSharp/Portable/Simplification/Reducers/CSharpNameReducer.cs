@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -32,10 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             SyntaxNode replacementNode;
             TextSpan issueSpan;
 
-            if (node.Kind() == SyntaxKind.QualifiedCref)
+            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
             {
-                var crefSyntax = (QualifiedCrefSyntax)node;
-                if (!crefSyntax.TryReduceOrSimplifyExplicitName(semanticModel, out var crefReplacement, out issueSpan, optionSet, cancellationToken))
+                if (!QualifiedCrefSimplifier.Instance.TrySimplify(
+                        crefSyntax, semanticModel, optionSet,
+                        out var crefReplacement, out issueSpan, cancellationToken))
                 {
                     return node;
                 }
