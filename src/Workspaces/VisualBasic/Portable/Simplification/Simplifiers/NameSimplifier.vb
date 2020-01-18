@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         End Function
 
         Private Function PreferPredefinedTypeKeywordInDeclarations(name As NameSyntax, optionSet As OptionSet) As Boolean
-            Return (Not IsInMemberAccessContext(name)) AndAlso
+            Return (Not IsDirectChildOfMemberAccessExpression(name)) AndAlso
                    (Not InsideCrefReference(name)) AndAlso
                    (Not InsideNameOfExpression(name)) AndAlso
                    SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, LanguageNames.VisualBasic)

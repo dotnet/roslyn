@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension>
-        Public Function IsInMemberAccessContext(expression As ExpressionSyntax) As Boolean
+        Public Function IsDirectChildOfMemberAccessExpression(expression As ExpressionSyntax) As Boolean
             Return TypeOf expression?.Parent Is MemberAccessExpressionSyntax
         End Function
 

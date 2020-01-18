@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         End Function
 
         Protected Shared Function PreferPredefinedTypeKeywordInMemberAccess(expression As ExpressionSyntax, optionSet As OptionSet) As Boolean
-            Return (IsInMemberAccessContext(expression) OrElse IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression)) AndAlso
+            Return (IsDirectChildOfMemberAccessExpression(expression) OrElse IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression)) AndAlso
                    (Not InsideNameOfExpression(expression)) AndAlso
                    SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, LanguageNames.VisualBasic)
         End Function
