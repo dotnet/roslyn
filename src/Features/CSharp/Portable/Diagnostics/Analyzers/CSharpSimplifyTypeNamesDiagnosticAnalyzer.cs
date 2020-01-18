@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
@@ -28,111 +27,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.QualifiedCref);
 
-        public CSharpSimplifyTypeNamesDiagnosticAnalyzer()
-            : base(s_kindsOfInterest)
+        protected override void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-        }
-
-        [PerformanceSensitive(
-            "https://github.com/dotnet/roslyn/issues/26778",
-            AllowCaptures = false)]
-        protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
-        {
-            // Only analyze the topmost name/member-access/qualified-cref.  We'll handle recursing
-            // into the node ourselves.  That way, in general, we report the largest/highest issue,
-            // and we don't recurse and report another diagnostics for sub-spans of that issue.
-            if (AnyAncestorIsCandidate(this, context.Node))
-            {
-                return;
-            }
-
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
-            var node = context.Node;
-
-            // Handle the topmost qualified-cref slightly differently.  Unlike names/member-accesses,
-            // we do want to recurse into these even if we are able to simplify it.
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax qualifiedCref))
-            {
-                AnalyzeQualifiedCref(context, qualifiedCref);
-            }
-            else
-            {
-                // Otherwise, just recurse into the topmost name/member-access normally.
-                RecurseAndAnalyzeNode(context, context.Node);
-            }
-
-            static bool AnyAncestorIsCandidate(CSharpSimplifyTypeNamesDiagnosticAnalyzer analyzer, SyntaxNode node)
-            {
-                foreach (var ancestor in node.Ancestors(ascendOutOfTrivia: false))
-                {
-                    if (analyzer.IsCandidate(ancestor))
-                        return true;
-                }
-
-                return false;
-            }
-        }
-
-        private void AnalyzeQualifiedCref(SyntaxNodeAnalysisContext context, QualifiedCrefSyntax qualifiedCref)
-        {
-            var options = context.Options;
             var cancellationToken = context.CancellationToken;
-            var semanticModel = context.SemanticModel;
 
-            // First, just try to simplify the top-most qualified-cref alone. If we're able to do
-            // this, then there's no need to process it's container.  i.e.
-            //
-            // if we have <see cref="A.B.C"/> and we simplify that to <see cref="C"/> there's no
-            // point looking at `A.B`.
-            if (TrySimplifyTypeNameExpression(semanticModel, qualifiedCref, options, out var diagnostic, cancellationToken))
+            var syntaxTree = semanticModel.SyntaxTree;
+            var options = context.Options;
+            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()!;
+            var root = syntaxTree.GetRoot(cancellationToken);
+
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, optionSet, cancellationToken);
+            simplifier.Visit(root);
+
+            foreach (var diagnostic in simplifier.Diagnostics)
             {
                 context.ReportDiagnostic(diagnostic);
-
-                // found a match on the qualified cref itself. report it and keep processing.
-            }
-            else
-            {
-                // couldn't simplify the qualified cref itself.  descend into the container portion
-                // as that might have portions that can be simplified.
-                RecurseAndAnalyzeNode(context, qualifiedCref.Container);
-            }
-
-            // unilaterally process the member portion of the qualified cref.  These may have things
-            // like parameters that could be simplified.  i.e. if we have:
-            //
-            //      <see cref="A.B.C(X.Y)"/>
-            //
-            // We can simplify both the qualified portion to just `C` and we can simplify the
-            // parameter to just `Y`.
-            RecurseAndAnalyzeNode(context, qualifiedCref.Member);
-        }
-
-        private void RecurseAndAnalyzeNode(SyntaxNodeAnalysisContext context, SyntaxNode node)
-        {
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            foreach (var candidate in node.DescendantNodesAndSelf(DescendIntoChildren))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-
-            return;
-
-            bool DescendIntoChildren(SyntaxNode n)
-            {
-                if (IsCandidate(n) &&
-                    TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out var diagnostic, cancellationToken))
-                {
-                    // found a match. report is and stop processing.
-                    context.ReportDiagnostic(diagnostic);
-                    return false;
-                }
-
-                // descend further.
-                return true;
             }
         }
 

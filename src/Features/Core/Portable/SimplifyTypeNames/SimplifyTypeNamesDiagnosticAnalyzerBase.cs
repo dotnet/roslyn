@@ -2,10 +2,7 @@
 
 // #define LOG
 
-using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,6 +10,11 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if LOG
+using System.IO;
+using System.Text.RegularExpressions;
+#endif
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
@@ -64,11 +66,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     s_descriptorSimplifyMemberAccess,
                     s_descriptorPreferBuiltinOrFrameworkType);
 
-        private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
-
-        protected SimplifyTypeNamesDiagnosticAnalyzerBase(ImmutableArray<TLanguageKindEnum> kindsOfInterest)
+        protected SimplifyTypeNamesDiagnosticAnalyzerBase()
         {
-            _kindsOfInterest = kindsOfInterest;
         }
 
         public bool OpenFileOnly(OptionSet options)
@@ -87,10 +86,15 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
             context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
+            context.RegisterCompilationStartAction(AnalyzeCompilation);
         }
 
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
+        private void AnalyzeCompilation(CompilationStartAnalysisContext context)
+        {
+            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+        }
+
+        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context);
 
         protected abstract bool CanSimplifyTypeNameExpressionCore(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,
@@ -101,28 +105,40 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            diagnostic = default;
-
             var syntaxTree = node.SyntaxTree;
             var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
+                diagnostic = null;
                 return false;
             }
 
+            return TrySimplify(model, node, out diagnostic, optionSet, cancellationToken);
+        }
+
+        public bool TrySimplify(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
+        {
             if (!CanSimplifyTypeNameExpressionCore(
                     model, node, optionSet,
                     out var issueSpan, out var diagnosticId, out var inDeclaration,
                     cancellationToken))
             {
+                diagnostic = null;
                 return false;
             }
 
             if (model.SyntaxTree.OverlapsHiddenPosition(issueSpan, cancellationToken))
             {
+                diagnostic = null;
                 return false;
             }
 
+            diagnostic = CreateDiagnostic(model, optionSet, issueSpan, diagnosticId, inDeclaration);
+            return true;
+        }
+
+        internal static Diagnostic CreateDiagnostic(SemanticModel model, OptionSet optionSet, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
+        {
             PerLanguageOption<CodeStyleOption<bool>> option;
             DiagnosticDescriptor descriptor;
             ReportDiagnostic severity;
@@ -144,26 +160,21 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                         : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
-                    var optionValue = optionSet.GetOption(option, GetLanguageName());
+                    var optionValue = optionSet.GetOption(option, model.Language);
                     severity = optionValue.Notification.Severity;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
 
-            if (descriptor == null)
-            {
-                return false;
-            }
-
             var tree = model.SyntaxTree;
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
-            diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
+            var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
 
 #if LOG
-            var sourceText = tree.GetText(cancellationToken);
+            var sourceText = tree.GetText();
             sourceText.GetLineAndOffset(issueSpan.Start, out var startLineNumber, out var startOffset);
             sourceText.GetLineAndOffset(issueSpan.End, out var endLineNumber, out var endOffset);
             var logLine = tree.FilePath + "," + startLineNumber + "\t" + diagnosticId + "\t" + inDeclaration + "\t";
@@ -183,7 +194,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 #endif
 
-            return true;
+            return diagnostic;
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
