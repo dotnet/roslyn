@@ -265,15 +265,19 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
         private static void AddCoupledNamedTypesCore(ImmutableHashSet<INamedTypeSymbol>.Builder builder, ITypeSymbol typeOpt)
         {
             if (typeOpt is INamedTypeSymbol usedType &&
-                !isIgnoreableType(usedType) &&
-                builder.Add(usedType))
+                !isIgnoreableType(usedType))
             {
-                if (usedType.IsGenericType)
+                if (usedType.IsGenericType && !usedType.IsUnboundGenericType)
                 {
+                    builder.Add(usedType.ConstructUnboundGenericType());
                     foreach (var type in usedType.TypeArguments)
                     {
                         AddCoupledNamedTypesCore(builder, type);
                     }
+                }
+                else
+                {
+                    builder.Add(usedType);
                 }
             }
 
