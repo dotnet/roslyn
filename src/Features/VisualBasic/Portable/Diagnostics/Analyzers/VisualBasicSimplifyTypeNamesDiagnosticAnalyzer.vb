@@ -34,21 +34,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Return
             End If
 
-            Dim descendIntoChildren As Func(Of SyntaxNode, Boolean) =
-                Function(n)
-                    Dim diagnostic As Diagnostic = Nothing
+            Dim semanticModel = context.SemanticModel
+            Dim cancellationToken = context.CancellationToken
+            Dim syntaxTree = semanticModel.SyntaxTree
+            Dim options = context.Options
+            Dim optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult()
+            Dim root = syntaxTree.GetRoot(cancellationToken)
 
-                    If Not IsCandidate(n) OrElse
-                       Not TrySimplifyTypeNameExpression(context.SemanticModel, n, context.Options, diagnostic, context.CancellationToken) Then
-                        Return True
-                    End If
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, cancellationToken)
+            simplifier.Visit(root)
 
-                    context.ReportDiagnostic(diagnostic)
-                    Return False
-                End Function
-
-            For Each candidate In context.Node.DescendantNodesAndSelf(descendIntoChildren, descendIntoTrivia:=True)
-                context.CancellationToken.ThrowIfCancellationRequested()
+            For Each diagnostic In simplifier.Diagnostics
+                context.ReportDiagnostic(diagnostic)
             Next
         End Sub
 
