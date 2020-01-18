@@ -56,22 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsAliasReplaceableExpression(expression As ExpressionSyntax) As Boolean
-            If expression.Kind = SyntaxKind.IdentifierName OrElse
-               expression.Kind = SyntaxKind.QualifiedName Then
-                Return True
-            End If
-
-            If expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
-
-                Return memberAccess.Expression IsNot Nothing AndAlso memberAccess.Expression.IsAliasReplaceableExpression()
-            End If
-
-            Return False
-        End Function
-
-        <Extension()>
         Public Function IsMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                    DirectCast(expression.Parent, MemberAccessExpressionSyntax).Name Is expression

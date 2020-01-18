@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             <Out> ByRef aliasReplacement As IAliasSymbol) As Boolean
             aliasReplacement = Nothing
 
-            If Not node.IsAliasReplaceableExpression() Then
+            If Not IsAliasReplaceableExpression(node) Then
                 Return False
             End If
 
@@ -123,6 +123,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             aliasReplacement = DirectCast(symbol, INamespaceOrTypeSymbol).GetAliasForSymbol(node, semanticModel)
             If aliasReplacement IsNot Nothing And preferAliasToQualifiedName Then
                 Return ValidateAliasForTarget(aliasReplacement, semanticModel, node, symbol)
+            End If
+
+            Return False
+        End Function
+
+        Private Shared Function IsAliasReplaceableExpression(expression As ExpressionSyntax) As Boolean
+            If expression.Kind = SyntaxKind.IdentifierName OrElse
+               expression.Kind = SyntaxKind.QualifiedName Then
+                Return True
+            End If
+
+            If expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
+                Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
+
+                Return memberAccess.Expression IsNot Nothing AndAlso IsAliasReplaceableExpression(memberAccess.Expression)
             End If
 
             Return False
