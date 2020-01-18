@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public string ParameterNameLabel { get { return ServicesVSResources.Parameter_Name; } }
 
-        public string CallsiteValueLabel { get { return ServicesVSResources.Call_site_value; } }
+        public string CallSiteValueLabel { get { return ServicesVSResources.Call_site_value; } }
 
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
 
@@ -68,8 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             ViewModel.TypeName = ((IntellisenseTextBox)TypeContentControl.Content).Text;
             ViewModel.ParameterName = ((IntellisenseTextBox)NameContentControl.Content).Text;
-
-            ViewModel.CallSiteValue = CallsiteValueTextBox.Text;
+            ViewModel.CallSiteValue = CallSiteValueTextBox.Text;
 
             if (ViewModel.TrySubmit(_document))
             {
@@ -118,6 +117,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     }
                 }
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AddParameterDialog _dialog;
+
+            public TestAccessor(AddParameterDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public DialogButton OKButton => _dialog.OKButton;
+
+            public DialogButton CancelButton => _dialog.CancelButton;
         }
     }
 }

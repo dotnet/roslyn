@@ -40,8 +40,8 @@
             <Border Grid.Row="3" Grid.Column="1" BorderThickness="1" BorderBrush="LightGray" Margin="0,5,0,5">
                 <ContentControl x:Name="NameContentControl" Height="16" Focusable="False" Margin="0,0,0,0" PreviewKeyDown="TypeOrNameContentControl_PreviewKeyDown" AutomationProperties.LabeledBy="{Binding ElementName=ParameterNameLabelName}"/>
             </Border>
-            <Label x:Name="CallsiteValueLabelName" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=CallsiteValueLabel}" />
-            <TextBox x:Name="CallsiteValueTextBox" Grid.Row="5" Grid.Column="1" Text="{Binding CallsiteValue, Mode=TwoWay}"  Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=CallsiteValueLabelName}" />
+            <Label x:Name="CallSiteValueLabelName" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"  Padding="0,5,0,5" Content="{Binding ElementName=dialog, Path=CallSiteValueLabel}" />
+            <TextBox x:Name="CallSiteValueTextBox" Grid.Row="5" Grid.Column="1" Text="{Binding CallSiteValue, Mode=TwoWay}"  Margin="0,5,0,5" AutomationProperties.LabeledBy="{Binding ElementName=CallSiteValueLabelName}" />
         </Grid>
         <StackPanel Grid.Row="1"
                     HorizontalAlignment="Right" 
@@ -55,7 +55,7 @@
                     IsDefault="True"
                     MinWidth="73"
                     MinHeight="21"/>
-            <vs:DialogButton x:Uid="CancelButton" 
+            <vs:DialogButton x:Uid="CancelButton" x:Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}" 
                     Margin="7, 0, 0, 0" 
                     Padding="{StaticResource ResourceKey=okCancelButtonPadding}"

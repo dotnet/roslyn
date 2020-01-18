@@ -86,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.IntellisenseCon
         public string Text
         {
             get => this._textViewHost.TextView.TextSnapshot.GetText();
+            set => this._editorOperations.InsertText(value);
         }
 
         ///// <summary>

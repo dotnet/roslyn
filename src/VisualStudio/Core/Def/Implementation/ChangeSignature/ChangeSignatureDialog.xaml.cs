@@ -248,6 +248,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public DialogButton UpButton => _dialog.UpButton;
 
+            public DialogButton AddButton => _dialog.AddButton;
+
             public DialogButton RemoveButton => _dialog.RemoveButton;
 
             public DialogButton RestoreButton => _dialog.RestoreButton;

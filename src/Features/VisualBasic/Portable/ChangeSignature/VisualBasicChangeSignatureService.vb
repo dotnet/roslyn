@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             Dim newArguments As List(Of IUnifiedArgumentSyntax) = MyBase.PermuteArguments(
                 declarationSymbol, arguments.Select(Function(a) UnifiedArgumentSyntax.Create(a)).ToList(), permutedSignature,
-                Function(callsiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callsiteValue))),
+                Function(callSiteValue) UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callSiteValue))),
                 isReducedExtensionMethod)
 
             Dim numSeparatorsToSkip As Integer
