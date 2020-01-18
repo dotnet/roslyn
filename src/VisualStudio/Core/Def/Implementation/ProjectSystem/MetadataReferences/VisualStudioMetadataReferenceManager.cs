@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
                 }
 
-                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
+                var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir!, moduleName));
                 var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);

@@ -103,7 +103,8 @@ namespace Roslyn.Utilities
             return FileNameUtilities.ChangeExtension(path, extension: null);
         }
 
-        public static string GetFileName(string path, bool includeExtension = true)
+        [return: NotNullIfNotNull(parameterName: "path")]
+        public static string? GetFileName(string? path, bool includeExtension = true)
         {
             return FileNameUtilities.GetFileName(path, includeExtension);
         }
@@ -115,7 +116,7 @@ namespace Roslyn.Utilities
         /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
-        public static string? GetDirectoryName(string path)
+        public static string? GetDirectoryName(string? path)
         {
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
@@ -386,11 +387,11 @@ namespace Roslyn.Utilities
         /// or relative to a drive directory (e.g. "C:abc\def").
         /// </returns>
         /// <seealso cref="CombinePossiblyRelativeAndRelativePaths"/>
-        public static string? CombineAbsoluteAndRelativePaths(string root, string relativePath)
+        public static string CombineAbsoluteAndRelativePaths(string root, string relativePath)
         {
             Debug.Assert(IsAbsolute(root));
 
-            return CombinePossiblyRelativeAndRelativePaths(root, relativePath);
+            return CombinePossiblyRelativeAndRelativePaths(root, relativePath)!;
         }
 
         /// <summary>

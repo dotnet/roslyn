@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigDocument.FilePath);
                     if (diagnosticFilePath.StartsWith(analyzerConfigDirectory) &&
-                        analyzerConfigDirectory.Length > bestPath.Length)
+                        analyzerConfigDirectory?.Length > bestPath.Length)
                     {
                         bestPath = analyzerConfigDirectory;
                         bestAnalyzerConfigDocument = analyzerConfigDocument;
@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             var solutionOrProjectDirectoryPath = PathUtilities.GetDirectoryName(solutionOrProjectFilePath);
+            if (solutionOrProjectDirectoryPath is null)
+            {
+                return null;
+            }
+
             return PathUtilities.CombineAbsoluteAndRelativePaths(solutionOrProjectDirectoryPath, ".editorconfig");
         }
 
