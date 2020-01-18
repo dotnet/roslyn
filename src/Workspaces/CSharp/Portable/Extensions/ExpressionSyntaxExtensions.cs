@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression,
             ITypeSymbol targetType,
             int position,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             if (targetType.ContainsAnonymousType())
             {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var castExpression = expression.Cast(targetType);
 
             // Ensure that inserting the cast doesn't change the semantics.
-            var specAnalyzer = new SpeculationAnalyzer(expression, castExpression, semanticModel, CancellationToken.None);
+            var specAnalyzer = new SpeculationAnalyzer(expression, castExpression, semanticModel, cancellationToken);
             var speculativeSemanticModel = specAnalyzer.SpeculativeSemanticModel;
             if (speculativeSemanticModel == null)
             {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var speculatedCastExpression = (CastExpressionSyntax)specAnalyzer.ReplacedExpression;
-            if (!speculatedCastExpression.IsUnnecessaryCast(speculativeSemanticModel, CancellationToken.None))
+            if (!speculatedCastExpression.IsUnnecessaryCast(speculativeSemanticModel, cancellationToken))
             {
                 return expression;
             }

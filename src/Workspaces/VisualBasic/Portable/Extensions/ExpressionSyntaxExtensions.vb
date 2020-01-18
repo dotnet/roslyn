@@ -238,8 +238,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             targetType As ITypeSymbol,
             position As Integer,
             semanticModel As SemanticModel,
-            <Out> ByRef wasCastAdded As Boolean
-        ) As ExpressionSyntax
+            <Out> ByRef wasCastAdded As Boolean,
+            cancellationToken As CancellationToken) As ExpressionSyntax
+
             wasCastAdded = False
 
             If targetType.ContainsAnonymousType() OrElse expression.IsParentKind(SyntaxKind.AsNewClause) Then
@@ -260,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim castExpression = expression.Cast(targetType, isResultPredefinedCast)
 
             ' Ensure that inserting the cast doesn't change the semantics.
-            Dim specAnalyzer = New SpeculationAnalyzer(expression, castExpression, semanticModel, CancellationToken.None)
+            Dim specAnalyzer = New SpeculationAnalyzer(expression, castExpression, semanticModel, cancellationToken)
             Dim speculativeSemanticModel = specAnalyzer.SpeculativeSemanticModel
             If speculativeSemanticModel Is Nothing Then
                 Return expression
@@ -270,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim speculatedCastInnerExpression = If(isResultPredefinedCast,
                                                    DirectCast(speculatedCastExpression, PredefinedCastExpressionSyntax).Expression,
                                                    DirectCast(speculatedCastExpression, CastExpressionSyntax).Expression)
-            If Not CastAnalyzer.IsUnnecessary(speculatedCastExpression, speculatedCastInnerExpression, speculativeSemanticModel, True, CancellationToken.None) Then
+            If Not CastAnalyzer.IsUnnecessary(speculatedCastExpression, speculatedCastInnerExpression, speculativeSemanticModel, True, cancellationToken) Then
                 Return expression
             End If
 
