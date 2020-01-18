@@ -270,10 +270,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 if (child.IsNode)
                 {
-                    var childNode = child.AsNode();
+                    var childNode = child.AsNode()!;
                     if (ShouldDescendInto(childNode, descendInto))
                     {
-                        GetAllDeclaredSymbols(semanticModel, child.AsNode(), symbols, cancellationToken, descendInto);
+                        GetAllDeclaredSymbols(semanticModel, childNode, symbols, cancellationToken, descendInto);
                     }
                 }
             }

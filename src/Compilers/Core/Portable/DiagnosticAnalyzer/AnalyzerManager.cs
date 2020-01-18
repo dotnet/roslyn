@@ -47,7 +47,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
@@ -56,7 +59,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
