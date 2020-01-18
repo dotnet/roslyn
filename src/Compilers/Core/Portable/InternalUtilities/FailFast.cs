@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis
 #endif
 
             Environment.FailFast(exception.ToString(), exception);
+            throw null!; // to satisfy [DoesNotReturn]
         }
 
         /// <summary>

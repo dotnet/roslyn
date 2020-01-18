@@ -1473,7 +1473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         && attr.CommonConstructorArguments.Length == 1
                         && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                     {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal;
+                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
                         return true;
                     }
                 }

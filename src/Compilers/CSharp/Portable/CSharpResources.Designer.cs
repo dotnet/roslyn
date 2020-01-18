@@ -14914,6 +14914,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
+        /// </summary>
+        internal static string WRN_MethodShouldThrow {
+            get {
+                return ResourceManager.GetString("WRN_MethodShouldThrow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A method marked with [DoesNotReturn] should throw on all code paths..
+        /// </summary>
+        internal static string WRN_MethodShouldThrow_Title {
+            get {
+                return ResourceManager.GetString("WRN_MethodShouldThrow_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The annotation for nullable reference types should only be used in code within a &apos;#nullable&apos; annotations context..
         /// </summary>
         internal static string WRN_MissingNonNullTypesContextForAnnotation {
@@ -15850,6 +15868,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ObsoleteOverridingNonObsolete_Title {
             get {
                 return ResourceManager.GetString("WRN_ObsoleteOverridingNonObsolete_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter &apos;{0}&apos; may not have a null value when exiting with &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_ParameterConditionallyDisallowsNull {
+            get {
+                return ResourceManager.GetString("WRN_ParameterConditionallyDisallowsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameter may not have a null value when exiting in some condition..
+        /// </summary>
+        internal static string WRN_ParameterConditionallyDisallowsNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_ParameterConditionallyDisallowsNull_Title", resourceCulture);
             }
         }
         

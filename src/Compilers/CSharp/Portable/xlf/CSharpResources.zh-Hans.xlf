@@ -1439,6 +1439,16 @@
         <target state="translated">请勿使用 "_" 引用 is-type 表达式中的类型。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethodShouldThrow">
+        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
+        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethodShouldThrow_Title">
+        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
+        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。</target>
@@ -1747,6 +1757,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">可为 null 的值类型可为 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting in some condition.</source>
+        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">

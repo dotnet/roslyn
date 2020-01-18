@@ -1439,6 +1439,16 @@
         <target state="translated">'_'을 사용하여 is-type 식의 형식을 참조하지 마세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethodShouldThrow">
+        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
+        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethodShouldThrow_Title">
+        <source>A method marked with [DoesNotReturn] should throw on all code paths.</source>
+        <target state="new">A method marked with [DoesNotReturn] should throw on all code paths.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MissingNonNullTypesContextForAnnotation">
         <source>The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.</source>
         <target state="translated">nullable 참조 형식에 대한 주석은 코드에서 '#nullable' 주석 컨텍스트 내에만 사용되어야 합니다.</target>
@@ -1747,6 +1757,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">Nullable 값 형식이 null일 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull">
+        <source>Parameter '{0}' may not have a null value when exiting with '{1}'.</source>
+        <target state="new">Parameter '{0}' may not have a null value when exiting with '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterConditionallyDisallowsNull_Title">
+        <source>Parameter may not have a null value when exiting in some condition.</source>
+        <target state="new">Parameter may not have a null value when exiting in some condition.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
