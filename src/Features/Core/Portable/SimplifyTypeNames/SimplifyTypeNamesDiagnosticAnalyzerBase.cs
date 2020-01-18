@@ -85,6 +85,16 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                      preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
         }
 
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
+            InitializeWorker(context);
+        }
+
+        protected abstract void InitializeWorker(AnalysisContext context);
+
         protected abstract bool CanSimplifyTypeNameExpressionCore(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,

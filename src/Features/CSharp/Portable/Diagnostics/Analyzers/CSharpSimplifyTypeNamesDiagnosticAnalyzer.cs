@@ -30,13 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.QualifiedCref);
 
-        public override void Initialize(AnalysisContext context)
-        {
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.EnableConcurrentExecution();
-
-            context.RegisterCompilationStartAction(AnalyzeCompilation);
-        }
+        protected override void InitializeWorker(AnalysisContext context)
+            => context.RegisterCompilationStartAction(AnalyzeCompilation);
 
         private void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {

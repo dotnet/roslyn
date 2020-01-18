@@ -21,19 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             SyntaxKind.IdentifierName,
             SyntaxKind.GenericName)
 
-        Public Overrides Sub Initialize(context As AnalysisContext)
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
-            context.EnableConcurrentExecution()
-
-            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, s_kindsOfInterest)
+        Protected Overrides Sub InitializeWorker(context As AnalysisContext)
+            context.RegisterSemanticModelAction(AddressOf AnalyzeSemanticModel)
         End Sub
 
-        Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-            If context.Node.Ancestors(ascendOutOfTrivia:=False).Any(AddressOf IsNodeKindInteresting) Then
-                ' Already simplified an ancestor of this node.
-                Return
-            End If
-
+        Private Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext)
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
             Dim syntaxTree = semanticModel.SyntaxTree
