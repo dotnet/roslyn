@@ -41,7 +41,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         End Sub
 
         Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
-            If node.IsKind(SyntaxKind.IdentifierName) AndAlso TrySimplify(node) Then
+            ' Always try to simplify identifiers with an 'Attribute' suffix.
+            '
+            ' In other cases, don't bother looking at the right side of A.B or A!B. We will process those in
+            ' one of our other top level Visit methods (Like VisitQualifiedName).
+            Dim canTrySimplify = CaseInsensitiveComparison.EndsWith(node.Identifier.ValueText, "Attribute") _
+                OrElse Not node.IsRightSideOfDotOrBang()
+
+            If canTrySimplify AndAlso TrySimplify(node) Then
                 Return
             End If
 
