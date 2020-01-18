@@ -15,6 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
+    /// <summary>
+    /// Contains helpers used by several simplifier subclasses.
+    /// </summary>
     internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
         where TSyntax : SyntaxNode
         where TSimplifiedSyntax : SyntaxNode
