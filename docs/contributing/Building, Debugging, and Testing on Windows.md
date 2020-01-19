@@ -2,7 +2,7 @@
 
 ## Working with the code
 
-Using the command line Roslyn can be developed using the following pattern:
+Using the command line, Roslyn can be developed using the following pattern:
 
 1. Clone https://github.com/dotnet/roslyn
 1. Run Restore.cmd
@@ -31,7 +31,7 @@ There are a number of options for running the core Roslyn unit tests:
 
 ### Command Line
 
-The Test.cmd script will run our unit test on already built binaries.  It can be passed the -build arguments to force a new build before running tests.
+The Test.cmd script will run our unit test on already built binaries. It can be passed the `-build` argument to force a new build before running tests.
 
 1. Run the "Developer Command Prompt for VS2019" from your start menu.
 2. Navigate to the directory of your Git clone.
