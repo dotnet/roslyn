@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
         {
             return (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression) ||
-                   (IsMemberBindingExpressionName(expression));
+                   IsMemberBindingExpressionName(expression);
         }
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
@@ -1017,9 +1017,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var nameOfInvocationExpr = expression.FirstAncestorOrSelf<InvocationExpressionSyntax>(
                 invocationExpr =>
                 {
-                    return (invocationExpr.Expression is IdentifierNameSyntax identifierName) && (identifierName.Identifier.Text == "nameof") &&
+                    return invocationExpr.Expression is IdentifierNameSyntax identifierName && 
+                        identifierName.Identifier.Text == "nameof" &&
                         semanticModel.GetConstantValue(invocationExpr).HasValue &&
-                        (semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String);
+                        semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String;
                 });
 
             return nameOfInvocationExpr != null;
@@ -1638,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                     // Nullable rewrite: Nullable<int> -> int?
                     // Don't rewrite in the case where Nullable<int> is part of some qualified name like Nullable<int>.Something
-                    if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
+                    if (!name.IsVar && symbol.Kind == SymbolKind.NamedType && !name.IsLeftSideOfQualifiedName())
                     {
                         var type = (INamedTypeSymbol)symbol;
                         if (aliasInfo == null && CanSimplifyNullable(type, name, semanticModel))
@@ -2001,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (left != null && right != null)
             {
                 var leftSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, left);
-                if (leftSymbol != null && (leftSymbol.Kind == SymbolKind.NamedType))
+                if (leftSymbol != null && leftSymbol.Kind == SymbolKind.NamedType)
                 {
                     var rightSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, right);
                     if (rightSymbol != null && (rightSymbol.IsStatic || rightSymbol.Kind == SymbolKind.NamedType))
@@ -2218,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 IsAmbiguousCast(name, reducedName) ||
                 IsNullableTypeInPointerExpression(reducedName) ||
                 IsNotNullableReplaceable(name, reducedName) ||
-                IsNonReducableQualifiedNameInUsingDirective(semanticModel, name, reducedName))
+                IsNonReducableQualifiedNameInUsingDirective(semanticModel, name))
             {
                 return false;
             }
@@ -2226,7 +2227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name, TypeSyntax reducedName)
+        private static bool IsNonReducableQualifiedNameInUsingDirective(SemanticModel model, NameSyntax name)
         {
             // Whereas most of the time we do not want to reduce namespace names, We will
             // make an exception for namespaces with the global:: alias.
@@ -2281,23 +2282,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
         {
-            var isNotNullableReplaceable = false;
-            var isLeftSideOfDot = name.IsLeftSideOfDot();
-            var isRightSideOfDot = name.IsRightSideOfDot();
-
-            if (reducedName.Kind() == SyntaxKind.NullableType)
+            if (reducedName.IsKind(SyntaxKind.NullableType, out NullableTypeSyntax nullableType))
             {
-                if (((NullableTypeSyntax)reducedName).ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
-                {
-                    isNotNullableReplaceable = true;
-                }
-                else
-                {
-                    isNotNullableReplaceable = name.IsLeftSideOfDot() || name.IsRightSideOfDot();
-                }
+                if (nullableType.ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
+                    return true;
+
+                return name.IsLeftSideOfDot() || name.IsRightSideOfDot();
             }
 
-            return isNotNullableReplaceable;
+            return false;
         }
 
         private static bool IsThisOrTypeOrNamespace(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
