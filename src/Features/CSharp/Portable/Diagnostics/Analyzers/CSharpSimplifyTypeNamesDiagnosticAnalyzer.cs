@@ -74,25 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             SyntaxNode replacementSyntax;
             if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
             {
-                if (!QualifiedCrefSimplifier.Instance.TrySimplify(
-                        crefSyntax, model, optionSet,
-                        out var replacement, out issueSpan, cancellationToken))
-                {
+                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, optionSet, out var replacement, out issueSpan, cancellationToken))
                     return false;
-                }
 
                 replacementSyntax = replacement;
             }
             else
             {
-                var expression = (ExpressionSyntax)node;
-
-                // in case of an As or Is expression we need to handle the binary expression, because it might be 
-                // required to add parenthesis around the expression. Adding the parenthesis is done in the CSharpNameSimplifier.Rewriter
-                var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
-                    ? ((BinaryExpressionSyntax)expression).Right
-                    : expression;
-                if (!ExpressionSimplifier.Instance.TrySimplify(expressionToCheck, model, optionSet, out var replacement, out issueSpan, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, optionSet, out var replacement, out issueSpan, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;
