@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsInOutContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function IsInOutContext(expression As ExpressionSyntax) As Boolean
             ' NOTE(cyrusn): VB has no concept of an out context.  Even when a parameter has an
             ' '<Out>' attribute on it, it's still treated as ref by VB.  So we always return false
             ' here.
@@ -349,19 +349,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsInInContext(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function IsInInContext(expression As ExpressionSyntax) As Boolean
             ' NOTE: VB does not support in parameters. Always return False here.
             Return False
         End Function
 
         <Extension()>
-        Public Function IsOnlyWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function IsOnlyWrittenTo(expression As ExpressionSyntax) As Boolean
             If expression.IsRightSideOfDot() Then
                 expression = TryCast(expression.Parent, ExpressionSyntax)
             End If
 
             If expression IsNot Nothing Then
-                If expression.IsInOutContext(semanticModel, cancellationToken) Then
+                If expression.IsInOutContext() Then
                     Return True
                 End If
 
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-            If IsOnlyWrittenTo(expression, semanticModel, cancellationToken) Then
+            If IsOnlyWrittenTo(expression) Then
                 Return True
             End If
 

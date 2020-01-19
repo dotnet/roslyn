@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
         {
             return (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression) ||
-                   (IsMemberBindingExpressionName(expression));
+                   IsMemberBindingExpressionName(expression);
         }
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
