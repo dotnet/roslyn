@@ -1528,10 +1528,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         // In case the alias name is the same as the last name of the alias target, we only include 
                         // the left part of the name in the unnecessary span to Not confuse uses.
-                        if (name.Kind() == SyntaxKind.QualifiedName)
+                        if (name.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName3))
                         {
-                            var qualifiedName3 = (QualifiedNameSyntax)name;
-
                             if (qualifiedName3.Right.Identifier.ValueText == identifierToken.ValueText)
                             {
                                 issueSpan = qualifiedName3.Left.Span;

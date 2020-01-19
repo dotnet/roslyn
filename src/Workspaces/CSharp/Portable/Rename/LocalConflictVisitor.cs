@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
@@ -49,10 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // before visiting nested statements
             foreach (var statement in statements)
             {
-                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
+                if (statement.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax declarationStatement))
                 {
-                    var declarationStatement = (LocalDeclarationStatementSyntax)statement;
-
                     foreach (var declarator in declarationStatement.Declaration.Variables)
                     {
                         tokens.Add(declarator.Identifier);
