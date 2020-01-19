@@ -391,9 +391,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             var nameOfInvocationExpr = expression.FirstAncestorOrSelf<InvocationExpressionSyntax>(
                 invocationExpr =>
                 {
-                    return (invocationExpr.Expression is IdentifierNameSyntax identifierName) && (identifierName.Identifier.Text == "nameof") &&
+                    return invocationExpr.Expression is IdentifierNameSyntax identifierName &&
+                        identifierName.Identifier.Text == "nameof" &&
                         semanticModel.GetConstantValue(invocationExpr).HasValue &&
-                        (semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String);
+                        semanticModel.GetTypeInfo(invocationExpr).Type.SpecialType == SpecialType.System_String;
                 });
 
             return nameOfInvocationExpr != null;

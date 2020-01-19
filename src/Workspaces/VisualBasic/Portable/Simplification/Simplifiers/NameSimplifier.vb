@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
                 issueSpan = name.Span
 
-                Return CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel, cancellationToken)
+                Return CanReplaceWithReducedNameInContext(name, replacementNode)
             Else
 
                 If Not name.IsRightSideOfDot() Then
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                             End If
                         End If
 
-                        If CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel, cancellationToken) Then
+                        If CanReplaceWithReducedNameInContext(name, replacementNode) Then
 
                             ' check if the alias name ends with an Attribute suffix that can be omitted.
                             Dim replacementNodeWithoutAttributeSuffix As ExpressionSyntax = Nothing
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                     replacementNode = SyntaxFactory.PredefinedType(token)
                                     issueSpan = name.Span
 
-                                    Dim canReplace = CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel, cancellationToken)
+                                    Dim canReplace = CanReplaceWithReducedNameInContext(name, replacementNode)
                                     If canReplace Then
                                         replacementNode = replacementNode.WithAdditionalAnnotations(New SyntaxAnnotation(codeStyleOptionName))
                                     End If
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
                             issueSpan = name.Span
 
-                            If CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel, cancellationToken) Then
+                            If CanReplaceWithReducedNameInContext(name, replacementNode) Then
                                 Return True
                             End If
                         End If
@@ -295,10 +295,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 Return False
             End If
 
-            Return CanReplaceWithReducedNameInContext(name, replacementNode, semanticModel, cancellationToken)
+            Return CanReplaceWithReducedNameInContext(name, replacementNode)
         End Function
 
-        Private Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Private Function CanReplaceWithReducedNameInContext(name As NameSyntax, replacementNode As ExpressionSyntax) As Boolean
 
             ' Special case.  if this new minimal name parses out to a predefined type, then we
             ' have to make sure that we're not in a using alias.   That's the one place where the

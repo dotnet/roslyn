@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Return False
                 End If
 
-                Dim initializerType As ITypeSymbol = Nothing
+                Dim initializerType As ITypeSymbol
 
                 If declaredSymbolType.IsArrayType() AndAlso variableDeclarator.Initializer.Value.Kind() = SyntaxKind.CollectionInitializer Then
                     ' Get type of the array literal in context without the target type

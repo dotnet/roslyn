@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (left != null && right != null)
             {
                 var leftSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, left);
-                if (leftSymbol != null && (leftSymbol.Kind == SymbolKind.NamedType))
+                if (leftSymbol != null && leftSymbol.Kind == SymbolKind.NamedType)
                 {
                     var rightSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, right);
                     if (rightSymbol != null && (rightSymbol.IsStatic || rightSymbol.Kind == SymbolKind.NamedType))
