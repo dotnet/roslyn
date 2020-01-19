@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
     {
         public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken, bool keepThreadContext = false)
+            CancellationToken cancellationToken)
         {
-            return await GetTextEdits(solution, request.TextDocument.Uri, keepThreadContext, cancellationToken, range: request.Range).ConfigureAwait(keepThreadContext);
+            return await GetTextEdits(solution, request.TextDocument.Uri, cancellationToken, range: request.Range).ConfigureAwait(false);
         }
     }
 }

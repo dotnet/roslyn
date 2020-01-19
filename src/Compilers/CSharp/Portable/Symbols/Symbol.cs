@@ -813,8 +813,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
-            SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier)
-                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+            SymbolDisplayFormat.TestFormat
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+                    | SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier)
+                .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         internal virtual string GetDebuggerDisplay()
         {

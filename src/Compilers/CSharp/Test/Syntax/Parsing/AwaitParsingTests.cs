@@ -1854,7 +1854,7 @@ async () => {
                             N(SyntaxKind.VariableDeclarator);
                             {
                                 N(SyntaxKind.IdentifierToken);
-                                N(SyntaxKind.BracketedArgumentList);
+                                M(SyntaxKind.BracketedArgumentList);
                                 {
                                     M(SyntaxKind.OpenBracketToken);
                                     M(SyntaxKind.CloseBracketToken);

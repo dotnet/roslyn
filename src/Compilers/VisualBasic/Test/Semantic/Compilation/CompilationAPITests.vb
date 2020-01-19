@@ -2257,6 +2257,19 @@ End Class
             Assert.NotNull(reference2)
         End Sub
 
+        <WorkItem(40466, "https://github.com/dotnet/roslyn/issues/40466")>
+        <Fact>
+        Public Sub GetMetadataReference_CSharpSymbols()
+            Dim comp As Compilation = CreateCompilation("")
+
+            Dim csComp = CreateCSharpCompilation("", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.Standard))
+            Dim assembly = csComp.GetBoundReferenceManager().GetReferencedAssemblies().First().Value
+
+            Assert.Null(comp.GetMetadataReference(DirectCast(assembly.GetISymbol(), IAssemblySymbol)))
+            Assert.Null(comp.GetMetadataReference(csComp.Assembly))
+            Assert.Null(comp.GetMetadataReference(Nothing))
+        End Sub
+
 
         <Fact()>
         Public Sub EqualityOfMergedNamespaces()

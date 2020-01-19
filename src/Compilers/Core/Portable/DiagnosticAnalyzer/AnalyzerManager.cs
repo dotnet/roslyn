@@ -47,7 +47,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor)
@@ -56,7 +59,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
-        private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/issues/26778",
+            OftenCompletesSynchronously = true)]
+        private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
@@ -146,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
         {
             var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
+            if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
                 var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
@@ -173,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            return null;
+            return AnalyzerActions.Empty;
 
             ImmutableArray<SymbolStartAnalyzerAction> getFilteredActionsByKind(ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions)
             {

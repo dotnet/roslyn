@@ -12,6 +12,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal class ModelComputation<TModel> : ForegroundThreadAffinitizedObject
+        where TModel : class
     {
         #region Fields that can be accessed from either thread
 
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _stopCancellationToken = _stopTokenSource.Token;
 
             // Dummy up a new task so we don't need to check for null.
-            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
+            _notifyControllerTask = _lastTask = SpecializedTasks.Null<TModel>();
         }
 
         public TModel InitialUnfilteredModel
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             _stopTokenSource.Cancel();
 
             // reset task so that it doesn't hold onto things like WpfTextView
-            _notifyControllerTask = _lastTask = SpecializedTasks.Default<TModel>();
+            _notifyControllerTask = _lastTask = SpecializedTasks.Null<TModel>();
         }
 
         public void ChainTaskAndNotifyControllerWhenFinished(

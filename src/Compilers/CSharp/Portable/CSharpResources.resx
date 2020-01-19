@@ -441,6 +441,9 @@
   <data name="ERR_BadBinaryOps" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'</value>
   </data>
+  <data name="ERR_AmbigBinaryOpsOnUnconstrainedDefault" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</value>
+  </data>
   <data name="ERR_IntDivByZero" xml:space="preserve">
     <value>Division by constant zero</value>
   </data>
@@ -2876,7 +2879,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of readonly field '{0}' cannot be used as a ref or out value (except in a constructor)</value>
   </data>
   <data name="ERR_AssgReadonly" xml:space="preserve">
-    <value>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</value>
+    <value>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</value>
   </data>
   <data name="ERR_AssgReadonly2" xml:space="preserve">
     <value>Members of readonly field '{0}' cannot be modified (except in a constructor or a variable initializer)</value>
@@ -5439,10 +5442,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment" xml:space="preserve">
-    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</value>
   </data>
   <data name="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title" xml:space="preserve">
-    <value>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</value>
+    <value>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
@@ -5926,6 +5929,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExternEventInitializer" xml:space="preserve">
     <value>'{0}': extern event cannot have initializer</value>
+  </data>
+  <data name="ERR_ImplicitIndexIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Index Indexer cannot name the argument.</value>
+  </data>
+  <data name="ERR_ImplicitRangeIndexerWithName" xml:space="preserve">
+    <value>Invocation of implicit Range Indexer cannot name the argument.</value>
   </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>

@@ -1318,6 +1318,7 @@
   </Node>
   <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
     <!--Check that the input is not null. Used as part of a type test.-->
+    <Field Name="IsExplicitTest" Type="bool"/>
   </Node>
   <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest">
     <!--Check that the input is null. Used when an explicit null test appears in source.-->
@@ -1763,13 +1764,23 @@
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
-  <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
+  <AbstractNode Name="BoundStackAllocArrayCreationBase" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="Count" Type="BoundExpression" Null="disallow" />
     <Field Name="InitializerOpt" Type="BoundArrayInitialization?"/>
+  </AbstractNode>
+
+  <Node Name="BoundStackAllocArrayCreation" Base="BoundStackAllocArrayCreationBase">
+    <!-- A BoundStackAllocArrayCreation is given a null type when it is in a
+         syntactic context where it could be either a pointer or a span, and
+         in that case it requires conversion to one or the other. In the
+         special case that it is the direct initializer of a local variable
+         whose type is inferred, we treat it as a pointer. -->
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
   </Node>
 
-  <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreation">
+  <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreationBase">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
@@ -1974,6 +1985,7 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
+    <Field Name="IsExplicitNotNullTest" Type="bool"/>
   </Node>
 
   <Node Name="BoundITuplePattern" Base="BoundPattern">

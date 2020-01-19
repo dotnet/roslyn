@@ -1557,9 +1557,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             string path = "",
             Encoding encoding = null,
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool? isGeneratedCode = null,
+            CancellationToken cancellationToken = default)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
         /// <summary>
@@ -1570,9 +1571,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParseOptions options = null,
             string path = "",
             ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            bool? isGeneratedCode = null,
+            CancellationToken cancellationToken = default)
         {
-            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, cancellationToken);
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -2596,9 +2598,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParseOptions options,
             string path,
             Encoding encoding,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
             CancellationToken cancellationToken)
         {
-            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, cancellationToken);
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            CancellationToken cancellationToken)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions options,
+            string path,
+            Encoding encoding,
+            CancellationToken cancellationToken)
+        {
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, isGeneratedCode: null, cancellationToken);
         }
 
         // BACK COMPAT OVERLOAD DO NOT MODIFY

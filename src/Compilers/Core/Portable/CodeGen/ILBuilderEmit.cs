@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitOpCode(ILOpCode.Ldnull);
         }
 
-        internal void EmitStringConstant(string value)
+        internal void EmitStringConstant(string? value)
         {
             if (value == null)
             {

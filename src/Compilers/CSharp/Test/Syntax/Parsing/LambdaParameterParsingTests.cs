@@ -406,7 +406,7 @@ class C {
                                                         }
                                                         N(SyntaxKind.IdentifierToken); // parameter name
                                                     }
-                                                    N(SyntaxKind.CloseParenToken);
+                                                    M(SyntaxKind.CloseParenToken);
                                                 }
                                                 M(SyntaxKind.EqualsGreaterThanToken);
                                                 M(SyntaxKind.IdentifierName); // lambda body

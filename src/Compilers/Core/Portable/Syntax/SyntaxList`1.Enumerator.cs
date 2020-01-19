@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return (TNode)_list.ItemInternal(_index);
+                    return (TNode)_list.ItemInternal(_index)!;
                 }
             }
 

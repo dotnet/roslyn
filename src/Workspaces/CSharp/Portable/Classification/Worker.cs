@@ -3,6 +3,7 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -72,13 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
         {
+            Debug.Assert(nodeOrToken.IsNode || nodeOrToken.IsToken);
+
             if (nodeOrToken.IsToken)
             {
                 ClassifyToken(nodeOrToken.AsToken());
                 return;
             }
 
-            ClassifyNode(nodeOrToken.AsNode());
+            ClassifyNode(nodeOrToken.AsNode()!);
         }
 
         private void ClassifyNode(SyntaxNode node)

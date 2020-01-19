@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly DiagnosticInfo EmptyErrorInfo = new CSDiagnosticInfo(0);
         public static readonly DiagnosticInfo VoidDiagnosticInfo = new CSDiagnosticInfo(ErrorCode.Void);
 
-        private readonly ImmutableArray<Location> _additionalLocations;
+        private readonly IReadOnlyList<Location> _additionalLocations;
 
         internal CSDiagnosticInfo(ErrorCode code)
             : this(code, Array.Empty<object>(), ImmutableArray<Symbol>.Empty, ImmutableArray<Location>.Empty)
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Internal errors are abnormal and should not occur except where there are bugs in the compiler.
             Debug.Assert(code != ErrorCode.ERR_InternalError);
-            _additionalLocations = additionalLocations;
+            _additionalLocations = additionalLocations.IsDefaultOrEmpty ? SpecializedCollections.EmptyReadOnlyList<Location>() : additionalLocations;
         }
 
         public override IReadOnlyList<Location> AdditionalLocations => _additionalLocations;

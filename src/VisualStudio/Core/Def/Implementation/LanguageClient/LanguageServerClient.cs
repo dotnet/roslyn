@@ -91,12 +91,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var hostGroup = new HostGroup(client.ClientId);
             var hubClient = new HubClient(ServiceHubClientName);
 
-            var stream = await ServiceHubRemoteHostClient.Connections.RequestServiceAsync(
+            var stream = await ServiceHubRemoteHostClient.RequestServiceAsync(
                 _workspace,
                 hubClient,
                 WellKnownServiceHubServices.LanguageServer,
                 hostGroup,
-                TimeSpan.FromMinutes(60),
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(stream, stream);

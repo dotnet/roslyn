@@ -22,6 +22,11 @@
         <target state="translated">보간된 verbatim 문자열에 '$@' 대신 '@$'를 사용하려면 언어 버전 '{0}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AmbigBinaryOpsOnUnconstrainedDefault">
+        <source>Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</source>
+        <target state="new">Operator '{0}' cannot be applied to 'default' and operand of type '{1}' because it is a type parameter that is not known to be a reference type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
         <source>Cannot use a nullable reference type in object creation.</source>
         <target state="translated">nullable 참조 형식은 개체를 만드는 데 사용할 수 없습니다.</target>
@@ -230,6 +235,16 @@
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">이 컨텍스트에서는 비표시 오류(Suppression) 연산자를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitIndexIndexerWithName">
+        <source>Invocation of implicit Index Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Index Indexer cannot name the argument.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitRangeIndexerWithName">
+        <source>Invocation of implicit Range Indexer cannot name the argument.</source>
+        <target state="new">Invocation of implicit Range Indexer cannot name the argument.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1375,12 +1390,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 전달할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title">
-        <source>A possible null value may not be assigned to a target marked with the [DisallowNull] attribute</source>
+        <source>A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]</source>
         <target state="needs-review-translation">가능한 null 값은 [DisallowNull] 특성으로 표시된 대상에 전달할 수 없음</target>
         <note />
       </trans-unit>
@@ -5933,8 +5948,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly">
-        <source>A readonly field cannot be assigned to (except in a constructor or a variable initializer)</source>
-        <target state="translated">읽기 전용 필드에는 할당할 수 없습니다. 단 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
+        <source>A readonly field cannot be assigned to (except in a constructor of the class in which the field is defined or a variable initializer))</source>
+        <target state="needs-review-translation">읽기 전용 필드에는 할당할 수 없습니다. 단 생성자 또는 변수 이니셜라이저에서는 예외입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssgReadonly2">

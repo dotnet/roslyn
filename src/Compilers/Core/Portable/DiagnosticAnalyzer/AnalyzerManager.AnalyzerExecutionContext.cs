@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -57,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// </summary>
             private ImmutableArray<SuppressionDescriptor> _lazySuppressionDescriptors = default(ImmutableArray<SuppressionDescriptor>);
 
+            [PerformanceSensitive(
+                "https://github.com/dotnet/roslyn/issues/26778",
+                AllowCaptures = false)]
             public Task<HostSessionStartAnalysisScope> GetSessionAnalysisScopeTask(AnalyzerExecutor analyzerExecutor)
             {
                 lock (_gate)
@@ -67,15 +71,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _lazySessionScopeTask;
                     }
 
-                    task = Task.Run(() =>
-                    {
-                        var sessionScope = new HostSessionStartAnalysisScope();
-                        analyzerExecutor.ExecuteInitializeMethod(_analyzer, sessionScope);
-                        return sessionScope;
-                    }, analyzerExecutor.CancellationToken);
-
+                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor);
                     _lazySessionScopeTask = task;
                     return task;
+
+                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor)
+                    {
+                        return Task.Run(() =>
+                        {
+                            var sessionScope = new HostSessionStartAnalysisScope();
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope);
+                            return sessionScope;
+                        }, executor.CancellationToken);
+                    }
                 }
             }
 

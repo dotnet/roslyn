@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 {
-    [ExportContentTypeLanguageService(StringConstants.VBLspContentTypeName, StringConstants.VBLspLanguageName), Shared]
+    [ExportContentTypeLanguageService(ContentTypeNames.VBLspContentTypeName, StringConstants.VBLspLanguageName), Shared]
     internal class VBLspContentTypeLanguageService : IContentTypeLanguageService
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Debugging
 
         public IContentType GetDefaultContentType()
         {
-            return _contentTypeRegistry.GetContentType(StringConstants.VBLspContentTypeName);
+            return _contentTypeRegistry.GetContentType(ContentTypeNames.VBLspContentTypeName);
         }
 
     }

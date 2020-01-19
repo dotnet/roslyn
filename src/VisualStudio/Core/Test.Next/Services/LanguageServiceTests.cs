@@ -96,7 +96,7 @@ End Class";
             {
                 var result = await jsonRpc.InvokeWithCancellationAsync<JObject>(
                     Methods.InitializeName,
-                    new object[] { Process.GetCurrentProcess().Id, "test", new Uri("file://test"), new ClientCapabilities(), TraceSetting.Off },
+                    new object[] { new InitializeParams() },
                     CancellationToken.None);
 
                 Assert.True(result["capabilities"]["workspaceStreamingSymbolProvider"].ToObject<bool>());

@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseSystemHashCode = "IDE0070";
 
+        public const string SimplifyInterpolationId = "IDE0071";
+
         public const string PopulateSwitchExpressionDiagnosticId = "IDE0072";
 
         // Analyzer error Ids
@@ -126,5 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
         public const string UnboundConstructorId = "IDE1008";
+
+        // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
     }
 }

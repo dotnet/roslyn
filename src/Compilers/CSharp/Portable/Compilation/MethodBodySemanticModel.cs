@@ -172,7 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(binder != null);
 
-            var executablebinder = new ExecutableCodeBinder(body, methodSymbol, binder ?? this.RootBinder);
+            Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
+            executablebinder = new ExecutableCodeBinder(body, methodSymbol, executablebinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
             // be influenced by any existing code in the body.
@@ -197,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
             return true;
@@ -214,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
+            binder = new WithNullableContextBinder(SyntaxTree, position, binder);
             binder = new ExecutableCodeBinder(expressionBody, methodSymbol, binder);
 
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, expressionBody, binder, position);
@@ -228,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (binder != null)
                 {
                     var methodSymbol = (MethodSymbol)this.MemberSymbol;
+                    binder = new WithNullableContextBinder(SyntaxTree, position, binder);
                     binder = new ExecutableCodeBinder(constructorInitializer, methodSymbol, binder);
                     speculativeModel = CreateSpeculative(parentModel, methodSymbol, constructorInitializer, binder, position);
                     return true;

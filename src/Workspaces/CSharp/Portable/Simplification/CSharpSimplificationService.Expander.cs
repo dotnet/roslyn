@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var speculativeSemanticModel = speculativeAnalyzer.SpeculativeSemanticModel;
                 var speculatedExpression = speculativeAnalyzer.ReplacedExpression;
 
-                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel);
+                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel, _cancellationToken);
 
                 if (result != speculatedExpression)
                 {

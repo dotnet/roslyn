@@ -3815,5 +3815,364 @@ class B2 : A<int?>
                 Assert.Equal(expectedState, info.FlowState);
             }
         }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_02()
+        {
+            var source =
+@"#nullable disable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_03()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"
+#nullable disable
+M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_04()
+        {
+            var source =
+@"#nullable disable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"
+#nullable restore
+M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_OutVariableInDifferentContext_05()
+        {
+            var source =
+@"#nullable disable annotations
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var statement = SyntaxFactory.ParseStatement(@"
+#nullable restore annotations
+M(out C c);");
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, statement, out var speculativeModel));
+
+            var type2 = statement.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_WholeBody_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var methodDeclaration = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(@"
+void M2(out C c2)
+{
+    M(out C c);
+}");
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(type.SpanStart, methodDeclaration, out var speculativeModel));
+
+            var type2 = methodDeclaration.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_WholeBody_02()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var methodDeclaration = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration(@"
+void M2(out C c2)
+{
+#nullable disable
+    M(out C c);
+}");
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(type.SpanStart, methodDeclaration, out var speculativeModel));
+
+            var type2 = methodDeclaration.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ArrowExpression_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var arrow = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(" M(out C c)"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, arrow, out var speculativeModel));
+
+            var type2 = arrow.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ArrowExpression_02()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var type = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+
+            var arrow = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(@"
+#nullable disable
+M(out C c)"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(type.SpanStart, arrow, out var speculativeModel));
+
+            var type2 = arrow.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ConstructorInitializer_01()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    C() : this("""") {}
+    C(string s) {}
+    string M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+        return """";
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+
+            var newInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, SyntaxFactory.ParseArgumentList(@"(M(out C c))"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(initializer.SpanStart, newInitializer, out var speculativeModel));
+
+            var type2 = newInitializer.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750")]
+        public void SpeculativeSymbolInfo_ConstructorInitializer_02()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    C() : this("""") {}
+    C(string s) {}
+    string M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+        return """";
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+
+            var newInitializer = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, SyntaxFactory.ParseArgumentList(@"(
+#nullable disable
+M(out C c))"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(initializer.SpanStart, newInitializer, out var speculativeModel));
+
+            var type2 = newInitializer.DescendantNodes().OfType<DeclarationExpressionSyntax>().Single().Type;
+            var symbol2 = speculativeModel.GetSymbolInfo(type2);
+            Assert.Equal(PublicNullableAnnotation.None, ((ITypeSymbol)symbol2.Symbol).NullableAnnotation);
+        }
+
+        [Fact]
+        [WorkItem(40750, "https://github.com/dotnet/roslyn/issues/40750"),
+         WorkItem(39993, "https://github.com/dotnet/roslyn/issues/39993")]
+        public void SpeculativeSymbolInfo_Expression()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    void M(out C c2)
+    {
+        M(out global::C c);
+        c2 = c;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesFalse());
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var initializer = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+
+            var expression = SyntaxFactory.ParseExpression(@"M(out C c)");
+            var symbol2 = (IMethodSymbol)model.GetSpeculativeSymbolInfo(initializer.Position, expression, SpeculativeBindingOption.BindAsExpression).Symbol;
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, symbol2.Parameters.Single().Type.NullableAnnotation);
+        }
     }
 }

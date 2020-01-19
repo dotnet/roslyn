@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         public ErrorTypeSymbol(Symbols.ErrorTypeSymbol underlying, CodeAnalysis.NullableAnnotation nullableAnnotation)
             : base(nullableAnnotation)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             _underlying = underlying;
         }
 
