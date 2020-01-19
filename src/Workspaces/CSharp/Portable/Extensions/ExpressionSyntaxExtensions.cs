@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this ExpressionSyntax expression,
             ITypeSymbol targetType,
             int position,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             if (targetType.ContainsAnonymousType())
             {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var castExpression = expression.Cast(targetType);
 
             // Ensure that inserting the cast doesn't change the semantics.
-            var specAnalyzer = new SpeculationAnalyzer(expression, castExpression, semanticModel, CancellationToken.None);
+            var specAnalyzer = new SpeculationAnalyzer(expression, castExpression, semanticModel, cancellationToken);
             var speculativeSemanticModel = specAnalyzer.SpeculativeSemanticModel;
             if (speculativeSemanticModel == null)
             {
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var speculatedCastExpression = (CastExpressionSyntax)specAnalyzer.ReplacedExpression;
-            if (!speculatedCastExpression.IsUnnecessaryCast(speculativeSemanticModel, CancellationToken.None))
+            if (!speculatedCastExpression.IsUnnecessaryCast(speculativeSemanticModel, cancellationToken))
             {
                 return expression;
             }
@@ -762,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan);
+            return TrySimplify(expression, semanticModel, out replacementNode, out issueSpan, cancellationToken);
         }
 
         private static bool TryReduceExplicitName(
@@ -1933,7 +1934,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             out ExpressionSyntax replacementNode,
-            out TextSpan issueSpan)
+            out TextSpan issueSpan,
+            CancellationToken cancellationToken)
         {
             replacementNode = null;
             issueSpan = default;
@@ -1955,7 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
                             // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel);
+                            return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel, cancellationToken);
                         }
 
                         return false;
@@ -1971,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 .WithAdditionalAnnotations(Simplifier.Annotation);
 
                             // Ensure that replacement doesn't change semantics.
-                            return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel);
+                            return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel, cancellationToken);
                         }
 
                         return false;
@@ -1981,9 +1983,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression, SemanticModel semanticModel)
+        private static bool ReplacementChangesSemantics(
+            ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression,
+            SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None);
+            var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, cancellationToken);
             return speculationAnalyzer.ReplacementChangesSemantics();
         }
 
