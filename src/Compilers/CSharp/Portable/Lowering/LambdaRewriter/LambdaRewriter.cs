@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Analysis.VisitScopeTree(_analysis.ScopeTree, scope =>
             {
-                if (scope.DeclaredEnvironment is {} env)
+                if (scope.DeclaredEnvironment is { } env)
                 {
                     Debug.Assert(!_frames.ContainsKey(scope.BoundNode));
 
