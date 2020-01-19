@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int arity = Arity;
 
-                if (arity > 0 && arity < ValueTupleRestPosition)
+                if (arity >= 0 && arity < ValueTupleRestPosition)
                 {
                     tupleCardinality = arity;
                     return true;

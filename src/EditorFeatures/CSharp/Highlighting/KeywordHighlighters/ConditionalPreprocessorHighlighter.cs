@@ -18,20 +18,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         {
         }
 
-        protected override IEnumerable<TextSpan> GetHighlights(
-            DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+        protected override void AddHighlights(
+            DirectiveTriviaSyntax directive, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
             var conditionals = directive.GetMatchingConditionalDirectives(cancellationToken);
             if (conditionals == null)
             {
-                yield break;
+                return;
             }
 
             foreach (var conditional in conditionals)
             {
-                yield return TextSpan.FromBounds(
+                highlights.Add(TextSpan.FromBounds(
                     conditional.HashToken.SpanStart,
-                    conditional.DirectiveNameToken.Span.End);
+                    conditional.DirectiveNameToken.Span.End));
             }
         }
     }

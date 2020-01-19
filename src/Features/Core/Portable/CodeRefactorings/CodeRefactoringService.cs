@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -24,21 +26,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     [Export(typeof(ICodeRefactoringService)), Shared]
     internal class CodeRefactoringService : ICodeRefactoringService
     {
-        private readonly Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
+        private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap
+             = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>>();
+
+        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap
+            = new ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>();
+        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
+            = new ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback(r => new ProjectCodeRefactoringProvider(r));
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeRefactoringService(
             [ImportMany] IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
         {
             // convert set of all code refactoring providers into a map from language to a lazy initialized list of ordered providers.
-            _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>>>(
+            _lazyLanguageToProvidersMap = new Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>>(
                 () =>
                     ImmutableDictionary.CreateRange(
                         DistributeLanguages(providers)
                             .GroupBy(lz => lz.Metadata.Language)
-                            .Select(grp => new KeyValuePair<string, Lazy<IEnumerable<CodeRefactoringProvider>>>(
+                            .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
                                 grp.Key,
-                                new Lazy<IEnumerable<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value))))));
+                                new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
         }
 
         private IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
@@ -54,19 +64,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private ImmutableDictionary<string, Lazy<IEnumerable<CodeRefactoringProvider>>> LanguageToProvidersMap
+        private ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageToProvidersMap
             => _lazyLanguageToProvidersMap.Value;
 
-        private IEnumerable<CodeRefactoringProvider> GetProviders(Document document)
+        private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
         {
+            var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
             if (LanguageToProvidersMap.TryGetValue(document.Project.Language, out var lazyProviders))
             {
-                return lazyProviders.Value;
+                allRefactorings = lazyProviders.Value;
             }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<CodeRefactoringProvider>();
-            }
+
+            return allRefactorings.ConcatFast(GetProjectRefactorings(document.Project));
         }
 
         public async Task<bool> HasRefactoringsAsync(
@@ -191,6 +200,113 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             return null;
+        }
+
+        private ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
+        {
+            // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
+            if (project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            {
+                return ImmutableArray<CodeRefactoringProvider>.Empty;
+            }
+
+            if (_projectRefactoringsMap.TryGetValue(project.AnalyzerReferences, out var refactorings))
+            {
+                return refactorings.Value;
+            }
+
+            return GetProjectRefactoringsSlow(project);
+
+            // Local functions
+            ImmutableArray<CodeRefactoringProvider> GetProjectRefactoringsSlow(Project project)
+            {
+                return _projectRefactoringsMap.GetValue(project.AnalyzerReferences, pId => new StrongBox<ImmutableArray<CodeRefactoringProvider>>(ComputeProjectRefactorings(project))).Value;
+            }
+
+            ImmutableArray<CodeRefactoringProvider> ComputeProjectRefactorings(Project project)
+            {
+                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
+                foreach (var reference in project.AnalyzerReferences)
+                {
+                    var projectCodeRefactoringProvider = _analyzerReferenceToRefactoringsMap.GetValue(reference, _createProjectCodeRefactoringsProvider);
+                    foreach (var refactoring in projectCodeRefactoringProvider.GetRefactorings(project.Language))
+                    {
+                        builder.Add(refactoring);
+                    }
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
+        private class ProjectCodeRefactoringProvider
+        {
+            private readonly AnalyzerReference _reference;
+            private ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>> _refactoringsPerLanguage;
+
+            public ProjectCodeRefactoringProvider(AnalyzerReference reference)
+            {
+                _reference = reference;
+                _refactoringsPerLanguage = ImmutableDictionary<string, ImmutableArray<CodeRefactoringProvider>>.Empty;
+            }
+
+            public ImmutableArray<CodeRefactoringProvider> GetRefactorings(string language)
+            {
+                return ImmutableInterlocked.GetOrAdd(ref _refactoringsPerLanguage, language, (language, provider) => provider.CreateRefactorings(language), this);
+            }
+
+            private ImmutableArray<CodeRefactoringProvider> CreateRefactorings(string language)
+            {
+                // check whether the analyzer reference knows how to return fixers directly.
+                if (_reference is ICodeRefactoringProviderFactory codeRefactoringProviderFactory)
+                {
+                    return codeRefactoringProviderFactory.GetRefactorings();
+                }
+
+                // otherwise, see whether we can pick it up from reference itself
+                if (!(_reference is AnalyzerFileReference analyzerFileReference))
+                {
+                    return ImmutableArray<CodeRefactoringProvider>.Empty;
+                }
+
+                var builder = ArrayBuilder<CodeRefactoringProvider>.GetInstance();
+
+                try
+                {
+                    var analyzerAssembly = analyzerFileReference.GetAssembly();
+                    var typeInfos = analyzerAssembly.DefinedTypes;
+
+                    foreach (var typeInfo in typeInfos)
+                    {
+                        if (typeInfo.IsSubclassOf(typeof(CodeRefactoringProvider)))
+                        {
+                            try
+                            {
+                                var attribute = typeInfo.GetCustomAttribute<ExportCodeRefactoringProviderAttribute>();
+                                if (attribute != null)
+                                {
+                                    if (attribute.Languages == null ||
+                                        attribute.Languages.Length == 0 ||
+                                        attribute.Languages.Contains(language))
+                                    {
+                                        builder.Add((CodeRefactoringProvider)Activator.CreateInstance(typeInfo.AsType()));
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // REVIEW: is the below message right?
+                    // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
+                }
+
+                return builder.ToImmutableAndFree();
+            }
         }
     }
 }

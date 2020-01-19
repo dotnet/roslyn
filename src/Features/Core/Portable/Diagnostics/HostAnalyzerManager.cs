@@ -154,11 +154,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Return true if the given <paramref name="analyzer"/> is suppressed for the given project.
+        /// NOTE: This API is intended to be used only for performance optimization.
         /// </summary>
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
             var options = project.CompilationOptions;
-            if (options == null || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
             {
                 return false;
             }
@@ -171,14 +172,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            // don't capture project
-            var projectId = project.Id;
-
-            // Skip telemetry logging for supported diagnostics, as that can cause an infinite loop.
-            void onAnalyzerException(Exception ex, DiagnosticAnalyzer a, Diagnostic diagnostic) =>
-                    AnalyzerHelper.OnAnalyzerException_NoTelemetryLogging(a, diagnostic, _hostDiagnosticUpdateSource, projectId);
-
-            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, onAnalyzerException);
+            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
+            //       on this code path, which returns true if analyzer is suppressed through compilation options.
+            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
+            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
+            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
+            return false;
         }
 
         /// <summary>

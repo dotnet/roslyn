@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,8 +20,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal class RESOURCE
     {
-        internal RESOURCE_STRING pstringType;
-        internal RESOURCE_STRING pstringName;
+        internal RESOURCE_STRING? pstringType;
+        internal RESOURCE_STRING? pstringName;
 
         internal DWORD DataSize;               // size of data without header
         internal DWORD HeaderSize;     // Length of the header
@@ -30,13 +32,13 @@ namespace Microsoft.CodeAnalysis
         internal WORD LanguageId;     // Unicode support for NLS
         internal DWORD Version;        // Version of the resource data
         internal DWORD Characteristics;        // Characteristics of the data
-        internal byte[] data;       //data
+        internal byte[]? data;       //data
     };
 
     internal class RESOURCE_STRING
     {
         internal WORD Ordinal;
-        internal string theString;
+        internal string? theString;
     };
 
     /// <summary>
@@ -504,10 +506,10 @@ namespace Microsoft.CodeAnalysis
             Version assemblyVersion, //individual values must be smaller than 65535
             string fileDescription = " ",   //the old compiler put blank here if nothing was user-supplied
             string legalCopyright = " ",    //the old compiler put blank here if nothing was user-supplied
-            string legalTrademarks = null,
-            string productName = null,
-            string comments = null,
-            string companyName = null)
+            string? legalTrademarks = null,
+            string? productName = null,
+            string? comments = null,
+            string? companyName = null)
         {
             var resWriter = new BinaryWriter(resStream, Encoding.Unicode);
             resStream.Position = (resStream.Position + 3) & ~3;
@@ -571,15 +573,15 @@ namespace Microsoft.CodeAnalysis
 
         private class VersionResourceSerializer
         {
-            private readonly string _commentsContents;
-            private readonly string _companyNameContents;
+            private readonly string? _commentsContents;
+            private readonly string? _companyNameContents;
             private readonly string _fileDescriptionContents;
             private readonly string _fileVersionContents;
             private readonly string _internalNameContents;
             private readonly string _legalCopyrightContents;
-            private readonly string _legalTrademarksContents;
+            private readonly string? _legalTrademarksContents;
             private readonly string _originalFileNameContents;
-            private readonly string _productNameContents;
+            private readonly string? _productNameContents;
             private readonly string _productVersionContents;
             private readonly Version _assemblyVersionContents;
 
@@ -593,8 +595,8 @@ namespace Microsoft.CodeAnalysis
             private const ushort sizeVS_FIXEDFILEINFO = sizeof(DWORD) * 13;
             private readonly bool _isDll;
 
-            internal VersionResourceSerializer(bool isDll, string comments, string companyName, string fileDescription, string fileVersion,
-                string internalName, string legalCopyright, string legalTrademark, string originalFileName, string productName, string productVersion,
+            internal VersionResourceSerializer(bool isDll, string? comments, string? companyName, string fileDescription, string fileVersion,
+                string internalName, string legalCopyright, string? legalTrademark, string originalFileName, string? productName, string productVersion,
                 Version assemblyVersion)
             {
                 _isDll = isDll;
@@ -700,7 +702,7 @@ namespace Microsoft.CodeAnalysis
 
             private static void WriteVersionString(KeyValuePair<string, string> keyValuePair, BinaryWriter writer)
             {
-                System.Diagnostics.Debug.Assert(keyValuePair.Value != null);
+                RoslynDebug.Assert(keyValuePair.Value != null);
 
                 ushort cbBlock = SizeofVerString(keyValuePair.Key, keyValuePair.Value);
                 int cbKey = (keyValuePair.Key.Length + 1) * 2;     // includes terminating NUL

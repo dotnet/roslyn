@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Concurrent;
 using System.Globalization;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// "fill-in" placeholders, those should be expressed in standard string.Format notation
         /// and be in the string.
         /// </summary>
-        public abstract string LoadMessage(int code, CultureInfo language);
+        public abstract string LoadMessage(int code, CultureInfo? language);
 
         /// <summary>
         /// Get an optional localizable title for the given diagnostic code.
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         /// Given a message identifier (e.g., CS0219), severity, warning as error and a culture, 
         /// get the entire prefix (e.g., "error CS0219: Warning as Error:" for C# or "error BC42024:" for VB) used on error messages.
         /// </summary>
-        public abstract string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo culture);
+        public abstract string GetMessagePrefix(string id, DiagnosticSeverity severity, bool isWarningAsError, CultureInfo? culture);
 
         /// <summary>
         /// Convert given symbol to string representation.
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// Filter a <see cref="DiagnosticInfo"/> based on the compilation options so that /nowarn and /warnaserror etc. take effect.options
         /// </summary>
         /// <returns>A <see cref="DiagnosticInfo"/> with effective severity based on option or null if suppressed.</returns>
-        public DiagnosticInfo FilterDiagnosticInfo(DiagnosticInfo diagnosticInfo, CompilationOptions options)
+        public DiagnosticInfo? FilterDiagnosticInfo(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
             var report = this.GetDiagnosticReport(diagnosticInfo, options);
             switch (report)

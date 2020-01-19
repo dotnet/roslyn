@@ -15,13 +15,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class WorkspaceAnalyzerOptions : AnalyzerOptions
     {
         private readonly Solution _solution;
-        private readonly OptionSet _optionSet;
 
-        public WorkspaceAnalyzerOptions(AnalyzerOptions options, OptionSet optionSet, Solution solution)
+        public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution)
             : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
             _solution = solution;
-            _optionSet = optionSet;
         }
 
         public HostWorkspaceServices Services => _solution.Workspace.Services;
@@ -32,16 +30,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var documentId = _solution.GetDocumentId(syntaxTree);
             if (documentId == null)
             {
-                return _optionSet;
+                return _solution.Options;
             }
 
             var document = _solution.GetDocument(documentId);
             if (document == null)
             {
-                return _optionSet;
+                return _solution.Options;
             }
 
-            return await document.GetOptionsAsync(_optionSet, cancellationToken).ConfigureAwait(false);
+            return await document.GetOptionsAsync(_solution.Options, cancellationToken).ConfigureAwait(false);
         }
 
         public override bool Equals(object obj)

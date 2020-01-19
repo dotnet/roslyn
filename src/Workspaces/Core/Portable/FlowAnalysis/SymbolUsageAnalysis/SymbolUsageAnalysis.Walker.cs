@@ -82,9 +82,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private void OnReadReferenceFound(ISymbol symbol)
                 => _currentAnalysisData.OnReadReferenceFound(symbol);
 
-            private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, bool maybeWritten)
+            private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, ValueUsageInfo valueUsageInfo)
             {
-                _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten);
+                // maybeWritten == 'ref' argument.
+                var isRef = valueUsageInfo == ValueUsageInfo.ReadableWritableReference;
+                _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten: isRef, isRef);
                 ProcessPossibleDelegateCreationAssignment(symbol, operation);
             }
 
@@ -136,8 +138,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 if (isWrittenTo)
                 {
-                    // maybeWritten == 'ref' argument.
-                    OnWriteReferenceFound(symbol, operation, maybeWritten: valueUsageInfo == ValueUsageInfo.ReadableWritableReference);
+                    OnWriteReferenceFound(symbol, operation, valueUsageInfo);
                 }
 
                 if (operation.Parent is IIncrementOrDecrementOperation &&
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         if (write.Kind != OperationKind.FlowCaptureReference)
                         {
                             Debug.Assert(symbolOpt != null);
-                            OnWriteReferenceFound(symbolOpt, write, maybeWritten: false);
+                            OnWriteReferenceFound(symbolOpt, write, ValueUsageInfo.Write);
 
                             if (isUsedCompountAssignment)
                             {
@@ -256,7 +257,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     operation.Parent is IForEachLoopOperation forEachLoop && forEachLoop.LoopControlVariable == operation ||
                     operation.Parent is ICatchClauseOperation catchClause && catchClause.ExceptionDeclarationOrExpression == operation)
                 {
-                    OnWriteReferenceFound(operation.Symbol, operation, maybeWritten: false);
+                    OnWriteReferenceFound(operation.Symbol, operation, ValueUsageInfo.Write);
                 }
 
                 base.VisitVariableDeclarator(operation);

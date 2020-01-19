@@ -15,17 +15,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             If TypeOf node Is ExitStatementSyntax AndAlso node.Kind <> SyntaxKind.ExitTryStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
 
             Dim tryBlock = node.GetAncestor(Of TryBlockSyntax)()
             If tryBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)
 
             With tryBlock
                 highlights.Add(.TryStatement.TryKeyword.Span)
@@ -48,10 +46,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 End If
 
                 highlights.Add(.EndTryStatement.Span)
-
-                Return highlights
             End With
-        End Function
+        End Sub
 
         Private Sub HighlightRelatedStatements(node As SyntaxNode, highlights As List(Of TextSpan))
             If node.Kind = SyntaxKind.ExitTryStatement Then

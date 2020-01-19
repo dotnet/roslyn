@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -966,7 +965,7 @@ class Program
 {
     public static void Test(string name)
     {
-        var result = name switch
+        bool? result = name switch
         {
             ""a"" => true,
             ""b"" => false,
@@ -974,6 +973,612 @@ class Program
         };
     }
 }");
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_Interfaces()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit, IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit;
+        [||]switch (name)
+        {
+            case ""apple"":
+                fruit = new Apple();
+            break;
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit, IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit = name switch
+        {
+            ""apple"" => new Apple(),
+            ""banana"" => new Banana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_Interfaces2()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit, IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit;
+        [||]switch (name)
+        {
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            case ""banana2"":
+                fruit = new Banana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit, IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit = name switch
+        {
+            ""banana"" => new Banana(),
+            ""banana2"" => new Banana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_Interfaces3()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit;
+        [||]switch (name)
+        {
+            case ""apple"":
+                fruit = new Apple();
+            break;
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit = name switch
+        {
+            ""apple"" => new Apple(),
+            ""banana"" => new Banana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_ClassInheritance()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicApple : Apple { }
+
+    class OrganicBanana : Banana { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit;
+        [||]switch (name)
+        {
+            case ""apple"":
+                fruit = new OrganicApple();
+            break;
+            case ""banana"":
+                fruit = new OrganicBanana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Apple : IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicApple : Apple { }
+
+    class OrganicBanana : Banana { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit = name switch
+        {
+            ""apple"" => new OrganicApple(),
+            ""banana"" => new OrganicBanana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_ClassInheritance2()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicBanana : Banana, IFruit { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit;
+        [||]switch (name)
+        {
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            case ""organic banana"":
+                fruit = new OrganicBanana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicBanana : Banana, IFruit { }
+
+    public static void Test(string name)
+    {
+        IFruit2 fruit = name switch
+        {
+            ""banana"" => new Banana(),
+            ""organic banana"" => new OrganicBanana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestImplicitDeclaration_ClassInheritance()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicBanana : Banana { }
+
+    public static void Test(string name)
+    {
+        Banana fruit;
+        [||]switch (name)
+        {
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            case ""organic banana"":
+                fruit = new OrganicBanana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicBanana : Banana { }
+
+    public static void Test(string name)
+    {
+        var fruit = name switch
+        {
+            ""banana"" => new Banana(),
+            ""organic banana"" => new OrganicBanana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestImplicitDeclaration_ClassInheritance2()
+        {
+            var input =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicBanana : Banana, IFruit { }
+
+    public static void Test(string name)
+    {
+        Banana fruit;
+        [||]switch (name)
+        {
+            case ""banana"":
+                fruit = new Banana();
+            break;
+            case ""organic banana"":
+                fruit = new OrganicBanana();
+            break;
+            default:
+                throw new InvalidOperationException(""Unknown fruit."");
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+class Program
+{
+    interface IFruit { }
+
+    interface IFruit2 { }
+
+    class Banana : IFruit, IFruit2 { }
+
+    class OrganicBanana : Banana, IFruit { }
+
+    public static void Test(string name)
+    {
+        var fruit = name switch
+        {
+            ""banana"" => new Banana(),
+            ""organic banana"" => new OrganicBanana(),
+            _ => throw new InvalidOperationException(""Unknown fruit.""),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarElsewhere, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [WorkItem(38771, "https://github.com/dotnet/roslyn/issues/38771")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_AllCasesDefaultLiteral()
+        {
+            var input =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o;
+        [||]switch (a)
+        {
+            case 0:
+                o = default;
+                break;
+            default:
+                o = default;
+                break;
+        }
+    }
+}";
+            var expected =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o = a switch
+        {
+            0 => default,
+            _ => default,
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_MixedDefaultLiteralDefaultParameter()
+        {
+            var input =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o;
+        [||]switch (a)
+        {
+            case 0:
+                o = default(string);
+                break;
+            default:
+                o = default;
+                break;
+        }
+    }
+}";
+            var expected = @"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o = a switch
+        {
+            0 => default(string),
+            _ => default,
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestImplicitDeclaration_AllCasesDefaultParameter()
+        {
+            var input =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o;
+        [||]switch (a)
+        {
+            case 0:
+                o = default(object);
+                break;
+            default:
+                o = default(object);
+                break;
+        }
+    }
+}";
+            var expected =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        var o = a switch
+        {
+            0 => default(object),
+            _ => default(object),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_AllCasesDefaultParameter()
+        {
+            var input =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o;
+        [||]switch (a)
+        {
+            case 0:
+                o = default(object);
+                break;
+            default:
+                o = default(object);
+                break;
+        }
+    }
+}";
+            var expected =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o = a switch
+        {
+            0 => default(object),
+            _ => default(object),
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.FalseWithSilentEnforcement), parseOptions: TestOptions.Regular8);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestExplicitDeclaration_DeclarationTypeDifferentFromAllCaseTypes()
+        {
+            var input =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o;
+        [||]switch (a)
+        {
+            case 0:
+                o = """";
+                break;
+            default:
+                o = """";
+                break;
+        }
+    }
+}";
+            var expected =
+@"class Program
+{
+    public static void Test()
+    {
+        var a = 0;
+        object o = a switch
+        {
+            0 => """",
+            _ => """",
+        };
+    }
+}";
+            await TestInRegularAndScriptAsync(input, expected, options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSilentEnforcement), parseOptions: TestOptions.Regular8);
         }
 
         [WorkItem(40198, "https://github.com/dotnet/roslyn/issues/40198")]

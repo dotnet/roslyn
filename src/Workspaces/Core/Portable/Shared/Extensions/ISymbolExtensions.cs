@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return null;
             }
 
-            ISymbol symbol;
+            ISymbol? symbol;
             if (crefAttribute is null)
             {
                 Contract.ThrowIfNull(candidate);

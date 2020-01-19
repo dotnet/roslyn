@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            MethodSymbol next = method2;
+            MethodSymbol? next = method2;
             while (true)
             {
                 if (_constructorInitializers.TryGetValue(next, out next))

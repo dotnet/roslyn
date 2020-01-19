@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PopulateSwitch;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             var switchExpressionType = switchExpression?.Type;
 
             var enumMembers = new Dictionary<long, ISymbol>();
+
+            // Check if the type of the expression is a nullable INamedTypeSymbol
+            // if the type is both nullable and an INamedTypeSymbol extract the type argument from the nullable
+            // and check if it is of enum type
+            if (switchExpressionType != null)
+                switchExpressionType = switchExpressionType.IsNullable(out var underlyingType) ? underlyingType : switchExpressionType;
+
             if (switchExpressionType?.TypeKind == TypeKind.Enum)
             {
                 if (!PopulateSwitchStatementHelpers.TryGetAllEnumMembers(switchExpressionType, enumMembers) ||

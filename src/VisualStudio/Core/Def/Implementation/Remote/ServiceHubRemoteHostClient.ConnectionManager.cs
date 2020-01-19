@@ -6,19 +6,20 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
+    internal sealed partial class ServiceHubRemoteHostClient
     {
-        private partial class ConnectionManager
+        private partial class ConnectionManager : IDisposable
         {
+            private readonly Workspace _workspace;
             private readonly HubClient _hubClient;
             private readonly HostGroup _hostGroup;
-            private readonly TimeSpan _timeout;
 
             private readonly ReaderWriterLockSlim _shutdownLock;
             private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
@@ -31,22 +32,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // indicate whether pool should be used.
             private readonly bool _enableConnectionPool;
 
-            // indicate whether connection manager has shutdown
-            private bool _shutdown;
+            private bool _isDisposed;
 
             public ConnectionManager(
+                Workspace workspace,
                 HubClient hubClient,
                 HostGroup hostGroup,
                 bool enableConnectionPool,
                 int maxPoolConnection,
-                TimeSpan timeout,
                 ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc)
             {
-                _shutdown = false;
-
+                _workspace = workspace;
                 _hubClient = hubClient;
                 _hostGroup = hostGroup;
-                _timeout = timeout;
 
                 _remotableDataRpc = remotableDataRpc;
                 _maxPoolConnections = maxPoolConnection;
@@ -127,16 +125,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
-                var serviceStream = await Connections.RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
+                var serviceStream = await RequestServiceAsync(_workspace, _hubClient, serviceName, _hostGroup, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
+                return new JsonRpcConnection(_workspace, _hubClient.Logger, callbackTarget, serviceStream, dataRpc);
             }
 
             private void Free(string serviceName, JsonRpcConnection connection)
             {
                 using (_shutdownLock.DisposableRead())
                 {
-                    if (!_enableConnectionPool || _shutdown)
+                    if (!_enableConnectionPool || _isDisposed)
                     {
                         // pool is not being used or 
                         // manager is already shutdown
@@ -158,11 +156,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            public void Shutdown()
+            public void Dispose()
             {
                 using (_shutdownLock.DisposableWrite())
                 {
-                    _shutdown = true;
+                    _isDisposed = true;
 
                     // let ref count this one is holding go
                     _remotableDataRpc.Dispose();
@@ -178,6 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                     _pools.Clear();
                 }
+
+                _hubClient.Dispose();
             }
         }
     }

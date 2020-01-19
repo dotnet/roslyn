@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -35,13 +38,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private static bool _enabled;
 
-        private static ExportProvider _currentExportProvider;
-        private static ComposableCatalog _expectedCatalog;
-        private static ExportProvider _expectedProviderForCatalog;
+        private static ExportProvider? _currentExportProvider;
+        private static ComposableCatalog? _expectedCatalog;
+        private static ExportProvider? _expectedProviderForCatalog;
 
         internal static bool Enabled => _enabled;
 
-        internal static ExportProvider ExportProviderForCleanup => _currentExportProvider;
+        internal static ExportProvider? ExportProviderForCleanup => _currentExportProvider;
 
         internal static void SetEnabled_OnlyUseExportProviderAttributeCanCall(bool value)
         {
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return GetOrCreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
         }
 
-        public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
+        public static ComposableCatalog GetOrCreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
             if (assemblies is ImmutableArray<Assembly> assembliesArray)
             {
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return CreateAssemblyCatalog(assemblies, resolver);
         }
 
-        private static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
+        private static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver? resolver = null)
         {
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
         }
 
-        public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver resolver = null)
+        public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver? resolver = null)
         {
             var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
 
@@ -254,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return GetOrCreateExportProvider();
             }
 
-            private static void RequireForSingleExportProvider(bool condition)
+            private static void RequireForSingleExportProvider([DoesNotReturnIf(false)] bool condition)
             {
                 if (!condition)
                 {
@@ -275,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     //   method attempting to create a default ExportProvider which did not match the one assigned to
                     //   the test.
                     // * A test attempted to perform multiple test sequences in the context of a single test method,
-                    //   rather than break up the test into distict tests for each case.
+                    //   rather than break up the test into distinct tests for each case.
                     // * A test referenced different predefined ExportProvider instances within the context of a test.
                     //   Each test is expected to use the same ExportProvider throughout the test.
                     throw new InvalidOperationException($"Only one {nameof(ExportProvider)} can be created in the context of a single test.");

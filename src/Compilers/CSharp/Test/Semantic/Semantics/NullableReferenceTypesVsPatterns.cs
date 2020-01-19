@@ -1201,6 +1201,17 @@ class Program
             var source = @"
 class Program
 {
+    void M0(object o)
+    {
+        var t = (o, o);
+        _ = t switch
+        {
+            (null, null) => 1,
+            (null, {}) => 2,
+            ({}, null) => 3,
+            ({}, {}) => 4,
+        };
+    }
     void M1(object o)
     {
         var t = (o, o);
@@ -1213,7 +1224,7 @@ class Program
     void M2(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 2 not exhaustive
         {
             (1, 2) => 1,
             ({}, {}) => 2,
@@ -1222,7 +1233,7 @@ class Program
     void M3(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 3 not exhaustive
         {
             (null, 2) => 1,
             ({}, {}) => 2,
@@ -1232,7 +1243,7 @@ class Program
     void M4(object o)
     {
         var t = (o, o);
-        _ = t switch // 2 not exhaustive
+        _ = t switch // 4 not exhaustive
         {
             { Item1: null, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1241,7 +1252,7 @@ class Program
     void M5(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 5 not exhaustive
         {
             { Item1: 1, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1250,7 +1261,7 @@ class Program
     void M6(object o)
     {
         var t = (o, o);
-        _ = t switch
+        _ = t switch // 6 not exhaustive
         {
             { Item1: null, Item2: 2 } => 1,
             { Item1: {}, Item2: {} } => 2,
@@ -1259,7 +1270,7 @@ class Program
     }
     void M7(object o, bool b)
     {
-        _ = o switch // 3 not exhaustive
+        _ = o switch // 7 not exhaustive
         {
             null when b => 1,
             {} => 2,
@@ -1278,15 +1289,27 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                // (18,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
                 //         _ = t switch // 1 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(7, 15),
-                // (35,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(18, 15),
+                // (27,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
                 //         _ = t switch // 2 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(35, 15),
-                // (62,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
-                //         _ = o switch // 3 not exhaustive
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(62, 15));
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(27, 15),
+                // (36,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 3 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(36, 15),
+                // (46,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 4 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(46, 15),
+                // (55,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 5 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(55, 15),
+                // (64,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = t switch // 6 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(64, 15),
+                // (73,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive).
+                //         _ = o switch // 7 not exhaustive
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithLocation(73, 15));
         }
 
         [Fact]
@@ -1925,6 +1948,128 @@ public interface IOut<out T> { }
                 // (40,29): warning CS8619: Nullability of reference types in value of type 'I<string?>' doesn't match target type 'I<string>'.
                 //         _ = i switch { 1 => y, _ => x }/*T:I<string!>!*/; // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<string?>", "I<string>").WithLocation(40, 29));
+        }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_01()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    string? field = string.Empty;
+    string? otherField = string.Empty;
+
+    void M1(C c)
+    {
+        if (c.field == null) return;
+        
+        c.field.ToString();
+    }
+
+    void M2(C c)
+    {
+        if (c is { field: null }) return;
+        
+        c.field.ToString();
+    }
+
+    void M3(C c)
+    {
+        switch (c)
+        {
+            case { field: null }:
+                break;
+            default:
+                c.field.ToString();
+                break;
+        }
+    }
+
+    void M4(C c)
+    {
+        _ = c switch
+        {
+            { field: null } => string.Empty,
+            _ => c.field.ToString(),
+        };
+    }
+
+    void M5(C c)
+    {
+        if (c is { field: null }) return;
+        
+        c.otherField.ToString(); // W
+    }
+}
+");
+            c.VerifyDiagnostics(
+                // (47,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.otherField.ToString(); // W
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.otherField").WithLocation(47, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_02()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+class C
+{
+    C? c = null;
+
+    void M1(C c)
+    {
+        if (c is { c: null })
+        {
+            if (c.c != null)
+            {
+                c.c.c.c.ToString();
+            }
+        }
+    }
+}
+");
+            c.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(39264, "https://github.com/dotnet/roslyn/issues/39264")]
+        public void IsPatternSplitState_03()
+        {
+            CSharpCompilation c = CreateNullableCompilation(@"
+#nullable enable
+public class C {
+    C? c = null;
+
+    public static void Main()
+    {
+        C c = new C();
+        M1(c, new C());
+    }
+
+    static void M1(C c, C c2)
+    {
+        if (c is { c : null } && c2 is { c: null })
+        {
+            c.c = c2;
+            if (c.c != null)
+            {
+                c.c.c.ToString(); // warning
+            }
+        }
+    }
+}
+");
+            c.VerifyDiagnostics(
+                // (19,17): warning CS8602: Dereference of a possibly null reference.
+                //                 c.c.c.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.c.c").WithLocation(19, 17)
+                );
         }
     }
 }

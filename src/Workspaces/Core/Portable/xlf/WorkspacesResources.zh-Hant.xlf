@@ -52,6 +52,11 @@
         <target state="translated">文件不支援語法樹</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_content_of_source_file_0_1">
+        <source>Error reading content of source file '{0}' -- '{1}'.</source>
+        <target state="new">Error reading content of source file '{0}' -- '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expression_level_preferences">
         <source>Expression-level preferences</source>
         <target state="translated">運算式層級喜好設定</target>
@@ -90,6 +95,11 @@
       <trans-unit id="New_line_preferences">
         <source>New line preferences</source>
         <target state="translated">新行喜好設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Options_did_not_come_from_specified_Solution">
+        <source>Options did not come from specified Solution</source>
+        <target state="new">Options did not come from specified Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_usings">
@@ -1342,6 +1352,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">新增匯入會讓擴充方法變成名稱與 '{0}' 相同的範圍</target>
         <note />
       </trans-unit>
+      <trans-unit id="Workspace_error">
+        <source>Workspace error</source>
+        <target state="new">Workspace error</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Workspace_is_not_empty">
         <source>Workspace is not empty.</source>
         <target state="translated">工作區不是空的。</target>
@@ -1845,11 +1860,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Add_braces_to_0_statement">
         <source>Add braces to '{0}' statement.</source>
         <target state="translated">為 '{0}' 陳述式加入大括號。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Options_did_not_come_from_Workspace">
-        <source>Options did not come from Workspace</source>
-        <target state="translated">選項並非來自工作工作區</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable">

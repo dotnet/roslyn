@@ -159,9 +159,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 var newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken);
                 var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
 
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
+                var baseOffsetInLineInPositions = desiredIndentation.BasePosition - baseLine.Start;
+                var baseOffsetInLineInColumns = baseLine.GetColumnFromLineOffset(baseOffsetInLineInPositions, TabSize);
+
+                var indent = baseOffsetInLineInColumns + desiredIndentation.Offset;
                 var indentString = indent.CreateIndentationString(UseTabs, TabSize);
                 return indentString;
             }
