@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 {
     internal class TypeSyntaxSimplifierWalker : CSharpSyntaxWalker
     {
+        private static readonly ImmutableHashSet<string> s_emptyAliasedNames = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
+
         /// <summary>
         /// This set contains the full names of types that have equivalent predefined names in the language.
         /// </summary>
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         /// This is used so we can easily tell if we should try to simplify some identifier to an
         /// alias when we encounter it.
         /// </summary>
-        private ImmutableHashSet<string> _aliasedNames = ImmutableHashSet.Create<string>(StringComparer.Ordinal);
+        private readonly ImmutableHashSet<string> _aliasedNames;
 
         public List<Diagnostic> Diagnostics { get; } = new List<Diagnostic>();
 
@@ -59,23 +61,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             _semanticModel = semanticModel;
             _optionSet = optionSet;
             _cancellationToken = cancellationToken;
+
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            _aliasedNames = GetAliasedNames(root as CompilationUnitSyntax);
         }
 
-        public override void VisitUsingDirective(UsingDirectiveSyntax node)
+        private static ImmutableHashSet<string> GetAliasedNames(CompilationUnitSyntax? compilationUnit)
         {
-            if (node.Alias is object)
+            var aliasedNames = s_emptyAliasedNames;
+            if (compilationUnit is null)
+                return aliasedNames;
+
+            foreach (var usingDirective in compilationUnit.Usings)
             {
-                if (node.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
+                AddAliasedName(usingDirective);
+            }
+
+            foreach (var member in compilationUnit.Members)
+            {
+                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                    AddAliasedNames(namespaceDeclaration);
+            }
+
+            return aliasedNames;
+
+            void AddAliasedName(UsingDirectiveSyntax usingDirective)
+            {
+                if (usingDirective.Alias is object)
                 {
-                    var identifierAlias = identifierName.Identifier.ValueText;
-                    if (!RoslynString.IsNullOrEmpty(identifierAlias))
+                    if (usingDirective.Name.GetRightmostName() is IdentifierNameSyntax identifierName)
                     {
-                        ImmutableInterlocked.Update(ref _aliasedNames, (set, alias) => set.Add(alias), identifierAlias);
+                        var identifierAlias = identifierName.Identifier.ValueText;
+                        if (!RoslynString.IsNullOrEmpty(identifierAlias))
+                        {
+                            aliasedNames = aliasedNames.Add(identifierAlias);
+                        }
                     }
                 }
             }
 
-            base.VisitUsingDirective(node);
+            void AddAliasedNames(NamespaceDeclarationSyntax namespaceDeclaration)
+            {
+                foreach (var usingDirective in namespaceDeclaration.Usings)
+                {
+                    AddAliasedName(usingDirective);
+                }
+
+                foreach (var member in namespaceDeclaration.Members)
+                {
+                    if (member is NamespaceDeclarationSyntax memberNamespace)
+                        AddAliasedNames(memberNamespace);
+                }
+            }
         }
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)

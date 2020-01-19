@@ -9,6 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
     Friend Class TypeSyntaxSimplifierWalker
         Inherits VisualBasicSyntaxWalker
 
+        Private Shared ReadOnly s_emptyAliasedNames As ImmutableHashSet(Of String) = ImmutableHashSet.Create(Of String)(CaseInsensitiveComparison.Comparer)
+
         Private Shared ReadOnly s_predefinedTypeMetadataNames As ImmutableHashSet(Of String) = ImmutableHashSet.Create(
             CaseInsensitiveComparison.Comparer,
             NameOf([Boolean]),
@@ -39,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
         ''' This is used so we can easily tell if we should try to simplify some identifier to an
         ''' alias when we encounter it.
         ''' </summary>
-        Private _aliasedNames As ImmutableHashSet(Of String) = ImmutableHashSet.Create(Of String)(CaseInsensitiveComparison.Comparer)
+        Private ReadOnly _aliasedNames As ImmutableHashSet(Of String)
 
         Public ReadOnly Property Diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
 
@@ -51,22 +53,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             _optionSet = optionSet
             _cancellationToken = cancellationToken
 
+            Dim root = semanticModel.SyntaxTree.GetRoot(cancellationToken)
+            _aliasedNames = GetAliasedNames(TryCast(root, CompilationUnitSyntax))
+
             For Each aliasSymbol In semanticModel.Compilation.AliasImports()
                 _aliasedNames = _aliasedNames.Add(aliasSymbol.Target.Name)
             Next
         End Sub
 
-        Public Overrides Sub VisitSimpleImportsClause(node As SimpleImportsClauseSyntax)
-            If node.Alias IsNot Nothing Then
-                Dim identifierName = TryCast(node.Name.GetRightmostName(), IdentifierNameSyntax)
+        Private Shared Function GetAliasedNames(compilationUnit As CompilationUnitSyntax) As ImmutableHashSet(Of String)
+            Dim aliasedNames = s_emptyAliasedNames
+            If compilationUnit Is Nothing Then
+                Return aliasedNames
+            End If
+
+            For Each importsStatement In compilationUnit.Imports
+                For Each importsClause In importsStatement.ImportsClauses
+                    Dim simpleImportsClause = TryCast(importsClause, SimpleImportsClauseSyntax)
+                    If simpleImportsClause Is Nothing Then
+                        Continue For
+                    End If
+
+                    AddAliasedName(aliasedNames, simpleImportsClause)
+                Next
+            Next
+
+            Return aliasedNames
+        End Function
+
+        Private Shared Sub AddAliasedName(ByRef aliasedNames As ImmutableHashSet(Of String), simpleImportsClause As SimpleImportsClauseSyntax)
+            If simpleImportsClause.Alias IsNot Nothing Then
+                Dim identifierName = TryCast(simpleImportsClause.Name.GetRightmostName(), IdentifierNameSyntax)
                 If identifierName IsNot Nothing Then
                     If Not String.IsNullOrEmpty(identifierName.Identifier.ValueText) Then
-                        ImmutableInterlocked.Update(_aliasedNames, Function(names, identifier) names.Add(identifier), identifierName.Identifier.ValueText)
+                        aliasedNames = aliasedNames.Add(identifierName.Identifier.ValueText)
                     End If
                 End If
             End If
-
-            MyBase.VisitSimpleImportsClause(node)
         End Sub
 
         Public Overrides Sub VisitQualifiedName(node As QualifiedNameSyntax)
