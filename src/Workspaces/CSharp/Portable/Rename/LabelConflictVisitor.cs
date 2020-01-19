@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 
@@ -32,9 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // We want to collect any labels and add them all at once for this scope
             foreach (var statement in node.Statements)
             {
-                if (statement.Kind() == SyntaxKind.LabeledStatement)
+                if (statement.IsKind(SyntaxKind.LabeledStatement, out LabeledStatementSyntax declarationStatement))
                 {
-                    var declarationStatement = (LabeledStatementSyntax)statement;
                     tokens.Add(declarationStatement.Identifier);
                 }
             }
