@@ -96,29 +96,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context);
 
-        protected abstract bool CanSimplifyTypeNameExpressionCore(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet,
-            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
-            CancellationToken cancellationToken);
-
         protected abstract string GetLanguageName();
-
-        protected bool TrySimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, AnalyzerOptions analyzerOptions, out Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var syntaxTree = node.SyntaxTree;
-            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                diagnostic = null;
-                return false;
-            }
-
-            return TrySimplify(model, node, out diagnostic, optionSet, cancellationToken);
-        }
 
         public bool TrySimplify(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            if (!CanSimplifyTypeNameExpressionCore(
+            if (!CanSimplifyTypeNameExpression(
                     model, node, optionSet,
                     out var issueSpan, out var diagnosticId, out var inDeclaration,
                     cancellationToken))
