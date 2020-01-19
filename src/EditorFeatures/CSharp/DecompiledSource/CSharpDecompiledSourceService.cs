@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
 
-            text += "#if false // Decompilation log" + Environment.NewLine;
+            text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
             text += logger.ToString();
             text += "#endif" + Environment.NewLine;
 

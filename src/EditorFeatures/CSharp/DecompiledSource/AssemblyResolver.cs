@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             _parentCompilation = parentCompilation;
             _logger = logger;
             BuildReferenceCache();
-            Log("'{0}' items in cache", _cache.Count);
+            Log(CSharpEditorResources._0_items_in_cache, _cache.Count);
 
             void BuildReferenceCache()
             {
@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public PEFile Resolve(IAssemblyReference name)
         {
             Log("------------------");
-            Log("Resolve: '{0}'", name.FullName);
+            Log(CSharpEditorResources.Resolve_0, name.FullName);
 
             // First, find the correct list of assemblies by name
             if (!_cache.TryGetValue(name.Name, out var assemblies))
             {
-                Log("Could not find by name: '{0}'", name.FullName);
+                Log(CSharpEditorResources.Could_not_find_by_name_0, name.FullName);
                 return null;
             }
 
@@ -56,16 +56,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             // but still might have a version different from what the decompiler asks for.
             if (assemblies.Count == 1)
             {
-                Log("Found single assembly: '{0}'", assemblies[0]);
+                Log(CSharpEditorResources.Found_single_assembly_0, assemblies[0]);
                 if (assemblies[0].Identity.Version != name.Version)
                 {
-                    Log("WARN: Version mismatch. Expected: '{0}', Got: '{1}'!", name.Version, assemblies[0].Identity.Version);
+                    Log(CSharpEditorResources.WARN_Version_mismatch_Expected_0_Got_1, name.Version, assemblies[0].Identity.Version);
                 }
                 return MakePEFile(assemblies[0]);
             }
 
             // There are multiple assemblies
-            Log("Found '{0}' assemblies for '{1}':", assemblies.Count, name.Name);
+            Log(CSharpEditorResources.Found_0_assemblies_for_1, assemblies.Count, name.Name);
 
             // Get an exact match or highest version match from the list
             IAssemblySymbol highestVersion = null;
@@ -81,24 +81,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 if (version == name.Version && publicKeyToken.SequenceEqual(publicKeyTokenOfName))
                 {
                     exactMatch = assembly;
-                    Log("Found exact match: '{0}'", assembly);
+                    Log(CSharpEditorResources.Found_exact_match_0, assembly);
                 }
                 else if (highestVersion == null || highestVersion.Identity.Version < version)
                 {
                     highestVersion = assembly;
-                    Log("Found higher version match: '{0}'", assembly);
+                    Log(CSharpEditorResources.Found_higher_version_match_0, assembly);
                 }
             }
 
             var chosen = exactMatch ?? highestVersion;
-            Log("Choosing version: '{0}'", chosen);
+            Log(CSharpEditorResources.Chosen_version_0, chosen);
             return MakePEFile(chosen);
 
             PEFile MakePEFile(IAssemblySymbol assembly)
             {
                 // reference assemblies should be fine here, we only need the metadata of references.
                 var reference = _parentCompilation.GetMetadataReference(assembly);
-                Log("Load from: '{0}'", reference.Display);
+                Log(CSharpEditorResources.Load_from_0, reference.Display);
                 return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
             }
         }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public PEFile ResolveModule(PEFile mainModule, string moduleName)
         {
             Log("-------------");
-            Log("ResolveModule: '{0}' of '{1}'", moduleName, mainModule.FullName);
+            Log(CSharpEditorResources.Resolve_module_0_of_1, moduleName, mainModule.FullName);
 
             // Primitive implementation to support multi-module assemblies
             // where all modules are located next to the main module.
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var moduleFileName = Path.Combine(baseDirectory, moduleName);
             if (!File.Exists(moduleFileName))
             {
-                Log("Not found!");
+                Log(CSharpEditorResources.Module_not_found);
                 return null;
             }
 
-            Log("Found '{0}'", moduleFileName);
+            Log(CSharpEditorResources.Load_from_0, moduleFileName);
             return new PEFile(moduleFileName, PEStreamOptions.PrefetchMetadata);
         }
 
