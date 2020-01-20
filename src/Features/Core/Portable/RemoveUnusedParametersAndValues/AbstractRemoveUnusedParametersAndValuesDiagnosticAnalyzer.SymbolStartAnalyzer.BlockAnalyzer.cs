@@ -733,7 +733,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                         if (!isUsed)
                         {
-                            _symbolStartAnalyzer._unusedParameters[parameter] = isSymbolRead;
+                            // Mark if the symbol's value is read or the symbol is referenced to ensure appropriate diagnostic message is given.
+                            _symbolStartAnalyzer._unusedParameters[parameter] = isSymbolRead ||
+                                _referencedParameters.ContainsKey(parameter);
                         }
                     }
                 }

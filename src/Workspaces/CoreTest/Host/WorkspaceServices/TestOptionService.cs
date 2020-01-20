@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             features.Add("Features", new List<string>(new[] { "Test Features" }));
             return new OptionServiceFactory.OptionService(new GlobalOptionService(new[]
                 {
-                    new Lazy<IOptionProvider>(() => new TestOptionsProvider())
+                    new Lazy<IOptionProvider, LanguageMetadata>(() => new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
                 },
                 Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: new AdhocWorkspace().Services);
         }

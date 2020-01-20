@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     if (_projectWorkQueue.TryGetValue(key, out var existingWorkItem))
                     {
                         // replace it.
-                        _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.Analyzers, item.IsRetry, item.AsyncToken);
+                        _projectWorkQueue[key] = existingWorkItem.With(item.InvocationReasons, item.ActiveMember, item.SpecificAnalyzers, item.IsRetry, item.AsyncToken);
                         return false;
                     }
 

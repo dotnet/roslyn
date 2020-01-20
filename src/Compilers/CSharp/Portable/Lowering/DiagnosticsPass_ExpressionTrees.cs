@@ -145,6 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void CheckReferenceToMethodIfLocalFunction(BoundExpression node, MethodSymbol method)
+        {
+            if (method?.OriginalDefinition is LocalFunctionSymbol localFunction)
+            {
+                CheckReferenceToVariable(node, localFunction);
+            }
+        }
 
         public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
         {
@@ -349,10 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitCall(node.Method, null, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
             CheckReceiverIfField(node.ReceiverOpt);
-            if (node.Method is LocalFunctionSymbol)
-            {
-                CheckReferenceToVariable(node, node.Method);
-            }
+            CheckReferenceToMethodIfLocalFunction(node, node.Method);
             return base.VisitCall(node);
         }
 
@@ -660,13 +664,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckReceiverIfField(node.ReceiverOpt);
+            CheckReferenceToMethodIfLocalFunction(node, method);
 
-            if (method is LocalFunctionSymbol)
-            {
-                CheckReferenceToVariable(node, method);
-            }
-
-            if (method == null || method.RequiresInstanceReceiver)
+            if (method is null || method.RequiresInstanceReceiver)
             {
                 Visit(node.ReceiverOpt);
             }

@@ -2081,7 +2081,7 @@ End Class
             Dim node As VisualBasicSyntaxNode = Nothing
             ' This should not throw - it should convert to a 'null' (default) struct 
             Dim sn As SyntaxNodeOrToken = node
-            Assert.True(sn.IsNode)
+            Assert.True(sn.IsToken)
 
         End Sub
 

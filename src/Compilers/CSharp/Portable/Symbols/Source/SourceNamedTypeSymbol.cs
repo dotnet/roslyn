@@ -73,8 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return backupLocation;
         }
 
-        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics)
-            : base(containingSymbol, declaration, diagnostics)
+        internal SourceNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, DiagnosticBag diagnostics, TupleExtraData tupleData = null)
+            : base(containingSymbol, declaration, diagnostics, tupleData)
         {
             Debug.Assert(declaration.Kind == DeclarationKind.Struct ||
                          declaration.Kind == DeclarationKind.Interface ||
@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+        }
+
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            return new SourceNamedTypeSymbol(ContainingType, declaration, new DiagnosticBag(), newData);
         }
 
         #region Syntax
@@ -517,7 +522,7 @@ next:;
                             mergedConstraintTypes.AddRange(originalConstraintTypes);
                         }
 
-                        mergedConstraintTypes[index1] = constraintType1.MergeNullability(constraintType2, VarianceKind.None);
+                        mergedConstraintTypes[index1] = constraintType1.MergeEquivalentTypes(constraintType2, VarianceKind.None);
                     }
                 }
 
@@ -911,6 +916,10 @@ next:;
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSecurityCriticalAttributes = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                attribute.DecodeSkipLocalsInitAttribute<TypeWellKnownAttributeData>(DeclaringCompilation, ref arguments);
+            }
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
@@ -1037,7 +1046,7 @@ next:;
                 TypedConstant argument = attribute.CommonConstructorArguments[0];
                 Debug.Assert(argument.Kind == TypedConstantKind.Type);
 
-                var coClassType = argument.Value as NamedTypeSymbol;
+                var coClassType = argument.ValueInternal as NamedTypeSymbol;
                 if ((object)coClassType != null && coClassType.TypeKind == TypeKind.Class)
                 {
                     arguments.GetOrCreateData<TypeWellKnownAttributeData>().ComImportCoClass = coClassType;
@@ -1124,6 +1133,15 @@ next:;
             {
                 var data = this.GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSerializableAttribute;
+            }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+                return data?.HasSkipLocalsInitAttribute != true && (ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed);
             }
         }
 

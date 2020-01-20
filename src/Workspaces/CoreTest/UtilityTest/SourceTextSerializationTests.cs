@@ -25,8 +25,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var originalText = CreateSourceText(sb, i);
 
                 using var stream = SerializableBytes.CreateWritableStream();
-                using var writer = new ObjectWriter(stream);
-                originalText.WriteTo(writer, CancellationToken.None);
+
+                using (var writer = new ObjectWriter(stream, leaveOpen: true))
+                {
+                    originalText.WriteTo(writer, CancellationToken.None);
+                }
 
                 stream.Position = 0;
 

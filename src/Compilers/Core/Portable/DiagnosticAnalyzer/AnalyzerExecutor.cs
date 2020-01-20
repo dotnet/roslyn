@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -55,7 +56,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
 
+        private Func<IOperation, ControlFlowGraph> _lazyGetControlFlowGraph;
+
         private ConcurrentDictionary<IOperation, ControlFlowGraph> _lazyControlFlowGraphMap;
+
+        private Func<IOperation, ControlFlowGraph> GetControlFlowGraph
+            => _lazyGetControlFlowGraph ??= GetControlFlowGraphImpl;
 
         /// <summary>
         /// Creates <see cref="AnalyzerExecutor"/> to execute analyzer actions with given arguments
@@ -1885,7 +1891,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TimeSpan.FromTicks(executionTime.Value);
         }
 
-        private ControlFlowGraph GetControlFlowGraph(IOperation operation)
+        private ControlFlowGraph GetControlFlowGraphImpl(IOperation operation)
         {
             Debug.Assert(operation != null);
             Debug.Assert(operation.Parent == null);
@@ -1912,6 +1918,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
+        }
+
+        public void OnOperationBlockActionsExecuted(ImmutableArray<IOperation> operationBlocks)
+        {
+            // Clear _lazyControlFlowGraphMap entries for each operation block after we have executed
+            // all analysis callbacks for the given operation blocks. This avoids holding onto them
+            // for the entire compilation lifetime.
+            // These control flow graphs are created on demand and shared between flow analysis based analyzers.
+
+            if (_lazyControlFlowGraphMap?.Count > 0)
+            {
+                foreach (var operationBlock in operationBlocks)
+                {
+                    var root = operationBlock.GetRootOperation();
+                    _lazyControlFlowGraphMap.TryRemove(root, out _);
+                }
+            }
         }
     }
 }

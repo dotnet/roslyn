@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,8 +20,8 @@ namespace Roslyn.Utilities
     /// </summary>
     internal sealed class SetWithInsertionOrder<T> : IEnumerable<T>, IReadOnlySet<T>
     {
-        private HashSet<T> _set = null;
-        private ArrayBuilder<T> _elements = null;
+        private HashSet<T>? _set = null;
+        private ArrayBuilder<T>? _elements = null;
 
         public bool Add(T value)
         {
@@ -33,7 +36,7 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            _elements.Add(value);
+            _elements!.Add(value);
             return true;
         }
 
@@ -56,7 +59,7 @@ namespace Roslyn.Utilities
 
                 try
                 {
-                    _elements.Insert(index, value);
+                    _elements!.Insert(index, value);
                 }
                 catch
                 {
@@ -69,11 +72,16 @@ namespace Roslyn.Utilities
 
         public bool Remove(T value)
         {
+            if (_set is null)
+            {
+                return false;
+            }
+
             if (!_set.Remove(value))
             {
                 return false;
             }
-            _elements.RemoveAt(_elements.IndexOf(value));
+            _elements!.RemoveAt(_elements.IndexOf(value));
             return true;
         }
 
@@ -88,6 +96,6 @@ namespace Roslyn.Utilities
 
         public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
 
-        public T this[int i] => _elements[i];
+        public T this[int i] => _elements![i];
     }
 }

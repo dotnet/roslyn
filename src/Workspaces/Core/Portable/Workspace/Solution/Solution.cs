@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
-            : this(new SolutionState(workspace, solutionAttributes))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options)
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options))
         {
         }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the additional document in this solution with the specified document ID.
+        /// Gets the analyzer config document in this solution with the specified document ID.
         /// </summary>
         public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId? documentId)
         {
@@ -427,6 +427,21 @@ namespace Microsoft.CodeAnalysis
         internal Solution WithHasAllInformation(ProjectId projectId, bool hasAllInformation)
         {
             var newState = _state.WithHasAllInformation(projectId, hasAllInformation);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        internal Solution WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            var newState = _state.WithRunAnalyzers(projectId, runAnalyzers);
             if (newState == _state)
             {
                 return this;
@@ -1248,13 +1263,33 @@ namespace Microsoft.CodeAnalysis
         /// Returns the options that should be applied to this solution. This is equivalent to <see cref="Workspace.Options" /> when the <see cref="Solution"/> 
         /// instance was created.
         /// </summary>
-        public OptionSet Options
+        public OptionSet Options => _state.Options;
+
+        /// <summary>
+        /// Creates a new solution instance with the specified <paramref name="options"/>.
+        /// </summary>
+        public Solution WithOptions(OptionSet options)
         {
-            get
+            return options switch
             {
-                // TODO: actually make this a snapshot
-                return this.Workspace.Options;
+                SerializableOptionSet serializableOptions => WithOptions(serializableOptions),
+                null => throw new ArgumentNullException(nameof(options)),
+                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(options))
+            };
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
+        /// </summary>
+        internal Solution WithOptions(SerializableOptionSet options)
+        {
+            var newState = _state.WithOptions(options: options);
+            if (newState == _state)
+            {
+                return this;
             }
+
+            return new Solution(newState);
         }
     }
 }

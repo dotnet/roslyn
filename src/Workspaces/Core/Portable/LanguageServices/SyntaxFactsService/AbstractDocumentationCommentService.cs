@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             var leadingTrivia = documentationComment.GetLeadingTrivia();
             var exteriorTrivia = leadingTrivia.Where(t => _syntaxFacts.IsDocumentationCommentExteriorTrivia(t))
-                                              .FirstOrNullable();
+                                              .FirstOrNull();
 
             return exteriorTrivia != null ? exteriorTrivia.Value.ToString() : string.Empty;
         }

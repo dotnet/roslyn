@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents either a namespace or a type.
     /// </summary>
-    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbol
+    internal abstract class NamespaceOrTypeSymbol : Symbol, INamespaceOrTypeSymbolInternal
     {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // Changes to the public interface of this class should remain synchronized with the VB version.
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>Null if there is no matching declaration.</returns>
         internal SourceNamedTypeSymbol? GetSourceTypeMember(TypeDeclarationSyntax syntax)
         {
-            return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
+            return GetSourceTypeMember(syntax.Identifier.ValueText ?? "", syntax.Arity, syntax.Kind(), syntax);
         }
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>Null if there is no matching declaration.</returns>
         internal SourceNamedTypeSymbol? GetSourceTypeMember(DelegateDeclarationSyntax syntax)
         {
-            return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
+            return GetSourceTypeMember(syntax.Identifier.ValueText ?? "", syntax.Arity, syntax.Kind(), syntax);
         }
 
         /// <summary>
@@ -374,34 +375,5 @@ Done:
 
             return symbols;
         }
-
-        #region INamespaceOrTypeSymbol Members
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers()
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers());
-        }
-
-        ImmutableArray<ISymbol> INamespaceOrTypeSymbol.GetMembers(string name)
-        {
-            return StaticCast<ISymbol>.From(this.GetMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers()
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers());
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name));
-        }
-
-        ImmutableArray<INamedTypeSymbol> INamespaceOrTypeSymbol.GetTypeMembers(string name, int arity)
-        {
-            return StaticCast<INamedTypeSymbol>.From(this.GetTypeMembers(name, arity));
-        }
-
-        #endregion
     }
 }

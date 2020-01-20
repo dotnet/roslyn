@@ -278,10 +278,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 ' turn off diagnostic
                 If Not enabled Then
-                    workspace.Options = workspace.Options _
+                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                                                   .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False)
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.Default) _
+                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)))
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
@@ -374,12 +374,22 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer, mappedColumn As Integer,
             originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
-            Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
-                                      ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      projId, New DiagnosticDataLocation(docId, Nothing,
-                                        originalFile, originalLine, originalColumn, originalLine, originalColumn,
-                                        mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
-                                      Nothing, Nothing, Nothing)
+            Return New DiagnosticData(
+                id:=id,
+                category:="test",
+                message:=message,
+                enuMessageForBingSearch:=message,
+                severity:=severity,
+                defaultSeverity:=severity,
+                isEnabledByDefault:=True,
+                warningLevel:=0,
+                customTags:=ImmutableArray(Of String).Empty,
+                properties:=ImmutableDictionary(Of String, String).Empty,
+                projectId:=projId,
+                location:=New DiagnosticDataLocation(docId, Nothing, originalFile, originalLine, originalColumn, originalLine, originalColumn, mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                additionalLocations:=Nothing,
+                language:=LanguageNames.VisualBasic,
+                title:=Nothing)
         End Function
 
         Private Class Comparer

@@ -12,14 +12,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal interface IEditAndContinueWorkspaceService : IWorkspaceService
     {
         Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
-        Task<SolutionUpdateStatus> GetSolutionUpdateStatusAsync(string sourceFilePath, CancellationToken cancellationToken);
+        Task<bool> HasChangesAsync(string sourceFilePath, CancellationToken cancellationToken);
         Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(CancellationToken cancellationToken);
 
         void CommitSolutionUpdate();
         void DiscardSolutionUpdate();
-
-        void OnManagedModuleInstanceLoaded(Guid mvid);
-        void OnManagedModuleInstanceUnloaded(Guid mvid);
 
         bool IsDebuggingSessionInProgress { get; }
         void OnSourceFileUpdated(DocumentId documentId);

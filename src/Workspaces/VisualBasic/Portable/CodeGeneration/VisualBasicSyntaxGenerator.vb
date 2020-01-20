@@ -145,6 +145,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.Interpolation(DirectCast(syntaxNode, ExpressionSyntax))
         End Function
 
+        Friend Overrides Function InterpolationAlignmentClause(alignment As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.InterpolationAlignmentClause(
+                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                DirectCast(alignment, ExpressionSyntax))
+        End Function
+
+        Friend Overrides Function InterpolationFormatClause(format As String) As SyntaxNode
+            Return SyntaxFactory.InterpolationFormatClause(
+                SyntaxFactory.Token(SyntaxKind.ColonToken),
+                SyntaxFactory.InterpolatedStringTextToken(format, format))
+        End Function
+
         Friend Overrides Function NumericLiteralToken(text As String, value As ULong) As SyntaxToken
             Return SyntaxFactory.Literal(text, value)
         End Function
@@ -2637,6 +2649,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
                         Return GetModifierTokens(declaration.Parent)
                     End If
+                Case SyntaxKind.LocalDeclarationStatement
+                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Modifiers
                 Case SyntaxKind.VariableDeclarator
                     If IsChildOfVariableDeclaration(declaration) Then
                         Return GetModifierTokens(declaration.Parent)
@@ -3032,7 +3046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of IMethodSymbol)) As SyntaxNode
+        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of ISymbol)) As SyntaxNode
             If TypeOf declaration Is MethodStatementSyntax Then
                 Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
 
@@ -3044,12 +3058,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim methodBlock = DirectCast(declaration, MethodBlockSyntax)
                 Return methodBlock.WithSubOrFunctionStatement(
                     DirectCast(WithExplicitInterfaceImplementations(methodBlock.SubOrFunctionStatement, explicitInterfaceImplementations), MethodStatementSyntax))
+            Else
+                Debug.Fail("Unhandled kind to add explicit implementations for: " & declaration.Kind())
             End If
 
             Return declaration
         End Function
 
-        Private Function GenerateInterfaceMember(method As IMethodSymbol) As QualifiedNameSyntax
+        Private Function GenerateInterfaceMember(method As ISymbol) As QualifiedNameSyntax
             Dim interfaceName = method.ContainingType.GenerateTypeSyntax()
             Return SyntaxFactory.QualifiedName(
                 DirectCast(interfaceName, NameSyntax),
@@ -4191,6 +4207,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 #Region "Patterns"
 
         Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function RequiresLocalDeclarationType() As Boolean
+            ' VB supports `dim x = ...` as well as `dim x as Y = ...`.  The local declaration type
+            ' is not required.
             Return False
         End Function
 

@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private class RoslynDefinitionBucket : DefinitionBucket, ISupportsNavigation
         {
             private readonly StreamingFindUsagesPresenter _presenter;
-            private readonly AbstractTableDataSourceFindUsagesContext _context;
 
             public readonly DefinitionItem DefinitionItem;
 
@@ -31,7 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                        identifier: context.Identifier)
             {
                 _presenter = presenter;
-                _context = context;
                 DefinitionItem = definitionItem;
             }
 

@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -91,9 +93,9 @@ class C
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var localsSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
-            var local = (MethodSymbol)semanticModel.GetDeclaredSymbol(localsSyntax[0]);
+            var local = semanticModel.GetDeclaredSymbol(localsSyntax[0]).GetSymbol<MethodSymbol>();
             Assert.False(local.RequiresInstanceReceiver);
-            var staticLocal = (MethodSymbol)semanticModel.GetDeclaredSymbol(localsSyntax[0]);
+            var staticLocal = semanticModel.GetDeclaredSymbol(localsSyntax[0]).GetSymbol<MethodSymbol>();
             Assert.False(staticLocal.RequiresInstanceReceiver);
         }
     }

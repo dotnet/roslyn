@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [InlineData("B", "a", "a", "*", "*")]
         [InlineData("A", "B", "A", "*", "*")]
         [InlineData("B", "A", "A", "*", "*")]
-        [InlineData("a", "A", "A", "*", "*")]
-        [InlineData("A", "a", "A", "*", "*")]
         public static void TestOrderedByAccessibilityBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstAccessibility, string secondAccessibility)
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
@@ -113,8 +111,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [InlineData("B", "a", "a", "", "")]
         [InlineData("A", "B", "A", "", "")]
         [InlineData("B", "A", "A", "", "")]
-        [InlineData("a", "A", "A", "*", "*")]
-        [InlineData("A", "a", "A", "*", "*")]
         public static void TestOrderedByModifiersBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstModifiers, string secondModifiers)
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
@@ -159,8 +155,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [InlineData("B", "a", "a", "*", "*")]
         [InlineData("A", "B", "A", "*", "*")]
         [InlineData("B", "A", "A", "*", "*")]
-        [InlineData("a", "A", "A", "*", "*")]
-        [InlineData("A", "a", "A", "*", "*")]
         public static void TestOrderedBySymbolsBeforeName(string firstName, string secondName, string firstNameAfterOrdering, string firstSymbols, string secondSymbols)
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();

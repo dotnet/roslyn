@@ -15,7 +15,7 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
     [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.Suppression)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
