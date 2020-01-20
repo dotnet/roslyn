@@ -260,8 +260,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             targetType As ITypeSymbol,
             position As Integer,
             semanticModel As SemanticModel,
-            <Out> ByRef wasCastAdded As Boolean
-        ) As ExpressionSyntax
+            <Out> ByRef wasCastAdded As Boolean,
+            cancellationToken As CancellationToken) As ExpressionSyntax
+
             wasCastAdded = False
 
             If targetType.ContainsAnonymousType() OrElse expression.IsParentKind(SyntaxKind.AsNewClause) Then
@@ -282,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim castExpression = expression.Cast(targetType, isResultPredefinedCast)
 
             ' Ensure that inserting the cast doesn't change the semantics.
-            Dim specAnalyzer = New SpeculationAnalyzer(expression, castExpression, semanticModel, CancellationToken.None)
+            Dim specAnalyzer = New SpeculationAnalyzer(expression, castExpression, semanticModel, cancellationToken)
             Dim speculativeSemanticModel = specAnalyzer.SpeculativeSemanticModel
             If speculativeSemanticModel Is Nothing Then
                 Return expression
@@ -292,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim speculatedCastInnerExpression = If(isResultPredefinedCast,
                                                    DirectCast(speculatedCastExpression, PredefinedCastExpressionSyntax).Expression,
                                                    DirectCast(speculatedCastExpression, CastExpressionSyntax).Expression)
-            If Not CastAnalyzer.IsUnnecessary(speculatedCastExpression, speculatedCastInnerExpression, speculativeSemanticModel, True, CancellationToken.None) Then
+            If Not CastAnalyzer.IsUnnecessary(speculatedCastExpression, speculatedCastInnerExpression, speculativeSemanticModel, True, cancellationToken) Then
                 Return expression
             End If
 
@@ -919,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
-            Return expression.TrySimplify(semanticModel, replacementNode, issueSpan)
+            Return expression.TrySimplify(semanticModel, replacementNode, issueSpan, cancellationToken)
         End Function
 
         <Extension()>
@@ -1603,9 +1604,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function TrySimplify(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
-            <Out()> ByRef replacementNode As ExpressionSyntax,
-            <Out()> ByRef issueSpan As TextSpan
-        ) As Boolean
+            <Out> ByRef replacementNode As ExpressionSyntax,
+            <Out> ByRef issueSpan As TextSpan,
+            cancellationToken As CancellationToken) As Boolean
+
             replacementNode = Nothing
             issueSpan = Nothing
 
@@ -1619,7 +1621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             replacementNode = memberAccess.Update(memberAccess.Kind, newLeft, memberAccess.OperatorToken, memberAccess.Name).WithAdditionalAnnotations(Simplifier.Annotation)
 
                             ' Ensure that replacement doesn't change semantics.
-                            Return Not ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel)
+                            Return Not ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel, cancellationToken)
                         End If
 
                         Return False
@@ -1638,7 +1640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             replacementNode = qualifiedName.Update(DirectCast(newLeft, NameSyntax), qualifiedName.DotToken, qualifiedName.Right).WithAdditionalAnnotations(Simplifier.Annotation)
 
                             ' Ensure that replacement doesn't change semantics.
-                            Return Not ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel)
+                            Return Not ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel, cancellationToken)
                         End If
 
                         Return False
@@ -1648,8 +1650,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
-        Private Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
-            Dim speculationAnalyzer = New SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None)
+        Private Function ReplacementChangesSemantics(
+                originalExpression As ExpressionSyntax,
+                replacedExpression As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                cancellationToken As CancellationToken) As Boolean
+            Dim speculationAnalyzer = New SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, cancellationToken)
             Return speculationAnalyzer.ReplacementChangesSemantics()
         End Function
 

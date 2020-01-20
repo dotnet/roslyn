@@ -49,17 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
         internal override bool IsCandidate(SyntaxNode node)
             => node != null && s_kindsOfInterest.Contains(node.Kind());
 
-        protected sealed override bool CanSimplifyTypeNameExpressionCore(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet,
-            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
-            CancellationToken cancellationToken)
-        {
-            return CanSimplifyTypeNameExpression(
-                model, node, optionSet,
-                out issueSpan, out diagnosticId, out inDeclaration,
-                cancellationToken);
-        }
-
         internal override bool CanSimplifyTypeNameExpression(
             SemanticModel model, SyntaxNode node, OptionSet optionSet,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
@@ -92,13 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             else
             {
                 var expression = (ExpressionSyntax)node;
-
-                // in case of an As or Is expression we need to handle the binary expression, because it might be 
-                // required to add parenthesis around the expression. Adding the parenthesis is done in the CSharpNameSimplifier.Rewriter
-                var expressionToCheck = expression.Kind() == SyntaxKind.AsExpression || expression.Kind() == SyntaxKind.IsExpression
-                    ? ((BinaryExpressionSyntax)expression).Right
-                    : expression;
-                if (!expressionToCheck.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
+                if (!expression.TryReduceOrSimplifyExplicitName(model, out var replacement, out issueSpan, optionSet, cancellationToken))
                     return false;
 
                 replacementSyntax = replacement;

@@ -14021,7 +14021,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be used for a type marked with [NotNull] or [DisallowNull].
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment {
             get {
@@ -14030,7 +14030,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A possible null value may not be assigned to a target marked with the [DisallowNull] attribute.
+        ///   Looks up a localized string similar to A possible null value may not be used for a type marked with [NotNull] or [DisallowNull].
         /// </summary>
         internal static string WRN_DisallowNullAttributeForbidsMaybeNullAssignment_Title {
             get {

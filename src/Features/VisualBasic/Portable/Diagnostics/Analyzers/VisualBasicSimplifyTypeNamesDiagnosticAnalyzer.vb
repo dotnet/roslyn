@@ -46,14 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Return node IsNot Nothing AndAlso IsNodeKindInteresting(node)
         End Function
 
-        Protected Overrides Function CanSimplifyTypeNameExpressionCore(
-                model As SemanticModel, node As SyntaxNode, optionSet As OptionSet,
-                ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,
-                cancellationToken As CancellationToken) As Boolean
-            Return CanSimplifyTypeNameExpression(
-                model, node, optionSet, issueSpan, diagnosticId, inDeclaration, cancellationToken)
-        End Function
-
         Friend Overrides Function CanSimplifyTypeNameExpression(
                 model As SemanticModel, node As SyntaxNode, optionSet As OptionSet,
                 ByRef issueSpan As TextSpan, ByRef diagnosticId As String, ByRef inDeclaration As Boolean,

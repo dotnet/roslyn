@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            if (parentNode.IsKind(SyntaxKind.CastExpression))
+            if (parentNode.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression))
             {
-                var castExpression = (CastExpressionSyntax)parentNode;
                 return semanticModel.GetTypeInfo(castExpression).Type;
             }
 
@@ -48,9 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return semanticModel.Compilation.GetSpecialType(SpecialType.System_Int32);
             }
 
-            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (parentNode.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)parentNode;
                 if (memberAccess.Expression == expression)
                 {
                     var memberSymbol = semanticModel.GetSymbolInfo(memberAccess).Symbol;
