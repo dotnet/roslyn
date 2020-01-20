@@ -1658,6 +1658,46 @@ class C
 }");
         }
 
+        [Fact, WorkItem(40776, "https://github.com/dotnet/roslyn/issues/40776")]
+        public void FakeIndexIndexerOnDefaultStruct()
+        {
+            var verifier = CompileAndVerifyWithIndexAndRange(@"
+using System;
+
+struct NotASpan
+{
+    public int Length => 1;
+
+    public int this[int index] => 0;
+}
+
+class C
+{
+    static int Repro() => default(NotASpan)[^0];
+
+    static void Main() => Repro();
+}");
+
+            verifier.VerifyIL("C.Repro", @"
+{
+    // Code size       25 (0x19)
+    .maxstack  3
+    .locals init (int V_0,
+                  NotASpan V_1)
+    IL_0000:  ldloca.s   V_1
+    IL_0002:  dup
+    IL_0003:  initobj    ""NotASpan""
+    IL_0009:  dup
+    IL_000a:  call       ""int NotASpan.Length.get""
+    IL_000f:  ldc.i4.0
+    IL_0010:  sub
+    IL_0011:  stloc.0
+    IL_0012:  ldloc.0
+    IL_0013:  call       ""int NotASpan.this[int].get""
+    IL_0018:  ret
+}");
+        }
+
         [Fact]
         public void FakeRangeIndexerStringOpenEnd()
         {
