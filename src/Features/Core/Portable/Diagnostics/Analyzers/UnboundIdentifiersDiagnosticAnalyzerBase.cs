@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract bool IsNameOf(SyntaxNode node);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptor, DiagnosticDescriptor2);
-        public bool OpenFileOnly(Workspace workspace) => false;
+        public bool OpenFileOnly(OptionSet options) => false;
 
         public override void Initialize(AnalysisContext context)
         {

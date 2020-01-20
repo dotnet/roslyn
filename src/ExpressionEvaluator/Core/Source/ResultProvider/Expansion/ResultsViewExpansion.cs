@@ -181,7 +181,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 flags: ExpansionFlags.None,
                 predicate: TypeHelpers.IsPublic,
                 resultProvider: resultProvider,
-                isProxyType: false);
+                isProxyType: false,
+                supportsFavorites: false);
             return new ResultsViewExpansion(proxyValue, proxyMembers);
         }
 

@@ -110,19 +110,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstantsAndModifiers { get; }
 
-            protected void AddPrefixTextForAwaitKeyword()
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.Awaited_task_returns),
-                    Space());
-            }
-
-            protected void AddTextForSystemVoid()
-            {
-                AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    PlainText(FeaturesResources.no_value));
-            }
-
             protected SemanticModel GetSemanticModel(SyntaxTree tree)
             {
                 if (_semanticModel.SyntaxTree == tree)
@@ -264,7 +251,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     AddDeprecatedPrefix();
                 }
 
-                if (symbol is IDynamicTypeSymbol)
+                if (symbol is IDiscardSymbol discard)
+                {
+                    AddDescriptionForDiscard(discard);
+                }
+                else if (symbol is IDynamicTypeSymbol)
                 {
                     AddDescriptionForDynamicType();
                 }
@@ -286,7 +277,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else if (symbol is INamedTypeSymbol namedType)
                 {
-                    await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    if (namedType.IsTupleType)
+                    {
+                        AddToGroup(SymbolDescriptionGroups.MainDescription,
+                            ToDisplayParts(symbol, s_descriptionStyle));
+                    }
+                    else
+                    {
+                        await AddDescriptionForNamedTypeAsync(namedType).ConfigureAwait(false);
+                    }
                 }
                 else if (symbol is INamespaceSymbol namespaceSymbol)
                 {
@@ -394,15 +393,48 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var syntaxFactsService = Workspace.Services.GetLanguageServices(token.Language).GetService<ISyntaxFactsService>();
                     if (syntaxFactsService.IsAwaitKeyword(token))
                     {
-                        AddPrefixTextForAwaitKeyword();
                         if (symbol.SpecialType == SpecialType.System_Void)
                         {
-                            AddTextForSystemVoid();
+                            AddToGroup(SymbolDescriptionGroups.MainDescription,
+                                PlainText(FeaturesResources.Awaited_task_returns_no_value));
                             return;
                         }
+
+                        AddAwaitSymbolDescription(symbol);
+                    }
+                    else
+                    {
+                        AddSymbolDescription(symbol);
                     }
                 }
+                else
+                {
+                    AddSymbolDescription(symbol);
+                }
 
+                if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
+                {
+                    var allTypeParameters = symbol.GetAllTypeParameters().ToList();
+                    var allTypeArguments = symbol.GetAllTypeArguments().ToList();
+
+                    AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
+                }
+            }
+
+            private void AddAwaitSymbolDescription(INamedTypeSymbol symbol)
+            {
+                var defaultSymbol = "{0}";
+                var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
+
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex)));
+                AddSymbolDescription(symbol);
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    PlainText(FeaturesResources.Awaited_task_returns_0.Substring(symbolIndex + defaultSymbol.Length)));
+            }
+
+            private void AddSymbolDescription(INamedTypeSymbol symbol)
+            {
                 if (symbol.TypeKind == TypeKind.Delegate)
                 {
                     var style = s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -413,14 +445,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 {
                     AddToGroup(SymbolDescriptionGroups.MainDescription,
                         ToDisplayParts(symbol.OriginalDefinition, s_descriptionStyle));
-                }
-
-                if (!symbol.IsUnboundGenericType && !TypeArgumentsAndParametersAreSame(symbol))
-                {
-                    var allTypeParameters = symbol.GetAllTypeParameters().ToList();
-                    var allTypeArguments = symbol.GetAllTypeArguments().ToList();
-
-                    AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
                 }
             }
 
@@ -565,14 +589,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     ToMinimalDisplayParts(method, s_memberSignatureDisplayFormat));
-
-                if (awaitable)
-                {
-                    AddAwaitableUsageText(method, _semanticModel, _position);
-                }
             }
-
-            protected abstract void AddAwaitableUsageText(IMethodSymbol method, SemanticModel semanticModel, int position);
 
             private async Task AddDescriptionForParameterAsync(IParameterSymbol symbol)
             {
@@ -595,7 +612,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
-                    Description(FeaturesResources.parameter),
+                    Description(symbol.IsDiscard ? FeaturesResources.discard : FeaturesResources.parameter),
+                    ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
+            }
+
+            private void AddDescriptionForDiscard(IDiscardSymbol symbol)
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Description(FeaturesResources.discard),
                     ToMinimalDisplayParts(symbol, MinimallyQualifiedFormatWithConstants));
             }
 

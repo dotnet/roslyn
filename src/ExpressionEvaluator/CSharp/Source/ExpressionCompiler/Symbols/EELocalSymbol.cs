@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private readonly LocalDeclarationKind _declarationKind;
         private readonly bool _isCompilerGenerated;
         private readonly ImmutableArray<Location> _locations;
-        private readonly string _nameOpt;
+        private readonly string? _nameOpt;
         private readonly int _ordinal; // index in locals of containing block
         private readonly bool _isPinned;
         private readonly RefKind _refKind;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public EELocalSymbol(
             MethodSymbol method,
             ImmutableArray<Location> locations,
-            string nameOpt,
+            string? nameOpt,
             int ordinal,
             LocalDeclarationKind declarationKind,
             TypeSymbol type,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public EELocalSymbol(
             MethodSymbol method,
             ImmutableArray<Location> locations,
-            string nameOpt,
+            string? nameOpt,
             int ordinal,
             LocalDeclarationKind declarationKind,
             TypeWithAnnotations type,
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override string Name
         {
-            get { return _nameOpt; }
+            get { return _nameOpt ?? ""; }
         }
 
         internal override SyntaxToken IdentifierToken

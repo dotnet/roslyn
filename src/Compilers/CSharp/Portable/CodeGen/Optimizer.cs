@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // so we need to ensure that arguments cannot use stack temps
             BoundExpression right = node.Right;
             bool mayPushReceiver = (right.Kind == BoundKind.ObjectCreationExpression &&
-                right.Type.IsVerifierValue() &&
+                ((BoundObjectCreationExpression)right).Type.IsVerifierValue() &&
                 ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0);
 
             if (mayPushReceiver)
@@ -1713,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // called on branches and labels
         private void RecordBranch(LabelSymbol label)
         {
-            DummyLocal dummy;
+            DummyLocal? dummy;
             if (_dummyVariables.TryGetValue(label, out dummy))
             {
                 RecordVarRead(dummy);
@@ -1730,7 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void RecordLabel(LabelSymbol label)
         {
-            DummyLocal dummy;
+            DummyLocal? dummy;
             if (_dummyVariables.TryGetValue(label, out dummy))
             {
                 RecordVarRead(dummy);

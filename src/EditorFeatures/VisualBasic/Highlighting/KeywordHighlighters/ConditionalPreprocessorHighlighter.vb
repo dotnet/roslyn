@@ -15,13 +15,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Public Sub New()
         End Sub
 
-        Protected Overloads Overrides Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Sub AddHighlights(directive As DirectiveTriviaSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim conditionals = directive.GetMatchingConditionalDirectives(cancellationToken)
             If conditionals Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                Return
             End If
-
-            Dim highlights As New List(Of TextSpan)
 
             For Each conditional In conditionals
                 If TypeOf conditional Is IfDirectiveTriviaSyntax Then
@@ -41,8 +39,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     End With
                 End If
             Next
-
-            Return highlights
-        End Function
+        End Sub
     End Class
 End Namespace

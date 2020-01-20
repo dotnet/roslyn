@@ -233,7 +233,7 @@ class C
         int[delegate { typeof(int) }] array;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 

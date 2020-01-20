@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var solution = workspace.CurrentSolution;
 
-                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.CSharpLanguageServer, "met");
+                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
 
                 Assert.Equal(1, results.Count);
                 Assert.Equal(1, results[0].Symbols.Length);
@@ -55,7 +55,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
                 var solution = workspace.CurrentSolution;
 
-                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.CSharpLanguageServer, "met");
+                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
 
                 Assert.Equal(1, results.Count);
                 Assert.Equal(4, results[0].Symbols.Length);
@@ -75,7 +75,7 @@ End Class";
             {
                 var solution = workspace.CurrentSolution;
 
-                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.VisualBasicLanguageServer, "met");
+                var results = await GetVsSearchResultsAsync(solution, WellKnownServiceHubServices.LanguageServer, "met");
 
                 Assert.Equal(1, results.Count);
                 Assert.Equal(1, results[0].Symbols.Length);
@@ -96,7 +96,7 @@ End Class";
             {
                 var result = await jsonRpc.InvokeWithCancellationAsync<JObject>(
                     Methods.InitializeName,
-                    new object[] { Process.GetCurrentProcess().Id, "test", new Uri("file://test"), new ClientCapabilities(), TraceSetting.Off },
+                    new object[] { new InitializeParams() },
                     CancellationToken.None);
 
                 Assert.True(result["capabilities"]["workspaceStreamingSymbolProvider"].ToObject<bool>());
@@ -115,11 +115,13 @@ End Class";
 
         private async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            await client.TryRunRemoteAsync(
-                WellKnownRemoteHostServices.RemoteHostService, solution,
+            Assert.True(await client.TryRunRemoteAsync(
+                WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 new object[] { await solution.State.GetChecksumAsync(CancellationToken.None), _solutionVersion++ },
-                CancellationToken.None);
+                solution,
+                callbackTarget: null,
+                CancellationToken.None));
         }
 
         private class Callback

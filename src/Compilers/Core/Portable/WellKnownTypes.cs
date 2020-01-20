@@ -250,14 +250,15 @@ namespace Microsoft.CodeAnalysis
 
         CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
 
+        System_ValueTuple,
         System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,
         System_ValueTuple_T4,
-        System_ValueTuple_T5,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T5,
         System_ValueTuple_T6,
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
@@ -550,14 +551,15 @@ namespace Microsoft.CodeAnalysis
 
             "System.IFormatProvider",
 
+            "System.ValueTuple",
             "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
             "System.ValueTuple`4",
-            "System.ValueTuple`5",
 
             "", // extension marker
 
+            "System.ValueTuple`5",
             "System.ValueTuple`6",
             "System.ValueTuple`7",
             "System.ValueTuple`8",
@@ -675,7 +677,7 @@ namespace Microsoft.CodeAnalysis
         public static bool IsValueTupleType(this WellKnownType typeId)
         {
             Debug.Assert(typeId != WellKnownType.ExtSentinel);
-            return typeId >= WellKnownType.System_ValueTuple_T1 && typeId <= WellKnownType.System_ValueTuple_TRest;
+            return typeId >= WellKnownType.System_ValueTuple && typeId <= WellKnownType.System_ValueTuple_TRest;
         }
 
         public static bool IsValid(this WellKnownType typeId)

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder; }
         }
 
-        internal override SyntaxNode ScopeDesignatorOpt
+        internal override SyntaxNode? ScopeDesignatorOpt
         {
             get { return _scopeBinder.ScopeDesignator; }
         }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _identifierToken.ValueText;
+                return _identifierToken.ValueText ?? "";
             }
         }
 
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
-            Debug.Assert(newType.Type is object);
+            RoslynDebug.Assert(newType.Type is object);
             TypeSymbol? originalType = _type?.Value.DefaultType;
 
             // In the event that we race to set the type of a local, we should
@@ -416,14 +416,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override SyntaxNode GetDeclaratorSyntax()
         {
-            return _identifierToken.Parent;
+            return _identifierToken.Parent!;
         }
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
-                SyntaxNode node = _identifierToken.Parent;
+                SyntaxNode node = _identifierToken.Parent!;
 #if DEBUG
                 switch (_declarationKind)
                 {
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
                         break;
                     case SyntaxKind.ArgumentList:
-                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent;
+                        var invocation = (ConstructorInitializerSyntax)_nodeToBind.Parent!;
                         _nodeBinder.BindConstructorInitializer(invocation, diagnostics);
                         break;
                     case SyntaxKind.CasePatternSwitchLabel:

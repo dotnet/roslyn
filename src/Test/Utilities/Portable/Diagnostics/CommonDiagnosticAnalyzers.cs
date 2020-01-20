@@ -572,7 +572,9 @@ namespace Microsoft.CodeAnalysis
         public sealed class AnalyzerWithCSharpCompilerDiagnosticId : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+#pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
                 "CS101",
+#pragma warning restore RS1029 // Do not use reserved diagnostic IDs.
                 "Title1",
                 "Message1",
                 "Category1",
@@ -591,7 +593,9 @@ namespace Microsoft.CodeAnalysis
         public sealed class AnalyzerWithBasicCompilerDiagnosticId : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
+#pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
                 "BC101",
+#pragma warning restore RS1029 // Do not use reserved diagnostic IDs.
                 "Title1",
                 "Message1",
                 "Category1",

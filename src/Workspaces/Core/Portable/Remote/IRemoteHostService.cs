@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         string Connect(string host, int uiCultureLCID, int cultureLCID, string serializedSession, CancellationToken cancellationToken);
 
-        void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken);
-
         /// <summary>
         /// This is only for debugging
         /// 

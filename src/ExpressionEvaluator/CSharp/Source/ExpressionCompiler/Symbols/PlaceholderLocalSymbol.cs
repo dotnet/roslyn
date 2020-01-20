@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var type = typeNameDecoder.GetTypeSymbolForSerializedType(typeName);
             RoslynDebug.Assert((object)type != null);
 
-            ReadOnlyCollection<byte> dynamicFlags;
-            ReadOnlyCollection<string> tupleElementNames;
+            ReadOnlyCollection<byte>? dynamicFlags;
+            ReadOnlyCollection<string?>? tupleElementNames;
             CustomTypeInfo.Decode(alias.CustomTypeInfoId, alias.CustomTypeInfo, out dynamicFlags, out tupleElementNames);
 
             if (dynamicFlags != null)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal static MethodSymbol? GetIntrinsicMethod(CSharpCompilation compilation, string methodName)
         {
             var type = compilation.GetTypeByMetadataName(ExpressionCompilerConstants.IntrinsicAssemblyTypeMetadataName);
-            if ((object)type == null)
+            if ((object?)type == null)
             {
                 return null;
             }

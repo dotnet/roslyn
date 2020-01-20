@@ -22,11 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
         protected override bool IsHighlightableNode(SyntaxNode node)
             => node.IsContinuableConstruct();
 
-        protected override IEnumerable<TextSpan> GetHighlightsForNode(
-            SyntaxNode node, CancellationToken cancellationToken)
+        protected override void AddHighlightsForNode(
+            SyntaxNode node, List<TextSpan> spans, CancellationToken cancellationToken)
         {
-            var spans = new List<TextSpan>();
-
             switch (node)
             {
                 case DoStatementSyntax doStatement:
@@ -44,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
             }
 
             HighlightRelatedKeywords(node, spans, highlightBreaks: true, highlightContinues: true);
-
-            return spans;
         }
 
         private void HighlightDoStatement(DoStatementSyntax statement, List<TextSpan> spans)

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         {
         }
 
-        protected override async Task<QuickInfoItem> BuildQuickInfoAsync(
+        protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -39,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 return null;
             }
 
-            // Now check if we can find an open brace. 
-            var parent = token.Parent;
+            // Now check if we can find an open brace.
+            var parent = token.Parent!;
             var openBrace = parent.ChildNodesAndTokens().FirstOrDefault(n => n.Kind() == SyntaxKind.OpenBraceToken).AsToken();
             if (openBrace.Kind() != SyntaxKind.OpenBraceToken)
             {
@@ -56,11 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             {
                 MarkInterestedSpanNearbyScopeBlock(parent, openBrace, ref spanStart, ref spanEnd);
             }
-            // If the parent is a child of a property/method declaration, object/array creation, or control flow node..
+            // If the parent is a child of a property/method declaration, object/array creation, or control flow node,
             // then walk up one higher so we can show more useful context
             else if (parent.GetFirstToken() == openBrace)
             {
-                spanStart = parent.Parent.SpanStart;
+                // parent.Parent must be non-null, because for GetFirstToken() to have returned something it would have had to walk up to its parent
+                spanStart = parent.Parent!.SpanStart;
             }
 
             // encode document spans that correspond to the text to show

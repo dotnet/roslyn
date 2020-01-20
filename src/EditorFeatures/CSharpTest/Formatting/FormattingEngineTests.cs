@@ -507,7 +507,8 @@ class Program
             using var workspace = TestWorkspace.CreateCSharp(code);
             var subjectDocument = workspace.Documents.Single();
             var spans = subjectDocument.SelectedSpans;
-            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions.AllowDisjointSpanMerging, true)));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
@@ -2063,16 +2064,16 @@ class MyClass
                     options = options.WithChangedOption(entry.Key, entry.Value);
                 }
 
-                workspace.Options = options;
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
 
             var subjectDocument = workspace.Documents.Single();
 
             var commandHandler = workspace.GetService<FormatCommandHandler>();
             var typedChar = subjectDocument.GetTextBuffer().CurrentSnapshot.GetText(subjectDocument.CursorPosition.Value - 1, 1);
-            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.TextBuffer, typedChar[0]), () => { }, TestCommandExecutionContext.Create());
+            commandHandler.ExecuteCommand(new TypeCharCommandArgs(subjectDocument.GetTextView(), subjectDocument.GetTextBuffer(), typedChar[0]), () => { }, TestCommandExecutionContext.Create());
 
-            var newSnapshot = subjectDocument.TextBuffer.CurrentSnapshot;
+            var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
 
             Assert.Equal(expected, newSnapshot.GetText());
         }

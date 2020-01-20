@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices,
             SolutionInfo.SolutionAttributes solutionAttributes,
             IEnumerable<ProjectId> projectIds,
+            SerializableOptionSet options,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
@@ -67,6 +69,7 @@ namespace Microsoft.CodeAnalysis
             _solutionAttributes = solutionAttributes;
             _solutionServices = solutionServices;
             _projectIds = projectIds.ToImmutableReadOnlyListOrEmpty();
+            Options = options ?? throw new ArgumentNullException(nameof(options));
             _projectIdToProjectStateMap = idToProjectStateMap;
             _projectIdToTrackerMap = projectIdToTrackerMap;
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
@@ -80,14 +83,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SolutionState(
-            Workspace workspace,
-            SolutionInfo.SolutionAttributes solutionAttributes)
+            BranchId primaryBranchId,
+            SolutionServices solutionServices,
+            SolutionInfo.SolutionAttributes solutionAttributes,
+            SerializableOptionSet options)
             : this(
-                workspace.PrimaryBranchId,
+                primaryBranchId,
                 workspaceVersion: 0,
-                solutionServices: new SolutionServices(workspace),
-                solutionAttributes: solutionAttributes,
+                solutionServices,
+                solutionAttributes,
                 projectIds: ImmutableArray<ProjectId>.Empty,
+                options,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
                 projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
@@ -130,6 +136,8 @@ namespace Microsoft.CodeAnalysis
         public int WorkspaceVersion => _workspaceVersion;
 
         public SolutionServices Services => _solutionServices;
+
+        public SerializableOptionSet Options { get; }
 
         /// <summary>
         /// branch id of this solution
@@ -181,6 +189,7 @@ namespace Microsoft.CodeAnalysis
         private SolutionState Branch(
             SolutionInfo.SolutionAttributes? solutionAttributes = null,
             IEnumerable<ProjectId>? projectIds = null,
+            SerializableOptionSet? options = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
@@ -192,6 +201,7 @@ namespace Microsoft.CodeAnalysis
             solutionAttributes ??= _solutionAttributes;
             projectIds ??= _projectIds;
             idToProjectStateMap ??= _projectIdToProjectStateMap;
+            options ??= Options.WithLanguages(GetProjectLanguages(idToProjectStateMap));
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
@@ -200,6 +210,7 @@ namespace Microsoft.CodeAnalysis
             if (branchId == _branchId &&
                 solutionAttributes == _solutionAttributes &&
                 projectIds == _projectIds &&
+                options == Options &&
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
@@ -216,6 +227,7 @@ namespace Microsoft.CodeAnalysis
                 _solutionServices,
                 solutionAttributes,
                 projectIds,
+                options,
                 idToProjectStateMap,
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
@@ -241,6 +253,7 @@ namespace Microsoft.CodeAnalysis
                 services,
                 _solutionAttributes,
                 _projectIds,
+                Options,
                 _projectIdToProjectStateMap,
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
@@ -421,9 +434,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+
         private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
         {
-            return new CompilationTracker(solution.GetProjectState(projectId));
+            var projectState = solution.GetProjectState(projectId);
+            Contract.ThrowIfNull(projectState);
+            return new CompilationTracker(projectState);
         }
 
         private CompilationTracker GetCompilationTracker(ProjectId projectId)
@@ -844,6 +860,31 @@ namespace Microsoft.CodeAnalysis
 
             var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.UpdateHasAllInformation(hasAllInformation);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            // fork without any change on compilation.
+            return this.ForkProject(newProject);
+        }
+
+        /// <summary>
+        /// Create a new solution instance with the project specified updated to have
+        /// the specified runAnalyzers.
+        /// </summary>
+        public SolutionState WithRunAnalyzers(ProjectId projectId, bool runAnalyzers)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Debug.Assert(this.ContainsProject(projectId));
+
+            var oldProject = this.GetProjectState(projectId)!;
+            var newProject = oldProject.UpdateRunAnalyzers(runAnalyzers);
 
             if (oldProject == newProject)
             {
@@ -1794,6 +1835,8 @@ namespace Microsoft.CodeAnalysis
             return this.Branch(projectIdToTrackerMap: forkedMap);
         }
 
+        public SolutionState WithOptions(SerializableOptionSet options) => this.Branch(options: options);
+
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private NonReentrantLock? _stateLockBackingField;
         private NonReentrantLock StateLock
@@ -1933,8 +1976,8 @@ namespace Microsoft.CodeAnalysis
         public Task<Compilation?> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)
         {
             return project.SupportsCompilation
-                ? this.GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken)
-                : SpecializedTasks.Default<Compilation?>();
+                ? GetCompilationTracker(project.Id).GetCompilationAsync(this, cancellationToken).AsNullable()
+                : SpecializedTasks.Null<Compilation>();
         }
 
         /// <summary>
@@ -1943,7 +1986,7 @@ namespace Microsoft.CodeAnalysis
         public Task<bool> HasSuccessfullyLoadedAsync(ProjectState project, CancellationToken cancellationToken)
         {
             // return HasAllInformation when compilation is not supported. 
-            // regardless whether project support compilation or not, if projectInfo is not complete, we can't gurantee its reference completeness
+            // regardless whether project support compilation or not, if projectInfo is not complete, we can't guarantee its reference completeness
             return project.SupportsCompilation
                 ? this.GetCompilationTracker(project.Id).HasSuccessfullyLoadedAsync(this, cancellationToken)
                 : project.HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
@@ -1975,7 +2018,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // sanity check: this should always be true, no matter how many times
                 // we attempt to record the association.
-                System.Diagnostics.Debug.Assert(tmp == projectId);
+                Debug.Assert(tmp == projectId);
             }
         }
 
@@ -2003,8 +2046,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private MetadataReference? GetPartialMetadataReference(
             ProjectReference projectReference,
-            ProjectState fromProject,
-            CancellationToken cancellationToken)
+            ProjectState fromProject)
         {
             // Try to get the compilation state for this project.  If it doesn't exist, don't do any
             // more work.  
@@ -2013,7 +2055,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return state.GetPartialMetadataReference(this, fromProject, projectReference);
+            return state.GetPartialMetadataReference(fromProject, projectReference);
         }
 
         public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
@@ -2197,5 +2239,11 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException(WorkspacesResources.The_solution_does_not_contain_the_specified_document);
             }
         }
+
+        internal ImmutableHashSet<string> GetProjectLanguages()
+            => GetProjectLanguages(ProjectStates);
+
+        private static ImmutableHashSet<string> GetProjectLanguages(ImmutableDictionary<ProjectId, ProjectState> projectStates)
+            => projectStates.Select(p => p.Value.Language).ToImmutableHashSet();
     }
 }

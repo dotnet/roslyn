@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private UpdatedContainingSymbolAndNullableAnnotationLocal(SourceLocalSymbol underlyingLocal, Symbol updatedContainingSymbol, TypeWithAnnotations updatedType, bool assertContaining)
         {
-            Debug.Assert(underlyingLocal is object);
-            Debug.Assert(updatedContainingSymbol is object);
+            RoslynDebug.Assert(underlyingLocal is object);
+            RoslynDebug.Assert(updatedContainingSymbol is object);
             Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsImplicitlyDeclared => _underlyingLocal.IsImplicitlyDeclared;
         internal override LocalDeclarationKind DeclarationKind => _underlyingLocal.DeclarationKind;
         internal override SynthesizedLocalKind SynthesizedKind => _underlyingLocal.SynthesizedKind;
-        internal override SyntaxNode ScopeDesignatorOpt => _underlyingLocal.ScopeDesignatorOpt;
+        internal override SyntaxNode? ScopeDesignatorOpt => _underlyingLocal.ScopeDesignatorOpt;
         internal override bool IsImportedFromMetadata => _underlyingLocal.IsImportedFromMetadata;
         internal override SyntaxToken IdentifierToken => _underlyingLocal.IdentifierToken;
         internal override bool IsPinned => _underlyingLocal.IsPinned;

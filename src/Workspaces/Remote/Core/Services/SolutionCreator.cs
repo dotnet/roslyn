@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Diagnostics;
 using System;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -56,6 +56,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // if either id or file path has changed, then this is not update
                 Contract.ThrowIfFalse(solution.Id == newSolutionInfo.Id && solution.FilePath == newSolutionInfo.FilePath);
+            }
+
+            if (oldSolutionChecksums.Options != newSolutionChecksums.Options)
+            {
+                var newOptions = await _assetService.GetAssetAsync<SerializableOptionSet>(newSolutionChecksums.Options, _cancellationToken).ConfigureAwait(false);
+                solution = solution.WithOptions(newOptions);
             }
 
             if (oldSolutionChecksums.Projects.Checksum != newSolutionChecksums.Projects.Checksum)
@@ -281,6 +287,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectInfo.RunAnalyzers)
+            {
+                project = project.Solution.WithRunAnalyzers(project.Id, newProjectInfo.RunAnalyzers).GetProject(project.Id);
+            }
+
             return project;
         }
 
@@ -468,16 +479,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        private Project AddDocument(Project project, DocumentInfo documentInfo, bool additionalText)
-        {
-            if (additionalText)
-            {
-                return project.Solution.AddAdditionalDocument(documentInfo).GetProject(project.Id);
-            }
-
-            return project.Solution.AddDocument(documentInfo).GetProject(project.Id);
-        }
-
         private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
         {
 #if DEBUG
@@ -493,9 +494,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
-                var solutionInfo = await SolutionInfoCreator.CreateSolutionInfoAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
-                var workspace = new TemporaryWorkspace(solutionInfo);
-
+                var (solutionInfo, options) = await SolutionInfoCreator.CreateSolutionInfoAndOptionsAsync(_assetService, checksum, _cancellationToken).ConfigureAwait(false);
+                var workspace = new TemporaryWorkspace(solutionInfo, options);
                 return workspace.CurrentSolution;
             }
 #else

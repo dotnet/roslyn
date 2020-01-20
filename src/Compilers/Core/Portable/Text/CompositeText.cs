@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly int _length;
         private readonly int _storageSize;
         private readonly int[] _segmentOffsets;
-        private readonly Encoding _encoding;
+        private readonly Encoding? _encoding;
 
-        private CompositeText(ImmutableArray<SourceText> segments, Encoding encoding, SourceHashAlgorithm checksumAlgorithm)
+        private CompositeText(ImmutableArray<SourceText> segments, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
             : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(!segments.IsDefaultOrEmpty);
@@ -42,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding
+        public override Encoding? Encoding
         {
             get { return _encoding; }
         }
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static void AddSegments(ArrayBuilder<SourceText> segments, SourceText text)
         {
-            CompositeText composite = text as CompositeText;
+            CompositeText? composite = text as CompositeText;
             if (composite == null)
             {
                 segments.Add(text);

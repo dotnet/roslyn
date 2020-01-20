@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable enable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
         {
             // Find assembly matching identity.
-            int index = this.Module.GetReferencedAssemblies().IndexOf(identity);
+            int index = Module.GetReferencedAssemblies().IndexOf(identity);
             if (index >= 0)
             {
                 return index;
@@ -30,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 // Find placeholder Windows.winmd assembly (created
                 // in MetadataUtilities.MakeAssemblyReferences).
-                var assemblies = this.Module.GetReferencedAssemblySymbols();
-                index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), (object)null);
+                var assemblies = Module.GetReferencedAssemblySymbols();
+                index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), arg: (object?)null);
                 if (index >= 0)
                 {
                     // Find module in Windows.winmd matching identity.
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName)
         {
-            var assembly = this.Module.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+            var assembly = Module.GetReferencedAssemblySymbol(referencedAssemblyIndex);
             // GetReferencedAssemblySymbol should not return null since referencedAssemblyIndex
             // was obtained from GetIndexOfReferencedAssembly above.
             return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
         {
-            return this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
+            return moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
         }
 
         private static AssemblyIdentity GetComponentAssemblyIdentity(ModuleSymbol module)

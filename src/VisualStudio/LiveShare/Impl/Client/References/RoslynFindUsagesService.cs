@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol;
-using Newtonsoft.Json.Linq;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.References
@@ -24,40 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.References
             _remoteLanguageServiceWorkspace = remoteLanguageServiceWorkspace ?? throw new ArgumentNullException(nameof(remoteLanguageServiceWorkspace));
         }
 
-        public async Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
+        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context)
         {
-            var text = await document.GetTextAsync().ConfigureAwait(false);
-
-            var lspClient = _roslynLspClientServiceFactory.ActiveLanguageServerClient;
-            if (lspClient == null)
-            {
-                return;
-            }
-
-            var documentPositionParams = ProtocolConversions.PositionToTextDocumentPositionParams(position, text, document);
-
-            var response = await lspClient.RequestAsync(LSP.Methods.TextDocumentImplementation.ToLSRequest(), documentPositionParams, context.CancellationToken).ConfigureAwait(false);
-            var locations = ((JToken)response)?.ToObject<LSP.Location[]>();
-            if (locations == null)
-            {
-                return;
-            }
-
-            foreach (var location in locations)
-            {
-                var documentSpan = await _remoteLanguageServiceWorkspace.GetDocumentSpanFromLocation(location, context.CancellationToken).ConfigureAwait(false);
-                if (documentSpan == null)
-                {
-                    continue;
-                }
-
-                // Get the text for the line containing the definition to show in the UI.
-                var docText = await documentSpan.Value.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
-                var lineText = docText.GetSubText(docText.Lines[location.Range.Start.Line].Span).ToString();
-
-                await context.OnDefinitionFoundAsync(DefinitionItem.Create(ImmutableArray<string>.Empty,
-                    ImmutableArray.Create(new TaggedText(TextTags.Text, lineText)), documentSpan.Value)).ConfigureAwait(false);
-            }
+            // Find implementations is now handled by the VS LSP client.
+            return Task.CompletedTask;
         }
 
         public async Task FindReferencesAsync(Document document, int position, IFindUsagesContext context)

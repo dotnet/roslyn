@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis
             // If the language doesn't support getting syntax trees for a document, then bail out immediately.
             if (!this.SupportsSyntaxTree)
             {
-                return SpecializedTasks.Default<SyntaxTree?>();
+                return SpecializedTasks.Null<SyntaxTree>();
             }
 
             // if we have a cached result task use it
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis
                     return semanticModel;
                 }
 
-                var syntaxTree = await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
 
                 var result = compilation.GetSemanticModel(syntaxTree);

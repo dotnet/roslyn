@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
+        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
+        <target state="translated">在您的解決方案根目錄偵測到新的 .editorconfig 檔案。要將其設為解決方案項目嗎?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">將會建立新的命名空間</target>
@@ -57,9 +62,19 @@
         <target state="translated">返回</target>
         <note />
       </trans-unit>
+      <trans-unit id="Background_analysis_scope_colon">
+        <source>Background analysis scope:</source>
+        <target state="new">Background analysis scope:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">組建 + 即時分析 (NuGet 套件)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
+        <source>C#/Visual Basic Language Server Client</source>
+        <target state="new">C#/Visual Basic Language Server Client</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating_dependents">
@@ -72,6 +87,16 @@
         <target state="translated">分類</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_0">
+        <source>Code analysis completed for '{0}'.</source>
+        <target state="new">Code analysis completed for '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_completed_for_Solution">
+        <source>Code analysis completed for Solution.</source>
+        <target state="new">Code analysis completed for Solution.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">為規則運算式添加色彩</target>
@@ -79,12 +104,17 @@
       </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
-        <target state="new">Containing Member</target>
+        <target state="translated">包含的成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_type">
         <source>Containing Type</source>
-        <target state="new">Containing Type</target>
+        <target state="translated">包含的類型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Current_document">
+        <source>Current document</source>
+        <target state="new">Current document</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -92,9 +122,9 @@
         <target state="translated">元素無效。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_nullable_reference_analysis_IDE_features">
-        <source>Enable nullable reference analysis IDE features</source>
-        <target state="translated">啟用可為 null 的參考分析 IDE 功能</target>
+      <trans-unit id="Entire_solution">
+        <source>Entire solution</source>
+        <target state="new">Entire solution</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -142,6 +172,11 @@
         <target state="translated">種類</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
+        <source>Live Share C#/Visual Basic Language Server Client</source>
+        <target state="new">Live Share C#/Visual Basic Language Server Client</target>
+        <note>'Live Share' is a product name and does not need to be localized.</note>
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">即時分析 (VSIX 延伸模組)</target>
@@ -164,7 +199,7 @@
       </trans-unit>
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
-        <target state="translated">修飾詞喜好設定:</target>
+        <target state="translated">修飾元喜好設定:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -324,7 +359,7 @@
       </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
-        <target state="new">Naming rules</target>
+        <target state="translated">命名規則</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
@@ -335,6 +370,11 @@
       <trans-unit id="Non_public_methods">
         <source>Non-public methods</source>
         <target state="translated">非公用方法</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Open_documents">
+        <source>Open documents</source>
+        <target state="new">Open documents</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -350,6 +390,11 @@
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">已暫停 (佇列中的 {0} 工作)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
+        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
+        <target state="new">Prefer 'System.HashCode' in 'GetHashCode'</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -402,6 +447,11 @@
         <target state="translated">回報無效的規則運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Requires_System_HashCode_be_present_in_project">
+        <source>Requires 'System.HashCode' be present in project</source>
+        <target state="new">Requires 'System.HashCode' be present in project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">重設 Visual Studio 預設按鍵對應</target>
@@ -410,6 +460,21 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">檢閱變更</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_Code_Analysis_on_0">
+        <source>Run Code Analysis on {0}</source>
+        <target state="new">Run Code Analysis on {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_0">
+        <source>Running code analysis for '{0}'...</source>
+        <target state="new">Running code analysis for '{0}'...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_analysis_for_Solution">
+        <source>Running code analysis for Solution...</source>
+        <target state="new">Running code analysis for Solution...</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_low_priority_background_processes">
@@ -484,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
-        <target state="new">Updating severity</target>
+        <target state="translated">正在更新嚴重性</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_editorconfig_compatibility_mode">
@@ -951,7 +1016,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Modifier">
         <source>Modifier</source>
-        <target state="translated">修飾詞</target>
+        <target state="translated">修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_colon1">
@@ -1261,7 +1326,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="Modifiers_must_match_all">
         <source>Modifiers (must match all)</source>
-        <target state="translated">修飾詞 (必須符合所有項目)</target>
+        <target state="translated">修飾元 (必須符合所有項目)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_colon2">
@@ -1560,7 +1625,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Prefer_inlined_variable_declaration">
         <source>Prefer inlined variable declaration</source>
-        <target state="translated">偏好內嵌變數宣告</target>
+        <target state="translated">偏好內置變數宣告</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_methods">
@@ -1846,11 +1911,6 @@ Additional information: {1}</source>
       <trans-unit id="Analysis">
         <source>Analysis</source>
         <target state="translated">分析</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_full_solution_analysis">
-        <source>Enable full solution _analysis</source>
-        <target state="translated">啟用完整解決方案分析(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unreachable_code">

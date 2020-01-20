@@ -11,8 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Does a data flow analysis for state attached to local variables and fields of struct locals.
     /// </summary>
-    internal abstract partial class LocalDataFlowPass<TLocalState> : AbstractFlowPass<TLocalState>
-        where TLocalState : AbstractFlowPass<TLocalState>.ILocalState
+    internal abstract partial class LocalDataFlowPass<TLocalState, TLocalFunctionState> : AbstractFlowPass<TLocalState, TLocalFunctionState>
+        where TLocalState : AbstractFlowPass<TLocalState, TLocalFunctionState>.ILocalState
+        where TLocalFunctionState : AbstractFlowPass<TLocalState, TLocalFunctionState>.AbstractLocalFunctionState
     {
         /// <summary>
         /// A mapping from local variables to the index of their slot in a flow analysis local state.
@@ -184,17 +185,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fieldSymbol = symbol as TupleFieldSymbol;
             if ((object)fieldSymbol != null)
             {
-                TypeSymbol containingType = ((TupleTypeSymbol)symbol.ContainingType).UnderlyingNamedType;
+                TypeSymbol containingType = symbol.ContainingType;
 
                 // for tuple fields the variable identifier represents the underlying field
                 symbol = fieldSymbol.TupleUnderlyingField;
 
                 // descend through Rest fields
                 // force corresponding slots if do not exist
-                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything2))
+                while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything))
                 {
-                    var restField = containingType.GetMembers(TupleTypeSymbol.RestFieldName).FirstOrDefault() as FieldSymbol;
-                    if ((object)restField == null)
+                    var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() as FieldSymbol;
+                    if (restField is null)
                     {
                         return -1;
                     }
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type;
                 }
             }
 
@@ -284,6 +285,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 containingSlot = 0;
             }
             return GetOrCreateSlot(member, containingSlot);
+        }
+
+        protected int RootSlot(int slot)
+        {
+            while (true)
+            {
+                ref var varInfo = ref variableBySlot[slot];
+                if (varInfo.ContainingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = varInfo.ContainingSlot;
+                }
+            }
         }
     }
 }

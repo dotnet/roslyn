@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly SemanticModel s_testModel;
         private static readonly int s_testPosition;
-        private static readonly Symbol s_testSymbol;
+        private static readonly ISymbol s_testSymbol;
 
         static AccessibilityTests()
         {
@@ -29,7 +29,7 @@ class C1
             CSharpCompilation c = CreateEmptyCompilation(new[] { t });
             s_testModel = c.GetSemanticModel(t);
             s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
-            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception);
+            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception).GetPublicSymbol();
         }
 
         [Fact]
@@ -65,7 +65,7 @@ class C1
                 references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
 
             Assert.True(
-                s_testModel.IsAccessible(s_testPosition, symbol));
+                s_testModel.IsAccessible(s_testPosition, symbol.GetPublicSymbol()));
         }
 
         [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]

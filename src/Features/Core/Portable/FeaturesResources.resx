@@ -168,6 +168,9 @@
   <data name="The_selection_contains_no_active_statement" xml:space="preserve">
     <value>The selection contains no active statement.</value>
   </data>
+  <data name="The_selection_contains_a_local_function_call_without_its_declaration" xml:space="preserve">
+    <value>The selection contains a local function call without its declaration.</value>
+  </data>
   <data name="The_selection_contains_an_error_or_unknown_type" xml:space="preserve">
     <value>The selection contains an error or unknown type.</value>
   </data>
@@ -315,6 +318,9 @@
   <data name="parameter" xml:space="preserve">
     <value>parameter</value>
   </data>
+  <data name="discard" xml:space="preserve">
+    <value>discard</value>
+  </data>
   <data name="in_" xml:space="preserve">
     <value>in</value>
   </data>
@@ -345,8 +351,8 @@
   <data name="location_unknown" xml:space="preserve">
     <value>location unknown</value>
   </data>
-  <data name="Extract_Interface" xml:space="preserve">
-    <value>Extract Interface...</value>
+  <data name="Extract_interface" xml:space="preserve">
+    <value>Extract interface...</value>
   </data>
   <data name="Updating_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
@@ -598,11 +604,14 @@
   <data name="Unknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
-  <data name="Extract_Method" xml:space="preserve">
-    <value>Extract Method</value>
+  <data name="Extract_local_function" xml:space="preserve">
+    <value>Extract local function</value>
   </data>
-  <data name="Extract_Method_plus_Local" xml:space="preserve">
-    <value>Extract Method + Local</value>
+  <data name="Extract_method" xml:space="preserve">
+    <value>Extract method</value>
+  </data>
+  <data name="Extract_method_plus_local" xml:space="preserve">
+    <value>Extract method + local</value>
   </data>
   <data name="Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket" xml:space="preserve">
     <value>Asynchronous method cannot have ref/out parameters : [{0}]</value>
@@ -685,11 +694,11 @@ Do you want to continue?</value>
   <data name="Pending" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
   </data>
-  <data name="Awaited_task_returns" xml:space="preserve">
-    <value>Awaited task returns</value>
+  <data name="Awaited_task_returns_0" xml:space="preserve">
+    <value>Awaited task returns '{0}'</value>
   </data>
-  <data name="no_value" xml:space="preserve">
-    <value>no value.</value>
+  <data name="Awaited_task_returns_no_value" xml:space="preserve">
+    <value>Awaited task returns no value</value>
   </data>
   <data name="Note_colon_Tab_twice_to_insert_the_0_snippet" xml:space="preserve">
     <value>Note: Tab twice to insert the '{0}' snippet.</value>
@@ -699,12 +708,6 @@ Do you want to continue?</value>
   </data>
   <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
     <value>Implement interface with Dispose pattern</value>
-  </data>
-  <data name="Compiler1" xml:space="preserve">
-    <value>Compiler</value>
-  </data>
-  <data name="Style" xml:space="preserve">
-    <value>Style</value>
   </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
@@ -1406,9 +1409,6 @@ This version used in: {2}</value>
   <data name="Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked" xml:space="preserve">
     <value>Private property '{0}' can be converted to a method as its get accessor is never invoked.</value>
   </data>
-  <data name="Code_Quality" xml:space="preserve">
-    <value>Code Quality</value>
-  </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
     <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
   </data>
@@ -1571,11 +1571,11 @@ This version used in: {2}</value>
   <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API" xml:space="preserve">
     <value>Remove unused parameter '{0}' if it is not part of a shipped public API</value>
   </data>
-  <data name="Remove_unused_parameter_0_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Remove unused parameter '{0}' if it is not part of a shipped public API, its initial value is never used</value>
+  <data name="Parameter_0_can_be_removed_if_it_is_not_part_of_a_shipped_public_API_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Parameter '{0}' can be removed if it is not part of a shipped public API, its initial value is never used</value>
   </data>
-  <data name="Remove_unused_parameter_0_its_initial_value_is_never_used" xml:space="preserve">
-    <value>Remove unused parameter '{0}', its initial value is never used</value>
+  <data name="Parameter_0_can_be_removed_its_initial_value_is_never_used" xml:space="preserve">
+    <value>Parameter '{0}' can be removed, its initial value is never used</value>
   </data>
   <data name="Merge_with_nested_0_statement" xml:space="preserve">
     <value>Merge with nested '{0}' statement</value>
@@ -1672,7 +1672,10 @@ This version used in: {2}</value>
     <value>Changes made in project '{0}' will not be applied while the application is running</value>
   </data>
   <data name="DocumentIsOutOfSyncWithDebuggee" xml:space="preserve">
-    <value>The current content of source file '{0}' does not match the built source. The debug session can't continue until the content of the source file is restored.</value>
+    <value>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
+  </data>
+  <data name="UnableToReadSourceFileOrPdb" xml:space="preserve">
+    <value>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</value>
   </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>
@@ -1713,5 +1716,38 @@ This version used in: {2}</value>
   </data>
   <data name="Add_null_checks_for_all_parameters" xml:space="preserve">
     <value>Add null checks for all parameters</value>
+  </data>
+  <data name="Use_System_HashCode" xml:space="preserve">
+    <value>Use 'System.HashCode'</value>
+  </data>
+  <data name="GetHashCode_implementation_can_be_simplified" xml:space="preserve">
+    <value>'GetHashCode' implementation can be simplified</value>
+  </data>
+  <data name="Implement_0_implicitly" xml:space="preserve">
+    <value>Implement '{0}' implicitly</value>
+  </data>
+  <data name="Implement_all_interfaces_implicitly" xml:space="preserve">
+    <value>Implement all interfaces implicitly</value>
+  </data>
+  <data name="Implement_implicitly" xml:space="preserve">
+    <value>Implement implicitly</value>
+  </data>
+  <data name="Implement all interfaces explicitly" xml:space="preserve">
+    <value>Implement all interfaces explicitly</value>
+  </data>
+  <data name="Implement explicitly" xml:space="preserve">
+    <value>Implement explicitly</value>
+  </data>
+  <data name="Implement_0_explicitly" xml:space="preserve">
+    <value>Implement '{0}' explicitly</value>
+  </data>
+  <data name="Interpolation_can_be_simplified" xml:space="preserve">
+    <value>Interpolation can be simplified</value>
+  </data>
+  <data name="Simplify_interpolation" xml:space="preserve">
+    <value>Simplify interpolation</value>
+  </data>
+  <data name="Make_member_static" xml:space="preserve">
+    <value>Make static</value>
   </data>
 </root>
