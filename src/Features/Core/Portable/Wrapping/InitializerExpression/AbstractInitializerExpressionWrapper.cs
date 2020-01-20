@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        protected abstract string Unwrap_list { get; }
-        protected abstract string Wrap_long_list { get; }
-        protected abstract string Unwrap_all_items { get; }
-        protected abstract string Wrap_every_item { get; }
-        protected abstract string Indent_all_items { get; }
+        protected string Indent_all_items => FeaturesResources.Indent_all_elements;
+        protected string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
+        protected string Unwrap_list => FeaturesResources.Unwrap_element_list;
+        protected string Wrap_every_item => FeaturesResources.Wrap_every_element;
+        protected string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
 
         protected abstract bool DoWrapInitializerOpenBrace { get; }
 

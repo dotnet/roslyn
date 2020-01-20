@@ -11,7 +11,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestNoWrappingSuggestions() As Task
             Await TestMissingAsync(
