@@ -118,6 +118,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
+        // TODO: remove once Pythia moves to ExternalAccess APIs
         protected SignatureHelpItem CreateItem(
             ISymbol orderSymbol,
             SemanticModel semanticModel,
@@ -131,6 +132,24 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart> descriptionParts = null)
+        {
+            return CreateItemImpl(orderSymbol, semanticModel, position, symbolDisplayService, anonymousTypeDisplayService,
+                isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
+        }
+
+        protected static SignatureHelpItem CreateItemImpl(
+            ISymbol orderSymbol,
+            SemanticModel semanticModel,
+            int position,
+            ISymbolDisplayService symbolDisplayService,
+            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            bool isVariadic,
+            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            IList<SymbolDisplayPart> prefixParts,
+            IList<SymbolDisplayPart> separatorParts,
+            IList<SymbolDisplayPart> suffixParts,
+            IList<SignatureHelpSymbolParameter> parameters,
+            IList<SymbolDisplayPart> descriptionParts)
         {
             prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position, symbolDisplayService);
             separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position, symbolDisplayService);
@@ -184,7 +203,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 descriptionParts.ToTaggedText());
         }
 
-        private SignatureHelpSymbolParameter ReplaceAnonymousTypes(
+        private static SignatureHelpSymbolParameter ReplaceAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
             AnonymousTypeDisplayInfo info)
         {
@@ -196,7 +215,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
         }
 
-        private SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
+        private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
             SemanticModel semanticModel,
             int position,
