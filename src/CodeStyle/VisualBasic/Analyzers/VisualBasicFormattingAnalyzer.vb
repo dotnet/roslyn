@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
             End Get
         End Property
 
-        Protected Overrides Function ApplyFormattingOptions(optionSet As OptionSet, codingConventionContext As ICodingConventionContext) As OptionSet
+        Protected Overrides Function ApplyFormattingOptions(optionSet As OptionSet, codingConventionContext As AnalyzerConfigOptions) As OptionSet
             Return optionSet
         End Function
     End Class

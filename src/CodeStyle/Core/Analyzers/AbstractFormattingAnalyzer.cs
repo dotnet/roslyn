@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             });
         }
 
-        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
+        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, AnalyzerConfigOptions codingConventionContext);
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ICodingConventionsManager codingConventionsManager)
         {

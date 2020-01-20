@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis
             _options = options;
         }
 
-        public Task<ICodingConventionContext> GetConventionContextAsync(string filePathContext, CancellationToken cancellationToken)
+        public Task<AnalyzerConfigOptions> GetConventionContextAsync(string filePathContext, CancellationToken cancellationToken)
         {
             var analyzerConfigOptionsProvider = _options.AnalyzerConfigOptionsProvider;
             var analyzerConfigOptions = analyzerConfigOptionsProvider.GetOptions(_tree);
-            return Task.FromResult<ICodingConventionContext>(new AnalyzerConfigCodingConventionsContext(analyzerConfigOptions));
+            return Task.FromResult(analyzerConfigOptions);
         }
     }
 }

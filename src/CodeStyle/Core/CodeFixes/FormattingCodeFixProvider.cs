@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return Task.CompletedTask;
         }
 
-        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext);
+        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, AnalyzerConfigOptions codingConventionContext);
 
         private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {

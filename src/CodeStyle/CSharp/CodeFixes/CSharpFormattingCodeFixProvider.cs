@@ -5,6 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected override ISyntaxFormattingService SyntaxFormattingService => new CSharpSyntaxFormattingService();
 
-        protected override OptionSet ApplyFormattingOptions(OptionSet optionSet, ICodingConventionContext codingConventionContext)
+        protected override OptionSet ApplyFormattingOptions(OptionSet optionSet, AnalyzerConfigOptions codingConventionContext)
         {
-            return _editorConfigOptionsApplier.ApplyConventions(optionSet, codingConventionContext.CurrentConventions);
+            return _editorConfigOptionsApplier.ApplyConventions(optionSet, codingConventionContext);
         }
     }
 }

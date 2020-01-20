@@ -4,11 +4,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     internal interface ICodingConventionsManager
     {
-        Task<ICodingConventionContext> GetConventionContextAsync(string filePathContext, CancellationToken cancellationToken);
+        Task<AnalyzerConfigOptions> GetConventionContextAsync(string filePathContext, CancellationToken cancellationToken);
     }
 }
