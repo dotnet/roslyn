@@ -1,18 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
     internal sealed class LocalSymbol : Symbol, ILocalSymbol
     {
         private readonly Symbols.LocalSymbol _underlying;
-        private ITypeSymbol _lazyType;
+        private ITypeSymbol? _lazyType;
 
         public LocalSymbol(Symbols.LocalSymbol underlying)
         {
-            Debug.Assert(underlying is object);
+            RoslynDebug.Assert(underlying is object);
             _underlying = underlying;
         }
 
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ILocalSymbol.HasConstantValue => _underlying.HasConstantValue;
 
-        object ILocalSymbol.ConstantValue => _underlying.ConstantValue;
+        object? ILocalSymbol.ConstantValue => _underlying.ConstantValue;
 
         bool ILocalSymbol.IsFixed => _underlying.IsFixed;
 
@@ -60,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             visitor.VisitLocal(this);
         }
 
+        [return: MaybeNull]
         protected sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitLocal(this);
