@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             if (File.Exists(document.FilePath ?? document.Name))
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var codingConventionsManager = new AnalyzerConfigCodingConventionsManager(tree, document.Project.AnalyzerOptions);
-                var codingConventionContext = await codingConventionsManager.GetConventionContextAsync(document.FilePath ?? document.Name, cancellationToken).ConfigureAwait(false);
+                var codingConventionContext = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
                 options = ApplyFormattingOptions(options, codingConventionContext);
             }
 

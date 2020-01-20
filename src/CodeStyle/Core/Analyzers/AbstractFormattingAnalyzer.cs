@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -29,24 +28,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             context.RegisterSyntaxTreeAction(c =>
             {
-                var codingConventionsManager = new AnalyzerConfigCodingConventionsManager(c.Tree, c.Options);
-                AnalyzeSyntaxTree(c, codingConventionsManager);
+                AnalyzeSyntaxTree(c, c.Options.AnalyzerConfigOptionsProvider);
             });
         }
 
         protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, AnalyzerConfigOptions codingConventionContext);
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, ICodingConventionsManager codingConventionsManager)
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, AnalyzerConfigOptionsProvider codingConventionsManager)
         {
-            var tree = context.Tree;
-            var cancellationToken = context.CancellationToken;
-
-            OptionSet options = CompilerAnalyzerConfigOptions.Empty;
-            if (File.Exists(tree.FilePath))
-            {
-                var codingConventionContext = codingConventionsManager.GetConventionContextAsync(tree.FilePath, cancellationToken).GetAwaiter().GetResult();
-                options = ApplyFormattingOptions(options, codingConventionContext);
-            }
+            var codingConventionContext = codingConventionsManager.GetOptions(context.Tree);
+            var options = ApplyFormattingOptions(CompilerAnalyzerConfigOptions.Empty, codingConventionContext);
 
             FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, options);
         }
