@@ -11,14 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpFormattingAnalyzer : AbstractFormattingAnalyzer
     {
-        private readonly EditorConfigOptionsApplier _editorConfigOptionsApplier = new EditorConfigOptionsApplier();
-
         protected override ISyntaxFormattingService SyntaxFormattingService
             => new CSharpSyntaxFormattingService();
-
-        protected override OptionSet ApplyFormattingOptions(OptionSet optionSet, AnalyzerConfigOptions codingConventionContext)
-        {
-            return _editorConfigOptionsApplier.ApplyConventions(optionSet, codingConventionContext);
-        }
     }
 }

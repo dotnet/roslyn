@@ -26,20 +26,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxTreeAction(c =>
-            {
-                AnalyzeSyntaxTree(c, c.Options.AnalyzerConfigOptionsProvider);
-            });
+            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
         }
 
-        protected abstract OptionSet ApplyFormattingOptions(OptionSet optionSet, AnalyzerConfigOptions codingConventionContext);
-
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context, AnalyzerConfigOptionsProvider codingConventionsManager)
+        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            var codingConventionContext = codingConventionsManager.GetOptions(context.Tree);
-            var options = ApplyFormattingOptions(CompilerAnalyzerConfigOptions.Empty, codingConventionContext);
-
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, options);
+            var analyzerConfigOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree);
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, SyntaxFormattingService, Descriptor, analyzerConfigOptions);
         }
     }
 }

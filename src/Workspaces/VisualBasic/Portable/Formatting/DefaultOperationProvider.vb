@@ -5,8 +5,13 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+
+#If CODE_STYLE Then
+Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
+#Else
+Imports Microsoft.CodeAnalysis.Options
+#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     ' the default provider that will be called by the engine at the end of provider's chain.

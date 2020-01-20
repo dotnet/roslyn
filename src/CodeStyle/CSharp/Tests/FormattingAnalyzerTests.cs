@@ -266,34 +266,19 @@ root = true
 csharp_new_line_before_open_brace = methods
 ";
 
-            var testDirectoryName = Path.GetRandomFileName();
-            Directory.CreateDirectory(testDirectoryName);
-            try
+            await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
             {
-                File.WriteAllText(Path.Combine(testDirectoryName, ".editorconfig"), editorConfig);
-
-                // The contents of this file are ignored, but the coding conventions library checks for existence before
-                // .editorconfig is used.
-                File.WriteAllText(Path.Combine(testDirectoryName, "Test0.cs"), string.Empty);
-
-                await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
+                TestState = { Sources = { (Path.GetFullPath("Test0.cs"), testCode) } },
+                FixedState = { Sources = { (Path.GetFullPath("Test0.cs"), fixedCode) } },
+                SolutionTransforms =
                 {
-                    TestState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), testCode) } },
-                    FixedState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), fixedCode) } },
-                    SolutionTransforms =
+                    (solution, projectId) =>
                     {
-                        (solution, projectId) =>
-                        {
-                            var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
-                            return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(editorConfig, Encoding.UTF8), filePath: Path.GetFullPath(Path.Combine(testDirectoryName, ".editorconfig")));
-                        },
+                        var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
+                        return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(editorConfig, Encoding.UTF8), filePath: Path.GetFullPath(".editorconfig"));
                     },
-                }.RunAsync();
-            }
-            finally
-            {
-                Directory.Delete(testDirectoryName, true);
-            }
+                },
+            }.RunAsync();
         }
     }
 }

@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.CodeStyle
@@ -17,9 +16,5 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
                 Return New VisualBasicSyntaxFormattingService()
             End Get
         End Property
-
-        Protected Overrides Function ApplyFormattingOptions(optionSet As OptionSet, codingConventionContext As AnalyzerConfigOptions) As OptionSet
-            Return optionSet
-        End Function
     End Class
 End Namespace
