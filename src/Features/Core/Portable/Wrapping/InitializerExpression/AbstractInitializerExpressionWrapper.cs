@@ -3,6 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 {
@@ -18,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         protected string Unwrap_list => FeaturesResources.Unwrap_element_list;
         protected string Wrap_every_item => FeaturesResources.Wrap_every_element;
         protected string Wrap_long_list => FeaturesResources.Wrap_long_element_list;
-
-        protected abstract bool DoWrapInitializerOpenBrace { get; }
 
         protected AbstractInitializerExpressionWrapper(IIndentationService indentationService)
             : base(indentationService)
@@ -58,7 +57,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new InitializerExpressionCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, DoWrapInitializerOpenBrace, cancellationToken);
+                this, document, sourceText, options, listSyntax, listItems, TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(options), cancellationToken);
         }
+
+        protected abstract bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options);
     }
 }

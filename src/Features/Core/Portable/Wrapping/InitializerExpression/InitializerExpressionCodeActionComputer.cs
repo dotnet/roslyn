@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             private readonly SyntaxTrivia _afterOpenTokenIndentationTrivia;
             private readonly SyntaxTrivia _singleIndentationTrivia;
             private readonly SyntaxTrivia _braceIndentationTrivia;
-            private readonly bool _doWrapInitializerOpenBrace;
+            private readonly bool _doMoveOpenBraceToNewLine;
 
             public InitializerExpressionCodeActionComputer(
                 AbstractInitializerExpressionWrapper<TListSyntax, TListItemSyntax> service,
                 Document document, SourceText sourceText, DocumentOptionSet options,
                 TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems,
-                bool doWrapInitializerOpenBrace, CancellationToken cancellationToken)
+                bool doMoveOpenBraceToNewLine, CancellationToken cancellationToken)
                 : base(service, document, sourceText, options, cancellationToken)
             {
                 _listSyntax = listSyntax;
@@ -40,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
                 _braceIndentationTrivia = generator.Whitespace(GetBraceTokenIndentation());
-
-                _doWrapInitializerOpenBrace = doWrapInitializerOpenBrace;
+                _doMoveOpenBraceToNewLine = doMoveOpenBraceToNewLine;
             }
 
             private string GetAfterOpenTokenIdentation()
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                if (_doWrapInitializerOpenBrace)
+                if (_doMoveOpenBraceToNewLine)
                 {
                     result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
                 }
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                if (_doWrapInitializerOpenBrace)
+                if (_doMoveOpenBraceToNewLine)
                 {
                     result.Add(Edit.DeleteBetween(_listSyntax.GetFirstToken().GetPreviousToken(), _listSyntax.GetFirstToken()));
                 }
@@ -223,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var result = ArrayBuilder<Edit>.GetInstance();
 
-                if (_doWrapInitializerOpenBrace)
+                if (_doMoveOpenBraceToNewLine)
                 {
                     result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
                 }
