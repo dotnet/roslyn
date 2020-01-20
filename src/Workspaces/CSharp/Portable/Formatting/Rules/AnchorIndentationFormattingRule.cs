@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case AccessorDeclarationSyntax accessorDeclNode:
                     AddAnchorIndentationOperation(list, accessorDeclNode);
                     return;
-                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKindEx.SwitchExpressionArm):
+                case CSharpSyntaxNode switchExpressionArm when switchExpressionArm.IsKind(SyntaxKind.SwitchExpressionArm):
                     // The expression in a switch expression arm should be anchored to the beginning of the arm
                     // ```
                     // e switch

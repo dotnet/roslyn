@@ -336,21 +336,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Index expressions
-            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKindEx.IndexExpression)
+            if (previousKind == SyntaxKind.CaretToken && previousParentKind == SyntaxKind.IndexExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             // Right of Range expressions
-            if (previousKind == SyntaxKindEx.DotDotToken && previousParentKind == SyntaxKindEx.RangeExpression)
+            if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.RangeExpression)
             {
-#if !CODE_STYLE
                 var rangeExpression = (RangeExpressionSyntax)previousToken.Parent;
                 var hasRightOperand = rangeExpression.RightOperand != null;
-#else
-                var childSyntax = previousToken.Parent.ChildNodesAndTokens();
-                var hasRightOperand = childSyntax.Count > 1 && childSyntax[childSyntax.Count - 2].IsKind(SyntaxKindEx.DotDotToken);
-#endif
                 if (hasRightOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
@@ -358,15 +353,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Left of Range expressions
-            if (currentKind == SyntaxKindEx.DotDotToken && currentParentKind == SyntaxKindEx.RangeExpression)
+            if (currentKind == SyntaxKind.DotDotToken && currentParentKind == SyntaxKind.RangeExpression)
             {
-#if !CODE_STYLE
                 var rangeExpression = (RangeExpressionSyntax)currentToken.Parent;
                 var hasLeftOperand = rangeExpression.LeftOperand != null;
-#else
-                var childSyntax = currentToken.Parent.ChildNodesAndTokens();
-                var hasLeftOperand = childSyntax.Count > 1 && childSyntax[1].IsKind(SyntaxKindEx.DotDotToken);
-#endif
                 if (hasLeftOperand)
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);

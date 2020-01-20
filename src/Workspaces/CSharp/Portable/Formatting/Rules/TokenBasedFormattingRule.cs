@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
-                                               SyntaxKindEx.SwitchExpressionArm))
+                                               SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
-                currentToken.Parent.Kind() == SyntaxKindEx.SuppressNullableWarningExpression)
+                currentToken.Parent.Kind() == SyntaxKind.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // ! *, except where ! is the suppress nullable warning operator
             if (previousToken.Kind() == SyntaxKind.ExclamationToken
-                && previousToken.Parent.Kind() != SyntaxKindEx.SuppressNullableWarningExpression)
+                && previousToken.Parent.Kind() != SyntaxKind.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

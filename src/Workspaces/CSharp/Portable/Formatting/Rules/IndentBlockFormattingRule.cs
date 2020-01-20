@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
-                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKindEx.SwitchExpression):
+                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKind.SwitchExpression):
                     SetAlignmentBlockOperation(
                         list,
                         syntaxNode.GetFirstToken(),
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKindEx.PropertyPatternClause) || node.IsKind(SyntaxKindEx.SwitchExpression))
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKind.PropertyPatternClause) || node.IsKind(SyntaxKind.SwitchExpression))
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }

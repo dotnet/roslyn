@@ -16,43 +16,9 @@ namespace Microsoft.CodeAnalysis
 {
     public class AnalyzerConfigCodingConventionsContext : ICodingConventionContext, ICodingConventionsSnapshot
     {
-        private static readonly Func<object, string, string?> TryGetAnalyzerConfigValue;
+        private readonly AnalyzerConfigOptions _analyzerConfigOptions;
 
-        private readonly object _analyzerConfigOptions;
-
-        static AnalyzerConfigCodingConventionsContext()
-        {
-            TryGetAnalyzerConfigValue = CreateTryGetAnalyzerConfigValueAccessor();
-
-            static Func<object, string, string?> CreateTryGetAnalyzerConfigValueAccessor()
-            {
-                var analyzerConfigOptions = typeof(AnalyzerOptions).GetTypeInfo().Assembly.GetType("Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions", throwOnError: false, ignoreCase: false);
-                var method = analyzerConfigOptions?.GetRuntimeMethod("TryGetValue", new[] { typeof(string), typeof(string).MakeByRefType() });
-                if (method is null)
-                {
-                    return (_1, _2) => null;
-                }
-
-                var instance = Expression.Parameter(typeof(object), "instance");
-                var key = Expression.Parameter(typeof(string), "key");
-                var value = Expression.Variable(typeof(string), "value");
-                var accessor = Expression.Lambda<Func<object, string, string>>(
-                    Expression.Block(
-                        typeof(string),
-                        new[] { value },
-                        Expression.Call(
-                            Expression.Convert(instance, analyzerConfigOptions),
-                            method,
-                            key,
-                            value),
-                        value),
-                    instance,
-                    key);
-                return accessor.Compile();
-            }
-        }
-
-        public AnalyzerConfigCodingConventionsContext(object analyzerConfigOptions)
+        public AnalyzerConfigCodingConventionsContext(AnalyzerConfigOptions analyzerConfigOptions)
         {
             _analyzerConfigOptions = analyzerConfigOptions;
         }
@@ -88,7 +54,15 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            conventionValue = (T)(object?)TryGetAnalyzerConfigValue(_analyzerConfigOptions, conventionName)!;
+            if (_analyzerConfigOptions.TryGetValue(conventionName, out var value))
+            {
+                conventionValue = (T)(object)value;
+            }
+            else
+            {
+                conventionValue = default!;
+            }
+
             return conventionValue is object;
         }
     }

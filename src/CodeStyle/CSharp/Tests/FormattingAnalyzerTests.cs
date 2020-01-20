@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -276,6 +278,14 @@ csharp_new_line_before_open_brace = methods
                 {
                     TestState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), testCode) } },
                     FixedState = { Sources = { (Path.GetFullPath(Path.Combine(testDirectoryName, "Test0.cs")), fixedCode) } },
+                    SolutionTransforms =
+                    {
+                        (solution, projectId) =>
+                        {
+                            var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
+                            return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(editorConfig, Encoding.UTF8), filePath: Path.GetFullPath(Path.Combine(testDirectoryName, ".editorconfig")));
+                        },
+                    },
                 }.RunAsync();
             }
             finally
