@@ -1,22 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal class EditorConfigOptionsApplier
     {
-        public OptionSet ApplyConventions(OptionSet optionSet, ICodingConventionsSnapshot codingConventions)
+        public OptionSet ApplyConventions(OptionSet optionSet, AnalyzerConfigOptions codingConventions)
         {
             return new CodingConventionsAnalyzerConfigOptions(codingConventions, optionSet);
         }
 
         private sealed class CodingConventionsAnalyzerConfigOptions : OptionSet
         {
-            private readonly ICodingConventionsSnapshot _codingConventionsSnapshot;
+            private readonly AnalyzerConfigOptions _codingConventionsSnapshot;
             private readonly OptionSet _fallbackOptions;
 
-            public CodingConventionsAnalyzerConfigOptions(ICodingConventionsSnapshot codingConventionsSnapshot, OptionSet fallbackOptions)
+            public CodingConventionsAnalyzerConfigOptions(AnalyzerConfigOptions codingConventionsSnapshot, OptionSet fallbackOptions)
             {
                 _codingConventionsSnapshot = codingConventionsSnapshot;
                 _fallbackOptions = fallbackOptions;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
             public override bool TryGetValue(string key, out string value)
             {
-                if (_codingConventionsSnapshot.TryGetConventionValue(key, out value))
+                if (_codingConventionsSnapshot.TryGetValue(key, out value))
                 {
                     return true;
                 }
