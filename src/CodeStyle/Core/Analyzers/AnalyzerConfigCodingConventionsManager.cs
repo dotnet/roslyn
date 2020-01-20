@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,25 +12,15 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly SyntaxTree _tree;
         private readonly AnalyzerOptions _options;
-        private readonly ICodingConventionsManager? _codingConventionsManager;
 
         public AnalyzerConfigCodingConventionsManager(SyntaxTree tree, AnalyzerOptions options)
         {
             _tree = tree;
             _options = options;
-            if (options.AnalyzerConfigOptionsProvider is null)
-            {
-                _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
-            }
         }
 
         public Task<ICodingConventionContext> GetConventionContextAsync(string filePathContext, CancellationToken cancellationToken)
         {
-            if (_codingConventionsManager is object)
-            {
-                return _codingConventionsManager.GetConventionContextAsync(filePathContext, cancellationToken);
-            }
-
             var analyzerConfigOptionsProvider = _options.AnalyzerConfigOptionsProvider;
             var analyzerConfigOptions = analyzerConfigOptionsProvider.GetOptions(_tree);
             return Task.FromResult<ICodingConventionContext>(new AnalyzerConfigCodingConventionsContext(analyzerConfigOptions));

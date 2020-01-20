@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
-Imports Microsoft.VisualStudio.CodingConventions
 
 Namespace Microsoft.CodeAnalysis.CodeStyle
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
