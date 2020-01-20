@@ -120,9 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 
         private bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccessExpression))
             {
-                var memberAccessExpression = (MemberAccessExpressionSyntax)expression;
                 return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
                     memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
             }

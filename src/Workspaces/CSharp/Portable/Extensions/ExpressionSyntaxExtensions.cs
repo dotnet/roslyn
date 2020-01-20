@@ -249,9 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool TryGetNameParts(this ExpressionSyntax expression, List<string> parts)
         {
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
                 if (!TryGetNameParts(memberAccess.Expression, parts))
                 {
                     return false;
@@ -259,9 +258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return AddSimpleName(memberAccess.Name, parts);
             }
-            else if (expression.IsKind(SyntaxKind.QualifiedName))
+            else if (expression.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName))
             {
-                var qualifiedName = (QualifiedNameSyntax)expression;
                 if (!TryGetNameParts(qualifiedName.Left, parts))
                 {
                     return false;
@@ -1531,10 +1529,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         // In case the alias name is the same as the last name of the alias target, we only include 
                         // the left part of the name in the unnecessary span to Not confuse uses.
-                        if (name.Kind() == SyntaxKind.QualifiedName)
+                        if (name.IsKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax qualifiedName3))
                         {
-                            var qualifiedName3 = (QualifiedNameSyntax)name;
-
                             if (qualifiedName3.Right.Identifier.ValueText == identifierToken.ValueText)
                             {
                                 issueSpan = qualifiedName3.Left.Span;
@@ -2148,10 +2144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool IsNameOrMemberAccessButNoExpression(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
             {
-                var memberAccess = (MemberAccessExpressionSyntax)node;
-
                 return memberAccess.Expression.IsKind(SyntaxKind.IdentifierName) ||
                     IsNameOrMemberAccessButNoExpression(memberAccess.Expression);
             }
@@ -2678,9 +2672,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
         {
-            if (expression.IsKind(SyntaxKind.ThrowExpression))
+            if (expression.IsKind(SyntaxKind.ThrowExpression, out ThrowExpressionSyntax throwExpression))
             {
-                var throwExpression = (ThrowExpressionSyntax)expression;
                 return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
             }
             else if (createReturnStatementForExpression)

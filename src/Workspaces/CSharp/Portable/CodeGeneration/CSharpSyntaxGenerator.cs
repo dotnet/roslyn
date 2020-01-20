@@ -527,9 +527,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithoutConstraints(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.MethodDeclaration))
+            if (declaration.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax method))
             {
-                var method = (MethodDeclarationSyntax)declaration;
                 if (method.ConstraintClauses.Count > 0)
                 {
                     return this.RemoveNodes(method, method.ConstraintClauses);
