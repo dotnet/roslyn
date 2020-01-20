@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                         return false;
                     }
 
-                    if (node.IsKind(SyntaxKind.LockStatement))
+                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax lockStatement))
                     {
-                        var lockStatement = (LockStatementSyntax)node;
                         if (lockStatement.Statement != null &&
                             !lockStatement.Statement.IsMissing &&
                             lockStatement.Statement.Span.Contains(position))
