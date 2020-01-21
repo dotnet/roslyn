@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,7 +22,7 @@ Module M
     Public Class D
     End Class
 End Module";
-                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, new Lazy<string>(() => $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -29,7 +30,7 @@ Friend Module M
     Public Class [|D|]
         Public Sub New()
     End Class
-End Module");
+End Module"));
             }
 
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
@@ -65,7 +66,7 @@ Namespace System
 End Namespace";
 
                 using var context = TestContext.Create(LanguageNames.VisualBasic);
-                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected);
+                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", new Lazy<string>(() => expected));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]

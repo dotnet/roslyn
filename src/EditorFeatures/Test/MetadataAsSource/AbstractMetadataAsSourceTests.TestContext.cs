@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -33,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 bool includeXmlDocComments = false,
                 string sourceWithSymbolReference = null,
                 string languageVersion = null,
-                string metadataLanguageVersion = null)
+                string metadataLanguageVersion = null,
+                ExportProvider exportProvider = null)
             {
                 projectLanguage ??= LanguageNames.CSharp;
                 metadataSources ??= SpecializedCollections.EmptyEnumerable<string>();
@@ -43,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 
                 var workspace = CreateWorkspace(
                     projectLanguage, metadataSources, includeXmlDocComments,
-                    sourceWithSymbolReference, languageVersion, metadataLanguageVersion);
+                    sourceWithSymbolReference, languageVersion, metadataLanguageVersion,
+                    exportProvider);
                 return new TestContext(workspace);
             }
 
@@ -95,22 +99,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 return string.Join(" ", tokens);
             }
 
-            public void VerifyResult(MetadataAsSourceFile file, string expected)
+            public void VerifyResult(MetadataAsSourceFile file, Lazy<string> expected)
             {
                 var actual = File.ReadAllText(file.FilePath).Trim();
                 var actualSpan = file.IdentifierLocation.SourceSpan;
+                var expectedText = expected.Value;
 
                 // Compare exact texts and verify that the location returned is exactly that
                 // indicated by expected
-                MarkupTestFile.GetSpan(expected, out expected, out var expectedSpan);
-                AssertEx.EqualOrDiff(expected, actual);
+                MarkupTestFile.GetSpan(expectedText, out expectedText, out var expectedSpan);
+                AssertEx.EqualOrDiff(expectedText, actual);
                 Assert.Equal(expectedSpan.Start, actualSpan.Start);
                 Assert.Equal(expectedSpan.End, actualSpan.End);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, Lazy<string> expected, Project project = null, bool allowDecompilation = false)
             {
-                var result = await GenerateSourceAsync(symbolMetadataName, project);
+                var result = await GenerateSourceAsync(symbolMetadataName, project, allowDecompilation);
                 VerifyResult(result, expected);
             }
 
@@ -215,7 +220,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             private static TestWorkspace CreateWorkspace(
                 string projectLanguage, IEnumerable<string> metadataSources,
                 bool includeXmlDocComments, string sourceWithSymbolReference,
-                string languageVersion, string metadataLanguageVersion)
+                string languageVersion, string metadataLanguageVersion,
+                ExportProvider exportProvider)
             {
                 var languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
 
@@ -252,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     </Project>
 </Workspace>");
 
-                return TestWorkspace.Create(xmlString);
+                return TestWorkspace.Create(xmlString, exportProvider: exportProvider);
             }
 
             internal Document GetDocument(MetadataAsSourceFile file)

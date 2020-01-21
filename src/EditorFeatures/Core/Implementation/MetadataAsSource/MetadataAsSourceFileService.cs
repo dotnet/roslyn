@@ -139,11 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                         }
                         catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
                         {
+                            // Insert the exception message at the top of the fallback Metadata As Source document to
+                            // help with diagnosing failures. When the generated source is added to the document, this
+                            // comment will end up at the bottom.
                             var failureText = e.ToString();
-                            var failureTextAsComment = "// " + failureText.Replace("\n", "\n// ") + "\n";
+                            var failureTextAsComment = "// " + failureText.Replace("\n", "\n// ") + Environment.NewLine;
 
                             var sourceText = await temporaryDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            temporaryDocument = temporaryDocument.WithText(sourceText.Replace(default, failureTextAsComment));
+                            temporaryDocument = temporaryDocument.WithText(sourceText.Replace(new TextSpan(0, 0), failureTextAsComment));
 
                             useDecompiler = false;
                         }
