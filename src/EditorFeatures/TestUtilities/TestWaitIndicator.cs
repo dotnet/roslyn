@@ -20,13 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [ImportingConstructor]
         public TestWaitIndicator()
-            : this(new UncancellableWaitContext())
         {
-        }
-
-        internal TestWaitIndicator(IWaitContext waitContext)
-        {
-            _waitContext = waitContext;
+            _waitContext = new UncancellableWaitContext();
         }
 
         IWaitContext IWaitIndicator.StartWait(string title, string message, bool allowCancel, bool showProgress)

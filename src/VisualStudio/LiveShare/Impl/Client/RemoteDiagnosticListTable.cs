@@ -25,16 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         [ImportingConstructor]
         public RemoteDiagnosticListTable(
             SVsServiceProvider serviceProvider, RemoteLanguageServiceWorkspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-            this(workspace, diagnosticService, provider)
-        {
-            ConnectWorkspaceEvents();
-        }
-
-        private RemoteDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
-            : base(workspace, provider)
+            base(workspace, provider)
         {
             _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
+
+            ConnectWorkspaceEvents();
         }
 
         public void UpdateWorkspaceDiagnosticsPresent(bool diagnosticsPresent)

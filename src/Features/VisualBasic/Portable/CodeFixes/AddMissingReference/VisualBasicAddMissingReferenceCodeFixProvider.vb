@@ -4,8 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddMissingReference
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Packaging
-Imports Microsoft.CodeAnalysis.SymbolSearch
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
 
@@ -19,13 +17,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddMissingReference
 
         <ImportingConstructor>
         Public Sub New()
-        End Sub
-
-        ''' <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
-        Friend Sub New(
-            installerService As IPackageInstallerService,
-            symbolSearchService As ISymbolSearchService)
-            MyBase.New(installerService, symbolSearchService)
         End Sub
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
