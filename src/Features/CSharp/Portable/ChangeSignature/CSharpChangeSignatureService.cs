@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         {
         }
 
-        public override async Task<(ISymbol symbol, int selectedIndex, int insertPosition)> GetInvocationSymbolAsync(
+        public override async Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -113,20 +113,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return default;
             }
 
-            int? insertPositionOpt = TryGetInsertPositionFromDeclaration(matchingNode);
-            if (insertPositionOpt == null)
-            {
-                return default;
-            }
-
-            int insertPosition = insertPositionOpt.Value;
-
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(matchingNode, cancellationToken);
             if (symbol != null)
             {
                 var selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode);
-                return (symbol, selectedIndex, insertPosition);
+                return (symbol, selectedIndex);
             }
 
             if (matchingNode.IsKind(SyntaxKind.ObjectCreationExpression))
@@ -136,15 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
                 {
                     var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
+
                     if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                     {
-                        return (typeSymbol, 0, insertPosition);
+                        return (typeSymbol, 0);
                     }
                 }
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
-            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0, insertPosition);
+            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0);
         }
 
         private static int TryGetSelectedIndexFromDeclaration(int position, SyntaxNode matchingNode)
@@ -155,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         // Find the position to insert the new parameter.
         // We will insert a new comma and a parameter.
-        private static int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
+        protected override int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode)
         {
             var parameters = matchingNode.ChildNodes().OfType<ParameterListSyntax>().SingleOrDefault();
 

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var seenDefaultValues = false;
-            foreach (var param in parameters)
+            foreach (var param in parametersList)
             {
                 if (param != null)
                 {

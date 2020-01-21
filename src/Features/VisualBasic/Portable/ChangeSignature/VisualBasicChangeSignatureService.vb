@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 document As Document,
                 position As Integer,
                 restrictToDeclarations As Boolean,
-                cancellationToken As CancellationToken) As Task(Of (symbol As ISymbol, selectedIndex As Integer, insertPosition As Integer))
+                cancellationToken As CancellationToken) As Task(Of (symbol As ISymbol, selectedIndex As Integer))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(If(position <> tree.Length, position, Math.Max(0, position - 1)))
 
@@ -107,12 +107,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return Nothing
             End If
 
-            Dim insertPosition = TryGetInsertPositionFromDeclaration(matchingNode)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim symbol = TryGetDeclaredSymbol(semanticModel, matchingNode, token, cancellationToken)
             If symbol IsNot Nothing Then
                 Dim selectedIndex = TryGetSelectedIndexFromDeclaration(position, matchingNode)
-                Return (symbol, selectedIndex, insertPosition)
+                Return (symbol, selectedIndex)
             End If
 
             If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
@@ -120,16 +119,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
                     Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol
                     If typeSymbol IsNot Nothing AndAlso typeSymbol.IsKind(SymbolKind.NamedType) AndAlso DirectCast(typeSymbol, ITypeSymbol).TypeKind = TypeKind.Delegate Then
-                        Return (typeSymbol, 0, insertPosition)
+                        Return (typeSymbol, 0)
                     End If
                 End If
             End If
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
-            Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0, insertPosition)
+            Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
         End Function
 
-        Private Shared Function TryGetInsertPositionFromDeclaration(matchingNode As SyntaxNode) As Integer
+        Protected Overrides Function TryGetInsertPositionFromDeclaration(matchingNode As SyntaxNode) As Integer?
             Dim parameters = matchingNode.ChildNodes().OfType(Of ParameterListSyntax)().SingleOrDefault()
 
             If parameters Is Nothing Then

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         /// <summary>
         /// Determines the symbol on which we are invoking ReorderParameters
         /// </summary>
-        public abstract Task<(ISymbol symbol, int selectedIndex, int insertPosition)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
+        public abstract Task<(ISymbol symbol, int selectedIndex)> GetInvocationSymbolAsync(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a SyntaxNode for which we want to reorder parameters/arguments, find the 
@@ -90,13 +90,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         internal async Task<ChangeSignatureAnalyzedContext> GetContextAsync(
             Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
-            var (symbol, selectedIndex, insertPosition) = await GetInvocationSymbolAsync(
+            var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
                 document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
 
             // Cross-language symbols will show as metadata, so map it to source if possible.
             symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false) ?? symbol;
 
             if (symbol == null)
+            {
+                return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
+            }
+
+            int? insertPositionOpt = TryGetInsertPositionFromDeclaration(symbol.Locations.FirstOrDefault().FindNode(cancellationToken));
+            if (insertPositionOpt == null)
             {
                 return new CannotChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
@@ -142,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 symbol.IsExtensionMethod(), selectedIndex);
 
             return new ChangeSignatureAnalyzedSucceedContext(
-                document, insertPosition, symbol, parameterConfiguration);
+                document, insertPositionOpt.Value, symbol, parameterConfiguration);
         }
 
         private async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, CancellationToken cancellationToken)
@@ -155,6 +161,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             return await ChangeSignatureWithContextAsync(context, options, cancellationToken).ConfigureAwait(false);
         }
+
+        protected abstract int? TryGetInsertPositionFromDeclaration(SyntaxNode matchingNode);
 
         internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedSucceedContext context, ChangeSignatureOptionsResult options, CancellationToken cancellationToken)
         {
@@ -182,7 +190,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
                 var engine = new FindReferencesSearchEngine(
                     solution,
-                    documents: ImmutableSortedSet<Document>.Empty,
+                    documents: null,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
                     FindReferencesSearchOptions.Default,
