@@ -2,10 +2,16 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -183,23 +189,14 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
-        {
-            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule,
-                line, column, typeArgumentName, registerMethodName);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName)
-        {
-            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule,
-                line, column, typeArgumentName, registerMethodName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string typeArgumentName, string registerMethodName)
-        {
-            return new DiagnosticResult(rule)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName) =>
+            VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule)
                 .WithLocation(line, column)
                 .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string typeArgumentName, string registerMethodName) =>
+            VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.InvalidSyntaxKindTypeArgumentRule)
+                .WithLocation(line, column)
+                .WithArguments(typeArgumentName, DiagnosticAnalyzerCorrectnessAnalyzer.TLanguageKindEnumName, registerMethodName);
     }
 }

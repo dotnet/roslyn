@@ -6,8 +6,12 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
-using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
-using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerFieldsAnalyzer, Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
+using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
+    Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerFieldsAnalyzer,
+    Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
@@ -247,23 +251,14 @@ End Class
             await VerifyVB.VerifyAnalyzerAsync(source);
         }
 
-        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName)
-        {
-            return GetExpectedDiagnostic(CSharp.Analyzers.MetaAnalyzers.CSharpDiagnosticAnalyzerFieldsAnalyzer.DoNotStorePerCompilationDataOntoFieldsRule,
-                line, column, violatingTypeName);
-        }
-
-        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName)
-        {
-            return GetExpectedDiagnostic(VisualBasic.Analyzers.MetaAnalyzers.BasicDiagnosticAnalyzerFieldsAnalyzer.DoNotStorePerCompilationDataOntoFieldsRule,
-                line, column, violatingTypeName);
-        }
-
-        private static DiagnosticResult GetExpectedDiagnostic(DiagnosticDescriptor rule, int line, int column, string violatingTypeName)
-        {
-            return new DiagnosticResult(rule)
+        private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+            VerifyCS.Diagnostic()
                 .WithLocation(line, column)
                 .WithArguments(violatingTypeName);
-        }
+
+        private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string violatingTypeName) =>
+            VerifyVB.Diagnostic()
+                .WithLocation(line, column)
+                .WithArguments(violatingTypeName);
     }
 }
